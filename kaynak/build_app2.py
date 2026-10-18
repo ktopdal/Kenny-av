@@ -153,9 +153,12 @@ def assemble(preview, data):
             '<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Kenny Av">'
             '<meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" href="icon-192.png">')
     html = html.replace('<!--__HEAD__-->', head)
+    # başlık, meta, bağlantı ve stil <head> içine; işaretleme ve betikler <body> içine (manifest ve iOS ayarları yalnızca head'de okunur)
+    cut = html.index('</style>') + len('</style>')
     return ('<!doctype html><html lang="tr"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
-            '<style>:root{padding-top:env(safe-area-inset-top,0px)}</style></head><body>' + html + '</body></html>')
+            '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>'
+            + html[:cut] + '</head><body>' + html[cut:] + '</body></html>')
 
 
 def icons():
