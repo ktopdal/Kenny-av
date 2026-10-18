@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------- 75 · Daha: menü ve sayfalar (ayarlar, bulut yedek, özel paket, konumlar, alışveriş…)
 const MORE = [
-  ['ayarlar', 'Ayarlar', () => 'Tema, renkler, rüzgâr renkleri, yazı boyutu'],
+  ['ayarlar', 'Ayarlar', () => 'Tema, renkler, rüzgâr renkleri, yazı boyutu, tekne'],
+  ['gorunum', 'Görünüm', () => 'Tablo satırları, Bugün kartları, birimler, hava modeli'],
   ['yedek', 'Bulut yedek', () => bkReady() ? (S.backup.err ? '⚠ ' + S.backup.err : S.backup.lastAt ? 'Son yedek ' + fmtDT(new Date(S.backup.lastAt)) : 'Bağlı, henüz yedek yok') : 'Kapalı · GitHub deponda şifreli yedek'],
   ['paket', 'Özel paket', () => S.pkg.need ? '⚠ Güncellendi, yeni şifreyle aç' : pkgOn() ? 'Açık · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem' : 'Kapalı'],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
@@ -25,7 +26,7 @@ function renderNewVersion(){
 }
 function openMore(name, keep){
   ui.sheet = name;
-  const F = {ayarlar: sheetSettings, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {ayarlar: sheetSettings, gorunum: sheetView, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -55,8 +56,32 @@ function setSetting(name, val){
   else if (name === 'preset') { S.settings.preset = val; S.settings.brand = ''; S.settings.accent = ''; }
   else if (name === 'zoom') S.settings.zoom = Number(val) || 0;
   else S.settings[name] = val;
+  if (name === 'model' && S.wx) WX = buildWx();
   persist(); applyTheme(); indexAll(); renderAll();
-  if (ui.sheet === 'ayarlar') openMore('ayarlar', true);
+  if (ui.sheet === 'ayarlar' || ui.sheet === 'gorunum') openMore(ui.sheet, true);
+}
+// ---- Görünüm: tablo satırları, Bugün kartları, takvim satırları, birimler, model
+const ROW_REG = () => ({hrows: HROWS, cards: TCARDS, calrows: CROWS});
+const rowsOf = list => orderedRows(ROW_REG()[list], S.settings[list]);
+function saveRows(list, rows){ S.settings[list] = rows.map(r => [r.id, r.on ? 1 : 0]); persist(); renderAll(); if (ui.sheet === 'gorunum') openMore('gorunum', true); }
+function moveRow(list, id, dir){ const rows = rowsOf(list); const i = rows.findIndex(r => r.id === id), j = i + dir; if (i < 0 || j < 0 || j >= rows.length || rows[i].fixed || rows[j].fixed) return; const t = rows[i]; rows[i] = rows[j]; rows[j] = t; saveRows(list, rows); }
+function toggleRow(list, id, on){ const rows = rowsOf(list); const r = rows.find(x => x.id === id); if (!r || r.fixed) return; r.on = on; saveRows(list, rows); }
+function sheetView(){
+  const st = S.settings;
+  const list = (name, title, note, canMove) => { const rows = rowsOf(name);
+    return '<section class="set"><h4>' + esc(title) + '</h4>' + (note ? '<p class="note">' + esc(note) + '</p>' : '') + '<div class="rowlist">' + rows.map((r, i) =>
+      '<div class="rl' + (r.on ? '' : ' off') + '"><label class="chk"><input type="checkbox" data-rowtog="' + name + '|' + r.id + '"' + (r.on ? ' checked' : '') + (r.fixed ? ' disabled' : '') + '> ' + esc(r.t) + '</label>' +
+      (canMove ? '<span class="mv"><button class="btn small" type="button" data-rowmv="' + name + '|' + r.id + '|-1"' + (i === 0 || r.fixed || rows[i - 1].fixed ? ' disabled' : '') + ' aria-label="' + esc(r.t) + ' yukarı">↑</button>' +
+        '<button class="btn small" type="button" data-rowmv="' + name + '|' + r.id + '|1"' + (i === rows.length - 1 || r.fixed ? ' disabled' : '') + ' aria-label="' + esc(r.t) + ' aşağı">↓</button></span>' : '') + '</div>').join('') +
+      '</div><button class="btn small" type="button" data-rowreset="' + name + '">Varsayılana dön</button></section>'; };
+  return sheetBar('Görünüm') + '<div class="stack">' +
+    '<section class="set"><h4>Hava modeli</h4>' + segBtns('model', MODEL_OPTS, st.model || 'karma') + '<p class="note">Karma: rüzgâr ilk ~5 gün ICON-EU 7 km, sonra ECMWF; hamle GFS; dalga MFWAM. Tek model seçince tablo yalnızca o modelden gelir, modelin kapsamadığı saatler boş kalır. Modelleri yan yana görmek için aşağıdan "Rüzgâr · ECMWF / GFS / ICON-EU" satırlarını aç.</p></section>' +
+    '<section class="set"><h4>Birimler</h4><p class="note">Rüzgâr ve hamle</p>' + segBtns('windUnit', Object.entries(WU_TXT), windU()) + '<p class="note" style="margin-top:8px">Basınç</p>' + segBtns('pressUnit', [['hpa', 'hPa'], ['mmhg', 'mmHg']], pressU()) + '<p class="note">Renkler her birimde Bft ölçeğine göre kalır.</p></section>' +
+    '<section class="set"><h4>Rüzgâr yönü adları</h4>' + segBtns('windNames', [['yerel', 'Yerel: Kıble, Poyraz…'], ['harf', 'Harf: G, KD…']], st.windNames === 'harf' ? 'harf' : 'yerel') +
+    '<p class="note">Ad rüzgârın geldiği yönü söyler (Kıble güneyden eser); tablodaki ok rüzgârın gittiği yöne bakar. Yıldız K · Poyraz KD · Gündoğusu D · Keşişleme GD · Kıble G · Lodos GB · Batı B · Karayel KB.</p></section>' +
+    list('hrows', 'Saatlik tablo satırları', 'Göstermek istediklerini işaretle, oklarla sırasını değiştir.', true) +
+    list('cards', 'Bugün ekranındaki kartlar', '', true) +
+    list('calrows', 'Takvimde gösterilenler', '', false) + '</div>';
 }
 // ---- Bulut yedek
 function sheetBackup(){

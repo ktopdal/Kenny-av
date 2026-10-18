@@ -13,6 +13,7 @@
   <div class="wrap">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>
     <button class="locbtn" id="locBtn" aria-label="Konumlar"><b id="locName">Alyssa</b><span id="locSub"></span></button>
+    <button class="compass" id="compass" type="button" aria-label="Rüzgâr, dalga ve akıntı yönü" hidden></button>
     <button class="netstate" id="net" data-s="idle" aria-live="polite" style="border:0;background:none;cursor:pointer" aria-label="Veriyi yenile"><i></i><span>—</span></button>
   </div>
 </header>
@@ -25,9 +26,13 @@
     <div class="sec-head"><span class="eyebrow" id="todayLbl">Bugün</span><h2>Bugün denizde</h2></div>
     <div id="previewNote" class="banner" hidden>Bu bir önizleme: canlı hava ve deniz verisi yalnızca telefona kurulan uygulamada gelir. Burada 17 Ekim'in örnek verisi var.</div>
     <div id="noLoc" hidden></div>
+    <div id="todayCards">
+    <div class="tcard" data-card="saatlik">
     <div class="panel hourly" id="hourly">
-      <div class="hh"><h3>Saatlik</h3><span class="note" id="hourlyNote"></span></div>
+      <div class="hh"><h3>Saatlik</h3><button class="btn small" type="button" data-open="gorunum" id="hEdit">Düzenle</button></div>
+      <p class="note hnote" id="hourlyNote"></p>
       <div class="daychips" id="dayChips"></div>
+      <div class="hbar" id="hBar"></div>
       <p class="note hempty" id="hEmpty" hidden>Saatlik veri henüz yok. İnternete bağlanınca kendiliğinden gelir.</p>
       <div class="hscroll" id="hScroll"><table class="htab" id="hTable"></table></div>
       <p class="note seanote" id="seaNote" hidden></p>
@@ -40,18 +45,28 @@
         </div>
       </details>
     </div>
+    </div>
+    <div class="tcard" data-card="anlik">
     <div class="now" id="nowGrid" style="margin-top:12px"></div>
     <div class="classrow" id="classRow"></div>
+    </div>
+    <div class="tcard" data-card="surukle">
     <div class="panel drift" style="margin-top:12px" id="driftPanel" hidden></div>
+    </div>
+    <div class="tcard" data-card="solunar">
     <div class="panel" style="margin-top:12px" id="solPanel">
       <div class="row" style="justify-content:space-between"><h3>Solunar</h3><span id="solStars"></span></div>
       <p class="note" id="solSub" style="margin-top:2px"></p>
       <div id="solWins" style="margin-top:6px"></div>
     </div>
-    <h3 style="margin-top:20px">Bugün bağla</h3>
+    </div>
+    <div class="tcard" data-card="oneri">
+    <h3 style="margin-top:20px" id="recHead">Bugün bağla</h3>
     <p class="note" id="recNote" style="margin-top:2px"></p>
     <div class="stack" id="recList" style="margin-top:10px"></div>
     <details style="margin-top:12px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
+    </div>
+    </div>
   </section>
 
   <!-- TAKVİM -->

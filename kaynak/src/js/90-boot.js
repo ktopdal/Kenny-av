@@ -1,8 +1,11 @@
 // ---------------------------------------------------------------- 90 · gezinme, olaylar, açılış
+function nowHour(){ const ds = days(); const dd = ds.find(d => d.key === dateKey(new Date())) || ds[0]; return dd ? refHour(dd) : null; }
 function renderTop(){
   const L = loc();
   $('locName').textContent = L ? locLabel(L) : APP_SHORT;
   $('locSub').textContent = L ? fmtCoord(L.lat, L.lon) + ' · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') : 'Konum seçilmedi';
+  const x = L ? nowHour() : null; const c = $('compass');
+  c.hidden = !x; c.innerHTML = x ? compassHtml(x) : '';
 }
 function renderAll(){
   if (!S) return;
@@ -33,6 +36,7 @@ function bindEvents(){
   document.querySelector('.tabbar').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) show(b.dataset.v); });
   $('locBtn').addEventListener('click', () => openMore('konumlar'));
   $('net').addEventListener('click', () => loadWeather(true));
+  $('compass').addEventListener('click', () => { const x = nowHour(); if (x) toast(compassTxt(x)); });
   $('addCatch').addEventListener('click', () => catchForm(null));
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
@@ -59,6 +63,8 @@ function bindEvents(){
     if (d.use) { S.active = d.use; persist(); WX = null; renderAll(); loadWeather(); if (ui.sheet === 'konumlar') openMore('konumlar', true); toast('Konum değişti'); return; }
     if (d.del) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.locations[d.del]; if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null; persist(); WX = null; renderAll(); loadWeather(); openMore('konumlar', true); return; }
     if (d.set && d.val != null) { setSetting(d.set, d.val); return; }
+    if (d.rowmv) { const [l, id, dir] = d.rowmv.split('|'); moveRow(l, id, Number(dir)); return; }
+    if (d.rowreset) { S.settings[d.rowreset] = null; persist(); renderAll(); if (ui.sheet === 'gorunum') openMore('gorunum', true); toast('Varsayılan düzen'); return; }
     if (d.act) {
       const a = d.act;
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
@@ -117,6 +123,7 @@ function bindEvents(){
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; persist(); applyTheme(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }
+    if (el.dataset.rowtog) { const [l, id] = el.dataset.rowtog.split('|'); toggleRow(l, id, el.checked); return; }
     if (el.dataset.setp) { S.profile[el.dataset.setp] = el.value.trim(); persist(); return; }
   });
   document.addEventListener('submit', e => {
@@ -141,7 +148,7 @@ function bindEvents(){
 }
 // test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
-  state: () => S, winTxt, winLabel, evChip, hm, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
+  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
 (async () => {
   loadState();
   pkgLoadCached();

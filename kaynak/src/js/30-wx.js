@@ -3,13 +3,13 @@
 // Yağış olasılığı: en iyi eşleşme (topluluk modelleri). Dalga: MFWAM → en iyi deniz modeli. Akıntı ve su: Météo-France.
 // Nokta karadaysa ya da kıyıya çok yakınsa deniz modelleri veri vermez: en yakın deniz noktası aranır ve o kullanılır.
 const API_F = 'https://api.open-meteo.com/v1/forecast', API_M = 'https://marine-api.open-meteo.com/v1/marine';
-const FV = 'temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m,cloud_cover,precipitation';
+const FV = 'temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,precipitation';
 const MV = 'wave_height,wave_direction,wave_period,ocean_current_velocity,ocean_current_direction,sea_surface_temperature';
 const SRC = {
-  icon: {label: 'ICON-EU 7 km', what: 'rüzgâr, sıcaklık, yağış'},
-  ecmwf: {label: 'ECMWF IFS', what: 'rüzgâr (ICON sonrası)'},
-  gfs: {label: 'GFS', what: 'hamle'},
-  best: {label: 'Open-Meteo en iyi', what: 'yağış olasılığı, yedek'},
+  icon: {label: 'ICON-EU 7 km', short: 'ICON', what: 'rüzgâr, sıcaklık, yağış'},
+  ecmwf: {label: 'ECMWF IFS', short: 'ECMWF', what: 'rüzgâr (ICON sonrası), karşılaştırma'},
+  gfs: {label: 'GFS', short: 'GFS', what: 'hamle, karşılaştırma'},
+  best: {label: 'Open-Meteo en iyi', short: 'En iyi', what: 'yağış olasılığı, yedek'},
   mf: {label: 'MFWAM', what: 'dalga'},
   mbest: {label: 'Deniz (en iyi)', what: 'akıntı, su sıcaklığı, yedek dalga'},
 };
@@ -20,8 +20,8 @@ function reqUrls(id, L){
   switch (id) {
     case 'icon': return [f('&models=icon_eu&forecast_days=7&hourly=' + FV), f('&models=icon_seamless&forecast_days=7&hourly=' + FV)];
     case 'ecmwf': return [16, 15, 10].map(n => f('&models=ecmwf_ifs025&forecast_days=' + n + '&hourly=' + FV));
-    case 'gfs': return [f('&models=gfs_seamless&forecast_days=16&hourly=wind_gusts_10m'), f('&models=gfs_global&forecast_days=16&hourly=wind_gusts_10m')];
-    case 'best': return [f('&forecast_days=16&hourly=precipitation_probability,wind_gusts_10m,' + FV), f('&forecast_days=16&hourly=wind_gusts_10m,' + FV)];
+    case 'gfs': return [f('&models=gfs_seamless&forecast_days=16&hourly=' + FV), f('&models=gfs_global&forecast_days=16&hourly=' + FV)];
+    case 'best': return [f('&forecast_days=16&hourly=precipitation_probability,' + FV), f('&forecast_days=16&hourly=' + FV)];
     case 'mf': return [m('&models=meteofrance_wave&forecast_days=10&hourly=wave_height,wave_direction,wave_period')];
     case 'mbest': return [16, 10, 8, 7].map(n => m('&forecast_days=' + n + '&hourly=' + MV));
   }
@@ -139,29 +139,33 @@ function buildWx(){
     return dir ? fillDir(arr, gap) : fillGaps(arr, gap);
   };
   const unit = (id, name) => { const r = R[id]; if (!r) return ''; const u = r.hourly_units || {}; if (u[name]) return u[name]; const k = Object.keys(u).find(x => x.indexOf(name + '_') === 0); return k ? u[k] : ''; };
-  const g = {}; ['icon', 'ecmwf', 'best'].forEach(id => {
+  const g = {}; ['icon', 'ecmwf', 'gfs', 'best'].forEach(id => {
     g[id] = {wind: col(id, 'wind_speed_10m', 6), wdir: col(id, 'wind_direction_10m', 6, true), temp: col(id, 'temperature_2m', 6), press: col(id, 'pressure_msl', 6),
-      cloud: col(id, 'cloud_cover', 6), rain: col(id, 'precipitation', 0), u: unit(id, 'wind_speed_10m')};
+      cloud: col(id, 'cloud_cover', 6), rain: col(id, 'precipitation', 0), gust: col(id, 'wind_gusts_10m', 6), u: unit(id, 'wind_speed_10m'), ug: unit(id, 'wind_gusts_10m')};
   });
-  const gustG = col('gfs', 'wind_gusts_10m', 6), gustB = col('best', 'wind_gusts_10m', 6);
   const pop = col('best', 'precipitation_probability', 3);
   const wMF = col('mf', 'wave_height', 6), wMFd = col('mf', 'wave_direction', 6, true), wMFp = col('mf', 'wave_period', 6);
   const wB = col('mbest', 'wave_height', 6), wBd = col('mbest', 'wave_direction', 6, true), wBp = col('mbest', 'wave_period', 6);
   const cur = col('mbest', 'ocean_current_velocity', 6), curd = col('mbest', 'ocean_current_direction', 6, true), sst = col('mbest', 'sea_surface_temperature', 12);
   const cu = unit('mbest', 'ocean_current_velocity');
+  // model seçimi: karma = rüzgâr ICON-EU → ECMWF → en iyi, hamle GFS → en iyi; tek model seçilince her şey o modelden (yoksa boş)
+  const mSel = (S.settings && S.settings.model) || 'karma';
+  const order = mSel === 'karma' ? ['icon', 'ecmwf', 'best'] : [mSel];
+  const gOrder = mSel === 'karma' ? ['gfs', 'best'] : [mSel];
   const hours = T.map((t, i) => {
-    const pickW = ['icon', 'ecmwf', 'best'].find(id => g[id].wind && g[id].wind[i] != null);
+    const pickW = order.find(id => g[id].wind && g[id].wind[i] != null);
     const w = pickW ? g[pickW] : null;
-    const val = k => { for (const id of ['icon', 'ecmwf', 'best']) { const s = g[id][k]; if (s && s[i] != null) return s[i]; } return null; };
-    const gu = gustG && gustG[i] != null ? {v: gustG[i], m: 'GFS', u: unit('gfs', 'wind_gusts_10m')} : gustB && gustB[i] != null ? {v: gustB[i], m: 'En iyi', u: unit('best', 'wind_gusts_10m')} : null;
+    const val = k => { for (const id of order) { const s = g[id][k]; if (s && s[i] != null) return s[i]; } return null; };
+    const pickG = gOrder.find(id => g[id].gust && g[id].gust[i] != null);
     const wv = wMF && wMF[i] != null ? {h: wMF[i], d: wMFd && wMFd[i], p: wMFp && wMFp[i], m: 'MFWAM'} : wB && wB[i] != null ? {h: wB[i], d: wBd && wBd[i], p: wBp && wBp[i], m: 'en iyi deniz modeli'} : null;
+    const m = {}; ['icon', 'ecmwf', 'gfs'].forEach(id => { const G = g[id]; if (G.wind && G.wind[i] != null) m[id] = {w: windToMs(G.wind[i], G.u), d: G.wdir ? G.wdir[i] : null, g: G.gust && G.gust[i] != null ? windToMs(G.gust[i], G.ug) : null}; });
     const d = new Date(t);
     return {t: d, key: t.slice(0, 10), h: Number(t.slice(11, 13)),
-      wind: w ? windToMs(w.wind[i], w.u) : null, wdir: w && w.wdir ? w.wdir[i] : null, wm: pickW ? SRC[pickW].label : null,
+      wind: w ? windToMs(w.wind[i], w.u) : null, wdir: w && w.wdir ? w.wdir[i] : null, wm: pickW ? SRC[pickW].label : null, wid: pickW || null,
       temp: val('temp'), press: val('press'), cloud: val('cloud'), rain: val('rain'),
-      gust: gu ? windToMs(gu.v, gu.u) : null, gm: gu ? gu.m : null, pop: pop ? pop[i] : null,
+      gust: pickG ? windToMs(g[pickG].gust[i], g[pickG].ug) : null, gm: pickG ? (pickG === 'best' ? 'En iyi' : SRC[pickG].short) : null, pop: pop ? pop[i] : null,
       wave: wv ? wv.h : null, waveDir: wv ? wv.d : null, per: wv ? wv.p : null, wvm: wv ? wv.m : null,
-      cur: cur ? curToKn(cur[i], cu) : null, curDir: curd ? curd[i] : null, sst: sst ? sst[i] : null};
+      cur: cur ? curToKn(cur[i], cu) : null, curDir: curd ? curd[i] : null, sst: sst ? sst[i] : null, m};
   });
   hours.forEach((x, i) => { const p3 = hours[i - 3]; x.dp3 = (p3 && x.press != null && p3.press != null) ? x.press - p3.press : null; });
   return {hours, at: S.wx.at, status: S.wx.status || {}, sea: S.wx.sea || null};

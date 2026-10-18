@@ -106,3 +106,58 @@ b.warn{color:var(--D)}
 .learn{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-2)}
 .learn b{color:var(--ink)}
 .win .chips .chip{white-space:normal}
+
+/* ---------- v0.6: Windy düzeninde tablo, model seçici, gün şeridi, pusula, görünüm ayarları ---------- */
+.hbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px 0;flex-wrap:wrap}
+.hbar .msel{margin:0}
+.hbar .msel .btn{min-height:30px;padding:4px 10px;font-size:12.5px}
+.daychips .dchip{display:inline-flex;flex-direction:column;align-items:center;gap:3px;padding-bottom:5px}
+.dstrip{display:flex;gap:1px;width:42px;height:5px;border-radius:3px;overflow:hidden;background:var(--line-2)}
+.dstrip i{flex:1;display:block}
+.mb{display:inline-block;font:700 9.5px/1.4 var(--mono);letter-spacing:.03em;color:var(--surface);background:var(--ink-2);border-radius:4px;padding:0 4px;margin:1px 2px 0 0;white-space:nowrap}
+.htab tr.hours td.nt{background:color-mix(in srgb,var(--ink) 16%,var(--surface-2));color:var(--ink)}
+.htab tr.hours td.curh{background:var(--accent);color:var(--on-accent,#fff)}
+.htab td.bfs{height:26px;font-size:12px}
+.htab tr.mrow2 td.c{border-bottom-style:dashed}
+.htab td.graph{padding:0;border-bottom:1px solid var(--line-2);text-align:left}
+.htab .spark{display:block}
+.spark .gl{stroke:var(--line-2);stroke-width:1}
+.spark .fl{fill:none;stroke:var(--gold);stroke-width:2;stroke-linejoin:round}
+.spark .fb0,.spark .fb1{fill:color-mix(in srgb,var(--gold-fill) 25%,transparent)}
+.spark .fb2{fill:color-mix(in srgb,var(--gold-fill) 40%,transparent)}
+.spark .fb3{fill:color-mix(in srgb,var(--gold-fill) 60%,transparent)}
+.spark .fb4{fill:color-mix(in srgb,var(--gold-fill) 80%,transparent)}
+.spark .fb5{fill:var(--gold-fill)}
+.spark .pl{fill:none;stroke:var(--brand);stroke-width:2;stroke-linejoin:round}
+.spark .gt{font:600 9.5px var(--mono);fill:var(--muted)}
+.htab td.ev{height:38px;vertical-align:middle}
+.htab td.ev .evi{display:flex;flex-direction:column;align-items:center;font:600 11px/1.1 var(--mono);color:var(--ink-2)}
+.htab td.ev .evi small{margin-top:1px}
+.htab td.ev .evi + .evi{margin-top:3px}
+.sunev{color:var(--gold);font-size:12px}
+.moon{display:inline-block;vertical-align:-2px}
+.moon circle{fill:var(--line)}
+.moon path{fill:var(--gold-fill);stroke:var(--gold);stroke-width:.5}
+.htab td.agree .dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle}
+.htab td.agree .dot.A{background:var(--A)}.htab td.agree .dot.C{background:var(--C)}.htab td.agree .dot.D{background:var(--D)}
+.htab td.wd small{font:600 9.5px/1.1 var(--body);color:var(--ink-2);white-space:nowrap}
+.compass{border:0;background:none;padding:0;margin:0 2px 0 0;width:36px;height:36px;flex:0 0 36px;cursor:pointer;color:var(--ink)}
+.compass svg{display:block}
+.compass .cr{fill:var(--surface);stroke:var(--line);stroke-width:1}
+.compass .cn{font:700 6.5px var(--mono);fill:var(--muted);text-anchor:middle}
+.compass .cw{stroke:var(--wc);stroke-linecap:round}.compass .cwh{fill:var(--wc)}
+.compass .cv{stroke:#2C8FB8;stroke-linecap:round}.compass .cvh{fill:#2C8FB8}
+.compass .cc{stroke:var(--accent);stroke-linecap:round}.compass .cch{fill:var(--accent)}
+.rowlist{display:flex;flex-direction:column;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;margin:6px 0 8px}
+.rl{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 6px 10px;border-top:1px solid var(--line-2);background:var(--surface)}
+.rl:first-child{border-top:0}
+.rl.off label{color:var(--muted)}
+.rl label{flex:1;min-width:0;font-size:14px}
+.rl .mv{display:flex;gap:4px;flex:0 0 auto}
+.rl .mv .btn{min-width:36px;min-height:32px;padding:2px 8px}
+.hourly .hh{align-items:center}
+.hourly .hh .btn{min-height:30px;padding:4px 12px;font-size:13px}
+.hourly .hnote{padding:0 12px;margin:2px 0 0}
+.hbar .msel{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.hbar .msel::-webkit-scrollbar{display:none}
+.hbar .msel .btn{flex:0 0 auto;min-height:28px;padding:3px 10px;font-size:12px}

@@ -7,8 +7,8 @@ const fishHtml = n => '<span class="fi" role="img" aria-label="5 balıktan ' + n
 // ok: gittiği yöne bakar (rüzgâr ve dalga "geldiği" yön verilir → +180°)
 const arrowTo = deg => deg == null ? '' : '<svg class="arr" viewBox="0 0 16 16" style="transform:rotate(' + Math.round(deg) + 'deg)" aria-hidden="true"><path d="M8 1l4.5 9H9v5H7v-5H3.5z"/></svg>';
 const arrowFrom = deg => deg == null ? '' : arrowTo(deg + 180);
-function wxIcon(x){
-  const night = x.h < 7 || x.h >= 19, c = x.cloud == null ? 50 : x.cloud, r = x.rain || 0, p = x.pop || 0;
+function wxIcon(x, isNight){
+  const night = isNight != null ? isNight : (x.h < 7 || x.h >= 19), c = x.cloud == null ? 50 : x.cloud, r = x.rain || 0, p = x.pop || 0;
   const sun = night ? '<path d="M15 4a6 6 0 1 0 5 9 7 7 0 0 1-5-9z" fill="var(--muted)"/>' : '<circle cx="12" cy="12" r="4.2" fill="var(--gold-fill)"/>';
   const cloud = (y, fill) => '<path d="M6 ' + (y + 6) + 'h11a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.4-1.6A3.6 3.6 0 0 0 6 ' + (y + 6) + 'z" fill="' + fill + '" stroke="var(--muted)" stroke-width=".8"/>';
   let inner = '';
