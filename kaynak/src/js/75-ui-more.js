@@ -8,6 +8,7 @@ const MORE = [
   ['liste', 'Çıkış listesi ve güvenlik', () => 'Bugünün rigleri, ' + (shoreMode() ? 'kıyı ekipmanı' : 'tekne güvenliği') + ', WhatsApp güvenlik mesajı'],
   ['uyari', 'Takvim uyarısı', () => { const c = alertCfg(); return 'Rüzgâr ≤ ' + c.bft + ' Bft, dalga ≤ ' + fmtNum(c.wave, 1) + ' m, balık ≥ ' + c.fish + ' → telefon takvimine'; }],
   ['paylas', 'Paylaş ve geri bildirim', () => 'Envanterini ya da rig sistemini bağlantıyla paylaş'],
+  ['grup', 'Ortak av haritası', () => { const g = grpCfg(); return g ? g.group + ' · ' + (GROUP.members.length ? GROUP.members.length + ' üye' : 'grup açık') : 'Kapalı · arkadaşlarınla şifreli ortak harita'; }],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
@@ -32,7 +33,8 @@ function renderNewVersion(){
 function openMore(name, keep){
   if (name === 'harita') { openMap(); return; }
   ui.sheet = name;
-  const F = {ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
+  const F = {ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar

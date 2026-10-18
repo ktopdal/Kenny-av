@@ -211,3 +211,8 @@ b.warn{color:var(--D)}
 .chk.ckl input{margin-top:3px;flex:0 0 auto}
 .chk.ckl small{display:block;color:var(--muted);font-size:12px}
 .chk.ckl input:checked + span{color:var(--muted);text-decoration:line-through}
+
+/* ---------- v0.10: ortak av haritası ---------- */
+.leaflet-container .mgrp{stroke:#fff;fill:#2C8FB8;fill-opacity:.9}
+.leaflet-container .mgrp.me{fill:var(--accent)}
+.grpbox{margin-top:10px}

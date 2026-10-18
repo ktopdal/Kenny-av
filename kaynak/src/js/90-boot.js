@@ -70,6 +70,7 @@ function bindEvents(){
     if (d.set && d.val != null) { setSetting(d.set, d.val); return; }
     if (d.mapact) { mapAct(d.mapact, b); return; }
     if (d.share) { shareAct(d.share); return; }
+    if (d.grp) { grpAct(d.grp, b); return; }
     if (d.mapbase) { mapLayerSet('base', d.mapbase); return; }
     if (d.rowmv) { const [l, id, dir] = d.rowmv.split('|'); moveRow(l, id, Number(dir)); return; }
     if (d.rowreset) { S.settings[d.rowreset] = null; persist(); renderAll(); if (ui.sheet === 'gorunum') openMore('gorunum', true); toast('Varsayılan düzen'); return; }
@@ -140,6 +141,9 @@ function bindEvents(){
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }
     if (el.dataset.setk) { S.settings[el.dataset.setk] = el.value.trim(); persist(); toast(el.value.trim() ? 'Anahtar kaydedildi' : 'Anahtar silindi'); return; }
+    if (el.dataset.grpshare) { setCatchShare(el.dataset.grpshare, {on: el.checked}); return; }
+    if (el.dataset.grpopt) { setCatchShare(el.dataset.cid, {[el.dataset.grpopt]: Number(el.value)}); return; }
+    if (el.dataset.grpdef) { S.settings.grpDef = Object.assign(grpDef(), {[el.dataset.grpdef]: Number(el.value)}); persist(); toast('Kaydedildi'); return; }
     if (el.dataset.alert) { const c = alertCfg(); const v = el.value; c[el.dataset.alert] = el.dataset.alert === 'part' ? v : Number(v); S.settings.alert = c; persist(); openMore('uyari', true); return; }
     if (el.dataset.ck) { if (!S.check || S.check.date !== dateKey(new Date())) S.check = {date: dateKey(new Date()), done: {}}; if (el.checked) S.check.done[el.dataset.ck] = 1; else delete S.check.done[el.dataset.ck]; persistQuiet(); return; }
     if (el.id === 'sf-ret' || el.id === 'sf-tel' || el.id === 'sf-not') { saveSafety(); return; }
@@ -160,9 +164,10 @@ function bindEvents(){
     if (f.id === 'bkForm') { submitBackupForm(false); return; }
     if (f.id === 'pkgForm') { submitPkg(); return; }
     if (f.id === 'welPkg') { welcomePkg(); return; }
+    if (f.id === 'grpForm') { grpCreate(); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
-  window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); });
+  window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); return; }
     loadWeather(); pkgCheck(false);
@@ -170,7 +175,7 @@ function bindEvents(){
 }
 // test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
-  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
+  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
 (async () => {
   loadState();
   pkgLoadCached();
@@ -178,12 +183,13 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   applyTheme();
   indexAll(); bindEvents();
   const h = (location.hash || '').slice(1);
-  const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null;
+  const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null, grpRaw = h.indexOf('grup=') === 0 ? h.slice(5) : null;
   show(VIEWS.includes(h) ? h : 'bugun');
   if (S.wx) WX = buildWx();
   await loadCatches();
   renderAll();
   if (shareRaw) openShareLink(shareRaw);
+  else if (grpRaw) openGroupInvite(grpRaw);
   else if (!PREVIEW && !S.onboarded && !hasProfileData()) showWelcome();
   else if (!S.onboarded) { S.onboarded = true; persistQuiet(); }
   if (CATCHES.length) { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }

@@ -464,6 +464,11 @@ b.warn{color:var(--D)}
 .chk.ckl small{display:block;color:var(--muted);font-size:12px}
 .chk.ckl input:checked + span{color:var(--muted);text-decoration:line-through}
 
+/* ---------- v0.10: ortak av haritası ---------- */
+.leaflet-container .mgrp{stroke:#fff;fill:#2C8FB8;fill-opacity:.9}
+.leaflet-container .mgrp.me{fill:var(--accent)}
+.grpbox{margin-top:10px}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -911,9 +916,15 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.9.0';
+const APP_VERSION = '0.10.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.10.0', notes: [
+    'Ortak av haritası: kapalı grup (sen, Ogün, arkadaşların); grup senin GitHub deponda, grubun anahtarıyla şifreli',
+    'Grubu Daha → Ortak av haritası’ndan kur, davet bağlantısını WhatsApp’tan gönder; bağlantıya dokunan gruba katılır',
+    'Her av baştan gizli; avın sayfasından “Grupla paylaş”: yer 1 ya da 2 km’lik kareye yuvarlanır, istersen 1–2 gün gecikmeli görünür, fotoğraf gitmez',
+    'Haritada “Grup avları” katmanı: kim, hangi tür, kaç kilo, hangi rig ve yem',
+  ]},
   {v: '0.9.0', notes: [
     'Paylaş: envanterini ya da Rig Atölyesi sistemini bağlantıyla gönder; açan kişi kendi profiline kopyalar, senin verine dokunamaz',
     'Takvim uyarısı: rüzgâr, dalga ve balık kuralına uyan pencereler alarmıyla telefon takvimine eklenir (.ics) ya da Google Takvim’e',
@@ -3215,6 +3226,7 @@ async function catchDetail(id){
       K('Su', cd.sst != null ? fmtNum(cd.sst, 1) + ' °C' : '') + K('Basınç', cd.press != null ? Math.round(cd.press) + ' hPa' + (cd.dp3 != null ? ' (3 sa ' + (cd.dp3 > 0 ? '+' : '') + fmtNum(cd.dp3, 1) + ')' : '') : '') +
       K('Sürüklenme', cd.drift_kn != null ? (cd.anchored ? 'demirli · ipe akış ' + fmtNum(cd.line_kn, 1) + ' kn' : fmtNum(cd.drift_kn, 1) + ' kn ' + (cd.drift_dir || '') + ' yönüne') : '') +
       K('Ay', cd.moon + ' · %' + cd.illum) + K('Balık aktivitesi', '%' + cd.act + (cd.v === 5 ? '' : ' (eski ölçek)') + (cd.sol ? ' · ' + cd.sol : '')) + '</div>' : '<p class="note">Bu av için deniz koşulu kaydı yok (o saatin verisi telefonda değildi).</p>') +
+    catchShareBox(c) +
     '<button class="btn" type="button" id="delCatch" data-del-catch="' + esc(id) + '" style="margin-top:10px;color:var(--D)">Avı sil</button></div>');
 }
 async function deleteCatch(id){
@@ -3233,6 +3245,7 @@ const MORE = [
   ['liste', 'Çıkış listesi ve güvenlik', () => 'Bugünün rigleri, ' + (shoreMode() ? 'kıyı ekipmanı' : 'tekne güvenliği') + ', WhatsApp güvenlik mesajı'],
   ['uyari', 'Takvim uyarısı', () => { const c = alertCfg(); return 'Rüzgâr ≤ ' + c.bft + ' Bft, dalga ≤ ' + fmtNum(c.wave, 1) + ' m, balık ≥ ' + c.fish + ' → telefon takvimine'; }],
   ['paylas', 'Paylaş ve geri bildirim', () => 'Envanterini ya da rig sistemini bağlantıyla paylaş'],
+  ['grup', 'Ortak av haritası', () => { const g = grpCfg(); return g ? g.group + ' · ' + (GROUP.members.length ? GROUP.members.length + ' üye' : 'grup açık') : 'Kapalı · arkadaşlarınla şifreli ortak harita'; }],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
@@ -3257,7 +3270,8 @@ function renderNewVersion(){
 function openMore(name, keep){
   if (name === 'harita') { openMap(); return; }
   ui.sheet = name;
-  const F = {ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
+  const F = {ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -3459,7 +3473,7 @@ async function importBackup(file){
 // Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
 // Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
 // Yer adı: OpenStreetMap Nominatim (karada) ve Overpass (denizde en yakın yer, koy, kıyıya uzaklık) · Derinlik: EMODnet Bathymetry
-const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, substrate: false, locs: true, catches: true};
+const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, substrate: false, locs: true, catches: true, grup: true};
 const mapCfg = () => Object.assign({}, MAP_DEF, S.settings.map || {});
 const NOMI = 'https://nominatim.openstreetmap.org/reverse';
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
@@ -3585,10 +3599,11 @@ function initMap(){
   MAP = LL.map('map', {zoomControl: false, attributionControl: true}).setView(center, cur ? 11 : v ? v.z : 8);
   LL.control.zoom({position: 'topright'}).addTo(MAP);
   MAP.attributionControl.setPrefix(false);
-  MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), pick: null};
+  MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), grup: LL.layerGroup(), pick: null};
   const cfg = mapCfg(); setBase(cfg.base); ['seamark', 'depth', 'contours', 'substrate'].forEach(k => setOver(k, cfg[k]));
   drawLocs(); drawCatches();
   if (cfg.locs) MAPL.locs.addTo(MAP); if (cfg.catches) MAPL.catches.addTo(MAP);
+  if (cfg.grup && grpOn()) { MAPL.grup.addTo(MAP); drawGroup(); grpFetch().then(drawGroup); }
   MAP.on('click', e => pickPoint(e.latlng.lat, e.latlng.lng));
   MAP.on('moveend', () => { const c = MAP.getCenter(); S.settings.mapView = {lat: +c.lat.toFixed(5), lon: +c.lng.toFixed(5), z: MAP.getZoom()}; persistQuiet(); });
   const m = $('mapMsg'); if (m) m.hidden = true;
@@ -3605,18 +3620,18 @@ const OVERS = {
   contours: () => LF().tileLayer.wms('https://ows.emodnet-bathymetry.eu/wms', {layers: 'emodnet:contours', format: 'image/png', transparent: true, attribution: 'Derinlik eğrileri © EMODnet Bathymetry'}),
   substrate: () => LF().tileLayer.wms('https://drive.emodnet-geology.eu/geoserver/wms', {layers: 'cp_wp3_seabed_substrate_folk_7', format: 'image/png', transparent: true, opacity: 0.6, attribution: 'Dip türü © EMODnet Geology'}),
 };
-const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', substrate: 'Dip türü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım'};
+const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', substrate: 'Dip türü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
 function setBase(k){ if (!MAP) return; if (MAPL.base) MAP.removeLayer(MAPL.base); MAPL.base = (BASES[k] || BASES.osm)().addTo(MAP); MAPL.base.bringToBack(); }
 function setOver(k, on){
   if (!MAP) return;
-  if (k === 'locs' || k === 'catches') { const g = MAPL[k]; if (on) g.addTo(MAP); else MAP.removeLayer(g); return; }
+  if (k === 'locs' || k === 'catches' || k === 'grup') { const g = MAPL[k]; if (on) { g.addTo(MAP); if (k === 'grup') grpFetch().then(drawGroup); } else MAP.removeLayer(g); return; }
   if (on && !MAPL.over[k]) MAPL.over[k] = OVERS[k]().addTo(MAP);
   if (!on && MAPL.over[k]) { MAP.removeLayer(MAPL.over[k]); delete MAPL.over[k]; }
 }
 function renderLayers(){
   const cfg = mapCfg(), el = $('mapLayers'); if (!el) return;
   el.innerHTML = '<b>Altlık</b><div class="seg">' + [['osm', 'Harita'], ['uydu', 'Uydu']].map(([v, t]) => '<button class="btn small" type="button" data-mapbase="' + v + '" aria-pressed="' + (cfg.base === v) + '">' + t + '</button>').join('') + '</div>' +
-    '<b>Katmanlar</b>' + Object.keys(OVER_TXT).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
+    '<b>Katmanlar</b>' + Object.keys(OVER_TXT).filter(k => k !== 'grup' || grpOn()).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
     '<p class="note">Derinlik ve dip türü EMODnet verisidir; seyir için resmî harita yerine geçmez.</p>';
 }
 function mapLayerSet(k, v){ const cfg = mapCfg(); cfg[k] = v; S.settings.map = cfg; persistQuiet(); if (k === 'base') setBase(v); else setOver(k, v); renderLayers(); }
@@ -3637,6 +3652,16 @@ function drawCatches(){
     const m = LF().circleMarker([c.loc.lat, c.loc.lon], {radius: 7, weight: 2, className: 'mcatch'});
     m.bindPopup('<b>' + esc(l.sp) + '</b><br>' + l.d.getDate() + ' ' + MON3[l.d.getMonth()] + ' ' + l.d.getFullYear() + (l.bits ? ' · ' + esc(l.bits) : '') + (c.rig ? '<br>' + esc(rigShort(c.rig)) : ''));
     MAPL.catches.addLayer(m);
+  });
+}
+function drawGroup(){
+  if (!MAPL || !MAP) return; MAPL.grup.clearLayers();
+  grpCatches().forEach(c => {
+    const m = LF().circleMarker([c.lat, c.lon], {radius: 9, weight: 2, className: 'mgrp' + (c.mine ? ' me' : '')});
+    const d = new Date(c.t);
+    m.bindPopup('<b>' + esc(c.member) + '</b> · ' + esc(c.spName || c.sp) + (c.n > 1 ? ' · ' + c.n + ' adet' : '') + (c.kg ? ' · ' + fmtNum(c.kg, 2) + ' kg' : '') + (c.cm ? ' · ' + fmtNum(c.cm, 1) + ' cm' : '') +
+      '<br>' + d.getDate() + ' ' + MON3[d.getMonth()] + ' ' + d.getFullYear() + (c.rig ? '<br>' + esc(c.rig) : '') + (c.bait ? ' · yem: ' + esc(c.bait) : '') + '<br><small>yer ±' + (c.km || 1) + ' km kare</small>');
+    MAPL.grup.addLayer(m);
   });
 }
 // ---- nokta kartı
@@ -4230,6 +4255,160 @@ function backupReminder(){
     '<div class="row"><button class="btn small primary" type="button" data-open="yedek">' + (bkReady() ? 'Şimdi yedekle' : 'Bulut yedeği aç') + '</button><button class="btn small" type="button" data-act="bkSnooze">7 gün sonra hatırlat</button></div></div>';
 }
 
+// ---------------------------------------------------------------- 84 · ortak av haritası: kapalı grup (GitHub deposu, grup anahtarıyla uçtan uca şifreli)
+// Her üye kendi dosyasını yazar: grup/<üye>.json = {app:'alyssa-grup', enc: base64(iv‖AES-GCM)}; herkes klasördeki dosyaları okur, grup anahtarıyla açar.
+// Davet bağlantısı (#grup=…) depo adını, depoya yazan anahtarı ve grup anahtarını taşır: bağlantı kimdeyse grupta odur.
+// Her av baştan gizlidir; paylaşılan avın yeri 1 ya da 2 km'lik karenin ortasına yuvarlanır, istenirse 1–2 gün gecikmeli görünür.
+const GRP_LS = 'alyssa-grp';
+const grpCfg = () => { try { return JSON.parse(lsGet(GRP_LS) || 'null'); } catch (e) { return null; } };
+const grpOn = () => { const g = grpCfg(); return !!(g && g.repo && g.tok && g.key && g.me); };
+const grpC = g => ({repo: g.repo, tok: g.tok});
+const grpDef = () => Object.assign({grid: 1, delay: 0}, S.settings.grpDef || {});
+let GROUP = {at: 0, members: [], err: null, busy: false};
+function roundGrid(lat, lon, km){
+  const dLat = km / 110.57, dLon = km / (111.32 * Math.cos(lat * Math.PI / 180));
+  return {lat: +((Math.floor(lat / dLat) + 0.5) * dLat).toFixed(5), lon: +((Math.floor(lon / dLon) + 0.5) * dLon).toFixed(5)};
+}
+function sharedRecord(c){
+  const sh = c.share || {}; const km = sh.grid || 1;
+  const p = c.loc && c.loc.lat != null ? roundGrid(c.loc.lat, c.loc.lon, km) : null; const rg = c.rig && RIGS[c.rig];
+  return {id: c.id, sp: c.species, spName: catchLine(c).sp, n: c.count || 1, kg: c.kg, cm: c.cm, t: c.t, vis: new Date(new Date(c.t).getTime() + (sh.delay || 0) * 86400000).toISOString(),
+    lat: p ? p.lat : null, lon: p ? p.lon : null, km, rig: rg ? (rg.code ? rg.code + ' · ' : '') + rg.name : '', bait: c.bait || '', depth: c.depth_m, bottom: c.bottom || ''};
+}
+async function grpPublish(){
+  const g = grpCfg(); if (!g) return 0;
+  const list = CATCHES.filter(c => c.share && c.share.on).map(sharedRecord);
+  const body = {member: g.name, me: g.me, updated: new Date().toISOString(), catches: list};
+  const enc = b64e(await aesEnc(b64d(g.key), new TextEncoder().encode(JSON.stringify(body))));
+  const c = grpC(g), path = 'grup/' + g.me + '.json';
+  await ghPutFile(c, path, b64eUtf8(JSON.stringify({app: 'alyssa-grup', v: 1, enc})), 'grup: ' + g.me, await ghSha(c, path));
+  GROUP.at = 0; return list.length;
+}
+async function grpFetch(force){
+  const g = grpCfg(); if (!g) return GROUP;
+  if (!force && GROUP.at && Date.now() - GROUP.at < 5 * 60000) return GROUP;
+  GROUP.busy = true;
+  try {
+    const c = grpC(g); const r = await gh('GET', c, 'grup');
+    if (r.status === 404) { GROUP = {at: Date.now(), members: [], err: null}; return GROUP; }
+    await ghCheck(r);
+    const files = (await r.json()).filter(f => f.type === 'file' && /\.json$/.test(f.name));
+    const raw = b64d(g.key), members = [];
+    for (const f of files) {
+      try {
+        const rr = await gh('GET', c, f.path, null, true); await ghCheck(rr);
+        const j = JSON.parse(await rr.text()); if (j.app !== 'alyssa-grup') continue;
+        const m = JSON.parse(new TextDecoder().decode(await aesDec(raw, b64d(j.enc)))); m.file = f.name; members.push(m);
+      } catch (e) { /* başka anahtarla yazılmış ya da bozuk dosya: atla */ }
+    }
+    GROUP = {at: Date.now(), members, err: null};
+  } catch (e) { GROUP = Object.assign({}, GROUP, {err: e.message || 'bağlantı yok'}); }
+  finally { GROUP.busy = false; }
+  return GROUP;
+}
+function grpCatches(){
+  const now = Date.now(), me = (grpCfg() || {}).me;
+  return GROUP.members.flatMap(m => (m.catches || []).filter(c => c.lat != null && new Date(c.vis || c.t).getTime() <= now).map(c => Object.assign({member: m.member, mine: m.me === me}, c)));
+}
+const inviteLink = g => SHARE_URL() + '#grup=' + b64url(new TextEncoder().encode(JSON.stringify({r: g.repo, t: g.tok, k: g.key, n: g.group, by: g.name})));
+function sheetGroup(){
+  const g = grpCfg();
+  if (!g) return sheetBar('Ortak av haritası') + '<div class="stack">' +
+    '<p class="sub">Kapalı bir grubun (sen, Ogün, birkaç arkadaş) paylaştığı avlar ortak haritada görünür. Her av baştan gizlidir; paylaşmak istediğini avın sayfasından seçersin. Nokta 1–2 km’lik kareye yuvarlanır.</p>' +
+    '<p class="note">Bir davet bağlantın varsa ona dokun; uygulama seni gruba katar. Grubu sen kuracaksan:</p>' +
+    '<form class="panel stack" id="grpForm" novalidate><div class="fields">' +
+    '<label class="f wide">Depo (kullanıcı/depo)<input id="gp-repo" placeholder="ör. ktopdal/alyssa-grup" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">GitHub anahtarı (yalnızca bu depo)<input id="gp-tok" type="password" autocomplete="off" placeholder="github_pat_…"></label>' +
+    '<label class="f">Grubun adı<input id="gp-name" placeholder="ör. Seferihisar avcıları"></label>' +
+    '<label class="f">Senin adın<input id="gp-me" value="' + esc(S.profile.name || '') + '" placeholder="ör. Kenny"></label></div>' +
+    '<p class="err" id="gpErr" hidden></p><button class="btn primary" type="submit">Grubu kur</button></form>' +
+    '<details class="panel"><summary>GitHub’da depo ve anahtar nasıl hazırlanır?</summary><ol class="steps">' +
+    '<li>GitHub’da yeni bir <b>özel</b> depo aç (ör. alyssa-grup). Yedek deponu kullanma.</li>' +
+    '<li>Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token.</li>' +
+    '<li>Repository access: “Only select repositories” → yalnızca bu depo. Permissions → Contents: <b>Read and write</b>.</li>' +
+    '<li>Anahtarı buraya yapıştır. Davet bağlantısı bu anahtarı taşır; birini çıkarmak için anahtarı yenileyip yeni davet gönder.</li></ol></details></div>';
+  const mine = CATCHES.filter(c => c.share && c.share.on).length; const d = grpDef();
+  const mem = GROUP.members.map(m => '<div class="item"><b>' + esc(m.member || m.me) + (m.me === g.me ? ' (sen)' : '') + '</b><div class="sp">' + (m.catches || []).length + ' paylaşılan av · son güncelleme ' + (m.updated ? fmtDT(new Date(m.updated)) : '–') + '</div></div>').join('');
+  return sheetBar('Ortak av haritası') + '<div class="stack">' +
+    '<div class="panel stack"><b>' + esc(g.group || 'Grup') + '</b><span class="note">Depo ' + esc(g.repo) + ' · sen: ' + esc(g.name) + ' · paylaştığın av: ' + mine + '</span>' +
+    '<div class="row"><button class="btn primary" type="button" data-grp="map">Haritada gör</button><button class="btn" type="button" data-grp="invite">Davet bağlantısı</button><button class="btn" type="button" data-grp="refresh">Yenile</button></div></div>' +
+    '<div id="grpInvite"></div>' +
+    '<section class="set"><h4>Üyeler</h4>' + (GROUP.busy ? '<p class="note">Yükleniyor…</p>' : GROUP.err ? '<p class="err">' + esc(GROUP.err) + '</p>' : mem || '<p class="note">Henüz kimse paylaşmadı.</p>') + '</section>' +
+    '<section class="set"><h4>Paylaşırken varsayılan</h4><div class="fields"><label class="f">Yer hassasiyeti<select data-grpdef="grid"><option value="1"' + (d.grid === 1 ? ' selected' : '') + '>1 km kare</option><option value="2"' + (d.grid === 2 ? ' selected' : '') + '>2 km kare</option></select></label>' +
+    '<label class="f">Gecikme<select data-grpdef="delay"><option value="0"' + (d.delay === 0 ? ' selected' : '') + '>Hemen</option><option value="1"' + (d.delay === 1 ? ' selected' : '') + '>1 gün sonra</option><option value="2"' + (d.delay === 2 ? ' selected' : '') + '>2 gün sonra</option></select></label></div>' +
+    '<p class="note">Bir avı paylaşmak için Avlar’da avına dokun → “Grupla paylaş”.</p></section>' +
+    '<button class="btn small" type="button" data-grp="leave">Gruptan çık</button></div>';
+}
+async function grpCreate(){
+  const err = m => { $('gpErr').textContent = m; $('gpErr').hidden = false; };
+  const repo = $('gp-repo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, ''), tok = $('gp-tok').value.trim(), group = $('gp-name').value.trim(), name = $('gp-me').value.trim();
+  if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) { err('Depoyu kullanıcı/depo biçiminde yaz.'); return; }
+  if (!tok) { err('GitHub anahtarını yapıştır.'); return; }
+  if (!name) { err('Adını yaz; üyeler seni bu adla görür.'); return; }
+  const key = crypto.getRandomValues(new Uint8Array(32));
+  const g = {repo, tok, key: b64e(key), group: group || 'Av grubu', name, me: (slugTR(name) || 'uye') + '-' + Math.random().toString(36).slice(2, 6)};
+  try {
+    const c = grpC(g); const path = 'grup/README.md';
+    await ghPutFile(c, path, b64eUtf8('# Alyssa ortak av haritası\n\nBu klasördeki dosyalar grup anahtarıyla şifrelidir.\n'), 'grup kuruldu', await ghSha(c, path));
+  } catch (e) { err(e.message || 'GitHub’a yazılamadı'); return; }
+  lsSet(GRP_LS, JSON.stringify(g)); if (!S.profile.name) { S.profile.name = name; persist(); }
+  try { await grpPublish(); } catch (e) {}
+  await grpFetch(true); openMore('grup', true); grpInvite(); toast('Grup kuruldu');
+}
+function grpInvite(){
+  const g = grpCfg(), el = $('grpInvite'); if (!g || !el) return;
+  const url = inviteLink(g); const text = g.name + ' seni Alyssa’da “' + g.group + '” av grubuna davet ediyor. Katılmak için dokun: ' + url;
+  el.innerHTML = '<section class="set"><h4>Davet bağlantısı</h4><p class="note">Bu bağlantı grubun anahtarını taşır; yalnızca gruba almak istediğin kişilere gönder.</p>' +
+    '<div class="row"><a class="btn primary" href="https://wa.me/?text=' + encodeURIComponent(text) + '" target="_blank" rel="noopener">WhatsApp ile gönder</a><button class="btn" type="button" data-grp="copy">Kopyala</button></div></section>';
+  grpInvite.last = url;
+}
+let GRP_IN = null;
+function openGroupInvite(raw){
+  let d = null; try { d = JSON.parse(new TextDecoder().decode(b64urlDec(raw))); } catch (e) {}
+  if (!d || !d.r || !d.t || !d.k) { toast('Davet bağlantısı açılamadı'); clearShareHash(); return; }
+  GRP_IN = d; ui.sheet = 'grupdavet';
+  const g = grpCfg();
+  openSheet(sheetBar('Grup daveti', null, 'Kapat') + '<div class="stack"><p class="sub"><b>' + esc(d.by || 'Bir arkadaşın') + '</b> seni <b>“' + esc(d.n || 'Av grubu') + '”</b> grubuna davet ediyor.</p>' +
+    (g ? '<p class="note">Şu an “' + esc(g.group) + '” grubundasın; katılırsan o gruptan çıkarsın.</p>' : '') +
+    '<p class="note">Grupta paylaşılan avları ortak haritada görürsün. Sen bir avı paylaşmadıkça hiçbir avın gruba gitmez.</p>' +
+    '<label class="f">Adın (üyeler seni böyle görür)<input id="gj-name" value="' + esc(S.profile.name || '') + '" placeholder="ör. Ogün"></label><p class="err" id="gjErr" hidden></p>' +
+    '<div class="row"><button class="btn primary" type="button" data-grp="join">Gruba katıl</button><button class="btn" type="button" data-grp="nojoin">Vazgeç</button></div></div>');
+}
+async function grpJoin(){
+  const d = GRP_IN; if (!d) return;
+  const name = ($('gj-name').value || '').trim(); if (!name) { $('gjErr').textContent = 'Adını yaz.'; $('gjErr').hidden = false; return; }
+  const g = {repo: d.r, tok: d.t, key: d.k, group: d.n || 'Av grubu', name, me: (slugTR(name) || 'uye') + '-' + Math.random().toString(36).slice(2, 6)};
+  lsSet(GRP_LS, JSON.stringify(g)); if (!S.profile.name) S.profile.name = name; S.onboarded = true; persist();
+  GRP_IN = null; clearShareHash();
+  if ($('welcome') && !$('welcome').hidden) hideWelcome();
+  try { await grpPublish(); toast('Gruba katıldın: ' + g.group); } catch (e) { toast('Gruba katıldın ama yazılamadı: ' + (e.message || '')); }
+  await grpFetch(true); openMore('grup');
+}
+async function grpAct(a, b){
+  if (a === 'map') { const cfg = mapCfg(); cfg.grup = true; S.settings.map = cfg; persistQuiet(); openMap(); return; }
+  if (a === 'invite') { grpInvite(); return; }
+  if (a === 'copy') { try { await navigator.clipboard.writeText(grpInvite.last); toast('Davet kopyalandı'); } catch (e) { toast('Kopyalanamadı'); } return; }
+  if (a === 'refresh') { GROUP.busy = true; openMore('grup', true); await grpFetch(true); if (ui.sheet === 'grup') openMore('grup', true); return; }
+  if (a === 'leave') { if (!armOnce(b, 'Çıkmak için tekrar dokun')) return; lsDel(GRP_LS); GROUP = {at: 0, members: [], err: null}; openMore('grup', true); toast('Gruptan çıktın'); return; }
+  if (a === 'join') { grpJoin(); return; }
+  if (a === 'nojoin') { GRP_IN = null; closeSheet(); clearShareHash(); return; }
+}
+// av sayfasında paylaşım seçenekleri
+function catchShareBox(c){
+  if (!grpOn()) return '';
+  const sh = c.share || {}, d = grpDef(), on = !!sh.on, grid = sh.grid || d.grid, delay = sh.delay != null ? sh.delay : d.delay;
+  return '<div class="panel stack grpbox"><label class="chk"><input type="checkbox" data-grpshare="' + esc(c.id) + '"' + (on ? ' checked' : '') + '> <b>Grupla paylaş</b> (' + esc((grpCfg() || {}).group || '') + ')</label>' +
+    '<div class="fields"><label class="f">Yer<select data-grpopt="grid" data-cid="' + esc(c.id) + '"><option value="1"' + (grid === 1 ? ' selected' : '') + '>1 km kare</option><option value="2"' + (grid === 2 ? ' selected' : '') + '>2 km kare</option></select></label>' +
+    '<label class="f">Görünsün<select data-grpopt="delay" data-cid="' + esc(c.id) + '"><option value="0"' + (delay === 0 ? ' selected' : '') + '>Hemen</option><option value="1"' + (delay === 1 ? ' selected' : '') + '>1 gün sonra</option><option value="2"' + (delay === 2 ? ' selected' : '') + '>2 gün sonra</option></select></label></div>' +
+    '<p class="note">Gruba tür, boy/kilo, tarih, rig ve yem gider; yer karenin ortasına yuvarlanır, fotoğraf gitmez.</p></div>';
+}
+async function setCatchShare(id, patch){
+  const c = CATCHES.find(x => x.id === id); if (!c) return;
+  const d = grpDef(); c.share = Object.assign({on: false, grid: d.grid, delay: d.delay}, c.share || {}, patch);
+  await IDB.put('catches', c); markDirty();
+  try { const n = await grpPublish(); toast(c.share.on ? 'Grupla paylaşıldı (' + n + ' av)' : 'Paylaşım kaldırıldı'); } catch (e) { toast('Gruba yazılamadı: ' + (e.message || '')); }
+}
+
 // ---------------------------------------------------------------- 85 · karşılama (ilk açılış) ve rig sistemi kurulumu girişi
 const hasProfileData = () => Object.keys(S.systems).length > 0 || Object.keys(S.inv.items).length > 0 || Object.keys(S.locations).length > 0 || CATCHES.length > 0;
 function showWelcome(){
@@ -4344,6 +4523,7 @@ function bindEvents(){
     if (d.set && d.val != null) { setSetting(d.set, d.val); return; }
     if (d.mapact) { mapAct(d.mapact, b); return; }
     if (d.share) { shareAct(d.share); return; }
+    if (d.grp) { grpAct(d.grp, b); return; }
     if (d.mapbase) { mapLayerSet('base', d.mapbase); return; }
     if (d.rowmv) { const [l, id, dir] = d.rowmv.split('|'); moveRow(l, id, Number(dir)); return; }
     if (d.rowreset) { S.settings[d.rowreset] = null; persist(); renderAll(); if (ui.sheet === 'gorunum') openMore('gorunum', true); toast('Varsayılan düzen'); return; }
@@ -4414,6 +4594,9 @@ function bindEvents(){
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }
     if (el.dataset.setk) { S.settings[el.dataset.setk] = el.value.trim(); persist(); toast(el.value.trim() ? 'Anahtar kaydedildi' : 'Anahtar silindi'); return; }
+    if (el.dataset.grpshare) { setCatchShare(el.dataset.grpshare, {on: el.checked}); return; }
+    if (el.dataset.grpopt) { setCatchShare(el.dataset.cid, {[el.dataset.grpopt]: Number(el.value)}); return; }
+    if (el.dataset.grpdef) { S.settings.grpDef = Object.assign(grpDef(), {[el.dataset.grpdef]: Number(el.value)}); persist(); toast('Kaydedildi'); return; }
     if (el.dataset.alert) { const c = alertCfg(); const v = el.value; c[el.dataset.alert] = el.dataset.alert === 'part' ? v : Number(v); S.settings.alert = c; persist(); openMore('uyari', true); return; }
     if (el.dataset.ck) { if (!S.check || S.check.date !== dateKey(new Date())) S.check = {date: dateKey(new Date()), done: {}}; if (el.checked) S.check.done[el.dataset.ck] = 1; else delete S.check.done[el.dataset.ck]; persistQuiet(); return; }
     if (el.id === 'sf-ret' || el.id === 'sf-tel' || el.id === 'sf-not') { saveSafety(); return; }
@@ -4434,9 +4617,10 @@ function bindEvents(){
     if (f.id === 'bkForm') { submitBackupForm(false); return; }
     if (f.id === 'pkgForm') { submitPkg(); return; }
     if (f.id === 'welPkg') { welcomePkg(); return; }
+    if (f.id === 'grpForm') { grpCreate(); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
-  window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); });
+  window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); return; }
     loadWeather(); pkgCheck(false);
@@ -4444,7 +4628,7 @@ function bindEvents(){
 }
 // test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
-  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
+  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
 (async () => {
   loadState();
   pkgLoadCached();
@@ -4452,12 +4636,13 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   applyTheme();
   indexAll(); bindEvents();
   const h = (location.hash || '').slice(1);
-  const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null;
+  const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null, grpRaw = h.indexOf('grup=') === 0 ? h.slice(5) : null;
   show(VIEWS.includes(h) ? h : 'bugun');
   if (S.wx) WX = buildWx();
   await loadCatches();
   renderAll();
   if (shareRaw) openShareLink(shareRaw);
+  else if (grpRaw) openGroupInvite(grpRaw);
   else if (!PREVIEW && !S.onboarded && !hasProfileData()) showWelcome();
   else if (!S.onboarded) { S.onboarded = true; persistQuiet(); }
   if (CATCHES.length) { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }

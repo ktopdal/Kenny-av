@@ -3,6 +3,12 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.10.0', notes: [
+    'Ortak av haritası: kapalı grup (sen, Ogün, arkadaşların); grup senin GitHub deponda, grubun anahtarıyla şifreli',
+    'Grubu Daha → Ortak av haritası’ndan kur, davet bağlantısını WhatsApp’tan gönder; bağlantıya dokunan gruba katılır',
+    'Her av baştan gizli; avın sayfasından “Grupla paylaş”: yer 1 ya da 2 km’lik kareye yuvarlanır, istersen 1–2 gün gecikmeli görünür, fotoğraf gitmez',
+    'Haritada “Grup avları” katmanı: kim, hangi tür, kaç kilo, hangi rig ve yem',
+  ]},
   {v: '0.9.0', notes: [
     'Paylaş: envanterini ya da Rig Atölyesi sistemini bağlantıyla gönder; açan kişi kendi profiline kopyalar, senin verine dokunamaz',
     'Takvim uyarısı: rüzgâr, dalga ve balık kuralına uyan pencereler alarmıyla telefon takvimine eklenir (.ics) ya da Google Takvim’e',

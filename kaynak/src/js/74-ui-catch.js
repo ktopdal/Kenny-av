@@ -258,6 +258,7 @@ async function catchDetail(id){
       K('Su', cd.sst != null ? fmtNum(cd.sst, 1) + ' °C' : '') + K('Basınç', cd.press != null ? Math.round(cd.press) + ' hPa' + (cd.dp3 != null ? ' (3 sa ' + (cd.dp3 > 0 ? '+' : '') + fmtNum(cd.dp3, 1) + ')' : '') : '') +
       K('Sürüklenme', cd.drift_kn != null ? (cd.anchored ? 'demirli · ipe akış ' + fmtNum(cd.line_kn, 1) + ' kn' : fmtNum(cd.drift_kn, 1) + ' kn ' + (cd.drift_dir || '') + ' yönüne') : '') +
       K('Ay', cd.moon + ' · %' + cd.illum) + K('Balık aktivitesi', '%' + cd.act + (cd.v === 5 ? '' : ' (eski ölçek)') + (cd.sol ? ' · ' + cd.sol : '')) + '</div>' : '<p class="note">Bu av için deniz koşulu kaydı yok (o saatin verisi telefonda değildi).</p>') +
+    catchShareBox(c) +
     '<button class="btn" type="button" id="delCatch" data-del-catch="' + esc(id) + '" style="margin-top:10px;color:var(--D)">Avı sil</button></div>');
 }
 async function deleteCatch(id){

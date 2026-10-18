@@ -2,7 +2,7 @@
 // Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
 // Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
 // Yer adı: OpenStreetMap Nominatim (karada) ve Overpass (denizde en yakın yer, koy, kıyıya uzaklık) · Derinlik: EMODnet Bathymetry
-const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, substrate: false, locs: true, catches: true};
+const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, substrate: false, locs: true, catches: true, grup: true};
 const mapCfg = () => Object.assign({}, MAP_DEF, S.settings.map || {});
 const NOMI = 'https://nominatim.openstreetmap.org/reverse';
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
@@ -128,10 +128,11 @@ function initMap(){
   MAP = LL.map('map', {zoomControl: false, attributionControl: true}).setView(center, cur ? 11 : v ? v.z : 8);
   LL.control.zoom({position: 'topright'}).addTo(MAP);
   MAP.attributionControl.setPrefix(false);
-  MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), pick: null};
+  MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), grup: LL.layerGroup(), pick: null};
   const cfg = mapCfg(); setBase(cfg.base); ['seamark', 'depth', 'contours', 'substrate'].forEach(k => setOver(k, cfg[k]));
   drawLocs(); drawCatches();
   if (cfg.locs) MAPL.locs.addTo(MAP); if (cfg.catches) MAPL.catches.addTo(MAP);
+  if (cfg.grup && grpOn()) { MAPL.grup.addTo(MAP); drawGroup(); grpFetch().then(drawGroup); }
   MAP.on('click', e => pickPoint(e.latlng.lat, e.latlng.lng));
   MAP.on('moveend', () => { const c = MAP.getCenter(); S.settings.mapView = {lat: +c.lat.toFixed(5), lon: +c.lng.toFixed(5), z: MAP.getZoom()}; persistQuiet(); });
   const m = $('mapMsg'); if (m) m.hidden = true;
@@ -148,18 +149,18 @@ const OVERS = {
   contours: () => LF().tileLayer.wms('https://ows.emodnet-bathymetry.eu/wms', {layers: 'emodnet:contours', format: 'image/png', transparent: true, attribution: 'Derinlik eğrileri © EMODnet Bathymetry'}),
   substrate: () => LF().tileLayer.wms('https://drive.emodnet-geology.eu/geoserver/wms', {layers: 'cp_wp3_seabed_substrate_folk_7', format: 'image/png', transparent: true, opacity: 0.6, attribution: 'Dip türü © EMODnet Geology'}),
 };
-const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', substrate: 'Dip türü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım'};
+const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', substrate: 'Dip türü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
 function setBase(k){ if (!MAP) return; if (MAPL.base) MAP.removeLayer(MAPL.base); MAPL.base = (BASES[k] || BASES.osm)().addTo(MAP); MAPL.base.bringToBack(); }
 function setOver(k, on){
   if (!MAP) return;
-  if (k === 'locs' || k === 'catches') { const g = MAPL[k]; if (on) g.addTo(MAP); else MAP.removeLayer(g); return; }
+  if (k === 'locs' || k === 'catches' || k === 'grup') { const g = MAPL[k]; if (on) { g.addTo(MAP); if (k === 'grup') grpFetch().then(drawGroup); } else MAP.removeLayer(g); return; }
   if (on && !MAPL.over[k]) MAPL.over[k] = OVERS[k]().addTo(MAP);
   if (!on && MAPL.over[k]) { MAP.removeLayer(MAPL.over[k]); delete MAPL.over[k]; }
 }
 function renderLayers(){
   const cfg = mapCfg(), el = $('mapLayers'); if (!el) return;
   el.innerHTML = '<b>Altlık</b><div class="seg">' + [['osm', 'Harita'], ['uydu', 'Uydu']].map(([v, t]) => '<button class="btn small" type="button" data-mapbase="' + v + '" aria-pressed="' + (cfg.base === v) + '">' + t + '</button>').join('') + '</div>' +
-    '<b>Katmanlar</b>' + Object.keys(OVER_TXT).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
+    '<b>Katmanlar</b>' + Object.keys(OVER_TXT).filter(k => k !== 'grup' || grpOn()).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
     '<p class="note">Derinlik ve dip türü EMODnet verisidir; seyir için resmî harita yerine geçmez.</p>';
 }
 function mapLayerSet(k, v){ const cfg = mapCfg(); cfg[k] = v; S.settings.map = cfg; persistQuiet(); if (k === 'base') setBase(v); else setOver(k, v); renderLayers(); }
@@ -180,6 +181,16 @@ function drawCatches(){
     const m = LF().circleMarker([c.loc.lat, c.loc.lon], {radius: 7, weight: 2, className: 'mcatch'});
     m.bindPopup('<b>' + esc(l.sp) + '</b><br>' + l.d.getDate() + ' ' + MON3[l.d.getMonth()] + ' ' + l.d.getFullYear() + (l.bits ? ' · ' + esc(l.bits) : '') + (c.rig ? '<br>' + esc(rigShort(c.rig)) : ''));
     MAPL.catches.addLayer(m);
+  });
+}
+function drawGroup(){
+  if (!MAPL || !MAP) return; MAPL.grup.clearLayers();
+  grpCatches().forEach(c => {
+    const m = LF().circleMarker([c.lat, c.lon], {radius: 9, weight: 2, className: 'mgrp' + (c.mine ? ' me' : '')});
+    const d = new Date(c.t);
+    m.bindPopup('<b>' + esc(c.member) + '</b> · ' + esc(c.spName || c.sp) + (c.n > 1 ? ' · ' + c.n + ' adet' : '') + (c.kg ? ' · ' + fmtNum(c.kg, 2) + ' kg' : '') + (c.cm ? ' · ' + fmtNum(c.cm, 1) + ' cm' : '') +
+      '<br>' + d.getDate() + ' ' + MON3[d.getMonth()] + ' ' + d.getFullYear() + (c.rig ? '<br>' + esc(c.rig) : '') + (c.bait ? ' · yem: ' + esc(c.bait) : '') + '<br><small>yer ±' + (c.km || 1) + ' km kare</small>');
+    MAPL.grup.addLayer(m);
   });
 }
 // ---- nokta kartı

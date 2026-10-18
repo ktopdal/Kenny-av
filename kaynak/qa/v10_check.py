@@ -1,18 +1,18 @@
-"""Alyssa v0.3–v0.9 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v9_check.py
+"""Alyssa v0.3–v0.10 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v10_check.py
 """
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v9'
+SHOTS = ROOT + '/qa/v10'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8774
+PORT = 8775
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -84,7 +84,11 @@ async def mock_gh(route):
         return await route.fulfill(status=404, headers=hdr, content_type='application/json', body='{"message":"Not Found"}')
     if req.method == 'GET':
         f = GH.get(path)
-        if not f: return await route.fulfill(status=404, headers=hdr, content_type='application/json', body='{"message":"Not Found"}')
+        if not f:
+            kids = [k for k in GH if k.startswith(path + '/') and '/' not in k[len(path) + 1:]]
+            if kids:
+                return await route.fulfill(status=200, headers=hdr, content_type='application/json', body=json.dumps([{'name': k.split('/')[-1], 'path': k, 'sha': GH[k]['sha'], 'size': len(GH[k]['bytes']), 'type': 'file'} for k in sorted(kids)]))
+            return await route.fulfill(status=404, headers=hdr, content_type='application/json', body='{"message":"Not Found"}')
         if 'raw' in (req.headers.get('accept') or ''):
             return await route.fulfill(status=200, headers=hdr, body=f['bytes'], content_type='application/octet-stream')
         return await route.fulfill(status=200, headers=hdr, content_type='application/json', body=json.dumps({'sha': f['sha'], 'path': path, 'size': len(f['bytes']), 'content': base64.b64encode(f['bytes']).decode(), 'encoding': 'base64'}))
@@ -208,7 +212,7 @@ async def main():
         for v in ['takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(200); await overflow(pg, v)
         await pg.screenshot(path=SHOTS + '/a_daha.png')
-        check(await pg.locator('#moreMenu .mrow').count() == 14, 'Daha menüsü 14 satır')
+        check(await pg.locator('#moreMenu .mrow').count() == 15, 'Daha menüsü 15 satır')
         # alışveriş: aynı rig iki kez yok
         await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
         lines = await pg.locator('#sheet .item .sp').all_inner_texts()
@@ -698,6 +702,52 @@ async def main():
         check(await pg.locator('#rigList article.rig').count() == len(sy[0]['rigs']), 'L: Rigler ekranında')
         print('L3 errors:', errs); check(not errs, 'L: sayfa hatası yok (sistem)')
         await ctx.close()
+
+        # ================================================== M) v0.10: ortak av haritası (kapalı grup)
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        await pg.click('.tabbar button[data-v="avlar"]'); await pg.click('#addCatch'); await pg.wait_for_timeout(250)
+        await pg.select_option('#cf-sp', 'mercan'); await pg.select_option('#cf-rig', 'ozel:G-P5'); await pg.fill('#cf-kg', '0,85'); await pg.click('#cfSave'); await pg.wait_for_timeout(800)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="grup"]'); await pg.wait_for_timeout(300)
+        await pg.fill('#gp-repo', 'kenny/alyssa-yedek'); await pg.fill('#gp-tok', GOOD_TOKEN); await pg.fill('#gp-name', 'Seferihisar avcıları'); await pg.fill('#gp-me', 'Kenny')
+        await pg.click('#grpForm button[type="submit"]'); await pg.wait_for_timeout(2000)
+        gfiles = [k for k in GH if k.startswith('grup/')]
+        check('grup/README.md' in gfiles and any(k.startswith('grup/kenny-') for k in gfiles), 'M: grup kuruldu, dosyalar: ' + str(gfiles))
+        href = await pg.get_attribute('#grpInvite a.btn', 'href'); txt = urllib.parse.unquote(href.split('text=', 1)[1]); inv = txt[txt.index('http'):].split('#', 1)[1]
+        check(inv.startswith('grup='), 'M: davet bağlantısı hazır')
+        await pg.screenshot(path=SHOTS + '/m_grup.png')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        # avı paylaş
+        await pg.click('.tabbar button[data-v="avlar"]'); await pg.locator('#catchList .catch').first.click(); await pg.wait_for_timeout(400)
+        check('Grupla paylaş' in await pg.inner_text('#sheet'), 'M: av sayfasında grupla paylaş')
+        await pg.click('#sheet input[data-grpshare]'); await pg.wait_for_timeout(1200)
+        kf = [k for k in GH if k.startswith('grup/kenny-')][0]; raw = GH[kf]['bytes'].decode()
+        check('alyssa-grup' in raw and 'Mercan' not in raw and 'mercan' not in raw and 'G-P5' not in raw, 'M: grup dosyası şifreli')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        print('M1 errors:', errs); check(not errs, 'M: sayfa hatası yok (Kenny)')
+        # Ogün davetle katılır ve haritada görür
+        ctx2, pg2, errs2 = await new_ctx(b)
+        await pg2.goto(BASE + '/dist/?qa=1#' + inv); await pg2.wait_for_timeout(1500)
+        check('davet' in (await pg2.inner_text('#sheet')).lower() and not await pg2.is_visible('#welcome'), 'M: davet sayfası açıldı')
+        await pg2.fill('#gj-name', 'Ogün'); await pg2.click('#sheet button[data-grp="join"]'); await pg2.wait_for_timeout(2000)
+        check(any(k.startswith('grup/ogun-') for k in GH), 'M: Ogün gruba katıldı')
+        mem = await pg2.inner_text('#sheet'); check('Kenny' in mem and '1 paylaşılan av' in mem, 'M: üyeler listesi: ' + mem.replace('\n', ' ')[:160])
+        await pg2.click('#sheet button[data-grp="map"]'); await pg2.wait_for_selector('#map.leaflet-container', timeout=10000); await pg2.wait_for_timeout(1500)
+        check(await pg2.locator('path.mgrp').count() == 1, 'M: haritada Kenny’nin avı')
+        gc = await pg2.evaluate('window.ALYSSA_QA.grpCatches()')
+        check(gc and gc[0]['member'] == 'Kenny' and gc[0]['spName'] == 'Mercan' and gc[0]['km'] == 1, 'M: grup avı ayrıntısı (tür, üye, 1 km kare)')
+        await pg2.locator('path.mgrp').first.click(); await pg2.wait_for_timeout(300)
+        check('Kenny' in await pg2.inner_text('.leaflet-popup-content'), 'M: işaret açıklaması')
+        await pg2.screenshot(path=SHOTS + '/m_harita.png')
+        await pg2.click('#sheet [data-close]'); await pg2.wait_for_timeout(200)
+        # Kenny gecikme ekler: avı 1 gün sonra görünsün
+        await pg.locator('#catchList .catch').first.click(); await pg.wait_for_timeout(400)
+        await pg.select_option('#sheet select[data-grpopt="delay"]', '1'); await pg.wait_for_timeout(1200)
+        n = await pg2.evaluate('window.ALYSSA_QA.grpFetch(true).then(() => window.ALYSSA_QA.grpCatches().length)')
+        check(n == 0, 'M: gecikmeli av henüz görünmüyor')
+        print('M2 errors:', errs2); check(not errs2, 'M: sayfa hatası yok (Ogün)')
+        await ctx2.close(); await ctx.close()
 
         # ================================================== F) Rig Atölyesi: sıfırdan sistem, envanter, alışveriş
         ctx, pg, errs = await new_ctx(b)
