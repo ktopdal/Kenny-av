@@ -1,18 +1,18 @@
-"""Alyssa v0.3–v0.4 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v3_check.py
+"""Alyssa v0.3–v0.5 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v5_check.py
 """
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v4'
+SHOTS = ROOT + '/qa/v5'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8767
+PORT = 8768
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -106,6 +106,17 @@ async def new_ctx(b, storage=None, w=390):
     pg = await ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
     pg.on('console', lambda m: errs.append('console: ' + m.text) if m.type == 'error' and 'fonts' not in m.text and 'ERR_' not in m.text and 'Failed to load resource' not in m.text else None)
+    return ctx, pg, errs
+
+def fake_now(iso):
+    return FAKE_NOW.replace("2026-10-17T09:30:00+03:00", iso)
+
+async def new_ctx_at(b, iso, w=390):
+    ctx = await b.new_context(viewport={'width': w, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2, permissions=['geolocation'], geolocation={'latitude': 38.45, 'longitude': 27.20})
+    await ctx.add_init_script(fake_now(iso))
+    await ctx.route('https://api.open-meteo.com/**', mock_meteo); await ctx.route('https://marine-api.open-meteo.com/**', mock_meteo)
+    pg = await ctx.new_page(); errs = []
+    pg.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
     return ctx, pg, errs
 
 async def overflow(pg, tag):
@@ -301,6 +312,107 @@ async def main():
         print('D errors:', errs); check(not errs, 'D: sayfa hatası yok')
         await ctx.close()
         HANG['gfs'] = False
+
+        # ================================================== G) öneri motoru v3: 5 balık, tek hesaplı pencere, sürüklenme, öğrenme
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        cells = await pg.evaluate("""() => [...document.querySelectorAll('#hTable td.fish')].map(td => ({n: td.querySelectorAll('svg').length, on: td.querySelectorAll('svg.on').length, rows: td.querySelectorAll('.fi > span').length, pct: +td.querySelector('small').textContent.replace('%','')}))""")
+        check(len(cells) == 24 and all(c['n'] == 5 and c['rows'] == 2 for c in cells), 'G: her saatte 5 balık, üstte 3 altta 2 (%d hücre)' % len(cells))
+        bad = [c for c in cells if c['on'] != min(5, -(-c['pct'] // 20))]
+        check(not bad, 'G: dolu balık sayısı %20 dilimlerine uyuyor ' + str(bad[:3]))
+        pcts = [c['pct'] for c in cells]; print('   bugün %:', pcts)
+        check(min(pcts) >= 15 and 61 <= max(pcts) <= 100, 'G: yeni ölçek: sakin saat en az %d, tepe %d' % (min(pcts), max(pcts)))
+        await pg.locator('#hourly').screenshot(path=SHOTS + '/g_saatlik.png')
+        # takvimdeki pencere yüzdesi = o günün tablosunda pencere saatlerinin en yükseği
+        await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(300)
+        await pg.screenshot(path=SHOTS + '/g_takvim.png')
+        ndays = min(4, await pg.locator('#dayList .day').count()); okc = 0
+        for i in range(ndays):
+            t = await pg.locator('#dayList .day').nth(i).inner_text()
+            mm = re.search(r'%(\d+) en iyi pencere (\d\d):(\d\d)–(\d\d):(\d\d)', t.replace('\n', ' '))
+            if not mm: check(False, 'G: takvim günü %d pencere metni: %s' % (i, t[:160])); continue
+            pct, a, bb = int(mm.group(1)), int(mm.group(2)) * 60 + int(mm.group(3)), int(mm.group(4)) * 60 + int(mm.group(5))
+            if bb == 0: bb = 24 * 60
+            await pg.locator('#dayList .day').nth(i).click(); await pg.wait_for_timeout(300)
+            hrs = await pg.evaluate("""() => { const rows = [...document.querySelectorAll('#hTable tr')]; const h = [...rows[0].querySelectorAll('td')].map(td => +td.textContent); const f = [...rows[2].querySelectorAll('td')].map(td => +td.querySelector('small').textContent.replace('%','')); return h.map((x, i) => [x, f[i]]); }""")
+            inwin = [p for h, p in hrs if h * 60 <= bb + 20 and h * 60 > a - 30]
+            same = bool(inwin) and max(inwin) == pct
+            okc += same
+            if not same: print('   pencere/tablo farkı', t.replace('\n', ' ')[:200], inwin)
+            await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(250)
+        check(okc == ndays, 'G: takvimdeki pencere yüzdesi saatlik tabloyla aynı (%d/%d gün)' % (okc, ndays))
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
+        labels = await pg.evaluate("""() => [...document.querySelectorAll('#solWins .win .t small')].map(e => e.textContent)""")
+        check(labels and all(l in ('Sabah', 'Gündüz', 'Akşam', 'Gece') for l in labels), 'G: Bugün pencereleri adlı: ' + str(labels))
+        recw = await pg.locator('#recList .meta.why').all_inner_texts()
+        check(any('En iyi pencere' in x for x in recw), 'G: önerilerde en iyi pencere yazıyor')
+        # sürüklenme paneli ve demirli seçimi
+        dtxt = await pg.inner_text('#driftPanel')
+        check('sürüklenir' in dtxt and 'Noktanın üstünden' in dtxt and 'kurşun' in dtxt, 'G: sürüklenme paneli: ' + dtxt.replace('\n', ' ')[:160])
+        await pg.locator('#driftPanel').screenshot(path=SHOTS + '/g_surukle.png')
+        lbls = await pg.locator('#hTable th.lbl b').all_inner_texts(); check('Sürüklenme' in lbls, 'G: tabloda sürüklenme satırı')
+        await pg.click('#driftPanel button[data-set="anchor"][data-val="demir"]'); await pg.wait_for_timeout(300)
+        st = await state(pg); check(st['settings']['anchor'] == 'demir', 'G: demirli seçimi kaydedildi')
+        lbls = await pg.locator('#hTable th.lbl b').all_inner_texts(); dtxt2 = await pg.inner_text('#driftPanel')
+        check('İpe akış' in lbls and 'Demirli' in dtxt2 and 'Noktanın üstünden' not in dtxt2, 'G: demirliyken ipe akış, başlangıç önerisi yok')
+        await pg.click('#driftPanel button[data-set="anchor"][data-val="surukle"]'); await pg.wait_for_timeout(300)
+        sogs = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const S = Q.state(); const x = Q.days()[0].hs[9]; const r = {}; for (const k of ['az', 'orta', 'cok']) { S.settings.leeway = k; r[k] = Q.driftAt(x).sog; } S.settings.leeway = 'orta'; return r; }""")
+        check(sogs['az'] < sogs['orta'] < sogs['cok'], 'G: rüzgâr payı ayarı sürüklenmeyi değiştiriyor ' + json.dumps({k: round(v, 2) for k, v in sogs.items()}))
+        lead = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const dd = Q.days()[0]; const rg = Q.rigs().find(r => r.sinker && r.sinker.g); const xs = dd.hs.map(x => [x, Q.driftAt(x).line]).sort((p, q) => p[1] - q[1]);
+          const lo = Q.leadFor(rg, dd, xs[0][0]), hi = Q.leadFor(rg, dd, xs[xs.length - 1][0]); return {code: rg.code, g: rg.sinker.g, max: rg.sinker.max, lo: [xs[0][1], lo.extra, lo.kursun], hi: [xs[xs.length - 1][1], hi.extra, hi.kursun, hi.over, hi.need]}; }""")
+        print('   kurşun:', json.dumps(lead, ensure_ascii=False))
+        check(lead['hi'][1] > lead['lo'][1], 'G: akış arttıkça kurşun artıyor')
+        # derinlik: Konumlar'dan 25 m girilince artış yarıya iner ve panel derinliği yazar
+        x50 = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const x = Q.days()[0].hs[9]; return Q.leadExtra(Q.driftAt(x), 50); }""")
+        await pg.click('#locBtn'); await pg.wait_for_timeout(250)
+        await pg.evaluate("""() => { const i = document.querySelector('#sheet input[data-f="depth"]'); i.value = '25'; i.dispatchEvent(new Event('input', {bubbles: true})); i.dispatchEvent(new Event('change', {bubbles: true})); }""")
+        await pg.wait_for_timeout(200); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(300)
+        x25 = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const x = Q.days()[0].hs[9]; return Q.leadExtra(Q.driftAt(x), Q.loc().depth ? +Q.loc().depth : null); }""")
+        check(abs(x25 - x50 / 2) <= 10 and 'Derinlik 25 m' in await pg.inner_text('#driftPanel'), 'G: derinlik kurşuna giriyor (50 m: +%d g, 25 m: +%d g)' % (x50, x25))
+        # av kaydı o saatin koşullarını yeni ölçek ve sürüklenmeyle saklar
+        await pg.click('.tabbar button[data-v="avlar"]'); await pg.click('#addCatch'); await pg.wait_for_timeout(250)
+        await pg.select_option('#cf-sp', 'mercan'); await pg.click('#cfSave'); await pg.wait_for_timeout(800)
+        rec = await pg.evaluate('''() => new Promise(res => { const r = indexedDB.open('kenny-av', 1); r.onsuccess = () => { const q = r.result.transaction('catches').objectStore('catches').getAll(); q.onsuccess = () => res(q.result); }; })''')
+        cd = (rec[0] or {}).get('cond') or {}
+        check(cd.get('v') == 5 and cd.get('drift_kn') is not None and cd.get('line_kn') is not None, 'G: av kaydında sürüklenme ve yeni ölçek: ' + json.dumps({k: cd.get(k) for k in ('v', 'drift_kn', 'drift_dir', 'line_kn', 'act')}))
+        await pg.locator('#catchList .catch').first.click(); await pg.wait_for_timeout(300)
+        check('sürüklenme' in (await pg.inner_text('#sheet')).lower(), 'G: av ayrıntısında sürüklenme')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(200)
+        # öğrenme: 6 av kaydı (aynı rig, gece, bu nokta) → o rig gece önerisinde öne çıkar
+        before = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const r = Q.recommend(Q.days()[0], true).find(r => r.rg.id === 'ozel:N-P5'); return r ? r.sc : null; }""")
+        await pg.evaluate("""() => new Promise((res, rej) => { const L = window.ALYSSA_QA.loc(); const r = indexedDB.open('kenny-av', 1); r.onsuccess = () => { const t = r.result.transaction('catches', 'readwrite'); const st = t.objectStore('catches');
+          for (let i = 0; i < 6; i++) st.put({id: 'qa' + i, t: new Date(2026, 9, 8 + i, 21, 30).toISOString(), species: 'mercan', count: 2, rig: 'ozel:N-P5', loc: {lat: L.lat, lon: L.lon, name: L.name}, cond: {cur_kn: 0.5, illum: 40}, photos: []});
+          t.oncomplete = () => res(true); t.onerror = () => rej(t.error); }; r.onerror = () => rej(r.error); })""")
+        await pg.evaluate('location.reload()'); await pg.wait_for_timeout(2500)
+        after = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const r = Q.recommend(Q.days()[0], true).find(r => r.rg.id === 'ozel:N-P5'); return r ? {sc: r.sc, why: r.why} : null; }""")
+        print('   öğrenme:', before, json.dumps(after, ensure_ascii=False))
+        check(before is not None and after and after['sc'] >= before + 2 and any('seninle 12 balık' in w for w in after['why']), 'G: avlardan öğrenme N-P5 puanını artırdı')
+        await pg.click('.tabbar button[data-v="avlar"]'); await pg.wait_for_timeout(300)
+        lt = await pg.inner_text('#learnBox'); check('En verimli rigler' in lt and 'N-P5' in lt, 'G: Avlar ekranında öğrenme özeti: ' + lt.replace('\n', ' ')[:160])
+        await pg.screenshot(path=SHOTS + '/g_avlar.png')
+        for v in ['bugun', 'takvim', 'avlar']:
+            await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(150); await overflow(pg, 'G ' + v)
+        await pg.set_viewport_size({'width': 320, 'height': 700}); await pg.wait_for_timeout(200)
+        for v in ['bugun', 'takvim']:
+            await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(150); await overflow(pg, 'G 320 px ' + v)
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(150)
+        await pg.screenshot(path=SHOTS + '/g_bugun_320.png', full_page=True)
+        print('G errors:', errs); check(not errs, 'G: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== H) akşam: gündüz önerileri yarına geçer, bugünün pencereleri geçtiyse yarın gösterilir
+        ctx, pg, errs = await new_ctx_at(b, '2026-10-17T21:40:00+03:00')
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        eb = await pg.locator('#recList .eyebrow').all_inner_texts()
+        check(any('YARIN' in e.upper() for e in eb), 'H: akşam gündüz önerileri yarının: ' + str(eb))
+        sw = await pg.inner_text('#solWins'); print('   pencereler 21:40:', sw.replace('\n', ' ')[:200])
+        check(sw.strip() != '', 'H: Bugün penceresi paneli boş değil')
+        await pg.screenshot(path=SHOTS + '/h_aksam.png', full_page=True)
+        print('H errors:', errs); check(not errs, 'H: sayfa hatası yok')
+        await ctx.close()
 
         # ================================================== F) Rig Atölyesi: sıfırdan sistem, envanter, alışveriş
         ctx, pg, errs = await new_ctx(b)

@@ -3,6 +3,14 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.5.0', notes: [
+    'Balık tahmini 5 balıkla: üstte 3, altta 2; her balık %20. Ölçek yenilendi: sakin saatte 1–2, iyi pencerede 4–5 balık',
+    'Takvim, Bugün ve öneriler aynı hesaptan: en iyi pencere, tepe değeri ve nedeni (major, minor, şafak, alacakaranlık) birbirini tutar; deniz sınıfı da tartılır',
+    'Sürüklenme: rüzgâr ve akıntıdan teknenin gidişi; noktanın ne kadar yukarısından başlayacağın; kurşun gramı sürüklenme ve derinliğe göre',
+    'Demirli / sürüklenerek seçimi ve teknenin rüzgârdan etkilenme ayarı',
+    'Avlarından öğrenme: 5 av kaydından sonra öneriler senin sonuçlarına göre ayarlanır',
+    'Teknik kuralları: jig, kalamar, şamandıra, orkinos ve sırtı için koşul uyumu',
+  ]},
   {v: '0.4.0', notes: [
     'Rig Atölyesi: nasıl avlandığını, hedef türleri ve takım düzenini sorup sıfırdan rig sistemi kurar (dip, jig, canlı yem, çapari, kalamar, sırtı, orkinos, surf, LRF, spin, şamandıra)',
     'Her rigde üç malzeme seviyesi: dünyanın en iyisi, envanterimden, Türkiye\'de en iyi (envanterde uygunu varsa o); envanter değiştikçe rigler kendiliğinden güncellenir',

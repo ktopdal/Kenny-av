@@ -34,14 +34,15 @@
       <div id="hLegend"></div>
       <details><summary>Balık aktivitesi nasıl hesaplanıyor?</summary>
         <div class="explain">
-          <span>Her saat için 0–100 arası tahmini bir değerdir. Temeli solunar: ayın üst ve alt geçişi (major, ±60 dk), ay doğuş ve batışı (minor, ±30 dk), şafak ve alacakaranlık (±45 dk).</span>
-          <span>Ay evresi etkisi: yeniay ve dolunaya yakın günlerde yüksek, dördünlerde düşük. Basınç eğilimi: son 3 saatte yavaş düşüş artırır, hızlı yükseliş ya da hızlı düşüş azaltır.</span>
-          <span>Rüzgâr ve dalga bu değere girmez; denize çıkıp çıkmamayı renkli satırlardan ve A–D sınıfından oku. 🐟 %0–39 · 🐟🐟 %40–66 · 🐟🐟🐟 %67–100.</span>
+          <span>Her saat için 0–100 arası tahmini bir değerdir ve o saatin ±30 dakikasını kapsar. Temeli solunar: ayın üst ve alt geçişi (major, ±60 dk), ay doğuşu ve batışı (minor, ±30 dk), şafak ve alacakaranlık (±50 dk). Olay yokken taban %24'tür; olaylar üst üste binince değer yükselir.</span>
+          <span>Ay evresi: yeniay ve dolunaya yakın günlerde ×1,1, dördünlerde ×0,9. Hava payı: son 3 saatte basıncın yavaş düşmesi artırır, hızlı düşüş ya da yükseliş azaltır; orta akıntı biraz artırır, hiç akıntı olmaması biraz azaltır.</span>
+          <span>Her balık %20: 1 balık %1–20, 2 balık %21–40, 3 balık %41–60, 4 balık %61–80, 5 balık %81–100. Rüzgâr ve dalga bu değere girmez; ama takvimdeki ve öneriler üstündeki "en iyi pencere" seçilirken denizin A–D sınıfı da tartılır.</span>
         </div>
       </details>
     </div>
     <div class="now" id="nowGrid" style="margin-top:12px"></div>
     <div class="classrow" id="classRow"></div>
+    <div class="panel drift" style="margin-top:12px" id="driftPanel" hidden></div>
     <div class="panel" style="margin-top:12px" id="solPanel">
       <div class="row" style="justify-content:space-between"><h3>Solunar</h3><span id="solStars"></span></div>
       <p class="note" id="solSub" style="margin-top:2px"></p>
@@ -66,6 +67,7 @@
       <p class="sub">Fotoğraf çek ya da galeriden seç. Saat, konum ve o anki deniz koşulları kendiliğinden yazılır. Fotoğraflar bu telefonda durur; bulut yedeği açıksa şifreli olarak deponda da saklanır.</p></div>
     <button class="btn primary bigbtn" id="addCatch" type="button">+ Av ekle</button>
     <div class="stats" id="catchStats" style="margin-top:12px"></div>
+    <div class="panel learn" id="learnBox" style="margin-top:12px" hidden></div>
     <div class="stack" id="catchList" style="margin-top:12px"></div>
   </section>
 

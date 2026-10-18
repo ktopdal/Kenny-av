@@ -139,6 +139,9 @@ function bindEvents(){
     loadWeather(); pkgCheck(false);
   });
 }
+// test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
+if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
+  state: () => S, winTxt, winLabel, evChip, hm, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
 (async () => {
   loadState();
   pkgLoadCached();

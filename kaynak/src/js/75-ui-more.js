@@ -44,6 +44,9 @@ function sheetSettings(){
     '<section class="set"><h4>Koordinatlar</h4>' + segBtns('coord', [['dd', 'Ondalık · 38.3783°'], ['ddm', 'Derece-dakika · 38°22,698′ K']], st.coord) +
     '<label class="row note chk"><input type="checkbox" data-setb="hideCoords"' + (st.hideCoords ? ' checked' : '') + '> Koordinatları üst çubukta ve av kayıtlarında gizle (ekran görüntüsü paylaşırken)</label></section>' +
     '<section class="set"><h4>Av modu</h4>' + segBtns('mode', [['tekne', 'Tekne'], ['kiyi', 'Kıyı']], S.mode) + '<p class="note">Kıyı modunda kıyı teknikleri ve kıyı rigleri öne çıkar (kıyı önerileri sonraki sürümlerde genişleyecek).</p></section>' +
+    '<section class="set"><h4>Tekne ve sürüklenme</h4>' + segBtns('anchor', [['surukle', 'Sürüklenerek avlanırım'], ['demir', 'Demirli avlanırım']], st.anchor === 'demir' ? 'demir' : 'surukle') +
+    '<p class="note" style="margin-top:8px">Teknen rüzgârdan ne kadar etkilenir?</p>' + segBtns('leeway', Object.entries(LEEWAY_TXT), st.leeway || 'orta') +
+    '<p class="note">Rüzgâr, hızının %3 / %4,5 / %6’sı kadar sürüklenme ekler. Plotterdeki gerçek sürüklenmen hesaplanandan hızlıysa bir üst, yavaşsa bir alt seçeneği seç.</p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '</div>';
 }
@@ -143,7 +146,7 @@ function sheetShopping(){
 function sheetStandards(){
   const rows = Object.values(SETUPS).map(s => { const st = s.standard_cm; return '<tr><td>' + esc(s.name) + '</td><td>' + st.ust + '</td><td>' + st.orta + '</td><td>' + st.hirsiz + '</td><td>' + st.aralik + '</td><td>' + st.kursun_g.join('–') + '</td><td>' + st.kursun_max_g + '</td></tr>'; }).join('');
   return sheetBar('Takım standartları') + '<div class="stack">' + (rows ? '<div class="tbl panel"><table><thead><tr><th>Takım</th><th>Üst köstek (cm)</th><th>Orta köstek (cm)</th><th>Hırsız (cm)</th><th>Köstek arası (cm)</th><th>Kurşun (g)</th><th>Kamış sınırı (g)</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-    '<p class="note">Akıntı 0,5 knot (kn) üstündeyse kurşun +30 g ve hırsız köstek %20 kısa; kurşun kamış sınırını aşmaz. Kayalık rigler kendi kısa kösteklerini kullanır.</p>' : '<div class="empty">Henüz standardı olan bir rig sistemi yok.</div>') + '</div>';
+    '<p class="note">Kurşun sürüklenmeye göre artar: ipe binen akış 50 m’de 0,4 kn iken ≈ +30 g, 0,6 kn iken ≈ +80 g; artış derinlikle orantılıdır. Kurşun kamış sınırını aşmaz. İpe binen akış 0,4 kn üstündeyse (demirliyken ≈ 0,5 kn akıntı) hırsız köstek %20 kısa. Kayalık rigler kendi kısa kösteklerini kullanır.</p>' : '<div class="empty">Henüz standardı olan bir rig sistemi yok.</div>') + '</div>';
 }
 function sheetFile(){
   return sheetBar('Dosya yedeği') + '<div class="stack"><p class="sub">Profilini ve avlarını tek dosya olarak indir ya da bir dosyadan geri yükle. Bulut yedeği açıksa buna genelde gerek kalmaz.</p>' +

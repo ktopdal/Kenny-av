@@ -2,7 +2,8 @@
 const STAR = on => '<svg viewBox="0 0 24 24" class="' + (on ? 'on' : 'off') + '" stroke-width="1.6"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2 6.3 20.3l1.2-6.4L2.8 9.5l6.4-.8z"/></svg>';
 const starsHtml = n => '<span class="stars" role="img" aria-label="' + n + ' yıldız">' + [1, 2, 3, 4, 5].map(i => STAR(i <= n)).join('') + '</span>';
 const FISH = on => '<svg viewBox="0 0 24 16" class="' + (on ? 'on' : 'off') + '" stroke-width="1.4"><path d="M2 8c3-4.6 7.4-6 11.4-4.4 2.2.9 3.8 2.4 4.6 4.4-.8 2-2.4 3.5-4.6 4.4C9.4 14 5 12.6 2 8z"/><path d="M18 8l4-3.4v6.8z"/></svg>';
-const fishHtml = n => '<span class="fi" role="img" aria-label="' + n + ' balık">' + [1, 2, 3].map(i => FISH(i <= n)).join('') + '</span>';
+// 5 balık: üstte 3, altta 2; her balık %20
+const fishHtml = n => '<span class="fi" role="img" aria-label="5 balıktan ' + n + '"><span>' + [1, 2, 3].map(i => FISH(i <= n)).join('') + '</span><span>' + [4, 5].map(i => FISH(i <= n)).join('') + '</span></span>';
 // ok: gittiği yöne bakar (rüzgâr ve dalga "geldiği" yön verilir → +180°)
 const arrowTo = deg => deg == null ? '' : '<svg class="arr" viewBox="0 0 16 16" style="transform:rotate(' + Math.round(deg) + 'deg)" aria-hidden="true"><path d="M8 1l4.5 9H9v5H7v-5H3.5z"/></svg>';
 const arrowFrom = deg => deg == null ? '' : arrowTo(deg + 180);
@@ -34,13 +35,14 @@ function compRow(rg, sl, tier){
 }
 function lengthsTxt(ld){
   if (!ld) return '';
-  const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm');
-  if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>');
+  const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %20 kısa)' : ''));
+  if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
+    (ld.over ? ' · <b class="warn">gereken ≈ ' + ld.need + ' g, kamış sınırı ' + ld.max + ' g: paraşüt çapa at, motorla karşıla ya da demirle</b>' : ''));
   return parts.join(' · ');
 }
-function rigCard(rg, dd, why, extra, tier){
+function rigCard(rg, dd, why, extra, tier, x){
   tier = tier || 'envanter';
-  const ok = ready(rg); const ld = leadFor(rg, dd);
+  const ok = ready(rg); const ld = leadFor(rg, dd, x);
   const chips = [];
   (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
   if (rg.core) chips.push('<span class="chip gold">12 ay</span>');

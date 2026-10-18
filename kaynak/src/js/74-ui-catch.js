@@ -23,9 +23,9 @@ const IDB = (() => {
   return {put: (s, v) => run(s, 'readwrite', st => st.put(v)), get: (s, k) => run(s, 'readonly', st => st.get(k)),
     all: s => run(s, 'readonly', st => st.getAll()), del: (s, k) => run(s, 'readwrite', st => st.delete(k))};
 })();
-let CATCHES = [];
+let CATCHES = [], CATCHES_V = 0;
 const URLS = {};
-async function loadCatches(){ try { CATCHES = (await IDB.all('catches')) || []; } catch (e) { CATCHES = []; } CATCHES.sort((a, b) => (b.t || '').localeCompare(a.t || '')); }
+async function loadCatches(){ try { CATCHES = (await IDB.all('catches')) || []; } catch (e) { CATCHES = []; } CATCHES.sort((a, b) => (b.t || '').localeCompare(a.t || '')); CATCHES_V++; }
 async function photoUrl(id, which){
   const k = id + ':' + which; if (URLS[k]) return URLS[k];
   try { const p = await IDB.get('photos', id); if (!p) return null; URLS[k] = URL.createObjectURL(which === 'big' ? p.big : p.thumb); return URLS[k]; } catch (e) { return null; }
@@ -99,6 +99,13 @@ async function renderCatches(){
   const top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
   const M = (k, v, s) => '<div class="metric"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>';
   $('catchStats').innerHTML = M('Av', tot, 'balık') + M('Toplam', fmtNum(kg, 1) || '0', 'kg') + M('En çok', top ? esc(top[0]) : '–', top ? top[1] + ' balık' : '');
+  const ls = learnSummary(); const lb = $('learnBox');
+  lb.hidden = !ls;
+  if (ls) lb.innerHTML = '<b>Avlarından öğrenme</b>' + (!ls.on ? '<span>' + esc(ls.txt) + '</span>' :
+    '<span>Öneriler ' + ls.total + ' av kaydına göre ayarlanıyor: aynı rigin benzer koşullarda (gece/gündüz, akıntı, ay, mevsim, nokta) verdiği sonuç öne çıkar.</span>' +
+    (ls.rigs.length ? '<span>En verimli rigler: <b>' + ls.rigs.join(', ') + '</b></span>' : '') +
+    (ls.hours.length ? '<span>En çok tuttuğun saatler: <b>' + ls.hours.join(', ') + '</b></span>' : '') +
+    (ls.model != null ? '<span>Uygulamanın 3 ve üstü balık (%41+) gösterdiği saatlerde gelen balıkların oranı: <b>%' + ls.model + '</b></span>' : ''));
   if (!CATCHES.length) { $('catchList').innerHTML = '<div class="empty">Henüz av yok. İlk balığını “+ Av ekle” ile kaydet.</div>'; return; }
   $('catchList').innerHTML = CATCHES.map(c => { const l = catchLine(c);
     return '<button class="catch" type="button" data-catch="' + esc(c.id) + '">' + (c.photos && c.photos.length ? '<img class="th" alt="" data-ph="' + esc(c.photos[0]) + '">' : '<span class="th ph">🐟</span>') +
@@ -194,9 +201,10 @@ function condAt(t, p){
   const L = loc(); if (!L || distKm(L, p) > 40) return null;
   let best = null, bd = 1e15; WX.hours.forEach(x => { const d = Math.abs(x.t - t); if (d < bd) { bd = d; best = x; } });
   if (!best || bd > 3 * 3600000) return null;
-  const s = solunar(new Date(t.getFullYear(), t.getMonth(), t.getDate())); const a = activity(best);
+  const s = solunar(new Date(t.getFullYear(), t.getMonth(), t.getDate())); const a = activity(best); const dr = driftAt(best);
   return {wind_bft: bft(best.wind), wind_kn: best.wind == null ? null : Math.round(best.wind * KN), wdir: dir8(best.wdir), gust_bft: bft(best.gust), wave_m: best.wave, per_s: best.per,
-    cur_kn: best.cur, sst: best.sst, temp: best.temp, press: best.press, dp3: best.dp3, moon: s.name, illum: Math.round(s.illum * 100), stars: s.stars, act: a.pct, sol: a.tags.join(' ')};
+    cur_kn: best.cur, sst: best.sst, temp: best.temp, press: best.press, dp3: best.dp3, moon: s.name, illum: Math.round(s.illum * 100), stars: s.stars, act: a.pct, sol: a.tags.join(' '),
+    drift_kn: dr && dr.known ? +dr.sog.toFixed(2) : null, drift_dir: dr && dr.known ? dir8(dr.dir) : null, line_kn: dr && dr.known ? +dr.line.toFixed(2) : null, anchored: !!(dr && dr.anchored), v: 5};
 }
 async function saveCatch(){
   const err = m => { $('cfErr').textContent = m; $('cfErr').hidden = false; };
@@ -246,7 +254,8 @@ async function catchDetail(id){
     (cd ? '<h3 style="margin-top:6px">O saatteki koşullar</h3><div class="kv">' + K('Rüzgâr', cd.wind_bft != null ? cd.wind_bft + ' Bft · ' + cd.wind_kn + ' kn ' + (cd.wdir || '') : '') + K('Hamle', cd.gust_bft != null ? cd.gust_bft + ' Bft' : '') +
       K('Dalga', cd.wave_m != null ? fmtNum(cd.wave_m, 1) + ' m' + (cd.per_s != null ? ' · ' + Math.round(cd.per_s) + ' sn' : '') : '') + K('Akıntı', cd.cur_kn != null ? fmtNum(cd.cur_kn, 1) + ' kn' : '') +
       K('Su', cd.sst != null ? fmtNum(cd.sst, 1) + ' °C' : '') + K('Basınç', cd.press != null ? Math.round(cd.press) + ' hPa' + (cd.dp3 != null ? ' (3 sa ' + (cd.dp3 > 0 ? '+' : '') + fmtNum(cd.dp3, 1) + ')' : '') : '') +
-      K('Ay', cd.moon + ' · %' + cd.illum) + K('Balık aktivitesi', '%' + cd.act + (cd.sol ? ' · ' + cd.sol : '')) + '</div>' : '<p class="note">Bu av için deniz koşulu kaydı yok (o saatin verisi telefonda değildi).</p>') +
+      K('Sürüklenme', cd.drift_kn != null ? (cd.anchored ? 'demirli · ipe akış ' + fmtNum(cd.line_kn, 1) + ' kn' : fmtNum(cd.drift_kn, 1) + ' kn ' + (cd.drift_dir || '') + ' yönüne') : '') +
+      K('Ay', cd.moon + ' · %' + cd.illum) + K('Balık aktivitesi', '%' + cd.act + (cd.v === 5 ? '' : ' (eski ölçek)') + (cd.sol ? ' · ' + cd.sol : '')) + '</div>' : '<p class="note">Bu av için deniz koşulu kaydı yok (o saatin verisi telefonda değildi).</p>') +
     '<button class="btn" type="button" id="delCatch" data-del-catch="' + esc(id) + '" style="margin-top:10px;color:var(--D)">Avı sil</button></div>');
 }
 async function deleteCatch(id){
