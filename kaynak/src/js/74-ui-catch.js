@@ -86,6 +86,7 @@ async function processPhoto(file){
 }
 
 // ---- liste
+const rigShort = r => RIGS[r] ? (RIGS[r].code || RIGS[r].name) : r;
 function catchLine(c){
   const sp = c.species === 'diger' ? (c.species_other || 'Diğer') : (SPECIES[c.species] ? SPECIES[c.species].name : c.species);
   const d = new Date(c.t);
@@ -101,32 +102,38 @@ async function renderCatches(){
   if (!CATCHES.length) { $('catchList').innerHTML = '<div class="empty">Henüz av yok. İlk balığını “+ Av ekle” ile kaydet.</div>'; return; }
   $('catchList').innerHTML = CATCHES.map(c => { const l = catchLine(c);
     return '<button class="catch" type="button" data-catch="' + esc(c.id) + '">' + (c.photos && c.photos.length ? '<img class="th" alt="" data-ph="' + esc(c.photos[0]) + '">' : '<span class="th ph">🐟</span>') +
-      '<span><b>' + esc(l.sp) + '</b><br><span class="m">' + esc(l.bits || '—') + (c.rig ? ' · ' + esc(c.rig) : '') + '</span><br>' +
+      '<span><b>' + esc(l.sp) + '</b><br><span class="m">' + esc(l.bits || '—') + (c.rig ? ' · ' + esc(rigShort(c.rig)) : '') + '</span><br>' +
       '<span class="s">' + l.d.getDate() + ' ' + MON3[l.d.getMonth()] + ' ' + l.d.getFullYear() + ' ' + hm(l.d) + (c.loc && c.loc.name ? ' · ' + esc(c.loc.name) : '') + '</span></span></button>'; }).join('');
   document.querySelectorAll('#catchList img[data-ph]').forEach(async im => { const u = await photoUrl(im.dataset.ph, 'thumb'); if (u) im.src = u; });
 }
 
 // ---- form (ekle / düzenle)
 let FORM = null;
-function openSheet(html){
-  const sh = $('sheet'); const wasHidden = sh.hidden;
-  sh.innerHTML = html; sh.hidden = false; sh.scrollTop = 0; document.body.style.overflow = 'hidden';
+function openSheet(html, keepScroll){
+  const sh = $('sheet'); const wasHidden = sh.hidden; const top = sh.scrollTop;
+  sh.innerHTML = '<div class="sin">' + html + '</div>'; sh.hidden = false; sh.scrollTop = keepScroll ? top : 0; document.body.style.overflow = 'hidden';
   if (wasHidden) { try { history.pushState({sheet: 1}, ''); } catch (e) {} }
 }
-function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; if (!fromPop) { try { history.back(); } catch (e) {} } }
+function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; ui.sheet = null; ui.sheetArg = null; if (!fromPop) { try { history.back(); } catch (e) {} } }
 window.addEventListener('popstate', () => { if (!$('sheet').hidden) closeSheet(true); });
 function toLocalInput(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-function nearestLoc(p){ let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
+function nearestLoc(p){ if (!p || p.lat == null) return null; let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
+const CATCH_TECH = ['Jig', 'Slow jig', 'Inchiku', 'Tai rubber', 'Kalamar zokası', 'Çapari', 'Sırtı (trolling)', 'Surf', 'LRF', 'Spin', 'Şamandıra', 'Diğer'];
 function catchForm(c){
   const isNew = !c; c = c || {};
   const L = loc();
-  FORM = {id: c.id || null, photos: [], keep: (c.photos || []).slice(), removed: [], loc: c.loc || {lat: L.lat, lon: L.lon, name: L.name, src: 'konum'}, t: c.t ? new Date(c.t) : new Date()};
-  const spOpts = '<option value="">Seç</option>' + D.species.map(s => '<option value="' + s.id + '"' + (c.species === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '<option value="diger"' + (c.species === 'diger' ? ' selected' : '') + '>Diğer</option>';
-  const rigOpt = r => '<option value="' + r.code + '"' + (c.rig === r.code ? ' selected' : '') + '>' + r.code + ' · ' + esc(r.name) + (ready(r) ? '' : ' (eksik)') + '</option>';
-  const rigOpts = '<option value="">—</option><optgroup label="Hazır rigler">' + D.rigs.filter(ready).map(rigOpt).join('') + '</optgroup><optgroup label="Diğer rigler">' + D.rigs.filter(r => !ready(r)).map(rigOpt).join('') + '</optgroup>' +
-    ['Jig', 'Inchiku', 'Tai rubber', 'Kalamar zokası', 'Sabiki', 'Diğer'].map(x => '<option' + (c.rig === x ? ' selected' : '') + '>' + x + '</option>').join('');
-  const baitOpts = ['', 'Mamun', 'Sülünez', 'Çimçim', 'Canlı yem', 'Yapay yem', 'Diğer'].map(x => '<option value="' + x + '"' + ((c.bait || '') === x ? ' selected' : '') + '>' + (x || '—') + '</option>').join('');
-  const botOpts = BOTTOM.map(([k, t]) => '<option value="' + k + '"' + ((c.bottom != null ? c.bottom : (L.bottom || '')) === k ? ' selected' : '') + '>' + t + '</option>').join('');
+  FORM = {id: c.id || null, photos: [], keep: (c.photos || []).slice(), removed: [], loc: c.loc || (L ? {lat: L.lat, lon: L.lon, name: L.name, src: 'konum'} : null), t: c.t ? new Date(c.t) : new Date(), botTouched: c.bottom != null};
+  const sps = Object.values(SPECIES).sort((a, b) => trCmp(a.name, b.name));
+  const spOpts = '<option value="">Seç</option>' + sps.map(s => '<option value="' + s.id + '"' + (c.species === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '<option value="diger"' + (c.species === 'diger' ? ' selected' : '') + '>Diğer</option>';
+  const sel = r => (c.rig && (c.rig === r.id || c.rig === r.code)) ? ' selected' : '';
+  const rigOpt = r => '<option value="' + esc(r.id) + '"' + sel(r) + '>' + esc((r.code ? r.code + ' · ' : '') + r.name) + (ready(r) ? '' : ' (eksik)') + '</option>';
+  const bySys = {}; RIG_LIST.forEach(r => { (bySys[r.sys] = bySys[r.sys] || []).push(r); });
+  const rigOpts = '<option value="">—</option>' + Object.keys(bySys).map(sid => '<optgroup label="' + esc(sysName(sid)) + '">' + bySys[sid].filter(ready).concat(bySys[sid].filter(r => !ready(r))).map(rigOpt).join('') + '</optgroup>').join('') +
+    '<optgroup label="Teknik">' + CATCH_TECH.map(x => '<option' + (c.rig === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</optgroup>';
+  const baitOpts = ['', 'Mamun', 'Sülünez', 'Çimçim', 'Karides', 'Kalamar', 'Sardalya', 'Midye', 'Yengeç', 'Canlı yem', 'Yapay yem', 'Diğer'].map(x => '<option value="' + x + '"' + ((c.bait || '') === x ? ' selected' : '') + '>' + (x || '—') + '</option>').join('');
+  const n0 = nearestLoc(FORM.loc); const defBot = c.bottom != null ? c.bottom : (n0 && n0.d <= 0.5 ? (n0.L.bottom || '') : '');
+  const botOpts = BOTTOM.map(([k, t]) => '<option value="' + k + '"' + (defBot === k ? ' selected' : '') + '>' + t + '</option>').join('');
+  ui.sheet = 'catch';
   openSheet('<div class="bar"><button class="btn" type="button" data-close>Vazgeç</button><h3 id="sheetTitle">' + (isNew ? 'Yeni av' : 'Avı düzenle') + '</h3><button class="btn primary" type="button" id="cfSave">Kaydet</button></div>' +
     '<div class="stack" style="margin-top:6px">' +
     '<div class="row"><label class="btn filebtn">📷 Fotoğraf çek<input type="file" accept="image/*" capture="environment" id="cfCam"></label>' +
@@ -142,19 +149,22 @@ function catchForm(c){
     '<label class="f wide">Rig ya da takım<select id="cf-rig">' + rigOpts + '</select></label>' +
     '<label class="f">Yem<select id="cf-bait">' + baitOpts + '</select></label>' +
     '<label class="f">Dip<select id="cf-bot">' + botOpts + '</select></label>' +
-    '<label class="f wide">Tarih ve saat<input type="datetime-local" id="cf-t" value="' + toLocalInput(FORM.t) + '"></label>' +
+    '<label class="f wide">Tarih ve saat<input type="datetime-local" id="cf-t" value="' + toLocalInput(FORM.t) + '"><span class="tr-date" id="cf-tlbl">' + fmtDT(FORM.t) + '</span></label>' +
     '</div>' +
     '<div class="panel"><div class="row" style="justify-content:space-between"><div><b>Konum</b><div class="note mono" id="cfLoc"></div></div><button class="btn small" type="button" id="cfGps">Bulunduğum yer</button></div>' +
     '<label class="row note" style="gap:8px;margin-top:8px" id="cfAddLocW"><input type="checkbox" id="cfAddLoc" checked> Bu noktayı konumlarıma ekle (yakında kayıtlı konum yok)</label></div>' +
     '<label class="f">Not<input id="cf-note" value="' + esc(c.note || '') + '" placeholder="Ör. ikinci salkımda geldi"></label>' +
-    (isNew ? '' : '') + '<p class="err" id="cfErr" hidden></p></div>');
+    '<p class="err" id="cfErr" hidden></p></div>');
   renderFormPhotos(); renderFormLoc();
 }
 function renderFormLoc(){
-  if (!FORM) return; const p = FORM.loc; const n = nearestLoc(p);
-  const near = n && n.d <= 0.5;
-  $('cfLoc').textContent = p.lat.toFixed(5) + ', ' + p.lon.toFixed(5) + ' · ' + (near ? (n.L.id === '1' ? 'Konum 1 · ' : '') + n.L.name + (n.d > 0.05 ? ' (' + Math.round(n.d * 1000) + ' m)' : '') : 'kayıtlı konum dışında') + ' · ' + ({gps: 'GPS', foto: 'fotoğraftan', konum: 'seçili konum'}[p.src] || '');
+  if (!FORM) return; const p = FORM.loc;
+  if (!p || p.lat == null) { $('cfLoc').textContent = 'Konum yok · “Bulunduğum yer”e dokun'; $('cfAddLocW').hidden = true; return; }
+  const n = nearestLoc(p); const near = n && n.d <= 0.5;
+  $('cfLoc').textContent = fmtCoord(p.lat, p.lon, true) + ' · ' + (near ? locLabel(n.L) + (n.d > 0.05 ? ' (' + Math.round(n.d * 1000) + ' m)' : '') : 'kayıtlı konum dışında') + ' · ' + ({gps: 'GPS', foto: 'fotoğraftan', konum: 'seçili konum'}[p.src] || '');
   $('cfAddLocW').hidden = near;
+  // dip: kullanıcı seçmediyse yakın kayıtlı konumunkini, uzaksa "Bilmiyorum"u göster
+  if (!FORM.botTouched && $('cf-bot')) $('cf-bot').value = near ? (n.L.bottom || '') : '';
 }
 async function renderFormPhotos(){
   if (!FORM) return;
@@ -172,16 +182,16 @@ async function addFiles(files){
   for (const f of list) {
     try {
       const p = await processPhoto(f); p.url = URL.createObjectURL(p.thumb); FORM.photos.push(p);
-      if (p.exif && p.exif.date && FORM.photos.length + FORM.keep.length === 1) { FORM.t = p.exif.date; $('cf-t').value = toLocalInput(p.exif.date); }
-      if (p.exif && p.exif.gps && FORM.loc.src !== 'gps') { FORM.loc = {lat: p.exif.gps.lat, lon: p.exif.gps.lon, src: 'foto'}; renderFormLoc(); }
+      if (p.exif && p.exif.date && FORM.photos.length + FORM.keep.length === 1) { FORM.t = p.exif.date; $('cf-t').value = toLocalInput(p.exif.date); $('cf-tlbl').textContent = fmtDT(p.exif.date); }
+      if (p.exif && p.exif.gps && (!FORM.loc || FORM.loc.src !== 'gps')) { FORM.loc = {lat: p.exif.gps.lat, lon: p.exif.gps.lon, src: 'foto'}; renderFormLoc(); }
     } catch (e) { toast('Bu fotoğraf açılamadı'); }
   }
   $('cfPhotoNote').textContent = 'En fazla 4 fotoğraf. ' + (FORM.photos.some(p => p.exif && (p.exif.date || p.exif.gps)) ? 'Fotoğrafın saati' + (FORM.photos.some(p => p.exif && p.exif.gps) ? ' ve konumu' : '') + ' alındı.' : '');
   renderFormPhotos();
 }
 function condAt(t, p){
-  if (!WX || !WX.hours.length) return null;
-  const L = loc(); if (distKm(L, p) > 40) return null;
+  if (!WX || !WX.hours.length || !p || p.lat == null) return null;
+  const L = loc(); if (!L || distKm(L, p) > 40) return null;
   let best = null, bd = 1e15; WX.hours.forEach(x => { const d = Math.abs(x.t - t); if (d < bd) { bd = d; best = x; } });
   if (!best || bd > 3 * 3600000) return null;
   const s = solunar(new Date(t.getFullYear(), t.getMonth(), t.getDate())); const a = activity(best);
@@ -197,10 +207,11 @@ async function saveCatch(){
   const n = nearestLoc(p); const near = n && n.d <= 0.5;
   const bottom = $('cf-bot').value, depth = num($('cf-dep').value);
   let lname = near ? n.L.name : '';
-  if (near && bottom && !n.L.bottom) { n.L.bottom = bottom; toast((n.L.id === '1' ? 'Konum 1' : n.L.name) + ': dip ' + BOTTOM_TXT[bottom] + ' olarak öğrenildi'); }
-  if (!near && $('cfAddLoc').checked) {
-    const id = String(Math.max(1, ...Object.keys(S.locations).map(Number).filter(isFinite)) + 1);
+  if (near && bottom && !n.L.bottom) { n.L.bottom = bottom; toast(locLabel(n.L) + ': dip ' + BOTTOM_TXT[bottom] + ' olarak öğrenildi'); }
+  if (p && p.lat != null && !near && $('cfAddLoc').checked) {
+    const id = nextLocId();
     lname = 'Av noktası ' + id; S.locations[id] = {id, name: lname, lat: p.lat, lon: p.lon, bottom, depth: depth != null ? String(depth) : ''};
+    if (!S.active) S.active = id;
   }
   persist();
   const btn = $('cfSave'); btn.disabled = true; btn.textContent = 'Kaydediliyor…';
@@ -211,12 +222,12 @@ async function saveCatch(){
     const old = CATCHES.find(c => c.id === id);
     const rec = {id, t: t.toISOString(), species: sp, species_other: sp === 'diger' ? $('cf-sp2').value.trim() : '', count: Math.max(1, Math.round(num($('cf-n').value) || 1)),
       kg: num($('cf-kg').value), cm: num($('cf-cm').value), depth_m: depth, rig: $('cf-rig').value, bait: $('cf-bait').value, bottom,
-      loc: {lat: p.lat, lon: p.lon, name: lname, src: p.src}, note: $('cf-note').value.trim(), photos: FORM.keep.concat(FORM.photos.map(x => x.id)),
+      loc: p && p.lat != null ? {lat: p.lat, lon: p.lon, name: lname, src: p.src} : null, note: $('cf-note').value.trim(), photos: FORM.keep.concat(FORM.photos.map(x => x.id)),
       cond: old && old.cond && old.t === t.toISOString() ? old.cond : condAt(t, p), created: old ? old.created : new Date().toISOString(), updated: new Date().toISOString()};
     await IDB.put('catches', rec);
     FORM.photos.forEach(x => { if (x.url) URL.revokeObjectURL(x.url); });
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-    await loadCatches(); closeSheet(); renderCatches(); renderMore(); toast('Av kaydedildi');
+    await loadCatches(); closeSheet(); markDirty(); renderAll(); toast('Av kaydedildi');
   } catch (e) { btn.disabled = false; btn.textContent = 'Kaydet'; err('Kaydedilemedi: telefonda yer kalmamış olabilir.'); }
 }
 async function catchDetail(id){
@@ -224,12 +235,14 @@ async function catchDetail(id){
   const l = catchLine(c);
   const urls = []; for (const pid of (c.photos || [])) urls.push(await photoUrl(pid, 'big'));
   const K = (k, v) => v == null || v === '' ? '' : '<div><span>' + k + '</span><b>' + esc(v) + '</b></div>';
-  const cd = c.cond;
+  const cd = c.cond; const rr = c.rig && RIGS[c.rig];
+  ui.sheet = 'catchDetail';
   openSheet('<div class="bar"><button class="btn" type="button" data-close>Geri</button><h3 id="sheetTitle">' + esc(l.sp) + '</h3><button class="btn" type="button" data-editcatch="' + esc(id) + '">Düzenle</button></div>' +
     '<div class="stack">' + urls.filter(Boolean).map(u => '<div class="hero"><img alt="" src="' + u + '"></div>').join('') +
-    '<div class="kv">' + K('Tarih', l.d.getDate() + ' ' + MONTHS[l.d.getMonth()] + ' ' + l.d.getFullYear() + ' ' + hm(l.d)) + K('Adet', c.count) + K('Ağırlık', c.kg != null ? fmtNum(c.kg, 2) + ' kg' : '') + K('Boy', c.cm != null ? fmtNum(c.cm, 1) + ' cm' : '') +
-    K('Rig', c.rig ? (RIGS[c.rig] ? c.rig + ' · ' + RIGS[c.rig].name : c.rig) : '') + K('Yem', c.bait) + K('Derinlik', c.depth_m != null ? fmtNum(c.depth_m, 1) + ' m' : '') + K('Dip', BOTTOM_TXT[c.bottom] || '') +
-    K('Konum', (c.loc.name ? c.loc.name + ' · ' : '') + c.loc.lat.toFixed(5) + ', ' + c.loc.lon.toFixed(5)) + K('Not', c.note) + '</div>' +
+    (c.photos && c.photos.length && !urls.filter(Boolean).length ? '<p class="note">Fotoğraflar bu telefonda yok; bulut yedekten geri yüklenince gelir.</p>' : '') +
+    '<div class="kv">' + K('Tarih', fmtDT(l.d)) + K('Adet', c.count) + K('Ağırlık', c.kg != null ? fmtNum(c.kg, 2) + ' kg' : '') + K('Boy', c.cm != null ? fmtNum(c.cm, 1) + ' cm' : '') +
+    K('Rig', c.rig ? (rr ? (rr.code ? rr.code + ' · ' : '') + rr.name : c.rig) : '') + K('Yem', c.bait) + K('Derinlik', c.depth_m != null ? fmtNum(c.depth_m, 1) + ' m' : '') + K('Dip', BOTTOM_TXT[c.bottom] || '') +
+    K('Konum', c.loc ? (c.loc.name ? c.loc.name + ' · ' : '') + fmtCoord(c.loc.lat, c.loc.lon) : '') + K('Not', c.note) + '</div>' +
     (cd ? '<h3 style="margin-top:6px">O saatteki koşullar</h3><div class="kv">' + K('Rüzgâr', cd.wind_bft != null ? cd.wind_bft + ' Bft · ' + cd.wind_kn + ' kn ' + (cd.wdir || '') : '') + K('Hamle', cd.gust_bft != null ? cd.gust_bft + ' Bft' : '') +
       K('Dalga', cd.wave_m != null ? fmtNum(cd.wave_m, 1) + ' m' + (cd.per_s != null ? ' · ' + Math.round(cd.per_s) + ' sn' : '') : '') + K('Akıntı', cd.cur_kn != null ? fmtNum(cd.cur_kn, 1) + ' kn' : '') +
       K('Su', cd.sst != null ? fmtNum(cd.sst, 1) + ' °C' : '') + K('Basınç', cd.press != null ? Math.round(cd.press) + ' hPa' + (cd.dp3 != null ? ' (3 sa ' + (cd.dp3 > 0 ? '+' : '') + fmtNum(cd.dp3, 1) + ')' : '') : '') +
@@ -239,5 +252,5 @@ async function catchDetail(id){
 async function deleteCatch(id){
   const c = CATCHES.find(x => x.id === id); if (!c) return;
   for (const pid of (c.photos || [])) { try { await IDB.del('photos', pid); } catch (e) {} dropUrls(pid); }
-  await IDB.del('catches', id); await loadCatches(); closeSheet(); renderCatches(); toast('Av silindi');
+  await IDB.del('catches', id); await loadCatches(); closeSheet(); markDirty(); renderAll(); toast('Av silindi');
 }

@@ -1,6 +1,6 @@
-# Kenny Av
+# Alyssa by Barbossa App
 
-Kişisel deniz avı uygulaması (hava, deniz, solunar, rig ve envanter takibi).
+Deniz avı uygulaması: hava, deniz, solunar, rig sistemleri, envanter ve fotoğraflı av kaydı.
 
-Rig ve envanter verisi `data.enc.json` içinde şifrelidir. Hava ve deniz verisi Open-Meteo üzerinden gelir.
+Uygulama boş açılır. Kişisel rig sistemi `paket/ozel.enc.json` içinde şifrelidir (AES-GCM). Bulut yedekleri kullanıcının kendi GitHub deposunda uçtan uca şifreli tutulur. Hava ve deniz verisi Open-Meteo üzerinden gelir.
 Güneş ve ay hesapları için [SunCalc](https://github.com/mourner/suncalc) (BSD-2) kullanılır.

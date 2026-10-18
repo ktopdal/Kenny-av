@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------- 30 · hava ve deniz (Open-Meteo, telefondan)
 // Rüzgâr: ICON-EU 7 km (≈5 gün) → ECMWF IFS 0,25° → en iyi eşleşme. Hamle: GFS → en iyi eşleşme.
 // Yağış olasılığı: en iyi eşleşme (topluluk modelleri). Dalga: MFWAM → en iyi deniz modeli. Akıntı ve su: Météo-France.
+// Nokta karadaysa ya da kıyıya çok yakınsa deniz modelleri veri vermez: en yakın deniz noktası aranır ve o kullanılır.
 const API_F = 'https://api.open-meteo.com/v1/forecast', API_M = 'https://marine-api.open-meteo.com/v1/marine';
 const FV = 'temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m,cloud_cover,precipitation';
 const MV = 'wave_height,wave_direction,wave_period,ocean_current_velocity,ocean_current_direction,sea_surface_temperature';
@@ -26,38 +27,84 @@ function reqUrls(id, L){
   }
   return [];
 }
-async function fetchFirst(urls){
+// need: bu alanlardan en az birinde gerçek değer olmalı (deniz modelleri karada boş seri döndürür)
+async function fetchFirst(urls, need){
   let last = null;
   for (const u of urls) {
     try {
-      const r = await fetch(u, {cache: 'no-store'});
-      if (r.ok) { const j = await r.json(); if (j && j.hourly && j.hourly.time) return {ok: true, data: {hourly: j.hourly, hourly_units: j.hourly_units || {}, utc_offset_seconds: j.utc_offset_seconds}}; last = 'boş yanıt'; }
-      else last = 'HTTP ' + r.status;
-    } catch (e) { last = 'bağlantı yok'; }
+      const r = await fetchT(u, {cache: 'no-store'}, 15000);
+      if (r.ok) {
+        const j = await r.json();
+        if (j && j.hourly && j.hourly.time) {
+          if (need && !need.some(k => Array.isArray(j.hourly[k]) && j.hourly[k].some(v => v != null))) { last = 'bu noktada veri yok'; continue; }
+          return {ok: true, data: {hourly: j.hourly, hourly_units: j.hourly_units || {}, utc_offset_seconds: j.utc_offset_seconds}};
+        }
+        last = 'boş yanıt';
+      } else {
+        let reason = ''; try { const j = await r.json(); reason = j && j.reason ? String(j.reason) : ''; } catch (e) {}
+        last = /no data/i.test(reason) ? 'bu noktada veri yok' : 'HTTP ' + r.status;
+      }
+    } catch (e) { last = e && e.name === 'AbortError' ? 'zaman aşımı' : 'bağlantı yok'; }
   }
   return {ok: false, err: last};
 }
-const wxKey = L => L.lat.toFixed(4) + ',' + L.lon.toFixed(4);
-function setNet(s, msg){ const n = $('net'); n.dataset.s = s; n.querySelector('span').textContent = msg; }
-let WX = null;   // birleşik saatlik seri (önbellekten kurulur)
+const wxKey = L => L ? L.lat.toFixed(4) + ',' + L.lon.toFixed(4) : '';
+function setNet(s, msg){ const n = $('net'); if (!n) return; n.dataset.s = s; n.querySelector('span').textContent = msg; }
+let WX = null;       // birleşik saatlik seri (önbellekten kurulur)
+let LOAD_ID = 0;     // yalnızca en son başlatılan yükleme ekranı günceller
+const SEA_TRIED = {};
+// en yakın deniz noktası: halkalar halinde 8 yönde dener (her halka paralel)
+async function findSeaPoint(L){
+  const dirs = [0, 45, 90, 135, 180, 225, 270, 315];
+  for (const km of [2, 4, 7, 11, 16, 22]) {
+    const pts = dirs.map(b => Object.assign(offsetPt(L, b, km), {km, dir: b}));
+    const res = await Promise.all(pts.map(p => fetchFirst([API_M + '?latitude=' + p.lat.toFixed(4) + '&longitude=' + p.lon.toFixed(4) + '&timezone=auto&forecast_days=1&hourly=wave_height'], ['wave_height'])));
+    const i = res.findIndex(r => r.ok);
+    if (i >= 0) return {lat: +pts[i].lat.toFixed(4), lon: +pts[i].lon.toFixed(4), km, dir: pts[i].dir};
+    if (res.every(r => r.err === 'bağlantı yok' || r.err === 'zaman aşımı')) return null;   // ağ sorunu: aramayı bırak
+  }
+  return null;
+}
+async function loadMarine(L){
+  const at = async P => { const [mf, mb] = await Promise.all([fetchFirst(reqUrls('mf', P), ['wave_height']), fetchFirst(reqUrls('mbest', P), ['wave_height', 'ocean_current_velocity', 'sea_surface_temperature'])]); return {mf, mb}; };
+  let P = L.sea && L.sea.lat != null ? L.sea : L;
+  let r = await at(P);
+  if (!r.mf.ok && !r.mb.ok && P === L && !SEA_TRIED[wxKey(L)]) {
+    SEA_TRIED[wxKey(L)] = 1;
+    const sp = await findSeaPoint(L);
+    if (sp) { L.sea = sp; persistQuiet(); P = sp; r = await at(P); }
+  }
+  const raw = {}, status = {};
+  if (r.mf.ok) raw.mf = r.mf.data; status.mf = r.mf.ok ? 'ok' : r.mf.err;
+  if (r.mb.ok) raw.mbest = r.mb.data; status.mbest = r.mb.ok ? 'ok' : r.mb.err;
+  return {raw, status, sea: P !== L ? P : null};
+}
 async function loadWeather(force){
-  const L = loc(); if (!L) return;
+  const L = loc();
+  if (!L) { WX = null; setNet('idle', 'Konum yok'); renderAll(); return; }
   const key = wxKey(L);
   if (PREVIEW) { if (!S.wx || S.wx.key !== key) { const smp = SAMPLE_WX(); if (smp) S.wx = {key, at: Date.now(), raw: smp.raw, status: smp.status}; } WX = buildWx(); setNet('ok', 'Örnek veri'); renderAll(); return; }
   if (S.wx && S.wx.key === key && !force && Date.now() - S.wx.at < 45 * 60 * 1000) { WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date(S.wx.at))); renderAll(); return; }
+  const my = ++LOAD_ID;
   setNet('load', 'Yükleniyor');
-  const ids = Object.keys(SRC);
-  const res = await Promise.all(ids.map(id => fetchFirst(reqUrls(id, L))));
-  const raw = {}, status = {};
-  ids.forEach((id, i) => { status[id] = res[i].ok ? 'ok' : (res[i].err || 'hata'); if (res[i].ok) raw[id] = res[i].data; });
-  if (Object.keys(raw).length) {
-    S.wx = {key, at: Date.now(), raw, status}; persist();
-    WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date()));
-  } else {
-    WX = S.wx && S.wx.key === key ? buildWx() : null;
-    setNet('err', WX ? 'Eski veri' : 'Veri alınamadı');
+  try {
+    const ids = ['icon', 'ecmwf', 'gfs', 'best'];
+    const [fr, mr] = await Promise.all([Promise.all(ids.map(id => fetchFirst(reqUrls(id, L)))), loadMarine(L)]);
+    if (my !== LOAD_ID) return;
+    const raw = Object.assign({}, mr.raw), status = Object.assign({}, mr.status);
+    ids.forEach((id, i) => { status[id] = fr[i].ok ? 'ok' : (fr[i].err || 'hata'); if (fr[i].ok) raw[id] = fr[i].data; });
+    if (Object.keys(raw).length) {
+      S.wx = {key, at: Date.now(), raw, status, sea: mr.sea}; persistQuiet();
+      WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date()));
+    } else {
+      WX = S.wx && S.wx.key === key ? buildWx() : null;
+      setNet('err', WX ? 'Eski veri' : 'Veri alınamadı');
+    }
+  } catch (e) {
+    if (my === LOAD_ID) { WX = S.wx && S.wx.key === key ? buildWx() : null; setNet('err', WX ? 'Eski veri' : 'Veri alınamadı'); }
+  } finally {
+    if (my === LOAD_ID) renderAll();
   }
-  renderAll();
 }
 function seriesOf(raw, name){
   if (!raw || !raw.hourly) return null;
@@ -83,7 +130,7 @@ function windToMs(v, unit){ if (v == null) return null; unit = String(unit || 'm
 function buildWx(){
   if (!S.wx || !S.wx.raw) return null;
   const R = S.wx.raw;
-  const times = {}; Object.values(R).forEach(r => r.hourly.time.forEach(t => { times[t] = 1; }));
+  const times = {}; Object.values(R).forEach(r => r && r.hourly && r.hourly.time.forEach(t => { times[t] = 1; }));
   const T = Object.keys(times).sort();
   const col = (id, name, gap, dir) => {
     const r = R[id]; if (!r) return null; const s = seriesOf(r, name); if (!s) return null;
@@ -110,21 +157,21 @@ function buildWx(){
     const wv = wMF && wMF[i] != null ? {h: wMF[i], d: wMFd && wMFd[i], p: wMFp && wMFp[i], m: 'MFWAM'} : wB && wB[i] != null ? {h: wB[i], d: wBd && wBd[i], p: wBp && wBp[i], m: 'en iyi deniz modeli'} : null;
     const d = new Date(t);
     return {t: d, key: t.slice(0, 10), h: Number(t.slice(11, 13)),
-      wind: w ? windToMs(w.wind[i], w.u) : null, wdir: w && w.wdir ? w.wdir[i] : null, wm: pickW ? SRC[pickW].label : null, wmShort: pickW === 'icon' ? 'I' : pickW === 'ecmwf' ? 'E' : pickW ? 'O' : '',
+      wind: w ? windToMs(w.wind[i], w.u) : null, wdir: w && w.wdir ? w.wdir[i] : null, wm: pickW ? SRC[pickW].label : null,
       temp: val('temp'), press: val('press'), cloud: val('cloud'), rain: val('rain'),
       gust: gu ? windToMs(gu.v, gu.u) : null, gm: gu ? gu.m : null, pop: pop ? pop[i] : null,
       wave: wv ? wv.h : null, waveDir: wv ? wv.d : null, per: wv ? wv.p : null, wvm: wv ? wv.m : null,
       cur: cur ? curToKn(cur[i], cu) : null, curDir: curd ? curd[i] : null, sst: sst ? sst[i] : null};
   });
   hours.forEach((x, i) => { const p3 = hours[i - 3]; x.dp3 = (p3 && x.press != null && p3.press != null) ? x.press - p3.press : null; });
-  return {hours, at: S.wx.at, status: S.wx.status || {}};
+  return {hours, at: S.wx.at, status: S.wx.status || {}, sea: S.wx.sea || null};
 }
 const maxOf = (arr, k) => { let v = null; arr.forEach(x => { if (x[k] != null && (v == null || x[k] > v)) v = x[k]; }); return v; };
 const minOf = (arr, k) => { let v = null; arr.forEach(x => { if (x[k] != null && (v == null || x[k] < v)) v = x[k]; }); return v; };
 const meanOf = (arr, k) => { const v = arr.map(x => x[k]).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
 let DAYS_CACHE = null;
 function days(){
-  if (!WX || !WX.hours.length) return [];
+  if (!WX || !WX.hours.length || !loc()) return [];
   if (DAYS_CACHE && DAYS_CACHE.src === WX) return DAYS_CACHE.days;
   const by = {}; WX.hours.forEach(x => { (by[x.key] = by[x.key] || []).push(x); });
   const keys = Object.keys(by).sort().filter(k => by[k].some(x => x.wind != null));

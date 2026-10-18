@@ -1,7 +1,7 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style><title>Kenny Av</title>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style><title>Alyssa by Barbossa App</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0B6B7C"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Kenny Av"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#0B6B7C"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Alyssa"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
@@ -250,33 +250,85 @@ label.f input,label.f select{font:400 15px var(--body);text-transform:none;lette
 .srcs{display:flex;flex-direction:column;gap:4px;font:500 12px var(--mono)}
 .srcs .ok{color:var(--A)}.srcs .no{color:var(--D)}
 
-</style></head><body>
+/* ---------- v0.3: Alyssa · tema, Bft renkleri, menü, ayarlar, karşılama ---------- */
+#main,.sheet .sin{zoom:var(--zoom,1)}
+.btn.primary{color:var(--on-brand,#fff)}
+.htab tr.hours td.curh{background:var(--accent);color:var(--on-accent,#fff)}
+.htab td.bf{font-weight:700}
+.htab td.bf small{color:inherit;opacity:.82}
+.bftb{display:inline-block;min-width:22px;padding:1px 6px;border-radius:6px;font:700 13px/1.35 var(--mono);text-align:center;font-variant-numeric:tabular-nums}
+.bftb.big{min-width:34px;padding:2px 8px;border-radius:8px;font:800 20px/1.2 var(--display)}
+.bftscale{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:2px;padding:8px 12px 0}
+.bftscale span{display:block;text-align:center;font:600 10.5px/18px var(--mono);border-radius:3px}
+.seanote{padding:6px 12px 0;color:var(--ink-2)}
+/* menü */
+.menu{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.mrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border:0;border-top:1px solid var(--line-2);background:none;text-align:left;cursor:pointer;color:inherit;font:inherit;width:100%}
+.mrow:first-child{border-top:0}
+.mrow span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mrow b{font:600 15.5px var(--body)}
+.mrow small{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow svg{width:18px;height:18px;flex:none;color:var(--muted)}
+/* ayarlar */
+.set{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.set h4{font:700 15px var(--display)}
+.wrapseg{flex-wrap:wrap;overflow:visible}
+.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.preset{display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);cursor:pointer;font:500 13.5px var(--body);color:var(--ink);text-align:left}
+.preset i{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.preset[aria-pressed="true"]{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft)}
+.bftedit{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.bftedit label{display:flex;flex-direction:column;align-items:center;gap:2px;font:600 11px var(--mono);color:var(--muted)}
+input[type="color"]{-webkit-appearance:none;appearance:none;width:100%;min-width:34px;height:34px;border:1px solid var(--line);border-radius:8px;padding:2px;background:var(--surface);cursor:pointer}
+input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
+input[type="color"]::-webkit-color-swatch{border:0;border-radius:6px}
+input[type="color"]::-moz-color-swatch{border:0;border-radius:6px}
+label.f input[type="color"]{min-height:42px}
+.chk{gap:8px;align-items:flex-start;flex-wrap:nowrap}
+.chk input{margin-top:3px;flex:none}
+.newver.warn{background:var(--C-bg);border-color:var(--C)}
+.linkbtn{border:0;background:none;color:var(--brand);font:500 12.5px var(--body);cursor:pointer;padding:0 2px;text-decoration:underline}
+.nameedit{font:600 15px var(--body);border:1px solid transparent;border-radius:8px;padding:4px 6px;margin-left:-6px;background:transparent;color:var(--ink);width:100%}
+.nameedit:focus{border-color:var(--line);background:var(--surface)}
+.tr-date{font:500 12px var(--mono);color:var(--ink-2);text-transform:none;letter-spacing:0;margin-top:2px}
+.steps{margin:6px 0 0;padding-left:20px;font-size:13.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:4px}
+.steps code,.sub code{font:500 12.5px var(--mono);background:var(--surface-2);padding:1px 5px;border-radius:5px}
+details.panel summary{cursor:pointer;color:var(--brand);font-weight:500;font-size:14px}
+/* karşılama */
+.lock .box .wlogo{width:48px;height:48px;color:var(--accent);display:block}
+.lock .box .wlogo svg{width:48px;height:48px}
+.lock .box .btn.bigbtn{width:100%}
+.linkish{border:0;background:none;color:var(--muted);text-decoration:underline;min-height:36px}
+#welcome{overflow-y:auto;align-items:flex-start}
+#welcome .box{margin-block:auto}
+.hempty{padding:10px 12px 4px}
+
+</style>
+<style id="userTheme"></style></head><body>
 
 <header class="top">
   <div class="wrap">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>
-    <button class="locbtn" id="locBtn" aria-label="Konum değiştir"><b id="locName">Kenny Av</b><span id="locSub"></span></button>
+    <button class="locbtn" id="locBtn" aria-label="Konumlar"><b id="locName">Alyssa</b><span id="locSub"></span></button>
     <button class="netstate" id="net" data-s="idle" aria-live="polite" style="border:0;background:none;cursor:pointer" aria-label="Veriyi yenile"><i></i><span>—</span></button>
   </div>
 </header>
 
 <main class="wrap" id="main">
-  <div id="newVer"></div>
+  <div id="banners"></div>
 
   <!-- BUGÜN -->
   <section class="view" id="v-bugun">
     <div class="sec-head"><span class="eyebrow" id="todayLbl">Bugün</span><h2>Bugün denizde</h2></div>
     <div id="previewNote" class="banner" hidden>Bu bir önizleme: canlı hava ve deniz verisi yalnızca telefona kurulan uygulamada gelir. Burada 17 Ekim'in örnek verisi var.</div>
+    <div id="noLoc" hidden></div>
     <div class="panel hourly" id="hourly">
       <div class="hh"><h3>Saatlik</h3><span class="note" id="hourlyNote"></span></div>
       <div class="daychips" id="dayChips"></div>
+      <p class="note hempty" id="hEmpty" hidden>Saatlik veri henüz yok. İnternete bağlanınca kendiliğinden gelir.</p>
       <div class="hscroll" id="hScroll"><table class="htab" id="hTable"></table></div>
-      <div class="legend">
-        <span><i style="background:var(--A-bg);border:1px solid var(--A)"></i>Bft 0–3 · &lt;0,5 m</span>
-        <span><i style="background:var(--B-bg);border:1px solid var(--B)"></i>Bft 4 · 0,5–1 m</span>
-        <span><i style="background:var(--C-bg);border:1px solid var(--C)"></i>Bft 5 · 1–1,5 m</span>
-        <span><i style="background:var(--D-bg);border:1px solid var(--D)"></i>Bft 6+ · 1,5 m+</span>
-      </div>
+      <p class="note seanote" id="seaNote" hidden></p>
+      <div id="hLegend"></div>
       <details><summary>Balık aktivitesi nasıl hesaplanıyor?</summary>
         <div class="explain">
           <span>Her saat için 0–100 arası tahmini bir değerdir. Temeli solunar: ayın üst ve alt geçişi (major, ±60 dk), ay doğuş ve batışı (minor, ±30 dk), şafak ve alacakaranlık (±45 dk).</span>
@@ -287,7 +339,7 @@ label.f input,label.f select{font:400 15px var(--body);text-transform:none;lette
     </div>
     <div class="now" id="nowGrid" style="margin-top:12px"></div>
     <div class="classrow" id="classRow"></div>
-    <div class="panel" style="margin-top:12px">
+    <div class="panel" style="margin-top:12px" id="solPanel">
       <div class="row" style="justify-content:space-between"><h3>Solunar</h3><span id="solStars"></span></div>
       <p class="note" id="solSub" style="margin-top:2px"></p>
       <div id="solWins" style="margin-top:6px"></div>
@@ -295,7 +347,7 @@ label.f input,label.f select{font:400 15px var(--body);text-transform:none;lette
     <h3 style="margin-top:20px">Bugün bağla</h3>
     <p class="note" id="recNote" style="margin-top:2px"></p>
     <div class="stack" id="recList" style="margin-top:10px"></div>
-    <details style="margin-top:12px"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
+    <details style="margin-top:12px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
   </section>
 
   <!-- TAKVİM -->
@@ -308,7 +360,7 @@ label.f input,label.f select{font:400 15px var(--body);text-transform:none;lette
   <!-- AVLAR -->
   <section class="view" id="v-avlar" hidden>
     <div class="sec-head"><span class="eyebrow">Av kaydı</span><h2>Avlarım</h2>
-      <p class="sub">Fotoğraf çek ya da galeriden seç. Saat, konum ve o anki deniz koşulları kendiliğinden yazılır. Fotoğraflar yalnızca bu telefonda saklanır.</p></div>
+      <p class="sub">Fotoğraf çek ya da galeriden seç. Saat, konum ve o anki deniz koşulları kendiliğinden yazılır. Fotoğraflar bu telefonda durur; bulut yedeği açıksa şifreli olarak deponda da saklanır.</p></div>
     <button class="btn primary bigbtn" id="addCatch" type="button">+ Av ekle</button>
     <div class="stats" id="catchStats" style="margin-top:12px"></div>
     <div class="stack" id="catchList" style="margin-top:12px"></div>
@@ -316,57 +368,26 @@ label.f input,label.f select{font:400 15px var(--body);text-transform:none;lette
 
   <!-- RİGLER -->
   <section class="view" id="v-rigler" hidden>
-    <div class="sec-head"><span class="eyebrow">32 rig</span><h2>Rigler</h2><p class="sub" id="rigSub"></p></div>
-    <input class="search" id="rigSearch" type="search" placeholder="Rig, tür ya da iğne ara" aria-label="Rig ara">
+    <div class="sec-head"><span class="eyebrow" id="rigEyebrow">Rig sistemleri</span><h2>Rigler</h2><p class="sub" id="rigSub"></p></div>
+    <div class="seg wrapseg" id="sysBar"></div>
+    <input class="search" id="rigSearch" type="search" placeholder="Rig, tür ya da iğne ara" aria-label="Rig ara" style="margin-top:8px">
     <div class="seg" id="rigSeg" style="margin-top:8px"></div>
     <div class="stack" id="rigList" style="margin-top:12px"></div>
   </section>
 
   <!-- ENVANTER -->
   <section class="view" id="v-envanter" hidden>
-    <div class="sec-head"><span class="eyebrow">Adet takibi</span><h2>Envanter</h2>
+    <div class="sec-head"><span class="eyebrow" id="invEyebrow">Adet takibi</span><h2>Envanter</h2>
       <p class="sub">Her boyun adedini gir. 0 adet “bitti”; iğnede 5 adedin, terminal takımda 3 adedin altı “az kaldı” sayılır. Adet girilmemiş kalemler durumuna göre değerlendirilir.</p></div>
-    <div class="seg" id="invSeg"></div>
+    <button class="btn primary bigbtn" id="addItem" type="button">+ Kalem ekle</button>
+    <div class="seg" id="invSeg" style="margin-top:12px"></div>
     <div class="stack" id="invList" style="margin-top:12px"></div>
   </section>
 
   <!-- DAHA FAZLA -->
   <section class="view" id="v-daha" hidden>
-    <div class="sec-head"><span class="eyebrow">Alışveriş · Konumlar · Yedek</span><h2>Daha fazla</h2></div>
-    <h3>Alışveriş listesi</h3>
-    <p class="note" style="margin-top:2px">Rigleri tamamlamak için gerekenler. Aldığında adedini gir; ilgili rigler hemen tamamlanır.</p>
-    <div class="stack" id="buyList" style="margin-top:10px"></div>
-
-    <h3 style="margin-top:24px" id="locHead">Konumlar</h3>
-    <div class="stack" id="locList" style="margin-top:10px"></div>
-    <form class="panel" id="locForm" style="margin-top:10px" novalidate>
-      <h4 style="font-size:16px">Yeni konum</h4>
-      <div class="fields" style="margin-top:8px">
-        <label class="f wide">Ad<input id="nl-name" placeholder="Ör. Sığacık açığı"></label>
-        <label class="f">Enlem (°)<input id="nl-lat" inputmode="decimal" placeholder="ör. 38.1234"></label>
-        <label class="f">Boylam (°)<input id="nl-lon" inputmode="decimal" placeholder="ör. 26.5678"></label>
-        <label class="f">Dip (biliyorsan)<select id="nl-bottom"></select></label>
-        <label class="f">Derinlik (m)<input id="nl-depth" inputmode="decimal" placeholder="—"></label>
-      </div>
-      <p class="err" id="locErr" hidden></p>
-      <div class="row" style="margin-top:10px"><button class="btn primary" type="submit">Kaydet</button><button class="btn" type="button" id="useGps">Bulunduğum yer</button></div>
-    </form>
-
-    <h3 style="margin-top:24px">Takım standartları</h3>
-    <div class="tbl panel" style="margin-top:10px"><table><thead><tr><th>Takım</th><th>Üst köstek (cm)</th><th>Orta köstek (cm)</th><th>Hırsız (cm)</th><th>Köstek arası (cm)</th><th>Kurşun (g)</th><th>Kamış sınırı (g)</th></tr></thead><tbody id="stdRows"></tbody></table></div>
-    <p class="note" style="margin-top:6px">Akıntı 0,5 knot (kn) üstündeyse kurşun +30 g ve hırsız köstek %20 kısa; kurşun kamış sınırını aşmaz. Kayalık rigler (G-P6, G-T2, N-T2) kendi kısa kösteklerini kullanır.</p>
-
-    <h3 style="margin-top:24px">Yedek</h3>
-    <div class="panel stack" style="margin-top:10px">
-      <p class="sub">Envanter, konumlar ve avların yalnızca bu telefonda durur. Ara sıra yedek al; yeni telefona ya da bana (Claude'a) vermek için bu dosyayı kullan.</p>
-      <label class="row note" style="gap:8px"><input type="checkbox" id="bkPhotos"> Fotoğrafları da yedeğe kat (dosya büyür)</label>
-      <div class="row"><button class="btn" id="exportBtn" type="button">Yedeği indir</button><label class="btn filebtn">Yedeği yükle<input type="file" id="importFile" accept="application/json,.json"></label></div>
-      <p class="note" id="bkNote"></p>
-    </div>
-
-    <h3 style="margin-top:24px">Veri kaynakları</h3>
-    <div class="panel" style="margin-top:10px"><div class="srcs" id="srcList"></div>
-      <p class="note" style="margin-top:8px">Rüzgâr: ICON-EU 7 km (yaklaşık 5 gün), sonrası ECMWF. Hamle: GFS. Yağış olasılığı: topluluk (ensemble) modelleri. Dalga: MFWAM (Météo-France, 10 gün), sonrası en iyi deniz modeli. Akıntı ve su sıcaklığı: Météo-France (10 gün). Hepsi Open-Meteo üzerinden, telefonun kendisi çeker.</p></div>
+    <div class="sec-head"><span class="eyebrow">Ayarlar · Yedek · Konumlar</span><h2>Daha fazla</h2></div>
+    <div class="menu" id="moreMenu"></div>
     <p class="note" style="margin-top:18px" id="about"></p>
   </section>
 </main>
@@ -381,17 +402,7 @@ label.f input,label.f select{font:400 15px var(--body);text-transform:none;lette
 </nav>
 
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
-<div class="lock" id="lock" hidden>
-  <form class="box" id="lockForm" novalidate>
-    <svg viewBox="0 0 32 32" width="44" height="44" aria-hidden="true" style="color:var(--accent)"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>
-    <h2>Kenny Av</h2>
-    <p class="sub">Rig sistemin ve envanterin şifreli duruyor. Sana verdiğim şifreyi bir kez gir; bu telefon hatırlar.</p>
-    <label class="f">Şifre<input id="lockPass" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="kelime-kelime-kelime-kelime-1234"></label>
-    <p class="err" id="lockErr" hidden></p>
-    <button class="btn primary bigbtn" type="submit" id="lockBtn">Aç</button>
-    <p class="note" id="lockNote"></p>
-  </form>
-</div>
+<div class="lock" id="welcome" hidden></div>
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script>/*
@@ -718,18 +729,27 @@ else window.SunCalc = SunCalc;
 (function(){
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
-const APP_VERSION = '0.2.0';
+const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
+const APP_VERSION = '0.3.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.3.0', notes: [
+    'Yeni ad: Alyssa by Barbossa App',
+    'Uygulama şifresiz ve boş açılır; senin rig sistemin şifreli özel paket olarak yeni şifreyle açılır',
+    'Bulut yedek: profilin, avların ve fotoğrafların şifrelenip senin GitHub deponda saklanır',
+    'Rüzgâr renkleri: 1 Bft yeşil → sarı → kırmızı → 10 Bft mavi (Ayarlar\'dan değiştirilebilir)',
+    'Ayarlar: açık/koyu tema, renk paleti, özel renkler, yazı boyutu, koordinat biçimi ve gizleme',
+    'Karadaki noktalarda dalga ve akıntı en yakın deniz noktasından gelir; takılan "Yükleniyor" giderildi',
+    'Alışveriş listesinde aynı rig iki kez yazılmaz; av formunda yeni noktada dip "Bilinmiyor" gelir',
+  ]},
   {v: '0.2.0', notes: [
     'Bugün ekranında saatlik tablo: yağış %, rüzgâr ve hamle (Bft), dalga (m), akıntı (kn), su sıcaklığı, basınç',
     'Her saat için balık simgeli tahmini balık aktivitesi (%)',
     'Rüzgâr ICON-EU 7 km ve ECMWF, hamle GFS, dalga MFWAM modellerinden',
     'Avlar sekmesi: fotoğraf çek ya da galeriden seç; saat, konum ve deniz koşulları kendiliğinden kaydedilir',
     'Tüm tablolarda birimler (cm, g, m, kn, Bft, °C, hPa, %)',
-    'Rig ve envanter verisi şifreli',
   ]},
-  {v: '0.1.0', notes: ['İlk sürüm: Bugün, 15 günlük takvim, 32 rig, adetli envanter, alışveriş, konumlar, yedek']},
+  {v: '0.1.0', notes: ['İlk sürüm: Bugün, 15 günlük takvim, rigler, adetli envanter, alışveriş, konumlar, yedek']},
 ];
 document.documentElement.lang = 'tr';
 const verGt = (a, b) => { const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number); for (let i = 0; i < 3; i++) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); } return false; };
@@ -739,6 +759,7 @@ const pad = n => String(n).padStart(2, '0');
 const hm = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
 const dateKey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 const trLower = s => String(s).replace(/İ/g, 'i').replace(/I/g, 'ı').toLocaleLowerCase('tr');
+const trCmp = (a, b) => String(a).localeCompare(String(b), 'tr');
 const KN = 1.943844;
 const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 const MON3 = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
@@ -750,6 +771,18 @@ const f0 = v => v == null || isNaN(v) ? '–' : String(Math.round(v));
 const kn = ms => ms == null ? '–' : String(Math.round(ms * KN));
 const num = s => { const n = parseFloat(String(s == null ? '' : s).replace(',', '.')); return isFinite(n) ? n : null; };
 const fmtNum = (v, d) => v == null ? '' : String(Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).replace('.', ',');
+const fmtDT = d => d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear() + ', ' + hm(d);
+const uid = p => (p || '') + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const slugTR = s => trLower(s || '').replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+// koordinat: ondalık ya da derece-dakika (plotter biçimi)
+function ddm(v, pos, neg){ const s = v < 0 ? neg : pos; v = Math.abs(v); let d = Math.floor(v), m = (v - d) * 60; if (m >= 59.9995) { d += 1; m = 0; } return d + '°' + (m < 10 ? '0' : '') + m.toFixed(3).replace('.', ',') + '′ ' + s; }
+function fmtCoord(lat, lon, force){
+  if (lat == null || lon == null) return '';
+  if (!force && S && S.settings.hideCoords) return '•••';
+  if (S && S.settings.coord === 'ddm') return ddm(lat, 'K', 'G') + '  ' + ddm(lon, 'D', 'B');
+  return lat.toFixed(4) + '°, ' + lon.toFixed(4) + '°';
+}
 
 // Beaufort (m/s eşikleri) ve tekne sınıfı: Bft 0–3 = A, 4 = B, 5 = C, 6+ = D
 function bft(ms){ if (ms == null) return null; const L = [0.3, 1.6, 3.4, 5.5, 8.0, 10.8, 13.9, 17.2, 20.8, 24.5, 28.5, 32.7]; for (let i = 0; i < L.length; i++) if (ms < L[i]) return i; return 12; }
@@ -758,29 +791,103 @@ function waveClass(m){ return m == null ? null : m < 0.5 ? 'A' : m < 1.0 ? 'B' :
 function bump(c, wave){ if (!c || wave == null) return c; if (wave >= 1.5) return 'D'; if (wave >= 1.0) return c === 'D' ? 'D' : String.fromCharCode(c.charCodeAt(0) + 1); return c; }
 const CLS_TXT = {A: 'Çok uygun', B: 'Uygun', C: 'Dikkat', D: 'Uygun değil'};
 
-function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 2400); }
+// renk yardımcıları
+const isHex = s => /^#[0-9a-f]{6}$/i.test(String(s || ''));
+function hexRgb(h){ h = String(h).replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+const rgbHex = (r, g, b) => '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+function mix(a, b, t){ const x = hexRgb(a), y = hexRgb(b); return rgbHex(...x.map((v, i) => v + (y[i] - v) * t)); }
+function relLum(h){ const c = hexRgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
+function contrast(a, b){ const la = relLum(a), lb = relLum(b); return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05); }
+const textOn = bg => contrast(bg, '#FFFFFF') >= contrast(bg, '#0A2431') ? '#FFFFFF' : '#0A2431';
+
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 2600); }
 function distKm(a, b){
   const R = 6371, r = Math.PI / 180;
   const dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
   const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(x));
 }
+// bir noktadan belli yön (°) ve uzaklıkta (km) yeni nokta
+function offsetPt(p, bearing, km){
+  const R = 6371, r = Math.PI / 180, d = km / R, b = bearing * r, la = p.lat * r, lo = p.lon * r;
+  const la2 = Math.asin(Math.sin(la) * Math.cos(d) + Math.cos(la) * Math.sin(d) * Math.cos(b));
+  const lo2 = lo + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(la), Math.cos(d) - Math.sin(la) * Math.sin(la2));
+  return {lat: la2 / r, lon: ((lo2 / r + 540) % 360) - 180};
+}
+// zaman aşımlı fetch: iOS'ta takılan istekler "Yükleniyor"da bekletmesin
+async function fetchT(url, opt, ms){
+  const ac = typeof AbortController === 'function' ? new AbortController() : null;
+  const t = ac ? setTimeout(() => ac.abort(), ms || 15000) : null;
+  try { return await fetch(url, Object.assign({}, opt || {}, ac ? {signal: ac.signal} : {})); }
+  finally { if (t) clearTimeout(t); }
+}
 
-// ---------------------------------------------------------------- 10 · uygulama verisi (gömülü ya da şifreli)
-// Önizlemede veri sayfaya gömülüdür. Yayında rig ve envanter verisi data.enc.json içinde AES-GCM ile şifreli durur;
-// anahtar bir kez girilen şifreden PBKDF2 ile türetilir ve yalnızca bu telefonda saklanır.
-let D = null;
-const DATA_KEY = 'kenny-av-data', KEY_KEY = 'kenny-av-k';
+// ---------------------------------------------------------------- 05 · tema, renkler, Bft renk skalası
+const PRESETS = [
+  {id: 'deniz', name: 'Deniz', brand: '#0B6B7C', accent: '#C23C14'},
+  {id: 'lacivert', name: 'Lacivert', brand: '#1E3F8A', accent: '#C9800C'},
+  {id: 'gece', name: 'Gece moru', brand: '#5A46B2', accent: '#D9533C'},
+  {id: 'yosun', name: 'Yosun', brand: '#2E6B3C', accent: '#C0651A'},
+  {id: 'mercan', name: 'Mercan', brand: '#A83445', accent: '#1C6E8C'},
+  {id: 'kum', name: 'Kum', brand: '#85581F', accent: '#0B6B7C'},
+];
+// 0–12 Bft: yeşil → sarı → kırmızı → lacivert (10 Bft mavi); sarı ve kırmızı geniş aralığa yayılır.
+const BFT_DEFAULT = ['#86D9A6', '#2DB46C', '#93C83E', '#E8D61E', '#F6B40C', '#F18A1B', '#E5531D', '#D0231F', '#9E1530', '#681E74', '#1F4EB4', '#173A87', '#0D2256'];
+const BFT_NAMES = ['Sakin', 'Esinti', 'Hafif rüzgâr', 'Tatlı rüzgâr', 'Mutedil rüzgâr', 'Sert rüzgâr', 'Kuvvetli rüzgâr', 'Fırtınamsı', 'Fırtına', 'Kuvvetli fırtına', 'Tam fırtına', 'Çok şiddetli fırtına', 'Kasırga'];
+const ZOOMS = [1, 1.12, 1.25];
+const bftPal = () => (S && Array.isArray(S.settings.bft) && S.settings.bft.length === 13 && S.settings.bft.every(isHex)) ? S.settings.bft : BFT_DEFAULT;
+function bftColor(b){ return b == null ? null : bftPal()[Math.max(0, Math.min(12, b))]; }
+function bftStyle(b){ const c = bftColor(b); return c ? 'background:' + c + ';color:' + textOn(c) : ''; }
+const bftBadge = b => b == null ? '–' : '<span class="bftb" style="' + bftStyle(b) + '">' + b + '</span>';
+function themeColors(){
+  const st = S ? S.settings : {};
+  const pr = PRESETS.find(p => p.id === st.preset) || PRESETS[0];
+  return {brand: isHex(st.brand) ? st.brand : pr.brand, accent: isHex(st.accent) ? st.accent : pr.accent};
+}
+function applyTheme(){
+  const st = S ? S.settings : {}; const root = document.documentElement;
+  if (st.scheme === 'light' || st.scheme === 'dark') root.setAttribute('data-theme', st.scheme); else root.removeAttribute('data-theme');
+  const {brand, accent} = themeColors();
+  const lt = {brand, accent, soft: mix(brand, '#F4F8F9', 0.82)};
+  const dB = mix(brand, '#FFFFFF', 0.42), dA = mix(accent, '#FFFFFF', 0.30);
+  const dk = {brand: dB, accent: dA, soft: mix(brand, '#0D242F', 0.70)};
+  const vars = o => '--brand:' + o.brand + ';--accent:' + o.accent + ';--brand-soft:' + o.soft + ';--on-brand:' + textOn(o.brand) + ';--on-accent:' + textOn(o.accent) + ';';
+  const z = ZOOMS[st.zoom] || 1;
+  const el = $('userTheme'); if (!el) return;
+  el.textContent = ':root{' + vars(lt) + '--zoom:' + z + '}' +
+    '@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){' + vars(dk) + '}}' +
+    ':root[data-theme="dark"]{' + vars(dk) + '}';
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', brand);
+}
+
+// ---------------------------------------------------------------- 10 · şifreleme ve özel paket
+// Uygulama herkes için boş ve şifresiz açılır. Kişisel rig sistemi "özel paket" olarak paket/ozel.enc.json içinde
+// AES-GCM ile şifreli durur; anahtar şifreden PBKDF2 ile türetilir ve yalnızca bu telefonda saklanır.
+let D = null;   // çözülmüş özel paket (yoksa null)
+const LS = {state: 'alyssa-v1', pkgData: 'alyssa-pd', pkgKey: 'alyssa-pk', bkKey: 'alyssa-bk', ghTok: 'alyssa-gh',
+  oldState: 'kenny-av-v1', oldData: 'kenny-av-data', oldKey: 'kenny-av-k'};
+const PKG_URL = 'paket/ozel.enc.json';
 const EMBED = (() => { try { const t = $('appdata').textContent.trim(); return t && t[0] === '{' ? JSON.parse(t) : null; } catch (e) { return null; } })();
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } };
-function b64d(s){ const b = atob(s); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
-function b64e(u){ let s = ''; for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s); }
+const lsDel = k => { try { localStorage.removeItem(k); } catch (e) {} };
+function b64d(s){ const b = atob(s || ''); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+function b64e(u){ let s = ''; const C = 0x8000; for (let i = 0; i < u.length; i += C) s += String.fromCharCode.apply(null, u.subarray(i, i + C)); return btoa(s); }
+const b64eUtf8 = str => b64e(new TextEncoder().encode(str));
 const normPass = p => String(p || '').trim().toLowerCase().replace(/ı/g, 'i').replace(/[\s_.,]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-async function deriveKey(pass, pkg){
+async function deriveRaw(pass, salt, iter){
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(normPass(pass)), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({name: 'PBKDF2', salt: b64d(pkg.salt), iterations: pkg.iter, hash: 'SHA-256'}, base, 256);
-  return new Uint8Array(bits);
+  return new Uint8Array(await crypto.subtle.deriveBits({name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256'}, base, 256));
+}
+async function aesEnc(raw, bytes){
+  const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt']);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv}, key, bytes));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return out;
+}
+async function aesDec(raw, data){
+  const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
+  return new Uint8Array(await crypto.subtle.decrypt({name: 'AES-GCM', iv: data.subarray(0, 12)}, key, data.subarray(12)));
 }
 async function decryptPkg(pkg, raw){
   const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
@@ -788,119 +895,210 @@ async function decryptPkg(pkg, raw){
   return JSON.parse(new TextDecoder().decode(pt));
 }
 async function fetchPkg(){
-  try { const r = await fetch('data.enc.json?v=' + APP_VERSION + '&t=' + Date.now(), {cache: 'no-store'}); if (r.ok) return await r.json(); } catch (e) {}
+  try { const r = await fetchT(PKG_URL + '?t=' + Date.now(), {cache: 'no-store'}, 15000); if (r.ok) return await r.json(); } catch (e) {}
   return null;
 }
-// sonuç: 'ok' | {locked: pkg} | 'nodata'
-async function loadData(){
-  if (EMBED) { D = EMBED; return 'ok'; }
-  let cached = null; try { cached = JSON.parse(lsGet(DATA_KEY) || 'null'); } catch (e) {}
+function pkgLoadCached(){
+  if (EMBED) { D = EMBED; return; }
+  try { D = JSON.parse(lsGet(LS.pkgData) || 'null'); } catch (e) { D = null; }
+  if (D && !D.rigs) D = null;
+}
+// şifreyle aç: {ok} ya da {ok:false, err}
+async function pkgUnlock(pass){
   const pkg = await fetchPkg();
-  // bağlantıdaki #anahtar=... (Android ve tarayıcı için tek dokunuşla açma)
-  const m = (location.hash || '').match(/anahtar=([^&]+)/);
-  if (m && pkg) {
-    try { const raw = await deriveKey(decodeURIComponent(m[1]), pkg); const d = await decryptPkg(pkg, raw); lsSet(KEY_KEY, b64e(raw)); lsSet(DATA_KEY, JSON.stringify(d)); cached = d; } catch (e) {}
-    try { history.replaceState(null, '', location.pathname); } catch (e) {}
-  }
-  const k = lsGet(KEY_KEY);
-  if (pkg && k && (!cached || !cached.meta || cached.meta.data_version !== pkg.data_version)) {
-    try { const d = await decryptPkg(pkg, b64d(k)); cached = d; lsSet(DATA_KEY, JSON.stringify(d)); }
-    catch (e) { if (!cached) return {locked: pkg}; }
-  }
-  if (cached) { D = cached; return 'ok'; }
-  return pkg ? {locked: pkg} : 'nodata';
+  if (!pkg) return {ok: false, err: 'Paket indirilemedi. İnternet bağlantını kontrol edip yeniden dene.'};
+  try {
+    const raw = await deriveRaw(pass, b64d(pkg.salt), pkg.iter);
+    const d = await decryptPkg(pkg, raw);
+    lsSet(LS.pkgKey, b64e(raw)); lsSet(LS.pkgData, JSON.stringify(d)); D = d;
+    return {ok: true};
+  } catch (e) { return {ok: false, err: 'Şifre tutmadı. Büyük-küçük harf fark etmez.'}; }
 }
-function showLock(pkg, onOpen){
-  $('lock').hidden = false;
-  $('lockForm').onsubmit = async e => {
-    e.preventDefault();
-    const btn = $('lockBtn'); btn.disabled = true; $('lockErr').hidden = true; $('lockNote').textContent = 'Açılıyor…';
-    try {
-      const raw = await deriveKey($('lockPass').value, pkg);
-      const d = await decryptPkg(pkg, raw);
-      lsSet(KEY_KEY, b64e(raw)); lsSet(DATA_KEY, JSON.stringify(d)); D = d;
-      $('lock').hidden = true; onOpen();
-    } catch (err) {
-      $('lockErr').textContent = 'Şifre tutmadı. Kelimeleri aradaki tirelerle birlikte yaz; büyük-küçük harf önemli değil.'; $('lockErr').hidden = false;
-      $('lockNote').textContent = '';
-    }
-    btn.disabled = false;
-  };
-  setTimeout(() => { try { $('lockPass').focus(); } catch (e) {} }, 50);
-}
-// açıkken arka planda yeni veri sürümü var mı? (Claude veriyi güncellediğinde)
-async function refreshData(){
-  if (EMBED) return false;
-  const pkg = await fetchPkg(); const k = lsGet(KEY_KEY);
-  if (!pkg || !k || (D && D.meta && D.meta.data_version === pkg.data_version)) return false;
-  try { const d = await decryptPkg(pkg, b64d(k)); D = d; lsSet(DATA_KEY, JSON.stringify(d)); return true; } catch (e) { return false; }
+// açık paketin yeni sürümü var mı? 'none' | 'offline' | 'same' | 'updated' | 'locked' (yeni şifre gerekiyor)
+async function pkgRefresh(){
+  if (EMBED || !S.pkg.unlocked) return 'none';
+  const pkg = await fetchPkg(); if (!pkg) return 'offline';
+  if (D && D.meta && D.meta.data_version === pkg.data_version) return 'same';
+  const k = lsGet(LS.pkgKey);
+  if (k) { try { const d = await decryptPkg(pkg, b64d(k)); lsSet(LS.pkgData, JSON.stringify(d)); D = d; return 'updated'; } catch (e) {} }
+  return 'locked';
 }
 
-// ---------------------------------------------------------------- 20 · telefondaki durum (envanter adetleri, konumlar, tercih)
-// Güncellemeler bu veriyi asla silmez: eksik alanlar eklenir, var olanlara dokunulmaz.
-const STATE_KEY = 'kenny-av-v1';
-let ITEMS = {}, SETUPS = {}, SPECIES = {}, RIGS = {};
-function indexData(){
-  ITEMS = Object.fromEntries(D.items.map(i => [i.id, i]));
-  SETUPS = Object.fromEntries(D.setups.map(s => [s.id, s]));
-  SPECIES = Object.fromEntries(D.species.map(s => [s.id, s]));
-  RIGS = Object.fromEntries(D.rigs.map(r => [r.code, r]));
-}
-const POS = {ust: 'Üst', orta: 'Orta', hirsiz: 'Hırsız', braid: 'Ana ip', beden: 'Beden', kostek: 'Köstek'};
+// ---------------------------------------------------------------- 20 · profil (telefondaki durum)
+// Rig sistemleri, envanter adetleri, konumlar, ayarlar. Güncellemeler bu veriyi asla silmez: eksik alanlar eklenir.
 const BOTTOM = [['', 'Bilmiyorum'], ['kum', 'Kum'], ['kum-kayalik', 'Kum–kayalık'], ['kayalik', 'Kayalık'], ['saf-kayalik', 'Saf kayalık'], ['karma', 'Karma'], ['camur', 'Çamur']];
-const BOTTOM_TXT = Object.assign(Object.fromEntries(BOTTOM), {'orta-su': 'Orta su', 'bilinmeyen': 'Bilinmeyen'});
+const BOTTOM_TXT = Object.assign(Object.fromEntries(BOTTOM), {'': 'Bilinmiyor', 'orta-su': 'Orta su', 'bilinmeyen': 'Bilinmeyen'});
 const LOW = {hook: 5, terminal: 3, jig: 1, sinker: 5};   // bu adedin altı "az kaldı"
 
 let S = null;
 function newState(){
-  const st = {v: 1, qty: {}, status: {}, locations: {}, active: '1', prefs: {qty_mode: 'adet'}, wx: null, seenVersion: null};
-  (D.seed_status || []).forEach(x => { st.status[x.item + '|' + x.size] = x.status; if (x.qty != null) st.qty[x.item + '|' + x.size] = x.qty; });
-  D.locations.forEach(l => { st.locations[l.id] = {id: l.id, name: l.name, lat: l.lat, lon: l.lon, bottom: l.bottom || '', depth: ''}; });
+  return {v: 2, created: new Date().toISOString(), seenVersion: APP_VERSION, onboarded: false, mode: 'tekne',
+    profile: {name: ''},
+    settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter'},
+    inv: {items: {}, qty: {}, status: {}},
+    systems: {}, locations: {}, active: null, wx: null,
+    pkg: {unlocked: false, version: null, need: false, locs: []},
+    backup: {repo: '', name: '', auto: true, photosOn: true, lastAt: null, sha: null, photos: {}, salt: null, err: null}};
+}
+// eksik alanları tamamla (eski sürümden ya da yedekten gelen profil)
+function normalizeState(st){
+  const n = newState();
+  for (const k of Object.keys(n)) if (st[k] === undefined || st[k] === null && typeof n[k] === 'object' && k !== 'wx' && k !== 'active') st[k] = n[k];
+  for (const g of ['settings', 'inv', 'pkg', 'backup', 'profile']) for (const k of Object.keys(n[g])) if (st[g][k] === undefined) st[g][k] = n[g][k];
+  if (!st.locations[st.active]) st.active = Object.keys(st.locations)[0] || null;
+  if (st.wx && !st.wx.raw) st.wx = null;
   return st;
 }
-function loadState(){
-  let st = null; try { st = JSON.parse(lsGet(STATE_KEY) || 'null'); } catch (e) {}
-  if (!st || st.v !== 1) { st = newState(); st.seenVersion = APP_VERSION; }
-  // geçişler (v0.1 → v0.2): alanları tamamla
-  st.qty = st.qty || {}; st.status = st.status || {}; st.prefs = st.prefs || {qty_mode: 'adet'};
-  st.locations = st.locations || {}; if (!Object.keys(st.locations).length) D.locations.forEach(l => { st.locations[l.id] = {id: l.id, name: l.name, lat: l.lat, lon: l.lon, bottom: l.bottom || '', depth: ''}; });
-  if (!st.locations[st.active]) st.active = Object.keys(st.locations)[0];
-  if (st.weather) { delete st.weather; }          // v0.1 önbelleği, yeni biçimle yeniden çekilir
-  if (st.wx && !st.wx.raw) st.wx = null;
-  if (!('seenVersion' in st)) st.seenVersion = '0.1.0';
-  S = st;
+// v0.2 (Kenny Av) → v0.3: adetler, durumlar, konumlar, hava önbelleği ve açılmış paket taşınır
+function migrateV1(st, old){
+  st.inv.qty = old.qty || {}; st.inv.status = old.status || {};
+  st.locations = old.locations || {}; st.active = old.active || null;
+  st.wx = old.wx && old.wx.raw ? old.wx : null;
+  st.seenVersion = old.seenVersion || '0.2.0'; st.onboarded = true;
+  let od = null; try { od = JSON.parse(lsGet(LS.oldData) || 'null'); } catch (e) {}
+  if (od && od.rigs) {
+    lsSet(LS.pkgData, JSON.stringify(od));
+    st.pkg.unlocked = true; st.pkg.version = od.meta && od.meta.data_version;
+    st.pkg.locs = (od.locations || []).map(l => l.id);
+    st.systems.ozel = {id: 'ozel', name: (od.meta && od.meta.system_name) || 'Özel rig sistemi', source: 'paket', active: true, created: new Date().toISOString()};
+  }
+  lsDel(LS.oldKey);   // eski şifrenin anahtarı yeni pakette işe yaramaz
 }
-function persist(){ if (!lsSet(STATE_KEY, JSON.stringify(S))) { /* depolama dolu: hava önbelleğini bırak */ S.wx = null; lsSet(STATE_KEY, JSON.stringify(S)); } }
+function loadState(){
+  let st = null; try { st = JSON.parse(lsGet(LS.state) || 'null'); } catch (e) {}
+  if (!st || st.v !== 2) {
+    let old = null; try { old = JSON.parse(lsGet(LS.oldState) || 'null'); } catch (e) {}
+    st = newState();
+    if (old && old.v === 1) migrateV1(st, old);
+  }
+  S = normalizeState(st);
+}
+function persistQuiet(){ if (!lsSet(LS.state, JSON.stringify(S))) { S.wx = null; lsSet(LS.state, JSON.stringify(S)); } }
+function persist(){ persistQuiet(); if (typeof markDirty === 'function') markDirty(); }
+const loc = () => (S && S.active && S.locations[S.active]) || (S ? Object.values(S.locations)[0] : null) || null;
+const nextLocId = () => String(Math.max(0, ...Object.keys(S.locations).map(Number).filter(isFinite)) + 1);
+const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + L.name;
 
 // ---------------------------------------------------------------- stok
-function baseStatus(id, size){ const it = ITEMS[id]; if (!it) return 'yok'; return (it.stock && (it.stock[size || '-'] || it.stock['-'])) || 'yok'; }
+function baseStatus(it, size){ if (!it) return 'yok'; if (it.stock) return it.stock[size || '-'] || it.stock['-'] || 'yok'; return 'var'; }
 function stockOf(id, size){
-  const k = id + '|' + (size || '-');
-  const q = S.qty[k];
+  const k = id + '|' + (size || '-'); const it = ITEMS[id];
+  const q = S.inv.qty[k];
   if (q !== undefined && q !== null && q !== '') {
-    const n = Number(q), it = ITEMS[id];
-    if (n <= 0) return (S.status[k] === 'alinacak' || baseStatus(id, size) === 'alinacak') ? 'alinacak' : 'bitti';
+    const n = Number(q);
+    if (n <= 0) return (S.inv.status[k] === 'alinacak' || baseStatus(it, size) === 'alinacak') ? 'alinacak' : 'bitti';
     return n < (LOW[it && it.cat] || 0) ? 'az' : 'var';
   }
-  return S.status[k] || baseStatus(id, size);
+  return S.inv.status[k] || baseStatus(it, size);
 }
 const usable = st => st === 'var' || st === 'az';
-function missingOf(rg){
-  const m = [];
-  for (const k of Object.keys(POS)) {
-    const c = rg.components[k].envanter;
-    const st = c.item ? stockOf(c.item, c.size) : 'yok';
-    if (!usable(st)) m.push({k, c, st});
-  }
-  return m;
-}
-const ready = rg => missingOf(rg).length === 0;
 const sizesOf = it => (it.sizes && it.sizes.length) ? it.sizes : ['-'];
-const loc = () => S.locations[S.active] || Object.values(S.locations)[0];
+const ST_TXT = {var: 'Var', az: 'Az', bitti: 'Bitti', alinacak: 'Alınacak', yok: 'Yok'};
+
+// ---------------------------------------------------------------- 22 · rig sistemleri, envanter dizini, türler
+// Genel rig biçimi: her rigin "yuvaları" (üst/orta/hırsız iğne, ana ip, beden, köstek…) ve her yuva için üç malzeme seviyesi:
+// dunya (dünyanın en iyisi), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
+const TIERS = ['dunya', 'turkiye', 'envanter'];
+const TIER_TXT = {dunya: 'Dünyanın en iyisi', turkiye: "Türkiye'de en iyi", envanter: 'Envanterimden'};
+const SLOT_LBL = {ust: 'Üst', orta: 'Orta', hirsiz: 'Hırsız', braid: 'Ana ip', beden: 'Beden', kostek: 'Köstek'};
+const LEN_LBL = {ust: 'köstek üst', orta: 'orta', hirsiz: 'hırsız', ara: 'köstek arası', kostek: 'köstek', lider: 'lider', sok: 'şok lider'};
+const SPECIES_BASE = [
+  ['cipura', 'Çipura', 'Sparus aurata'], ['karagoz', 'Karagöz', 'Diplodus vulgaris'], ['sargoz', 'Sargoz', 'Diplodus sargus'],
+  ['isparoz', 'İsparoz', 'Diplodus annularis'], ['mercan', 'Mercan', 'Pagellus erythrinus'], ['fangri', 'Fangri', 'Pagrus pagrus'],
+  ['sinarit', 'Sinarit', 'Dentex dentex'], ['sinagrit', 'Sinagrit', 'Dentex gibbosus'], ['tranca', 'Trança', 'Pagrus auriga'],
+  ['eskina', 'Eşkina', 'Sciaena umbra'], ['akya', 'Akya', 'Lichia amia'], ['levrek', 'Levrek', 'Dicentrarchus labrax'],
+  ['izmarit', 'İzmarit', 'Spicara smaris'], ['mirmir', 'Mırmır', 'Lithognathus mormyrus'], ['kupes', 'Kupes', 'Boops boops'],
+  ['melanurya', 'Melanurya', 'Oblada melanura'], ['minakop', 'Minakop', 'Umbrina cirrosa'], ['lahos', 'Lahos', 'Epinephelus costae'],
+  ['orfoz', 'Orfoz', 'Epinephelus marginatus'], ['iskorpit', 'İskorpit', 'Scorpaena porcus'], ['lipsoz', 'Lipsoz', 'Scorpaena scrofa'],
+  ['kirlangic', 'Kırlangıç', 'Chelidonichthys lucerna'], ['barbunya', 'Barbunya', 'Mullus barbatus'], ['tekir', 'Tekir', 'Mullus surmuletus'],
+  ['mezgit', 'Mezgit', 'Merlangius merlangus'], ['kalkan', 'Kalkan', 'Scophthalmus maximus'], ['dil', 'Dil', 'Solea solea'],
+  ['palamut', 'Palamut', 'Sarda sarda'], ['lufer', 'Lüfer', 'Pomatomus saltatrix'], ['orkinos', 'Orkinos (mavi yüzgeçli)', 'Thunnus thynnus'],
+  ['lambuka', 'Lambuka', 'Coryphaena hippurus'], ['zargana', 'Zargana', 'Belone belone'], ['istavrit', 'İstavrit', 'Trachurus spp.'],
+  ['kolyoz', 'Kolyoz', 'Scomber colias'], ['uskumru', 'Uskumru', 'Scomber scombrus'], ['kefal', 'Kefal', 'Mugilidae'],
+  ['kalamar', 'Kalamar', 'Loligo vulgaris'], ['ahtapot', 'Ahtapot', 'Octopus vulgaris'], ['murekkep', 'Mürekkep balığı', 'Sepia officinalis'],
+].map(([id, name, latin]) => ({id, name, latin}));
+
+let ITEMS = {}, SPECIES = {}, RIGS = {}, RIG_LIST = [], SETUPS = {};
+const pkgOn = () => !!(D && S.systems.ozel);
+function pkgRigs(){
+  if (!pkgOn() || S.systems.ozel.active === false) return [];
+  const setups = Object.fromEntries(D.setups.map(s => [s.id, s]));
+  const tierOf = c => ({name: c.name, size: c.size, raw: c.raw});
+  return D.rigs.map(rg => {
+    const su = setups[rg.setup] || {}; const st = su.standard_cm || {};
+    const slots = Object.keys(SLOT_LBL).filter(k => rg.components[k]).map(k => { const c = rg.components[k];
+      return {k, label: SLOT_LBL[k], kind: ['ust', 'orta', 'hirsiz'].includes(k) ? 'hook' : 'line',
+        t: {dunya: tierOf(c.dunya), turkiye: Object.assign(tierOf(c.magaza), {store: c.magaza.mark}), envanter: Object.assign(tierOf(c.envanter), {item: c.envanter.item || null})}}; });
+    const lc = rg.leader_cm;
+    const b3 = o => ({dunya: o.dunya, turkiye: o.magaza, envanter: String(o.envanter || '').replace(/✓/g, '').trim()});
+    return {id: 'ozel:' + rg.code, sys: 'ozel', code: rg.code, name: rg.name, group: rg.setup, groupName: su.name || '', mode: 'tekne', tech: 'dip-hirsizli',
+      time: rg.time, klass: rg.klass, species: rg.species || [], target: rg.target_text, baitText: rg.bait_text, bottom: rg.bottom || [],
+      season: rg.season_months, window: rg.window, core: !!rg.must_prepare, current: !!rg.when_current, slots,
+      baits: rg.baits ? {ana: b3(rg.baits.ana), alt: b3(rg.baits.alternatif)} : null,
+      lengths: lc ? {ust: lc.ust, orta: lc.orta, hirsiz: lc.hirsiz, ara: st.aralik} : {ust: st.ust, orta: st.orta, hirsiz: st.hirsiz, ara: st.aralik}, own: !!lc,
+      sinker: st.kursun_g ? {g: st.kursun_g.slice(), max: st.kursun_max_g} : null,
+      success: rg.success ? {dunya: rg.success.dunya, turkiye: rg.success.magaza, envanter: rg.success.envanter} : null,
+      notes: [].concat(rg.v2_change ? [{k: 'v2', t: rg.v2_change}] : [], (rg.warnings || []).filter(w => !/mevsimi/.test(w)).map(w => ({k: 'Not', t: w})), (rg.v1_notes || []).map(w => ({k: 'v1', t: w})))};
+  });
+}
+function allRigs(){
+  let out = pkgRigs();
+  Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => Object.assign({sys: sy.id}, r))); });
+  return out;
+}
+function indexAll(){
+  ITEMS = {};
+  if (pkgOn()) D.items.forEach(i => { ITEMS[i.id] = Object.assign({src: 'paket'}, i); });
+  Object.values(S.inv.items).forEach(i => { ITEMS[i.id] = i; });
+  SPECIES = Object.fromEntries(SPECIES_BASE.map(s => [s.id, Object.assign({}, s)]));
+  if (D && D.species) D.species.forEach(s => { SPECIES[s.id] = Object.assign({}, SPECIES[s.id] || {}, s); });
+  SETUPS = pkgOn() ? Object.fromEntries(D.setups.map(s => [s.id, s])) : {};
+  RIG_LIST = allRigs(); RIGS = {};
+  RIG_LIST.forEach(r => { RIGS[r.id] = r; });
+  RIG_LIST.forEach(r => { if (r.code && !RIGS[r.code]) RIGS[r.code] = r; });   // eski av kayıtları rig koduyla bağlı
+}
+// açılan özel paketi profile bağla (paket kalemleri ve rigleri paketten okunur; burada yalnızca sistem, durum tohumları ve konumlar)
+function importPackage(d){
+  if (!d || !d.rigs) return;
+  const before = JSON.stringify([S.systems.ozel, S.inv.status, S.pkg, S.locations, S.active, S.onboarded]);
+  if (!S.systems.ozel) S.systems.ozel = {id: 'ozel', name: (d.meta && d.meta.system_name) || 'Özel rig sistemi', source: 'paket', active: true, created: new Date().toISOString()};
+  if (d.meta && d.meta.system_name && S.systems.ozel.name !== d.meta.system_name) S.systems.ozel.name = d.meta.system_name;
+  (d.seed_status || []).forEach(x => { const k = x.item + '|' + x.size; if (S.inv.status[k] == null && S.inv.qty[k] == null) S.inv.status[k] = x.status; });
+  S.pkg.locs = S.pkg.locs || [];
+  (d.locations || []).forEach(l => {
+    if (S.pkg.locs.includes(l.id)) return;
+    S.pkg.locs.push(l.id);
+    const same = Object.values(S.locations).find(x => distKm(x, l) < 0.3);
+    if (same) { same.pkg = true; return; }
+    const id = S.locations[l.id] ? nextLocId() : l.id;
+    S.locations[id] = {id, name: l.name, lat: l.lat, lon: l.lon, bottom: l.bottom || '', depth: '', pkg: true};
+  });
+  Object.values(S.locations).forEach(x => { if (!x.pkg && (d.locations || []).some(l => l.id === x.id && distKm(x, l) < 0.3)) x.pkg = true; });
+  if (!S.active || !S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null;
+  S.pkg.unlocked = true; S.pkg.version = d.meta && d.meta.data_version; S.pkg.need = false; S.onboarded = true;
+  if (JSON.stringify([S.systems.ozel, S.inv.status, S.pkg, S.locations, S.active, S.onboarded]) !== before) persist();
+}
+// ---- hazır olma (envanter seviyesine göre)
+function slotStock(sl){ const e = sl.t && sl.t.envanter; return e && e.item ? stockOf(e.item, e.size) : 'yok'; }
+const missingOf = rg => rg.slots.filter(sl => !usable(slotStock(sl)));
+const ready = rg => missingOf(rg).length === 0;
+const sysName = id => (S.systems[id] && S.systems[id].name) || id;
+// alışveriş: eksik yuvalar kaleme göre toplanır; aynı rig bir kez sayılır
+function shoppingList(){
+  const need = {};
+  RIG_LIST.forEach(rg => missingOf(rg).forEach(sl => {
+    const e = sl.t.envanter || {}; const tk = sl.t.turkiye || {};
+    const k = e.item ? e.item + '|' + (e.size || '-') : 'x|' + (tk.name || e.name || sl.label) + '|' + (tk.size || '');
+    const n = need[k] = need[k] || {k, item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, rigs: []};
+    if (!n.rigs.includes(rg.code || rg.name)) n.rigs.push(rg.code || rg.name);
+  }));
+  return Object.values(need);
+}
 
 // ---------------------------------------------------------------- 30 · hava ve deniz (Open-Meteo, telefondan)
 // Rüzgâr: ICON-EU 7 km (≈5 gün) → ECMWF IFS 0,25° → en iyi eşleşme. Hamle: GFS → en iyi eşleşme.
 // Yağış olasılığı: en iyi eşleşme (topluluk modelleri). Dalga: MFWAM → en iyi deniz modeli. Akıntı ve su: Météo-France.
+// Nokta karadaysa ya da kıyıya çok yakınsa deniz modelleri veri vermez: en yakın deniz noktası aranır ve o kullanılır.
 const API_F = 'https://api.open-meteo.com/v1/forecast', API_M = 'https://marine-api.open-meteo.com/v1/marine';
 const FV = 'temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m,cloud_cover,precipitation';
 const MV = 'wave_height,wave_direction,wave_period,ocean_current_velocity,ocean_current_direction,sea_surface_temperature';
@@ -926,38 +1124,84 @@ function reqUrls(id, L){
   }
   return [];
 }
-async function fetchFirst(urls){
+// need: bu alanlardan en az birinde gerçek değer olmalı (deniz modelleri karada boş seri döndürür)
+async function fetchFirst(urls, need){
   let last = null;
   for (const u of urls) {
     try {
-      const r = await fetch(u, {cache: 'no-store'});
-      if (r.ok) { const j = await r.json(); if (j && j.hourly && j.hourly.time) return {ok: true, data: {hourly: j.hourly, hourly_units: j.hourly_units || {}, utc_offset_seconds: j.utc_offset_seconds}}; last = 'boş yanıt'; }
-      else last = 'HTTP ' + r.status;
-    } catch (e) { last = 'bağlantı yok'; }
+      const r = await fetchT(u, {cache: 'no-store'}, 15000);
+      if (r.ok) {
+        const j = await r.json();
+        if (j && j.hourly && j.hourly.time) {
+          if (need && !need.some(k => Array.isArray(j.hourly[k]) && j.hourly[k].some(v => v != null))) { last = 'bu noktada veri yok'; continue; }
+          return {ok: true, data: {hourly: j.hourly, hourly_units: j.hourly_units || {}, utc_offset_seconds: j.utc_offset_seconds}};
+        }
+        last = 'boş yanıt';
+      } else {
+        let reason = ''; try { const j = await r.json(); reason = j && j.reason ? String(j.reason) : ''; } catch (e) {}
+        last = /no data/i.test(reason) ? 'bu noktada veri yok' : 'HTTP ' + r.status;
+      }
+    } catch (e) { last = e && e.name === 'AbortError' ? 'zaman aşımı' : 'bağlantı yok'; }
   }
   return {ok: false, err: last};
 }
-const wxKey = L => L.lat.toFixed(4) + ',' + L.lon.toFixed(4);
-function setNet(s, msg){ const n = $('net'); n.dataset.s = s; n.querySelector('span').textContent = msg; }
-let WX = null;   // birleşik saatlik seri (önbellekten kurulur)
+const wxKey = L => L ? L.lat.toFixed(4) + ',' + L.lon.toFixed(4) : '';
+function setNet(s, msg){ const n = $('net'); if (!n) return; n.dataset.s = s; n.querySelector('span').textContent = msg; }
+let WX = null;       // birleşik saatlik seri (önbellekten kurulur)
+let LOAD_ID = 0;     // yalnızca en son başlatılan yükleme ekranı günceller
+const SEA_TRIED = {};
+// en yakın deniz noktası: halkalar halinde 8 yönde dener (her halka paralel)
+async function findSeaPoint(L){
+  const dirs = [0, 45, 90, 135, 180, 225, 270, 315];
+  for (const km of [2, 4, 7, 11, 16, 22]) {
+    const pts = dirs.map(b => Object.assign(offsetPt(L, b, km), {km, dir: b}));
+    const res = await Promise.all(pts.map(p => fetchFirst([API_M + '?latitude=' + p.lat.toFixed(4) + '&longitude=' + p.lon.toFixed(4) + '&timezone=auto&forecast_days=1&hourly=wave_height'], ['wave_height'])));
+    const i = res.findIndex(r => r.ok);
+    if (i >= 0) return {lat: +pts[i].lat.toFixed(4), lon: +pts[i].lon.toFixed(4), km, dir: pts[i].dir};
+    if (res.every(r => r.err === 'bağlantı yok' || r.err === 'zaman aşımı')) return null;   // ağ sorunu: aramayı bırak
+  }
+  return null;
+}
+async function loadMarine(L){
+  const at = async P => { const [mf, mb] = await Promise.all([fetchFirst(reqUrls('mf', P), ['wave_height']), fetchFirst(reqUrls('mbest', P), ['wave_height', 'ocean_current_velocity', 'sea_surface_temperature'])]); return {mf, mb}; };
+  let P = L.sea && L.sea.lat != null ? L.sea : L;
+  let r = await at(P);
+  if (!r.mf.ok && !r.mb.ok && P === L && !SEA_TRIED[wxKey(L)]) {
+    SEA_TRIED[wxKey(L)] = 1;
+    const sp = await findSeaPoint(L);
+    if (sp) { L.sea = sp; persistQuiet(); P = sp; r = await at(P); }
+  }
+  const raw = {}, status = {};
+  if (r.mf.ok) raw.mf = r.mf.data; status.mf = r.mf.ok ? 'ok' : r.mf.err;
+  if (r.mb.ok) raw.mbest = r.mb.data; status.mbest = r.mb.ok ? 'ok' : r.mb.err;
+  return {raw, status, sea: P !== L ? P : null};
+}
 async function loadWeather(force){
-  const L = loc(); if (!L) return;
+  const L = loc();
+  if (!L) { WX = null; setNet('idle', 'Konum yok'); renderAll(); return; }
   const key = wxKey(L);
   if (PREVIEW) { if (!S.wx || S.wx.key !== key) { const smp = SAMPLE_WX(); if (smp) S.wx = {key, at: Date.now(), raw: smp.raw, status: smp.status}; } WX = buildWx(); setNet('ok', 'Örnek veri'); renderAll(); return; }
   if (S.wx && S.wx.key === key && !force && Date.now() - S.wx.at < 45 * 60 * 1000) { WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date(S.wx.at))); renderAll(); return; }
+  const my = ++LOAD_ID;
   setNet('load', 'Yükleniyor');
-  const ids = Object.keys(SRC);
-  const res = await Promise.all(ids.map(id => fetchFirst(reqUrls(id, L))));
-  const raw = {}, status = {};
-  ids.forEach((id, i) => { status[id] = res[i].ok ? 'ok' : (res[i].err || 'hata'); if (res[i].ok) raw[id] = res[i].data; });
-  if (Object.keys(raw).length) {
-    S.wx = {key, at: Date.now(), raw, status}; persist();
-    WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date()));
-  } else {
-    WX = S.wx && S.wx.key === key ? buildWx() : null;
-    setNet('err', WX ? 'Eski veri' : 'Veri alınamadı');
+  try {
+    const ids = ['icon', 'ecmwf', 'gfs', 'best'];
+    const [fr, mr] = await Promise.all([Promise.all(ids.map(id => fetchFirst(reqUrls(id, L)))), loadMarine(L)]);
+    if (my !== LOAD_ID) return;
+    const raw = Object.assign({}, mr.raw), status = Object.assign({}, mr.status);
+    ids.forEach((id, i) => { status[id] = fr[i].ok ? 'ok' : (fr[i].err || 'hata'); if (fr[i].ok) raw[id] = fr[i].data; });
+    if (Object.keys(raw).length) {
+      S.wx = {key, at: Date.now(), raw, status, sea: mr.sea}; persistQuiet();
+      WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date()));
+    } else {
+      WX = S.wx && S.wx.key === key ? buildWx() : null;
+      setNet('err', WX ? 'Eski veri' : 'Veri alınamadı');
+    }
+  } catch (e) {
+    if (my === LOAD_ID) { WX = S.wx && S.wx.key === key ? buildWx() : null; setNet('err', WX ? 'Eski veri' : 'Veri alınamadı'); }
+  } finally {
+    if (my === LOAD_ID) renderAll();
   }
-  renderAll();
 }
 function seriesOf(raw, name){
   if (!raw || !raw.hourly) return null;
@@ -983,7 +1227,7 @@ function windToMs(v, unit){ if (v == null) return null; unit = String(unit || 'm
 function buildWx(){
   if (!S.wx || !S.wx.raw) return null;
   const R = S.wx.raw;
-  const times = {}; Object.values(R).forEach(r => r.hourly.time.forEach(t => { times[t] = 1; }));
+  const times = {}; Object.values(R).forEach(r => r && r.hourly && r.hourly.time.forEach(t => { times[t] = 1; }));
   const T = Object.keys(times).sort();
   const col = (id, name, gap, dir) => {
     const r = R[id]; if (!r) return null; const s = seriesOf(r, name); if (!s) return null;
@@ -1010,21 +1254,21 @@ function buildWx(){
     const wv = wMF && wMF[i] != null ? {h: wMF[i], d: wMFd && wMFd[i], p: wMFp && wMFp[i], m: 'MFWAM'} : wB && wB[i] != null ? {h: wB[i], d: wBd && wBd[i], p: wBp && wBp[i], m: 'en iyi deniz modeli'} : null;
     const d = new Date(t);
     return {t: d, key: t.slice(0, 10), h: Number(t.slice(11, 13)),
-      wind: w ? windToMs(w.wind[i], w.u) : null, wdir: w && w.wdir ? w.wdir[i] : null, wm: pickW ? SRC[pickW].label : null, wmShort: pickW === 'icon' ? 'I' : pickW === 'ecmwf' ? 'E' : pickW ? 'O' : '',
+      wind: w ? windToMs(w.wind[i], w.u) : null, wdir: w && w.wdir ? w.wdir[i] : null, wm: pickW ? SRC[pickW].label : null,
       temp: val('temp'), press: val('press'), cloud: val('cloud'), rain: val('rain'),
       gust: gu ? windToMs(gu.v, gu.u) : null, gm: gu ? gu.m : null, pop: pop ? pop[i] : null,
       wave: wv ? wv.h : null, waveDir: wv ? wv.d : null, per: wv ? wv.p : null, wvm: wv ? wv.m : null,
       cur: cur ? curToKn(cur[i], cu) : null, curDir: curd ? curd[i] : null, sst: sst ? sst[i] : null};
   });
   hours.forEach((x, i) => { const p3 = hours[i - 3]; x.dp3 = (p3 && x.press != null && p3.press != null) ? x.press - p3.press : null; });
-  return {hours, at: S.wx.at, status: S.wx.status || {}};
+  return {hours, at: S.wx.at, status: S.wx.status || {}, sea: S.wx.sea || null};
 }
 const maxOf = (arr, k) => { let v = null; arr.forEach(x => { if (x[k] != null && (v == null || x[k] > v)) v = x[k]; }); return v; };
 const minOf = (arr, k) => { let v = null; arr.forEach(x => { if (x[k] != null && (v == null || x[k] < v)) v = x[k]; }); return v; };
 const meanOf = (arr, k) => { const v = arr.map(x => x[k]).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
 let DAYS_CACHE = null;
 function days(){
-  if (!WX || !WX.hours.length) return [];
+  if (!WX || !WX.hours.length || !loc()) return [];
   if (DAYS_CACHE && DAYS_CACHE.src === WX) return DAYS_CACHE.days;
   const by = {}; WX.hours.forEach(x => { (by[x.key] = by[x.key] || []).push(x); });
   const keys = Object.keys(by).sort().filter(k => by[k].some(x => x.wind != null));
@@ -1129,33 +1373,35 @@ function activity(x){
   return {pct, fish: pct >= 67 ? 3 : pct >= 40 ? 2 : 1, tags};
 }
 
-// ---------------------------------------------------------------- 50 · öneri motoru v0.2 (kurallar şeffaf, her önerinin nedeni yazılır)
+// ---------------------------------------------------------------- 50 · öneri motoru (kurallar şeffaf, her önerinin nedeni yazılır)
 function bottomMatch(rg, b){
-  if (!b) return rg.bottom.includes('bilinmeyen') ? 3 : 0;
+  const rb = rg.bottom || [];
+  if (!b) return rb.includes('bilinmeyen') ? 3 : 0;
   const near = {kum: ['kum', 'kum-kayalik'], 'kum-kayalik': ['kum-kayalik', 'kum', 'kayalik'], kayalik: ['kayalik', 'kum-kayalik', 'saf-kayalik'],
-    'saf-kayalik': ['saf-kayalik', 'kayalik'], karma: ['karma', 'kum-kayalik'], camur: ['kum']}[b] || [];
-  if (rg.bottom.some(x => x === b)) return 2;
-  if (rg.bottom.some(x => near.includes(x))) return 1;
-  if (rg.bottom.includes('karma') || rg.bottom.includes('bilinmeyen')) return 0.5;
+    'saf-kayalik': ['saf-kayalik', 'kayalik'], karma: ['karma', 'kum-kayalik'], camur: ['kum', 'camur']}[b] || [];
+  if (rb.some(x => x === b)) return 2;
+  if (rb.some(x => near.includes(x))) return 1;
+  if (rb.includes('karma') || rb.includes('bilinmeyen') || !rb.length) return 0.5;
   return -2;
 }
 function recommend(dd, night){
   const L = loc(); const month = dd.date.getMonth() + 1;
   const cls = night ? dd.clsN : dd.clsD;
   const out = [];
-  D.rigs.forEach(rg => {
-    if ((rg.time === 'gece') !== night) return;
-    if (rg.season_months && !rg.season_months.includes(month)) return;
+  RIG_LIST.forEach(rg => {
+    if (rg.mode && rg.mode !== (S.mode || 'tekne')) return;
+    if (rg.time && rg.time !== 'her' && (rg.time === 'gece') !== night) return;
+    if (rg.season && rg.season.length && !rg.season.includes(month)) return;
     if (rg.klass === 'trofe' && cls === 'D') return;
     const why = []; let sc = 0;
-    if (rg.must_prepare) { sc += 3; why.push('12 ay geçerli'); }
-    const bm = bottomMatch(rg, L.bottom);
-    sc += bm; if (bm >= 2) why.push('dip uyumu: ' + (BOTTOM_TXT[L.bottom] || '')); else if (!L.bottom && bm > 0) why.push('dip bilinmiyor, keşif rigi');
+    if (rg.core) { sc += 3; why.push('12 ay geçerli'); }
+    const bm = bottomMatch(rg, L && L.bottom);
+    sc += bm; if (bm >= 2) why.push('dip uyumu: ' + (BOTTOM_TXT[L.bottom] || '')); else if (L && !L.bottom && bm > 0) why.push('dip bilinmiyor, keşif rigi');
     if (rg.klass === 'trofe') { if (dd.sol.stars >= 4 && (cls === 'A' || cls === 'B')) { sc += 1.5; why.push(dd.sol.stars + ' yıldız, sakin deniz'); } if (cls === 'C') { sc -= 2; why.push('rüzgâr C sınıfı'); } }
-    if (rg.when_current && night && (dd.curMean || 0) >= 0.4) { sc += 3; why.push('akıntı ' + f1(dd.curMean) + ' kn'); }
+    if (rg.current && night && (dd.curMean || 0) >= 0.4) { sc += 3; why.push('akıntı ' + f1(dd.curMean) + ' kn'); }
     if (rg.window && night) { sc += 0.5; why.push('pencere ' + rg.window.join('–')); }
-    if (rg.season_months) { sc += 1; why.push('mevsiminde'); }
-    if (month === 10 || month === 11) { const fit = Math.max(0, ...rg.species.map(s => (SPECIES[s] && SPECIES[s].fit_oct_est) || 0)); if (fit) { sc += (fit - 3) * 0.5; if (fit >= 4) why.push('sezon uyumu ' + fit + '/5 (tahmin)'); } }
+    if (rg.season && rg.season.length) { sc += 1; why.push('mevsiminde'); }
+    if (month === 10 || month === 11) { const fit = Math.max(0, ...(rg.species || []).map(s => (SPECIES[s] && SPECIES[s].fit_oct_est) || 0)); if (fit) { sc += (fit - 3) * 0.5; if (fit >= 4) why.push('sezon uyumu ' + fit + '/5 (tahmin)'); } }
     out.push({rg, sc, why, ok: ready(rg)});
   });
   out.sort((a, b) => b.sc - a.sc);
@@ -1169,17 +1415,18 @@ function bestHours(dd, night){
   }) : [];
   return hs.map(x => ({x, a: activity(x)})).sort((p, q) => q.a.pct - p.a.pct).slice(0, 2).sort((p, q) => p.x.t - q.x.t);
 }
+// kurşun ve köstek: akıntı 0,5 kn üstünde +30 g ve hırsız %20 kısa; derin noktada üst sınır; kamış sınırı aşılmaz
 function leadFor(rg, dd){
-  const s = SETUPS[rg.setup]; const st = s && s.standard_cm; if (!st) return null;
+  if (!rg.sinker || !rg.sinker.g) return rg.lengths ? Object.assign({}, rg.lengths, {kursun: null}) : null;
   const cur = dd ? (dd.curMean || 0) : 0;
-  let [lo, hi] = st.kursun_g; const max = st.kursun_max_g;
-  const L = loc(); const deep = Number(num(L.depth)) > 80;
+  let [lo, hi] = rg.sinker.g; const max = rg.sinker.max || hi;
+  const L = loc(); const deep = L && Number(num(L.depth)) > 80;
   if (cur >= 0.5) { lo += 30; hi += 30; }
   if (deep) lo = hi;
   lo = Math.min(lo, max); hi = Math.min(hi, max);
-  const k = rg.leader_cm || {ust: st.ust, orta: st.orta, hirsiz: st.hirsiz};
-  const hz = cur >= 0.5 && !rg.leader_cm ? Math.round(k.hirsiz * 0.8) : k.hirsiz;
-  return {ust: k.ust, orta: k.orta, hirsiz: hz, ara: st.aralik, kursun: lo === hi ? lo + ' g' : lo + '–' + hi + ' g', own: !!rg.leader_cm, max};
+  const k = Object.assign({}, rg.lengths || {});
+  if (cur >= 0.5 && !rg.own && k.hirsiz) k.hirsiz = Math.round(k.hirsiz * 0.8);
+  return Object.assign(k, {kursun: lo === hi ? lo + ' g' : lo + '–' + hi + ' g', max});
 }
 
 // ---------------------------------------------------------------- 60 · ortak çizim parçaları
@@ -1199,50 +1446,68 @@ function wxIcon(x){
   if (r >= 0.2 || p >= 60) inner += '<path d="M8 19l-1 3M12 19l-1 3M16 19l-1 3" stroke="var(--buy)" stroke-width="1.6" stroke-linecap="round"/>';
   return '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">' + inner + '</svg>';
 }
-function compRow(rg, k){
-  const c = rg.components[k].envanter; const it = c.item && ITEMS[c.item];
-  const st = c.item ? stockOf(c.item, c.size) : 'yok';
-  const q = c.item ? S.qty[c.item + '|' + (c.size || '-')] : undefined;
-  const lbl = {var: 'Var', az: 'Az', bitti: 'Bitti', alinacak: 'Alınacak', yok: 'Yok'}[st];
-  return '<div class="crow"><span class="k">' + POS[k] + '</span><span class="v">' + esc(it ? it.name : c.name) + (c.size ? ' <b>' + esc(c.size) + '</b>' : '') +
-    '</span><span class="s"><span class="dot ' + st + '"></span>' + lbl + (q !== undefined && q !== '' ? ' · ' + esc(q) + ' adet' : '') + '</span></div>';
+const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>';
+// rig kartında bir yuva (envanter seviyesi: stok durumu ile)
+function compRow(rg, sl){
+  const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item];
+  const st = slotStock(sl);
+  const q = e.item ? S.inv.qty[e.item + '|' + (e.size || '-')] : undefined;
+  return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(it ? it.name : (e.name || '—')) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') +
+    '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q !== undefined && q !== '' ? ' · ' + esc(q) + ' adet' : '') + '</span></div>';
+}
+function lengthsTxt(ld){
+  if (!ld) return '';
+  const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm');
+  if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>');
+  return parts.join(' · ');
 }
 function rigCard(rg, dd, why, extra){
   const ok = ready(rg); const ld = leadFor(rg, dd);
   const chips = [];
-  rg.bottom.forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
-  if (rg.must_prepare) chips.push('<span class="chip gold">12 ay</span>');
-  if (rg.season_months) chips.push('<span class="chip C">' + MON3[rg.season_months[0] - 1] + '–' + MON3[rg.season_months[rg.season_months.length - 1] - 1] + '</span>');
-  if (rg.when_current) chips.push('<span class="chip">Akıntıda</span>');
+  (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
+  if (rg.core) chips.push('<span class="chip gold">12 ay</span>');
+  if (rg.season && rg.season.length) chips.push('<span class="chip C">' + MON3[rg.season[0] - 1] + '–' + MON3[rg.season[rg.season.length - 1] - 1] + '</span>');
+  if (rg.current) chips.push('<span class="chip">Akıntıda</span>');
   if (rg.window) chips.push('<span class="chip">' + rg.window.join('–') + '</span>');
-  const notes = [];
-  if (rg.v2_change) notes.push('<span><b>v2:</b> ' + esc(rg.v2_change) + '</span>');
-  rg.warnings.forEach(w => { if (!/mevsimi/.test(w)) notes.push('<span><b>Not:</b> ' + esc(w) + '</span>'); });
-  rg.v1_notes.forEach(w => notes.push('<span><b>v1:</b> ' + esc(w) + '</span>'));
-  const alt = Object.keys(POS).map(k => '<span><b>' + POS[k] + ':</b> ' + esc(rg.components[k].dunya.raw) + ' · mağaza: ' + esc(rg.components[k].magaza.raw) + '</span>').join('');
-  return '<article class="rig' + (ok ? '' : ' off') + '"><div class="rig-h"><div><div class="code">' + rg.code + ' · ' + esc(SETUPS[rg.setup].name) + '</div><h3>' + esc(rg.name) + '</h3>' +
-    '<div class="tg">' + esc(rg.target_text) + ' · ' + esc(rg.bait_text) + '</div></div>' +
+  const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
+  const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + esc((sl.t.dunya && (sl.t.dunya.raw || [sl.t.dunya.name, sl.t.dunya.size].filter(Boolean).join(' '))) || '—') +
+    ' · Türkiye: ' + esc((sl.t.turkiye && (sl.t.turkiye.raw || [sl.t.turkiye.name, sl.t.turkiye.size].filter(Boolean).join(' '))) || '—') + '</span>').join('');
+  const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
+  const bait = rg.baits ? esc(rg.baits.ana.envanter || rg.baits.ana.turkiye || '') + (rg.baits.alt && (rg.baits.alt.envanter || rg.baits.alt.turkiye) ? ' · alt: ' + esc(rg.baits.alt.envanter || rg.baits.alt.turkiye) : '') : esc(rg.baitText || '');
+  return '<article class="rig' + (ok ? '' : ' off') + '"><div class="rig-h"><div><div class="code">' + esc(head) + '</div><h3>' + esc(rg.name) + '</h3>' +
+    '<div class="tg">' + esc(rg.target || '') + (rg.baitText ? ' · ' + esc(rg.baitText) : '') + '</div></div>' +
     (ok ? '<span class="chip A">Hazır</span>' : '<span class="chip buy">Tamamlanmadı</span>') + '</div>' +
     (why && why.length ? '<div class="meta why">' + esc(why.join(' · ')) + '</div>' : '') + (extra || '') +
-    '<div class="meta chips">' + chips.join('') + '</div>' +
-    Object.keys(POS).map(k => compRow(rg, k)).join('') +
-    '<div class="crow"><span class="k">Yem</span><span class="v">' + esc(rg.baits.ana.envanter.replace(/✓/g, '').trim()) + ' · alt: ' + esc(rg.baits.alternatif.envanter.replace(/✓/g, '').trim()) + '</span><span class="s">başarı %' + rg.success.envanter + '</span></div>' +
-    (ld ? '<div class="crow"><span class="k">Takım</span><span class="v">Köstek üst ' + ld.ust + ' cm · orta ' + ld.orta + ' cm · hırsız ' + ld.hirsiz + ' cm' + (ld.own ? ' (kayalık, kısa)' : '') +
-      ' · köstek arası ' + ld.ara + ' cm · kurşun <b>' + ld.kursun + '</b></span><span class="s"></span></div>' : '') +
+    (chips.length ? '<div class="meta chips">' + chips.join('') + '</div>' : '') +
+    rg.slots.map(sl => compRow(rg, sl)).join('') +
+    (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + (rg.success && rg.success.envanter ? 'başarı %' + rg.success.envanter : '') + '</span></div>' : '') +
+    (ld && lengthsTxt(ld) ? '<div class="crow"><span class="k">Takım</span><span class="v">' + lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') + '</span><span class="s"></span></div>' : '') +
     '<details><summary>Notlar ve alternatifler</summary><div class="more">' + notes.join('') + alt + '</div></details></article>';
 }
+// menü satırı ve sayfa (sheet) başlığı
+const sheetBar = (title, right) => '<div class="bar"><button class="btn" type="button" data-close>Geri</button><h3 id="sheetTitle">' + esc(title) + '</h3>' + (right || '<span style="width:64px"></span>') + '</div>';
+const segBtns = (name, opts, cur) => '<div class="seg wrapseg">' + opts.map(([v, t]) => '<button class="btn small" type="button" data-set="' + name + '" data-val="' + esc(v) + '" aria-pressed="' + (String(cur) === String(v)) + '">' + esc(t) + '</button>').join('') + '</div>';
 
 // ---------------------------------------------------------------- 70 · Bugün ekranı (saatlik tablo, anlık durum, solunar, öneri)
-const ui = {rigSeg: 'all', q: '', inv: 'hook', hday: null};
+const ui = {rigSeg: 'all', q: '', inv: 'hook', hday: null, sys: 'all', sheet: null, sheetArg: null};
 function dayLabel(d, i, todayKey){
   const k = dateKey(d); const tm = new Date(); tm.setDate(tm.getDate() + 1);
   if (k === todayKey) return 'Bugün'; if (k === dateKey(tm)) return 'Yarın';
   return DOW[d.getDay()] + ' ' + d.getDate();
 }
 function modelText(arr){ const u = [...new Set(arr.filter(Boolean))]; return u.length ? u.join(' / ') : '–'; }
+function bftLegend(){
+  const p = bftPal();
+  return '<div class="bftscale" role="img" aria-label="Rüzgâr renkleri, 0 ile 12 Bft arası">' + p.map((c, i) => '<span style="background:' + c + ';color:' + textOn(c) + '">' + i + '</span>').join('') + '</div>' +
+    '<div class="legend"><span><i style="background:var(--A-bg);border:1px solid var(--A)"></i>dalga &lt;0,5 m</span><span><i style="background:var(--B-bg);border:1px solid var(--B)"></i>0,5–1 m</span>' +
+    '<span><i style="background:var(--C-bg);border:1px solid var(--C)"></i>1–1,5 m</span><span><i style="background:var(--D-bg);border:1px solid var(--D)"></i>1,5 m+</span></div>';
+}
 function renderHourly(){
   const ds = days(); const tbl = $('hTable');
-  if (!ds.length) { $('dayChips').innerHTML = ''; tbl.innerHTML = '<tr><td class="lbl" style="position:static;max-width:none;min-width:0;padding:14px 12px">Saatlik veri yok. İnternete bağlanınca gelir.</td></tr>'; $('hourlyNote').textContent = ''; return; }
+  $('hLegend').innerHTML = bftLegend();
+  $('hourly').hidden = !loc();
+  if (!ds.length) { $('dayChips').innerHTML = ''; tbl.innerHTML = ''; $('hEmpty').hidden = false; $('hourlyNote').textContent = ''; $('seaNote').hidden = true; return; }
+  $('hEmpty').hidden = true;
   const now = new Date(), todayKey = dateKey(now);
   if (!ui.hday || !ds.find(d => d.key === ui.hday)) ui.hday = ds.find(d => d.key === todayKey) ? todayKey : ds[0].key;
   $('dayChips').innerHTML = ds.slice(0, 16).map((d, i) => '<button class="btn small" data-hday="' + d.key + '" aria-pressed="' + (d.key === ui.hday) + '">' + dayLabel(d.date, i, todayKey) + '</button>').join('');
@@ -1251,6 +1516,7 @@ function renderHourly(){
   const cls = (x, extra) => 'c' + (x.h < 7 || x.h >= 19 ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (extra ? ' ' + extra : '');
   const row = (label, sub, cells, trc) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b><small>' + sub + '</small></th>' + cells + '</tr>';
   const acts = hs.map(activity);
+  const wcell = (x, v) => { const b = bft(v); return '<td class="' + cls(x, b == null ? '' : 'bf') + '"' + (b == null ? '' : ' style="' + bftStyle(b) + '"') + '>' + (b == null ? '–' : b) + '<small>' + kn(v) + ' kn</small></td>'; };
   const rows = [];
   rows.push(row('Saat', 'yerel saat', hs.map(x => '<td class="' + cls(x) + '">' + pad(x.h) + '</td>').join(''), 'hours'));
   rows.push(row('Hava', 'bulut · yağış', hs.map(x => '<td class="' + cls(x) + '">' + wxIcon(x) + '</td>').join('')));
@@ -1259,33 +1525,43 @@ function renderHourly(){
   rows.push(row('Yağış', 'olasılık %', hs.map(x => '<td class="' + cls(x, (x.pop || 0) < 10 ? 'p0' : '') + '">' + (x.pop == null ? '–' : Math.round(x.pop)) + '</td>').join('')));
   rows.push(row('Yağış', 'mm', hs.map(x => '<td class="' + cls(x, (x.rain || 0) < 0.1 ? 'p0' : '') + '">' + (x.rain == null ? '–' : x.rain < 0.1 ? '0' : f1(x.rain)) + '</td>').join('')));
   rows.push(row('Sıcaklık', 'hava °C', hs.map(x => '<td class="' + cls(x) + '">' + f0(x.temp) + '</td>').join('')));
-  rows.push(row('Rüzgâr', 'Bft · ' + modelText(hs.map(x => x.wm)), hs.map(x => { const b = bft(x.wind); return '<td class="' + cls(x, b == null ? '' : 'b' + seaClass(x.wind)) + '">' + (b == null ? '–' : b) + '<small>' + kn(x.wind) + ' kn</small></td>'; }).join('')));
-  rows.push(row('Yön', 'rüzgâr nereye', hs.map(x => '<td class="' + cls(x) + '">' + arrowFrom(x.wdir) + '<small>' + dir8(x.wdir) + '</small></td>').join('')));
-  rows.push(row('Hamle', 'Bft · ' + modelText(hs.map(x => x.gm)), hs.map(x => { const b = bft(x.gust); return '<td class="' + cls(x, b == null ? '' : 'b' + seaClass(x.gust)) + '">' + (b == null ? '–' : b) + '<small>' + kn(x.gust) + ' kn</small></td>'; }).join('')));
+  rows.push(row('Rüzgâr', 'Bft · ' + modelText(hs.map(x => x.wm)), hs.map(x => wcell(x, x.wind)).join('')));
+  rows.push(row('Yön', 'ok gidiş · harf geliş', hs.map(x => '<td class="' + cls(x) + '">' + arrowFrom(x.wdir) + '<small>' + dir8(x.wdir) + '</small></td>').join('')));
+  rows.push(row('Hamle', 'Bft · ' + modelText(hs.map(x => x.gm)), hs.map(x => wcell(x, x.gust)).join('')));
   rows.push(row('Dalga', 'm · ' + modelText(hs.map(x => x.wvm)), hs.map(x => '<td class="' + cls(x, x.wave == null ? '' : 'b' + waveClass(x.wave)) + '">' + f1(x.wave) + '</td>').join('')));
   rows.push(row('Periyot', 'sn · dalga yönü', hs.map(x => '<td class="' + cls(x) + '">' + (x.per == null ? '–' : Math.round(x.per)) + '<small>' + arrowFrom(x.waveDir) + '</small></td>').join('')));
   rows.push(row('Akıntı', 'kn · gittiği yön', hs.map(x => '<td class="' + cls(x) + '">' + f1(x.cur) + '<small>' + arrowTo(x.curDir) + '</small></td>').join('')));
   rows.push(row('Su', '°C', hs.map(x => '<td class="' + cls(x) + '">' + f1(x.sst) + '</td>').join('')));
   rows.push(row('Basınç', 'hPa · 3 sa değişim', hs.map(x => '<td class="' + cls(x) + '">' + f0(x.press) + '<small>' + (x.dp3 == null ? '' : (x.dp3 > 0 ? '+' : '') + f1(x.dp3)) + '</small></td>').join('')));
   tbl.innerHTML = '<tbody>' + rows.join('') + '</tbody>';
+  const sea = WX && WX.sea;
   $('hourlyNote').textContent = (S.wx && S.wx.at ? (PREVIEW ? 'örnek veri' : 'güncel ' + hm(new Date(S.wx.at))) : '') + ' · güven ' + dd.conf;
+  $('seaNote').hidden = !sea;
+  if (sea) $('seaNote').textContent = 'Bu nokta karada ya da kıyıya çok yakın: dalga, akıntı ve su sıcaklığı ' + f1(sea.km) + ' km ' + dir8(sea.dir) + ' yönündeki en yakın deniz noktasından.';
   if (isToday) { const sc = $('hScroll'); const i = hs.findIndex(x => x.h === nowH); if (i > 1) requestAnimationFrame(() => { sc.scrollLeft = (i - 1) * 46; }); }
   else $('hScroll').scrollLeft = 0;
 }
 function renderToday(){
   $('previewNote').hidden = !PREVIEW;
+  const L = loc();
+  $('noLoc').hidden = !!L;
+  $('noLoc').innerHTML = L ? '' : '<div class="panel stack"><h3>Önce bir konum ekle</h3><p class="sub">Hava, deniz ve solunar bilgisi seçtiğin noktaya göre hesaplanır. Bulunduğun yeri al ya da koordinat gir.</p>' +
+    '<div class="row"><button class="btn primary" type="button" data-act="gpsloc">Bulunduğum yer</button><button class="btn" type="button" data-open="konumlar">Koordinat gir</button></div></div>';
   renderHourly();
   const ds = days(); const now = new Date(); const todayKey = dateKey(now);
   const dd = ds.find(d => d.key === todayKey) || ds[0];
   if (!dd) {
-    $('nowGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Hava ve deniz verisi henüz yok. İnternete bağlanınca kendiliğinden gelir.</div>';
-    $('classRow').innerHTML = ''; $('solWins').innerHTML = ''; $('recList').innerHTML = ''; $('solSub').textContent = ''; $('solStars').innerHTML = ''; return;
+    $('nowGrid').innerHTML = L ? '<div class="empty" style="grid-column:1/-1">Hava ve deniz verisi henüz yok. İnternete bağlanınca kendiliğinden gelir.</div>' : '';
+    $('classRow').innerHTML = ''; $('solWins').innerHTML = ''; $('solSub').textContent = ''; $('solStars').innerHTML = ''; $('solPanel').hidden = true;
+    renderRecs(null); return;
   }
+  $('solPanel').hidden = false;
   $('todayLbl').textContent = DOW[dd.date.getDay()] + ' · ' + dd.date.getDate() + ' ' + MONTHS[dd.date.getMonth()];
   const cur = dd.hs.reduce((b, x) => Math.abs(x.t - now) < Math.abs(b.t - now) ? x : b, dd.hs[0]);
   const M = (k, v, u, s) => '<div class="metric"><span class="k">' + k + '</span><span class="v">' + v + ' <small>' + u + '</small></span><span class="s">' + s + '</span></div>';
+  const bw = bft(cur.wind);
   $('nowGrid').innerHTML =
-    M('Rüzgâr', cur.wind == null ? '–' : bft(cur.wind), 'Bft', kn(cur.wind) + ' kn ' + dir8(cur.wdir) + ' · hamle ' + (cur.gust == null ? '–' : bft(cur.gust) + ' Bft')) +
+    M('Rüzgâr', bw == null ? '–' : '<span class="bftb big" style="' + bftStyle(bw) + '">' + bw + '</span>', 'Bft', kn(cur.wind) + ' kn ' + dir8(cur.wdir) + ' · hamle ' + (cur.gust == null ? '–' : bft(cur.gust) + ' Bft')) +
     M('Dalga', f1(cur.wave), 'm', cur.per != null ? Math.round(cur.per) + ' sn · gün en çok ' + f1(dd.wave) + ' m' : 'model yok') +
     M('Akıntı', f1(cur.cur), 'kn', cur.cur != null ? dir8(cur.curDir) + ' yönüne' : 'model yok') +
     M('Su', f1(cur.sst), '°C', 'hava ' + f1(cur.temp) + ' °C · ' + f0(cur.press) + ' hPa');
@@ -1295,30 +1571,41 @@ function renderToday(){
   $('solSub').textContent = dd.sol.name + ' · aydınlık %' + Math.round(dd.sol.illum * 100) + ' · gün doğumu ' + hm(dd.sol.sunrise) + ', batımı ' + hm(dd.sol.sunset);
   $('solWins').innerHTML = windows(dd).map(w => '<div class="win"><span class="t">' + hm(w.a) + '–' + hm(w.b) + '</span><span class="chips"><span class="chip ' + w.cls + '">' + w.cls + '</span>' +
     w.tags.map(t => '<span class="chip gold">' + esc(t) + '</span>').join('') + (w.night ? '<span class="chip">gece</span>' : '') + '</span></div>').join('');
+  renderRecs(dd);
+}
+function renderRecs(dd){
+  const L = loc();
+  if (!RIG_LIST.length) {
+    $('recNote').textContent = '';
+    $('recList').innerHTML = '<div class="panel stack"><h3>Henüz rig sistemin yok</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
+    $('recBlockedW').hidden = true; return;
+  }
+  $('recBlockedW').hidden = false;
+  if (!dd) { $('recNote').textContent = 'Hava verisi gelince öneriler hazırlanır.'; $('recList').innerHTML = ''; $('recBlocked').innerHTML = ''; return; }
   const day = recommend(dd, false), night = recommend(dd, true);
   const pick = arr => arr.filter(x => x.ok).slice(0, 2);
-  const recs = pick(day).map(x => ({...x, night: false})).concat(pick(night).map(x => ({...x, night: true})));
-  const L = loc();
-  $('recNote').textContent = (L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · yalnızca tamamlanmış rigler önerilir.';
+  const recs = pick(day).map(x => Object.assign({}, x, {night: false})).concat(pick(night).map(x => Object.assign({}, x, {night: true})));
+  $('recNote').textContent = (L && L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · yalnızca tamamlanmış rigler önerilir.';
   const warn = c => c === 'D' ? ' · deniz uygun değil, çıkma' : c === 'C' ? ' · dikkat, rüzgârlı' : '';
   const bh = {day: bestHours(dd, false), night: bestHours(dd, true)};
   const bhTxt = arr => arr.length ? '<div class="meta why">En iyi saatler: ' + arr.map(p => pad(p.x.h) + ':00 (%' + p.a.pct + ')').join(' · ') + '</div>' : '';
   $('recList').innerHTML = recs.length ? recs.map((x, i) => (i === 0 || recs[i - 1].night !== x.night ? '<div class="eyebrow" style="margin-top:4px">' + (x.night ? 'Gece' + warn(dd.clsN) : 'Gündüz' + warn(dd.clsD)) + '</div>' : '') +
     rigCard(x.rg, dd, x.why, bhTxt(x.night ? bh.night : bh.day))).join('') : '<div class="empty">Bugün için uygun ve tamamlanmış rig yok.</div>';
   const blocked = day.concat(night).filter(x => !x.ok).sort((a, b) => b.sc - a.sc).slice(0, 4);
-  $('recBlocked').innerHTML = blocked.map(x => '<div class="rec"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + x.rg.code + '</span></div><div class="why">Eksik: ' +
-    esc(missingOf(x.rg).map(m => (ITEMS[m.c.item] ? ITEMS[m.c.item].name : m.c.name) + ' ' + (m.c.size || '')).join(', ')) + '</div></div>').join('') || '<p class="note">Yok.</p>';
+  $('recBlocked').innerHTML = blocked.map(x => '<div class="rec"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + esc(x.rg.code || '') + '</span></div><div class="why">Eksik: ' +
+    esc(missingOf(x.rg).map(sl => { const e = sl.t.envanter || {}; return (e.item && ITEMS[e.item] ? ITEMS[e.item].name : (e.name || sl.label)) + ' ' + (e.size || ''); }).join(', ')) + '</div></div>').join('') || '<p class="note">Yok.</p>';
 }
 function renderCalendar(){
   const ds = days().slice(0, 16);
-  if (!ds.length) { $('dayList').innerHTML = '<div class="empty">Veri yok. İnternete bağlanınca takvim dolar.</div>'; return; }
+  if (!ds.length) { $('dayList').innerHTML = '<div class="empty">' + (loc() ? 'Veri yok. İnternete bağlanınca takvim dolar.' : 'Önce bir konum ekle.') + '</div>'; return; }
   $('dayList').innerHTML = ds.map(dd => {
     const w = windows(dd)[0];
     const acts = dd.hs.map(activity); const best = acts.reduce((m, a, i) => a.pct > m.p ? {p: a.pct, h: dd.hs[i].h} : m, {p: 0, h: 0});
     return '<button class="day' + (dd.idx >= 10 ? ' low' : '') + '" data-calday="' + dd.key + '" style="text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%">' +
       '<div class="d"><b>' + dd.date.getDate() + '</b><span>' + MON3[dd.date.getMonth()] + ' ' + DOW[dd.date.getDay()] + '</span></div>' +
       '<div class="body"><div class="chips">' + (dd.clsD ? '<span class="chip ' + dd.clsD + '">Gündüz ' + dd.clsD + '</span>' : '') + (dd.clsN ? '<span class="chip ' + dd.clsN + '">Gece ' + dd.clsN + '</span>' : '') + starsHtml(dd.sol.stars) + '</div>' +
-      '<div class="vals"><span><em>rüzgâr</em> ' + (dd.wd == null ? '–' : bft(dd.wd)) + '/' + (dd.wn == null ? '–' : bft(dd.wn)) + ' Bft</span><span><em>hamle</em> ' + (dd.gust == null ? '–' : bft(dd.gust) + ' Bft') + '</span>' +
+      '<div class="vals"><span><em>rüzgâr</em> ' + bftBadge(bft(dd.wd)) + '/' + bftBadge(bft(dd.wn)) + ' Bft</span><span><em>hamle</em> ' + bftBadge(bft(dd.gust)) + ' Bft</span>' +
       '<span><em>dalga</em> ' + f1(dd.wave) + ' m</span>' + (dd.cur != null ? '<span><em>akıntı</em> ' + f1(dd.cur) + ' kn</span>' : '') + (dd.sst != null ? '<span><em>su</em> ' + f1(dd.sst) + ' °C</span>' : '') +
       '<span><em>hava</em> ' + f0(dd.tmin) + '–' + f0(dd.tmax) + ' °C</span><span><em>basınç</em> ' + f0(dd.pmean) + ' hPa' + (dd.pdelta > 1 ? ' ↑' : dd.pdelta < -1 ? ' ↓' : '') + '</span>' +
       (dd.pop != null ? '<span><em>yağış</em> %' + Math.round(dd.pop) + (dd.rain >= 0.5 ? ' · ' + f1(dd.rain) + ' mm' : '') + '</span>' : '') +
@@ -1329,40 +1616,95 @@ function renderCalendar(){
 
 // ---------------------------------------------------------------- 72 · Rigler ve Envanter
 function renderRigs(){
-  const n = D.rigs.filter(ready).length;
-  $('rigSub').textContent = n + ' rig tamam, ' + (D.rigs.length - n) + ' rig eksik kalem bekliyor. Tamamlanmayanlar soluk görünür ve öneriye girmez.';
-  const segs = [['all', 'Tümü'], ['ready', 'Tamam'], ['missing', 'Tamamlanmadı']].concat(D.setups.map(s => [s.id, s.name]));
-  $('rigSeg').innerHTML = segs.map(([k, t]) => '<button class="btn small" data-rseg="' + k + '" aria-pressed="' + (ui.rigSeg === k) + '">' + esc(t) + '</button>').join('');
+  const sys = Object.values(S.systems);
+  const all = RIG_LIST; const n = all.filter(ready).length;
+  $('rigEyebrow').textContent = sys.length ? sys.length + ' sistem · ' + all.length + ' rig' : 'Rig sistemi yok';
+  $('rigSub').textContent = all.length ? n + ' rig tamam, ' + (all.length - n) + ' rig eksik kalem bekliyor. Tamamlanmayanlar soluk görünür ve öneriye girmez.' : '';
+  $('sysBar').innerHTML = (sys.length > 1 ? '<button class="btn small" data-sys="all" aria-pressed="' + (ui.sys === 'all') + '">Tümü</button>' : '') +
+    sys.map(sy => '<button class="btn small" data-sys="' + esc(sy.id) + '" aria-pressed="' + (ui.sys === sy.id || sys.length === 1) + '">' + esc(sy.name) + '</button>').join('') +
+    '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button>';
+  if (!all.length) {
+    $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
+    $('rigList').innerHTML = '<div class="panel stack"><h3>Rig sistemini kur</h3><p class="sub">Uygulama boş başlar. Nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel bir rig sistemi kurar; her rig için dünyanın en iyisi, envanterinden ve Türkiye\'de bulunabilen en iyi olmak üzere üç malzeme seviyesi verir.</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
+    return;
+  }
+  $('rigSearch').hidden = false;
+  const groups = [...new Set(all.filter(r => r.group).map(r => r.group + '|' + r.groupName))].map(s => s.split('|'));
+  const segs = [['all', 'Tümü'], ['ready', 'Tamam'], ['missing', 'Tamamlanmadı']].concat(groups);
+  $('rigSeg').innerHTML = segs.map(([k, t]) => '<button class="btn small" data-rseg="' + esc(k) + '" aria-pressed="' + (ui.rigSeg === k) + '">' + esc(t) + '</button>').join('');
   const q = trLower(ui.q.trim());
   const ds = days(); const dd = ds.find(d => d.key === dateKey(new Date())) || ds[0];
-  const list = D.rigs.filter(rg => {
+  const list = all.filter(rg => {
+    if (ui.sys !== 'all' && sys.length > 1 && rg.sys !== ui.sys) return false;
     if (ui.rigSeg === 'ready' && !ready(rg)) return false;
     if (ui.rigSeg === 'missing' && ready(rg)) return false;
-    if (SETUPS[ui.rigSeg] && rg.setup !== ui.rigSeg) return false;
+    if (!['all', 'ready', 'missing'].includes(ui.rigSeg) && rg.group !== ui.rigSeg) return false;
     if (!q) return true;
-    return trLower([rg.code, rg.name, rg.target_text, rg.bait_text, ...Object.keys(POS).map(k => rg.components[k].envanter.raw)].join(' ')).includes(q);
+    return trLower([rg.code, rg.name, rg.target, rg.baitText].concat(rg.slots.map(sl => (sl.t.envanter && sl.t.envanter.name) || '')).join(' ')).includes(q);
   });
   $('rigList').innerHTML = list.length ? list.map(rg => rigCard(rg, dd, null)).join('') : '<div class="empty">Bu filtrede rig yok.</div>';
 }
-const INV_SEG = [['hook', 'İğneler'], ['line', 'İp ve florokarbon'], ['gear', 'Makine ve kamış'], ['jig', 'Jig ve zoka'], ['terminal', 'Terminal ve kurşun'], ['bait', 'Yem']];
-const INV_CATS = {hook: ['hook'], line: ['braid', 'fc', 'mono'], gear: ['reel', 'rod'], jig: ['jig'], terminal: ['terminal', 'sinker'], bait: ['bait']};
-const UNIT_LBL = {bait: 'paket', sinker: 'adet', reel: 'adet', rod: 'adet', braid: 'makara', fc: 'makara', mono: 'makara', hook: 'adet', jig: 'adet', terminal: 'adet'};
+const INV_SEG = [['hook', 'İğneler'], ['line', 'İp ve florokarbon'], ['gear', 'Makine ve kamış'], ['jig', 'Jig, zoka, sahte'], ['terminal', 'Terminal ve kurşun'], ['bait', 'Yem'], ['ekip', 'Ekipman']];
+const INV_CATS = {hook: ['hook'], line: ['braid', 'fc', 'mono'], gear: ['reel', 'rod'], jig: ['jig', 'lure'], terminal: ['terminal', 'sinker'], bait: ['bait'], ekip: ['ekip']};
+const CAT_TXT = {hook: 'İğne', braid: 'Örgü ip', fc: 'Florokarbon', mono: 'Misina', reel: 'Makine', rod: 'Kamış', jig: 'Jig / zoka', lure: 'Sahte yem', terminal: 'Terminal', sinker: 'Kurşun', bait: 'Yem', ekip: 'Ekipman'};
+const UNIT_LBL = {bait: 'paket', sinker: 'adet', reel: 'adet', rod: 'adet', braid: 'makara', fc: 'makara', mono: 'makara', hook: 'adet', jig: 'adet', lure: 'adet', terminal: 'adet', ekip: 'adet'};
+const HOOK_PATTERNS = ['Chinu', 'Maruseigo', 'Iseama', 'Octopus / beak', 'Mutsu / circle', 'Circle', 'J (dövme, güçlü)', 'Baitholder (palalı)', 'Aberdeen (ince tel)', 'Canlı yem', 'Assist (jig)', 'Üçlü (treble)', 'Jighead', 'Diğer'];
 function renderInventory(){
   $('invSeg').innerHTML = INV_SEG.map(([k, t]) => '<button class="btn small" data-iseg="' + k + '" aria-pressed="' + (ui.inv === k) + '">' + t + '</button>').join('');
-  const its = D.items.filter(i => INV_CATS[ui.inv].includes(i.cat));
+  const all = Object.values(ITEMS);
+  $('invEyebrow').textContent = all.length ? all.length + ' kalem' : 'Envanter boş';
+  const its = all.filter(i => INV_CATS[ui.inv].includes(i.cat)).sort((a, b) => trCmp(a.name, b.name));
   $('invList').innerHTML = its.map(it => {
     const u = UNIT_LBL[it.cat] || 'adet';
     const q = sizesOf(it).map(sz => {
-      const k = it.id + '|' + sz; const st = stockOf(it.id, sz); const v = S.qty[k];
+      const k = it.id + '|' + sz; const st = stockOf(it.id, sz); const v = S.inv.qty[k];
       return '<span class="qty"><span class="lb"><span class="dot ' + st + '"></span>' + (sz !== '-' ? esc(sz) : u) + '</span>' +
         '<button type="button" data-step="-1" data-k="' + esc(k) + '" aria-label="Azalt">−</button>' +
         '<input id="q-' + esc(k.replace(/[^a-z0-9]/gi, '_')) + '" data-qk="' + esc(k) + '" inputmode="numeric" value="' + esc(v == null ? '' : v) + '" placeholder="?" aria-label="' + esc(it.name + ' ' + (sz !== '-' ? sz : '') + ' ' + u) + '">' +
         '<button type="button" data-step="1" data-k="' + esc(k) + '" aria-label="Arttır">+</button></span>';
     }).join('');
-    const used = it.used_in && it.used_in.length ? ' <span class="chip">' + it.used_in.length + ' rigde</span>' : '';
-    return '<div class="item"><div><div class="nm">' + esc(it.name) + used + (it.store ? ' <span class="store">Mağaza ' + it.store + '</span>' : '') + '</div><div class="sp">' +
-      esc([it.type, it.spec, it.use].filter(x => x && x !== '—').join(' · ')) + ' · birim: ' + u + '</div></div><div class="qtys">' + q + '</div></div>';
-  }).join('') || '<div class="empty">Bu grupta kalem yok.</div>';
+    const used = RIG_LIST.filter(r => r.slots.some(sl => sl.t.envanter && sl.t.envanter.item === it.id)).length;
+    const meta = [it.type || it.pattern, it.spec, it.use || it.note].filter(x => x && x !== '—').join(' · ');
+    return '<div class="item"><div><div class="nm">' + esc(it.name) + (used ? ' <span class="chip">' + used + ' rigde</span>' : '') + (it.store ? ' <span class="store">Mağaza ' + esc(it.store) + '</span>' : '') +
+      (it.src === 'paket' ? '' : ' <button class="linkbtn" type="button" data-edititem="' + esc(it.id) + '">Düzenle</button>') + '</div><div class="sp">' +
+      esc((meta ? meta + ' · ' : '') + 'birim: ' + u) + '</div></div><div class="qtys">' + q + '</div></div>';
+  }).join('') || '<div class="empty">' + (all.length ? 'Bu grupta kalem yok.' : 'Envanterin boş. “+ Kalem ekle” ile iğne, ip, kurşun ve takımlarını gir; rig sistemin hazır olup olmadığını buna göre hesaplar.') + '</div>';
+}
+function itemForm(id){
+  const it = id ? S.inv.items[id] : null; const c = it || {cat: ui.inv === 'line' ? 'fc' : (INV_CATS[ui.inv] || ['hook'])[0]};
+  ui.sheet = 'item'; ui.sheetArg = id || null;
+  const cats = Object.keys(CAT_TXT).map(k => '<option value="' + k + '"' + (c.cat === k ? ' selected' : '') + '>' + CAT_TXT[k] + '</option>').join('');
+  const pats = '<option value="">—</option>' + HOOK_PATTERNS.map(p => '<option' + (c.pattern === p ? ' selected' : '') + '>' + esc(p) + '</option>').join('');
+  openSheet(sheetBar(it ? 'Kalemi düzenle' : 'Yeni kalem', '<button class="btn primary" type="button" id="itSave">Kaydet</button>') +
+    '<div class="stack"><div class="fields">' +
+    '<label class="f wide">Kategori<select id="it-cat">' + cats + '</select></label>' +
+    '<label class="f">Marka<input id="it-brand" value="' + esc(c.brand || '') + '" placeholder="Ör. Owner"></label>' +
+    '<label class="f">Model<input id="it-model" value="' + esc(c.model || '') + '" placeholder="Ör. SSW 5111"></label>' +
+    '<label class="f wide" id="it-patw"' + (c.cat === 'hook' ? '' : ' hidden') + '>İğne tipi<select id="it-pat">' + pats + '</select></label>' +
+    '<label class="f wide">Özellik<input id="it-spec" value="' + esc(c.spec || '') + '" placeholder="Ör. 0,26 mm · PE 1,5 · 120 g · siyah nikel"></label>' +
+    '<label class="f wide">Boylar (virgülle; tek boyluysa boş bırak)<input id="it-sizes" value="' + esc((c.sizes || []).join(', ')) + '" placeholder="Ör. No:1, No:2  ya da  2/0, 3/0"></label>' +
+    '<label class="f wide">Not<input id="it-note" value="' + esc(c.note || '') + '" placeholder="Ör. mercan için"></label>' +
+    '</div><p class="err" id="itErr" hidden></p>' +
+    (it ? '<button class="btn" type="button" id="itDel" data-delitem="' + esc(it.id) + '" style="color:var(--D)">Kalemi sil</button>' : '') + '</div>');
+}
+function saveItem(){
+  const g = k => $(k).value.trim();
+  const brand = g('it-brand'), model = g('it-model');
+  if (!brand && !model) { $('itErr').textContent = 'Marka ya da model yaz.'; $('itErr').hidden = false; return; }
+  const sizes = g('it-sizes').split(/[,;]+/).map(s => s.trim()).filter(Boolean);
+  const id = ui.sheetArg || ('u-' + (slugTR(brand + '-' + model).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6));
+  const old = S.inv.items[id];
+  const cat = $('it-cat').value;
+  S.inv.items[id] = {id, cat, brand, model, name: [brand, model].filter(Boolean).join(' '), pattern: cat === 'hook' ? $('it-pat').value : '', spec: g('it-spec'), note: g('it-note'),
+    sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: old ? old.created : new Date().toISOString()};
+  persist(); indexAll(); closeSheet(); ui.inv = INV_SEG.find(([k]) => INV_CATS[k].includes(cat))[0]; renderAll(); toast('Kalem kaydedildi');
+}
+function deleteItem(id){
+  delete S.inv.items[id];
+  Object.keys(S.inv.qty).forEach(k => { if (k.split('|')[0] === id) delete S.inv.qty[k]; });
+  Object.keys(S.inv.status).forEach(k => { if (k.split('|')[0] === id) delete S.inv.status[k]; });
+  persist(); indexAll(); closeSheet(); renderAll(); toast('Kalem silindi');
 }
 
 // ---------------------------------------------------------------- 74 · Av kaydı (fotoğraflar telefonda, IndexedDB)
@@ -1453,6 +1795,7 @@ async function processPhoto(file){
 }
 
 // ---- liste
+const rigShort = r => RIGS[r] ? (RIGS[r].code || RIGS[r].name) : r;
 function catchLine(c){
   const sp = c.species === 'diger' ? (c.species_other || 'Diğer') : (SPECIES[c.species] ? SPECIES[c.species].name : c.species);
   const d = new Date(c.t);
@@ -1468,32 +1811,38 @@ async function renderCatches(){
   if (!CATCHES.length) { $('catchList').innerHTML = '<div class="empty">Henüz av yok. İlk balığını “+ Av ekle” ile kaydet.</div>'; return; }
   $('catchList').innerHTML = CATCHES.map(c => { const l = catchLine(c);
     return '<button class="catch" type="button" data-catch="' + esc(c.id) + '">' + (c.photos && c.photos.length ? '<img class="th" alt="" data-ph="' + esc(c.photos[0]) + '">' : '<span class="th ph">🐟</span>') +
-      '<span><b>' + esc(l.sp) + '</b><br><span class="m">' + esc(l.bits || '—') + (c.rig ? ' · ' + esc(c.rig) : '') + '</span><br>' +
+      '<span><b>' + esc(l.sp) + '</b><br><span class="m">' + esc(l.bits || '—') + (c.rig ? ' · ' + esc(rigShort(c.rig)) : '') + '</span><br>' +
       '<span class="s">' + l.d.getDate() + ' ' + MON3[l.d.getMonth()] + ' ' + l.d.getFullYear() + ' ' + hm(l.d) + (c.loc && c.loc.name ? ' · ' + esc(c.loc.name) : '') + '</span></span></button>'; }).join('');
   document.querySelectorAll('#catchList img[data-ph]').forEach(async im => { const u = await photoUrl(im.dataset.ph, 'thumb'); if (u) im.src = u; });
 }
 
 // ---- form (ekle / düzenle)
 let FORM = null;
-function openSheet(html){
-  const sh = $('sheet'); const wasHidden = sh.hidden;
-  sh.innerHTML = html; sh.hidden = false; sh.scrollTop = 0; document.body.style.overflow = 'hidden';
+function openSheet(html, keepScroll){
+  const sh = $('sheet'); const wasHidden = sh.hidden; const top = sh.scrollTop;
+  sh.innerHTML = '<div class="sin">' + html + '</div>'; sh.hidden = false; sh.scrollTop = keepScroll ? top : 0; document.body.style.overflow = 'hidden';
   if (wasHidden) { try { history.pushState({sheet: 1}, ''); } catch (e) {} }
 }
-function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; if (!fromPop) { try { history.back(); } catch (e) {} } }
+function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; ui.sheet = null; ui.sheetArg = null; if (!fromPop) { try { history.back(); } catch (e) {} } }
 window.addEventListener('popstate', () => { if (!$('sheet').hidden) closeSheet(true); });
 function toLocalInput(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-function nearestLoc(p){ let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
+function nearestLoc(p){ if (!p || p.lat == null) return null; let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
+const CATCH_TECH = ['Jig', 'Slow jig', 'Inchiku', 'Tai rubber', 'Kalamar zokası', 'Çapari', 'Sırtı (trolling)', 'Surf', 'LRF', 'Spin', 'Şamandıra', 'Diğer'];
 function catchForm(c){
   const isNew = !c; c = c || {};
   const L = loc();
-  FORM = {id: c.id || null, photos: [], keep: (c.photos || []).slice(), removed: [], loc: c.loc || {lat: L.lat, lon: L.lon, name: L.name, src: 'konum'}, t: c.t ? new Date(c.t) : new Date()};
-  const spOpts = '<option value="">Seç</option>' + D.species.map(s => '<option value="' + s.id + '"' + (c.species === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '<option value="diger"' + (c.species === 'diger' ? ' selected' : '') + '>Diğer</option>';
-  const rigOpt = r => '<option value="' + r.code + '"' + (c.rig === r.code ? ' selected' : '') + '>' + r.code + ' · ' + esc(r.name) + (ready(r) ? '' : ' (eksik)') + '</option>';
-  const rigOpts = '<option value="">—</option><optgroup label="Hazır rigler">' + D.rigs.filter(ready).map(rigOpt).join('') + '</optgroup><optgroup label="Diğer rigler">' + D.rigs.filter(r => !ready(r)).map(rigOpt).join('') + '</optgroup>' +
-    ['Jig', 'Inchiku', 'Tai rubber', 'Kalamar zokası', 'Sabiki', 'Diğer'].map(x => '<option' + (c.rig === x ? ' selected' : '') + '>' + x + '</option>').join('');
-  const baitOpts = ['', 'Mamun', 'Sülünez', 'Çimçim', 'Canlı yem', 'Yapay yem', 'Diğer'].map(x => '<option value="' + x + '"' + ((c.bait || '') === x ? ' selected' : '') + '>' + (x || '—') + '</option>').join('');
-  const botOpts = BOTTOM.map(([k, t]) => '<option value="' + k + '"' + ((c.bottom != null ? c.bottom : (L.bottom || '')) === k ? ' selected' : '') + '>' + t + '</option>').join('');
+  FORM = {id: c.id || null, photos: [], keep: (c.photos || []).slice(), removed: [], loc: c.loc || (L ? {lat: L.lat, lon: L.lon, name: L.name, src: 'konum'} : null), t: c.t ? new Date(c.t) : new Date(), botTouched: c.bottom != null};
+  const sps = Object.values(SPECIES).sort((a, b) => trCmp(a.name, b.name));
+  const spOpts = '<option value="">Seç</option>' + sps.map(s => '<option value="' + s.id + '"' + (c.species === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '<option value="diger"' + (c.species === 'diger' ? ' selected' : '') + '>Diğer</option>';
+  const sel = r => (c.rig && (c.rig === r.id || c.rig === r.code)) ? ' selected' : '';
+  const rigOpt = r => '<option value="' + esc(r.id) + '"' + sel(r) + '>' + esc((r.code ? r.code + ' · ' : '') + r.name) + (ready(r) ? '' : ' (eksik)') + '</option>';
+  const bySys = {}; RIG_LIST.forEach(r => { (bySys[r.sys] = bySys[r.sys] || []).push(r); });
+  const rigOpts = '<option value="">—</option>' + Object.keys(bySys).map(sid => '<optgroup label="' + esc(sysName(sid)) + '">' + bySys[sid].filter(ready).concat(bySys[sid].filter(r => !ready(r))).map(rigOpt).join('') + '</optgroup>').join('') +
+    '<optgroup label="Teknik">' + CATCH_TECH.map(x => '<option' + (c.rig === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</optgroup>';
+  const baitOpts = ['', 'Mamun', 'Sülünez', 'Çimçim', 'Karides', 'Kalamar', 'Sardalya', 'Midye', 'Yengeç', 'Canlı yem', 'Yapay yem', 'Diğer'].map(x => '<option value="' + x + '"' + ((c.bait || '') === x ? ' selected' : '') + '>' + (x || '—') + '</option>').join('');
+  const n0 = nearestLoc(FORM.loc); const defBot = c.bottom != null ? c.bottom : (n0 && n0.d <= 0.5 ? (n0.L.bottom || '') : '');
+  const botOpts = BOTTOM.map(([k, t]) => '<option value="' + k + '"' + (defBot === k ? ' selected' : '') + '>' + t + '</option>').join('');
+  ui.sheet = 'catch';
   openSheet('<div class="bar"><button class="btn" type="button" data-close>Vazgeç</button><h3 id="sheetTitle">' + (isNew ? 'Yeni av' : 'Avı düzenle') + '</h3><button class="btn primary" type="button" id="cfSave">Kaydet</button></div>' +
     '<div class="stack" style="margin-top:6px">' +
     '<div class="row"><label class="btn filebtn">📷 Fotoğraf çek<input type="file" accept="image/*" capture="environment" id="cfCam"></label>' +
@@ -1509,19 +1858,22 @@ function catchForm(c){
     '<label class="f wide">Rig ya da takım<select id="cf-rig">' + rigOpts + '</select></label>' +
     '<label class="f">Yem<select id="cf-bait">' + baitOpts + '</select></label>' +
     '<label class="f">Dip<select id="cf-bot">' + botOpts + '</select></label>' +
-    '<label class="f wide">Tarih ve saat<input type="datetime-local" id="cf-t" value="' + toLocalInput(FORM.t) + '"></label>' +
+    '<label class="f wide">Tarih ve saat<input type="datetime-local" id="cf-t" value="' + toLocalInput(FORM.t) + '"><span class="tr-date" id="cf-tlbl">' + fmtDT(FORM.t) + '</span></label>' +
     '</div>' +
     '<div class="panel"><div class="row" style="justify-content:space-between"><div><b>Konum</b><div class="note mono" id="cfLoc"></div></div><button class="btn small" type="button" id="cfGps">Bulunduğum yer</button></div>' +
     '<label class="row note" style="gap:8px;margin-top:8px" id="cfAddLocW"><input type="checkbox" id="cfAddLoc" checked> Bu noktayı konumlarıma ekle (yakında kayıtlı konum yok)</label></div>' +
     '<label class="f">Not<input id="cf-note" value="' + esc(c.note || '') + '" placeholder="Ör. ikinci salkımda geldi"></label>' +
-    (isNew ? '' : '') + '<p class="err" id="cfErr" hidden></p></div>');
+    '<p class="err" id="cfErr" hidden></p></div>');
   renderFormPhotos(); renderFormLoc();
 }
 function renderFormLoc(){
-  if (!FORM) return; const p = FORM.loc; const n = nearestLoc(p);
-  const near = n && n.d <= 0.5;
-  $('cfLoc').textContent = p.lat.toFixed(5) + ', ' + p.lon.toFixed(5) + ' · ' + (near ? (n.L.id === '1' ? 'Konum 1 · ' : '') + n.L.name + (n.d > 0.05 ? ' (' + Math.round(n.d * 1000) + ' m)' : '') : 'kayıtlı konum dışında') + ' · ' + ({gps: 'GPS', foto: 'fotoğraftan', konum: 'seçili konum'}[p.src] || '');
+  if (!FORM) return; const p = FORM.loc;
+  if (!p || p.lat == null) { $('cfLoc').textContent = 'Konum yok · “Bulunduğum yer”e dokun'; $('cfAddLocW').hidden = true; return; }
+  const n = nearestLoc(p); const near = n && n.d <= 0.5;
+  $('cfLoc').textContent = fmtCoord(p.lat, p.lon, true) + ' · ' + (near ? locLabel(n.L) + (n.d > 0.05 ? ' (' + Math.round(n.d * 1000) + ' m)' : '') : 'kayıtlı konum dışında') + ' · ' + ({gps: 'GPS', foto: 'fotoğraftan', konum: 'seçili konum'}[p.src] || '');
   $('cfAddLocW').hidden = near;
+  // dip: kullanıcı seçmediyse yakın kayıtlı konumunkini, uzaksa "Bilmiyorum"u göster
+  if (!FORM.botTouched && $('cf-bot')) $('cf-bot').value = near ? (n.L.bottom || '') : '';
 }
 async function renderFormPhotos(){
   if (!FORM) return;
@@ -1539,16 +1891,16 @@ async function addFiles(files){
   for (const f of list) {
     try {
       const p = await processPhoto(f); p.url = URL.createObjectURL(p.thumb); FORM.photos.push(p);
-      if (p.exif && p.exif.date && FORM.photos.length + FORM.keep.length === 1) { FORM.t = p.exif.date; $('cf-t').value = toLocalInput(p.exif.date); }
-      if (p.exif && p.exif.gps && FORM.loc.src !== 'gps') { FORM.loc = {lat: p.exif.gps.lat, lon: p.exif.gps.lon, src: 'foto'}; renderFormLoc(); }
+      if (p.exif && p.exif.date && FORM.photos.length + FORM.keep.length === 1) { FORM.t = p.exif.date; $('cf-t').value = toLocalInput(p.exif.date); $('cf-tlbl').textContent = fmtDT(p.exif.date); }
+      if (p.exif && p.exif.gps && (!FORM.loc || FORM.loc.src !== 'gps')) { FORM.loc = {lat: p.exif.gps.lat, lon: p.exif.gps.lon, src: 'foto'}; renderFormLoc(); }
     } catch (e) { toast('Bu fotoğraf açılamadı'); }
   }
   $('cfPhotoNote').textContent = 'En fazla 4 fotoğraf. ' + (FORM.photos.some(p => p.exif && (p.exif.date || p.exif.gps)) ? 'Fotoğrafın saati' + (FORM.photos.some(p => p.exif && p.exif.gps) ? ' ve konumu' : '') + ' alındı.' : '');
   renderFormPhotos();
 }
 function condAt(t, p){
-  if (!WX || !WX.hours.length) return null;
-  const L = loc(); if (distKm(L, p) > 40) return null;
+  if (!WX || !WX.hours.length || !p || p.lat == null) return null;
+  const L = loc(); if (!L || distKm(L, p) > 40) return null;
   let best = null, bd = 1e15; WX.hours.forEach(x => { const d = Math.abs(x.t - t); if (d < bd) { bd = d; best = x; } });
   if (!best || bd > 3 * 3600000) return null;
   const s = solunar(new Date(t.getFullYear(), t.getMonth(), t.getDate())); const a = activity(best);
@@ -1564,10 +1916,11 @@ async function saveCatch(){
   const n = nearestLoc(p); const near = n && n.d <= 0.5;
   const bottom = $('cf-bot').value, depth = num($('cf-dep').value);
   let lname = near ? n.L.name : '';
-  if (near && bottom && !n.L.bottom) { n.L.bottom = bottom; toast((n.L.id === '1' ? 'Konum 1' : n.L.name) + ': dip ' + BOTTOM_TXT[bottom] + ' olarak öğrenildi'); }
-  if (!near && $('cfAddLoc').checked) {
-    const id = String(Math.max(1, ...Object.keys(S.locations).map(Number).filter(isFinite)) + 1);
+  if (near && bottom && !n.L.bottom) { n.L.bottom = bottom; toast(locLabel(n.L) + ': dip ' + BOTTOM_TXT[bottom] + ' olarak öğrenildi'); }
+  if (p && p.lat != null && !near && $('cfAddLoc').checked) {
+    const id = nextLocId();
     lname = 'Av noktası ' + id; S.locations[id] = {id, name: lname, lat: p.lat, lon: p.lon, bottom, depth: depth != null ? String(depth) : ''};
+    if (!S.active) S.active = id;
   }
   persist();
   const btn = $('cfSave'); btn.disabled = true; btn.textContent = 'Kaydediliyor…';
@@ -1578,12 +1931,12 @@ async function saveCatch(){
     const old = CATCHES.find(c => c.id === id);
     const rec = {id, t: t.toISOString(), species: sp, species_other: sp === 'diger' ? $('cf-sp2').value.trim() : '', count: Math.max(1, Math.round(num($('cf-n').value) || 1)),
       kg: num($('cf-kg').value), cm: num($('cf-cm').value), depth_m: depth, rig: $('cf-rig').value, bait: $('cf-bait').value, bottom,
-      loc: {lat: p.lat, lon: p.lon, name: lname, src: p.src}, note: $('cf-note').value.trim(), photos: FORM.keep.concat(FORM.photos.map(x => x.id)),
+      loc: p && p.lat != null ? {lat: p.lat, lon: p.lon, name: lname, src: p.src} : null, note: $('cf-note').value.trim(), photos: FORM.keep.concat(FORM.photos.map(x => x.id)),
       cond: old && old.cond && old.t === t.toISOString() ? old.cond : condAt(t, p), created: old ? old.created : new Date().toISOString(), updated: new Date().toISOString()};
     await IDB.put('catches', rec);
     FORM.photos.forEach(x => { if (x.url) URL.revokeObjectURL(x.url); });
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-    await loadCatches(); closeSheet(); renderCatches(); renderMore(); toast('Av kaydedildi');
+    await loadCatches(); closeSheet(); markDirty(); renderAll(); toast('Av kaydedildi');
   } catch (e) { btn.disabled = false; btn.textContent = 'Kaydet'; err('Kaydedilemedi: telefonda yer kalmamış olabilir.'); }
 }
 async function catchDetail(id){
@@ -1591,12 +1944,14 @@ async function catchDetail(id){
   const l = catchLine(c);
   const urls = []; for (const pid of (c.photos || [])) urls.push(await photoUrl(pid, 'big'));
   const K = (k, v) => v == null || v === '' ? '' : '<div><span>' + k + '</span><b>' + esc(v) + '</b></div>';
-  const cd = c.cond;
+  const cd = c.cond; const rr = c.rig && RIGS[c.rig];
+  ui.sheet = 'catchDetail';
   openSheet('<div class="bar"><button class="btn" type="button" data-close>Geri</button><h3 id="sheetTitle">' + esc(l.sp) + '</h3><button class="btn" type="button" data-editcatch="' + esc(id) + '">Düzenle</button></div>' +
     '<div class="stack">' + urls.filter(Boolean).map(u => '<div class="hero"><img alt="" src="' + u + '"></div>').join('') +
-    '<div class="kv">' + K('Tarih', l.d.getDate() + ' ' + MONTHS[l.d.getMonth()] + ' ' + l.d.getFullYear() + ' ' + hm(l.d)) + K('Adet', c.count) + K('Ağırlık', c.kg != null ? fmtNum(c.kg, 2) + ' kg' : '') + K('Boy', c.cm != null ? fmtNum(c.cm, 1) + ' cm' : '') +
-    K('Rig', c.rig ? (RIGS[c.rig] ? c.rig + ' · ' + RIGS[c.rig].name : c.rig) : '') + K('Yem', c.bait) + K('Derinlik', c.depth_m != null ? fmtNum(c.depth_m, 1) + ' m' : '') + K('Dip', BOTTOM_TXT[c.bottom] || '') +
-    K('Konum', (c.loc.name ? c.loc.name + ' · ' : '') + c.loc.lat.toFixed(5) + ', ' + c.loc.lon.toFixed(5)) + K('Not', c.note) + '</div>' +
+    (c.photos && c.photos.length && !urls.filter(Boolean).length ? '<p class="note">Fotoğraflar bu telefonda yok; bulut yedekten geri yüklenince gelir.</p>' : '') +
+    '<div class="kv">' + K('Tarih', fmtDT(l.d)) + K('Adet', c.count) + K('Ağırlık', c.kg != null ? fmtNum(c.kg, 2) + ' kg' : '') + K('Boy', c.cm != null ? fmtNum(c.cm, 1) + ' cm' : '') +
+    K('Rig', c.rig ? (rr ? (rr.code ? rr.code + ' · ' : '') + rr.name : c.rig) : '') + K('Yem', c.bait) + K('Derinlik', c.depth_m != null ? fmtNum(c.depth_m, 1) + ' m' : '') + K('Dip', BOTTOM_TXT[c.bottom] || '') +
+    K('Konum', c.loc ? (c.loc.name ? c.loc.name + ' · ' : '') + fmtCoord(c.loc.lat, c.loc.lon) : '') + K('Not', c.note) + '</div>' +
     (cd ? '<h3 style="margin-top:6px">O saatteki koşullar</h3><div class="kv">' + K('Rüzgâr', cd.wind_bft != null ? cd.wind_bft + ' Bft · ' + cd.wind_kn + ' kn ' + (cd.wdir || '') : '') + K('Hamle', cd.gust_bft != null ? cd.gust_bft + ' Bft' : '') +
       K('Dalga', cd.wave_m != null ? fmtNum(cd.wave_m, 1) + ' m' + (cd.per_s != null ? ' · ' + Math.round(cd.per_s) + ' sn' : '') : '') + K('Akıntı', cd.cur_kn != null ? fmtNum(cd.cur_kn, 1) + ' kn' : '') +
       K('Su', cd.sst != null ? fmtNum(cd.sst, 1) + ' °C' : '') + K('Basınç', cd.press != null ? Math.round(cd.press) + ' hPa' + (cd.dp3 != null ? ' (3 sa ' + (cd.dp3 > 0 ? '+' : '') + fmtNum(cd.dp3, 1) + ')' : '') : '') +
@@ -1606,81 +1961,415 @@ async function catchDetail(id){
 async function deleteCatch(id){
   const c = CATCHES.find(x => x.id === id); if (!c) return;
   for (const pid of (c.photos || [])) { try { await IDB.del('photos', pid); } catch (e) {} dropUrls(pid); }
-  await IDB.del('catches', id); await loadCatches(); closeSheet(); renderCatches(); toast('Av silindi');
+  await IDB.del('catches', id); await loadCatches(); closeSheet(); markDirty(); renderAll(); toast('Av silindi');
 }
 
-// ---------------------------------------------------------------- 75 · Daha: alışveriş, konumlar, standartlar, yedek, kaynaklar
+// ---------------------------------------------------------------- 75 · Daha: menü ve sayfalar (ayarlar, bulut yedek, özel paket, konumlar, alışveriş…)
+const MORE = [
+  ['ayarlar', 'Ayarlar', () => 'Tema, renkler, rüzgâr renkleri, yazı boyutu'],
+  ['yedek', 'Bulut yedek', () => bkReady() ? (S.backup.err ? '⚠ ' + S.backup.err : S.backup.lastAt ? 'Son yedek ' + fmtDT(new Date(S.backup.lastAt)) : 'Bağlı, henüz yedek yok') : 'Kapalı · GitHub deponda şifreli yedek'],
+  ['paket', 'Özel paket', () => S.pkg.need ? '⚠ Güncellendi, yeni şifreyle aç' : pkgOn() ? 'Açık · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem' : 'Kapalı'],
+  ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
+  ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
+  ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
+  ['dosya', 'Dosya yedeği', () => 'Telefona indir ya da dosyadan yükle'],
+  ['kaynak', 'Veri kaynakları', () => { const st = (S.wx && S.wx.status) || {}; const k = Object.keys(SRC); const ok = k.filter(i => st[i] === 'ok').length; return S.wx ? ok + '/' + k.length + ' kaynak çalışıyor' : 'Henüz veri yok'; }],
+  ['surum', 'Sürüm notları', () => 'v' + APP_VERSION],
+];
 function renderMore(){
-  const need = {};
-  D.rigs.forEach(rg => missingOf(rg).forEach(m => { const id = m.c.item; if (!id) return; const k = id + '|' + (m.c.size || '-'); (need[k] = need[k] || {id, size: m.c.size, rigs: []}).rigs.push(rg.code); }));
-  const groups = {};
-  Object.values(need).forEach(n => { const it = ITEMS[n.id]; const st = it.store || 'Envanter'; (groups[st] = groups[st] || []).push(n); });
-  const SN = {A: 'Owner mağazası (A)', B: 'Karma mağaza (B)', Envanter: 'Yeniden alınacak'};
-  $('buyList').innerHTML = Object.keys(groups).sort().map(g => '<div class="eyebrow">' + esc(SN[g] || g) + '</div>' + groups[g].map(n => {
-    const it = ITEMS[n.id]; const k = n.id + '|' + (n.size || '-');
-    return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div><span class="chip">' + n.rigs.length + ' rigde</span></div>' +
-      '<div class="sp">' + esc(n.rigs.join(', ')) + (it.note ? ' · ' + esc(it.note) : '') + '</div>' +
-      '<div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (adet)<input style="width:90px" id="b-' + esc(k.replace(/[^a-z0-9]/gi, '_')) + '" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label></div></div>';
-  }).join('')).join('') || '<div class="empty">Eksik kalem yok, tüm rigler tamam.</div>';
-  // konumlar
-  const ccount = id => CATCHES.filter(c => c.loc && distKm(c.loc, S.locations[id]) <= 0.5).length;
-  $('locList').innerHTML = Object.values(S.locations).map(L => '<div class="item"><div class="row" style="justify-content:space-between"><div><div class="nm">' + (L.id === '1' ? 'Konum 1 · ' : 'Konum ' + esc(L.id) + ' · ') + esc(L.name) + '</div>' +
-    '<div class="sp mono">' + L.lat.toFixed(5) + '°, ' + L.lon.toFixed(5) + '°' + (ccount(L.id) ? ' · ' + ccount(L.id) + ' av' : '') + '</div></div>' +
-    (S.active === L.id ? '<span class="chip A">Seçili</span>' : '<button class="btn small" data-use="' + esc(L.id) + '">Seç</button>') + '</div>' +
-    '<div class="fields"><label class="f">Dip<select data-lk="' + esc(L.id) + '" data-f="bottom" id="lb-' + esc(L.id) + '">' + BOTTOM.map(([k, t]) => '<option value="' + k + '"' + (k === (L.bottom || '') ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>' +
-    '<label class="f">Derinlik (m)<input data-lk="' + esc(L.id) + '" data-f="depth" id="ld-' + esc(L.id) + '" inputmode="decimal" value="' + esc(L.depth || '') + '" placeholder="—"></label></div>' +
-    (L.id !== '1' ? '<div><button class="btn small" data-del="' + esc(L.id) + '">Sil</button></div>' : '') + '</div>').join('');
-  if (!$('nl-bottom').options.length) $('nl-bottom').innerHTML = BOTTOM.map(([k, t]) => '<option value="' + k + '">' + t + '</option>').join('');
-  $('stdRows').innerHTML = D.setups.map(s => { const st = s.standard_cm; return '<tr><td>' + esc(s.name) + '</td><td>' + st.ust + '</td><td>' + st.orta + '</td><td>' + st.hirsiz + '</td><td>' + st.aralik + '</td><td>' + st.kursun_g.join('–') + '</td><td>' + st.kursun_max_g + '</td></tr>'; }).join('');
-  // kaynak durumu
-  const stt = (S.wx && S.wx.status) || {};
-  $('srcList').innerHTML = Object.keys(SRC).map(id => { const s = stt[id]; return '<span class="' + (s === 'ok' ? 'ok' : s ? 'no' : '') + '">' + (s === 'ok' ? '✓' : s ? '✗' : '·') + ' ' + esc(SRC[id].label) + ' — ' + esc(SRC[id].what) + (s && s !== 'ok' ? ' (' + esc(s) + ')' : '') + '</span>'; }).join('') +
-    (S.wx && S.wx.at ? '<span>Son güncelleme: ' + hm(new Date(S.wx.at)) + '</span>' : '');
-  $('about').textContent = 'Kenny Av v' + APP_VERSION + ' · veri ' + (D.meta.data_version || D.meta.built) + ' · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem. Resmî deniz tahmini değildir; çıkmadan önce MGM uyarılarına bak.';
+  $('moreMenu').innerHTML = MORE.map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
+  $('about').textContent = APP_NAME + ' v' + APP_VERSION + (pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + ' · ' + RIG_LIST.length + ' rig, ' + Object.keys(ITEMS).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
 }
 function renderNewVersion(){
-  const el = $('newVer');
-  if (!S.seenVersion || !verGt(APP_VERSION, S.seenVersion)) { el.innerHTML = ''; return; }
-  const notes = CHANGELOG.filter(c => verGt(c.v, S.seenVersion) && !verGt(c.v, APP_VERSION)).flatMap(c => c.notes);
-  el.innerHTML = '<div class="newver"><b>Kenny Av güncellendi · v' + APP_VERSION + '</b><ul>' + notes.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul><div><button class="btn small" type="button" id="seenVer">Tamam</button></div></div>';
+  const el = $('banners'); const out = [];
+  if (S.seenVersion && verGt(APP_VERSION, S.seenVersion)) {
+    const notes = CHANGELOG.filter(c => verGt(c.v, S.seenVersion) && !verGt(c.v, APP_VERSION)).flatMap(c => c.notes);
+    out.push('<div class="newver"><b>' + APP_SHORT + ' güncellendi · v' + APP_VERSION + '</b><ul>' + notes.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul><div><button class="btn small" type="button" id="seenVer">Tamam</button></div></div>');
+  }
+  if (S.pkg.need) out.push('<div class="newver warn"><b>Rig sistemin güncellendi</b><span class="note">Özel paketin yeni şifreyle şifrelendi. Bir kez yeni şifreyi gir; telefon hatırlar.</span><div><button class="btn small primary" type="button" data-open="paket">Şifreyi gir</button></div></div>');
+  el.innerHTML = out.join('');
 }
-// ---- yedek
+function openMore(name, keep){
+  ui.sheet = name;
+  const F = {ayarlar: sheetSettings, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  if (F) openSheet(F(), keep);
+}
+// ---- Ayarlar
+function sheetSettings(){
+  const st = S.settings; const tc = themeColors();
+  const pal = bftPal();
+  return sheetBar('Ayarlar') + '<div class="stack">' +
+    '<section class="set"><h4>Tema</h4>' + segBtns('scheme', [['auto', 'Otomatik'], ['light', 'Açık'], ['dark', 'Koyu']], st.scheme) + '</section>' +
+    '<section class="set"><h4>Renk paleti</h4><div class="presets">' + PRESETS.map(p => '<button class="preset" type="button" data-set="preset" data-val="' + p.id + '" aria-pressed="' + (st.preset === p.id && !st.brand && !st.accent) + '"><i style="background:' + p.brand + '"></i><i style="background:' + p.accent + '"></i>' + esc(p.name) + '</button>').join('') + '</div>' +
+    '<div class="fields" style="margin-top:10px"><label class="f">Ana renk<input type="color" data-setc="brand" value="' + tc.brand + '"></label><label class="f">Vurgu rengi<input type="color" data-setc="accent" value="' + tc.accent + '"></label></div>' +
+    (st.brand || st.accent ? '<button class="btn small" type="button" data-act="resetColors">Paletin renklerine dön</button>' : '') + '</section>' +
+    '<section class="set"><h4>Yazı boyutu</h4>' + segBtns('zoom', [[0, 'Normal'], [1, 'Büyük'], [2, 'Çok büyük']], st.zoom) + '</section>' +
+    '<section class="set"><h4>Rüzgâr renkleri (Bft)</h4><p class="note">Saatlik tabloda rüzgâr ve hamle hücreleri, takvim ve anlık durum bu renklerle boyanır. Bir kutuya dokunup rengini değiştir.</p>' +
+    '<div class="bftedit">' + pal.map((c, i) => '<label title="' + esc(BFT_NAMES[i]) + '"><span>' + i + '</span><input type="color" data-bft="' + i + '" value="' + c + '" aria-label="' + i + ' Bft rengi (' + esc(BFT_NAMES[i]) + ')"></label>').join('') + '</div>' +
+    bftLegend().split('<div class="legend">')[0] + (st.bft ? '<button class="btn small" type="button" data-act="resetBft">Varsayılan renkler</button>' : '') + '</section>' +
+    '<section class="set"><h4>Koordinatlar</h4>' + segBtns('coord', [['dd', 'Ondalık · 38.3783°'], ['ddm', 'Derece-dakika · 38°22,698′ K']], st.coord) +
+    '<label class="row note chk"><input type="checkbox" data-setb="hideCoords"' + (st.hideCoords ? ' checked' : '') + '> Koordinatları üst çubukta ve av kayıtlarında gizle (ekran görüntüsü paylaşırken)</label></section>' +
+    '<section class="set"><h4>Av modu</h4>' + segBtns('mode', [['tekne', 'Tekne'], ['kiyi', 'Kıyı']], S.mode) + '<p class="note">Kıyı modunda kıyı teknikleri ve kıyı rigleri öne çıkar (kıyı önerileri sonraki sürümlerde genişleyecek).</p></section>' +
+    '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
+    '</div>';
+}
+function setSetting(name, val){
+  if (name === 'mode') S.mode = val;
+  else if (name === 'preset') { S.settings.preset = val; S.settings.brand = ''; S.settings.accent = ''; }
+  else if (name === 'zoom') S.settings.zoom = Number(val) || 0;
+  else S.settings[name] = val;
+  persist(); applyTheme(); indexAll(); renderAll();
+  if (ui.sheet === 'ayarlar') openMore('ayarlar', true);
+}
+// ---- Bulut yedek
+function sheetBackup(){
+  const b = S.backup; const tok = lsGet(LS.ghTok); const ready = bkReady();
+  return sheetBar('Bulut yedek') + '<div class="stack">' +
+    '<p class="sub">Profilin (rig sistemlerin, envanterin, konumların, ayarların) ve avların fotoğraflarıyla birlikte şifrelenip <b>senin GitHub deponda</b> saklanır. Her kullanıcının kendi dosyası olur; şifreyi bilmeyen depoyu görse bile açamaz.</p>' +
+    (ready ? '<div class="panel stack"><b>Bağlı: ' + esc(b.repo) + ' · profil: ' + esc(bkCfg().name) + '</b><span class="note" id="bkStatus">' + esc(bkStatusText()) + '</span>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="bkNow">Şimdi yedekle</button><button class="btn" type="button" data-act="bkRestoreAsk">Buluttan geri yükle</button></div></div>' : '') +
+    '<form class="panel stack" id="bkForm" novalidate><div class="fields">' +
+    '<label class="f wide">Depo (kullanıcı/depo)<input id="bk-repo" value="' + esc(b.repo || '') + '" placeholder="ör. ktopdal/alyssa-yedek" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">Profil adı<input id="bk-name" value="' + esc(b.name || slugTR(S.profile.name || '')) + '" placeholder="ör. kenny" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">GitHub anahtarı (token)' + (tok ? ' · kayıtlı ✓' : '') + '<input id="bk-tok" type="password" autocomplete="off" placeholder="' + (tok ? 'değiştirmek için yeni anahtarı yapıştır' : 'github_pat_…') + '"></label>' +
+    '<label class="f wide">Yedek şifresi' + (lsGet(LS.bkKey) ? ' · kayıtlı ✓' : '') + '<input id="bk-pass" type="password" autocomplete="off" placeholder="' + (lsGet(LS.bkKey) ? 'değiştirmek gerekmez' : 'yedeği açacak şifre') + '"></label>' +
+    '</div><label class="row note chk"><input type="checkbox" id="bk-auto"' + (b.auto ? ' checked' : '') + '> Otomatik yedekle (değişiklikten 1 dakika sonra)</label>' +
+    '<label class="row note chk"><input type="checkbox" id="bk-photos"' + (b.photosOn !== false ? ' checked' : '') + '> Fotoğrafları da yedekle</label>' +
+    '<p class="err" id="bkErr" hidden></p><div id="bkConflict"></div>' +
+    '<div class="row"><button class="btn primary" type="submit">' + (ready ? 'Ayarları kaydet' : 'Bağlan ve yedekle') + '</button>' + (ready ? '' : '<button class="btn" type="button" data-act="bkRestoreAsk">Buluttan geri yükle</button>') + '</div>' +
+    '<p class="note">Yedek şifresini unutursan yedek açılamaz. Anahtar ve şifre yalnızca bu telefonda saklanır, yedeğin içine girmez.</p></form>' +
+    '<details class="panel"><summary>GitHub\'da depo ve anahtar nasıl hazırlanır?</summary><ol class="steps">' +
+    '<li>github.com → sağ üstte <b>+</b> → <b>New repository</b>. Ad: <code>alyssa-yedek</code>, <b>Private</b> seç, oluştur.</li>' +
+    '<li>Profil resmi → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>' +
+    '<li>Repository access: <b>Only select repositories</b> → <code>alyssa-yedek</code>. Permissions → <b>Contents: Read and write</b>.</li>' +
+    '<li>Oluşan <code>github_pat_…</code> anahtarını buraya yapıştır. Süresi dolarsa uygulama haber verir; yenisini yapıştırman yeter.</li></ol></details>' +
+    '</div>';
+}
+// ---- Özel paket
+function sheetPackage(){
+  const on = pkgOn();
+  return sheetBar('Özel paket') + '<div class="stack">' +
+    '<p class="sub">Özel paket, sahibinin şifresiyle açılan şifreli bir rig sistemidir (rigler, envanter kalemleri, kayıtlı konumlar). Şifre yalnızca bir kez girilir; telefon hatırlar.</p>' +
+    (on ? '<div class="panel stack"><b>Açık · ' + esc(S.systems.ozel.name) + '</b><span class="note">' + D.rigs.length + ' rig · ' + D.items.length + ' kalem · veri sürümü ' + esc(D.meta.data_version || '') + '</span>' +
+      '<div class="row"><button class="btn" type="button" data-act="pkgCheck">Güncellemeyi denetle</button></div></div>' : '') +
+    (S.pkg.need ? '<div class="banner">Paket güncellendi ama bu telefondaki anahtar eski şifreye ait. Yeni şifreyi bir kez gir.</div>' : '') +
+    (!on || S.pkg.need ? '<form class="panel stack" id="pkgForm" novalidate><label class="f">Şifre<input id="pk-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+      '<p class="err" id="pkErr" hidden></p><div class="row"><button class="btn primary" type="submit" id="pkBtn">Aç</button></div></form>' : '') +
+    '</div>';
+}
+async function submitPkg(){
+  const pass = $('pk-pass').value; const btn = $('pkBtn'); btn.disabled = true; btn.textContent = 'Açılıyor…'; $('pkErr').hidden = true;
+  const r = await pkgUnlock(pass);
+  btn.disabled = false; btn.textContent = 'Aç';
+  if (!r.ok) { $('pkErr').textContent = r.err; $('pkErr').hidden = false; return false; }
+  importPackage(D); indexAll(); closeSheet(); renderAll(); loadWeather(); toast('Özel paket açıldı: ' + D.rigs.length + ' rig');
+  return true;
+}
+// ---- Konumlar
+function sheetLocations(){
+  const ccount = id => CATCHES.filter(c => c.loc && distKm(c.loc, S.locations[id]) <= 0.5).length;
+  const list = Object.values(S.locations);
+  return sheetBar('Konumlar') + '<div class="stack">' +
+    (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +
+      '<div class="sp mono">' + fmtCoord(L.lat, L.lon, true) + (ccount(L.id) ? ' · ' + ccount(L.id) + ' av' : '') + '</div>' +
+      (L.sea && L.sea.lat != null ? '<div class="sp">Deniz verisi ' + f1(L.sea.km) + ' km ' + dir8(L.sea.dir) + ' yönündeki noktadan</div>' : '') + '</div>' +
+      (S.active === L.id ? '<span class="chip A">Seçili</span>' : '<button class="btn small" type="button" data-use="' + esc(L.id) + '">Seç</button>') + '</div>' +
+      '<div class="fields"><label class="f">Dip<select data-lk="' + esc(L.id) + '" data-f="bottom">' + BOTTOM.map(([k, t]) => '<option value="' + k + '"' + (k === (L.bottom || '') ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>' +
+      '<label class="f">Derinlik (m)<input data-lk="' + esc(L.id) + '" data-f="depth" inputmode="decimal" value="' + esc(L.depth || '') + '" placeholder="—"></label></div>' +
+      (list.length > 1 ? '<div><button class="btn small" type="button" data-del="' + esc(L.id) + '">Sil</button></div>' : '') + '</div>').join('') : '<div class="empty">Henüz konum yok.</div>') +
+    '<form class="panel" id="locForm" novalidate><h4 style="font-size:16px">Yeni konum</h4><div class="fields" style="margin-top:8px">' +
+    '<label class="f wide">Ad<input id="nl-name" placeholder="Ör. Sığacık açığı"></label>' +
+    '<label class="f">Enlem (°)<input id="nl-lat" inputmode="decimal" placeholder="ör. 38.1234"></label>' +
+    '<label class="f">Boylam (°)<input id="nl-lon" inputmode="decimal" placeholder="ör. 26.5678"></label>' +
+    '<label class="f">Dip (biliyorsan)<select id="nl-bottom">' + BOTTOM.map(([k, t]) => '<option value="' + k + '">' + t + '</option>').join('') + '</select></label>' +
+    '<label class="f">Derinlik (m)<input id="nl-depth" inputmode="decimal" placeholder="—"></label></div>' +
+    '<p class="err" id="locErr" hidden></p><div class="row" style="margin-top:10px"><button class="btn primary" type="submit">Kaydet</button><button class="btn" type="button" data-act="gpsfill">Bulunduğum yer</button></div>' +
+    '<p class="note" style="margin-top:8px">Nokta karadaysa ya da kıyıya çok yakınsa dalga ve akıntı en yakın deniz noktasından alınır.</p></form></div>';
+}
+function addLocation(name, lat, lon, bottom, depth){
+  const id = nextLocId();
+  S.locations[id] = {id, name: name || 'Konum ' + id, lat, lon, bottom: bottom || '', depth: depth || ''};
+  S.active = id; S.onboarded = true; persist(); WX = null; return id;
+}
+// ---- Alışveriş
+function sheetShopping(){
+  const groups = {};
+  shoppingList().forEach(n => { const it = n.item && ITEMS[n.item]; const st = (it && it.store) || n.store || (it ? 'Envanter' : 'Yeni'); (groups[st] = groups[st] || []).push(n); });
+  const SN = {A: 'Owner mağazası (A)', B: 'Karma mağaza (B)', Envanter: 'Yeniden alınacak', Yeni: 'Envanterde olmayanlar'};
+  const body = Object.keys(groups).sort().map(g => '<div class="eyebrow">' + esc(SN[g] || 'Mağaza ' + g) + '</div>' + groups[g].map(n => {
+    const it = n.item && ITEMS[n.item]; const k = n.item ? n.item + '|' + (n.size || '-') : null;
+    return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div><span class="chip">' + n.rigs.length + ' rigde</span></div>' +
+      '<div class="sp">' + esc(n.rigs.join(', ')) + (it && it.note ? ' · ' + esc(it.note) : '') + '</div>' +
+      (k ? '<div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (adet)<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label></div>' : '') + '</div>';
+  }).join('')).join('');
+  return sheetBar('Alışveriş listesi') + '<div class="stack"><p class="note">Rigleri tamamlamak için gerekenler. Aldığında adedini gir; ilgili rigler hemen tamamlanır.</p>' + (body || '<div class="empty">Eksik kalem yok, tüm rigler tamam.</div>') + '</div>';
+}
+function sheetStandards(){
+  const rows = Object.values(SETUPS).map(s => { const st = s.standard_cm; return '<tr><td>' + esc(s.name) + '</td><td>' + st.ust + '</td><td>' + st.orta + '</td><td>' + st.hirsiz + '</td><td>' + st.aralik + '</td><td>' + st.kursun_g.join('–') + '</td><td>' + st.kursun_max_g + '</td></tr>'; }).join('');
+  return sheetBar('Takım standartları') + '<div class="stack">' + (rows ? '<div class="tbl panel"><table><thead><tr><th>Takım</th><th>Üst köstek (cm)</th><th>Orta köstek (cm)</th><th>Hırsız (cm)</th><th>Köstek arası (cm)</th><th>Kurşun (g)</th><th>Kamış sınırı (g)</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<p class="note">Akıntı 0,5 knot (kn) üstündeyse kurşun +30 g ve hırsız köstek %20 kısa; kurşun kamış sınırını aşmaz. Kayalık rigler kendi kısa kösteklerini kullanır.</p>' : '<div class="empty">Henüz standardı olan bir rig sistemi yok.</div>') + '</div>';
+}
+function sheetFile(){
+  return sheetBar('Dosya yedeği') + '<div class="stack"><p class="sub">Profilini ve avlarını tek dosya olarak indir ya da bir dosyadan geri yükle. Bulut yedeği açıksa buna genelde gerek kalmaz.</p>' +
+    '<label class="row note chk"><input type="checkbox" id="bkPhotos"> Fotoğrafları da dosyaya kat (dosya büyür)</label>' +
+    (PREVIEW ? '<p class="note">Dosya yedeği telefona kurulan uygulamada çalışır.</p>' : '<div class="row"><button class="btn" id="exportBtn" type="button" data-act="export">Yedeği indir</button><label class="btn filebtn">Yedeği yükle<input type="file" id="importFile" accept="application/json,.json"></label></div>') +
+    '<p class="note" id="bkNote"></p></div>';
+}
+function sheetSources(){
+  const stt = (S.wx && S.wx.status) || {};
+  const sea = WX && WX.sea;
+  return sheetBar('Veri kaynakları') + '<div class="stack"><div class="panel"><div class="srcs">' + Object.keys(SRC).map(id => { const s = stt[id]; return '<span class="' + (s === 'ok' ? 'ok' : s ? 'no' : '') + '">' + (s === 'ok' ? '✓' : s ? '✗' : '·') + ' ' + esc(SRC[id].label) + ' — ' + esc(SRC[id].what) + (s && s !== 'ok' ? ' (' + esc(s) + ')' : '') + '</span>'; }).join('') +
+    (S.wx && S.wx.at ? '<span>Son güncelleme: ' + hm(new Date(S.wx.at)) + '</span>' : '') + (sea ? '<span>Deniz verisi ' + f1(sea.km) + ' km ' + dir8(sea.dir) + ' yönündeki en yakın deniz noktasından</span>' : '') + '</div>' +
+    '<p class="note" style="margin-top:8px">Rüzgâr: ICON-EU 7 km (yaklaşık 5 gün), sonrası ECMWF. Hamle: GFS. Yağış olasılığı: topluluk (ensemble) modelleri. Dalga: MFWAM (Météo-France, 10 gün), sonrası en iyi deniz modeli. Akıntı ve su sıcaklığı: Météo-France (10 gün). Hepsi Open-Meteo üzerinden, telefonun kendisi çeker. Bir kaynak 15 saniyede yanıt vermezse atlanır.</p></div>' +
+    '<button class="btn" type="button" data-act="refreshWx">Şimdi yenile</button></div>';
+}
+function sheetChangelog(){
+  return sheetBar('Sürüm notları') + '<div class="stack">' + CHANGELOG.map(c => '<div class="panel"><b>v' + c.v + '</b><ul class="steps">' + c.notes.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul></div>').join('') + '</div>';
+}
+// ---- dosya yedeği
 async function blobToDataUrl(b){ return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); }
 async function dataUrlToBlob(u){ const r = await fetch(u); return r.blob(); }
 async function exportBackup(){
-  const withPhotos = $('bkPhotos').checked;
-  const out = {app: 'kenny-av', version: APP_VERSION, exported: new Date().toISOString(), state: {qty: S.qty, status: S.status, locations: S.locations, active: S.active, prefs: S.prefs}, catches: CATCHES};
+  const withPhotos = $('bkPhotos') && $('bkPhotos').checked;
+  const st = JSON.parse(JSON.stringify(S)); st.wx = null;
+  const out = {app: 'alyssa', version: APP_VERSION, exported: new Date().toISOString(), state: st, catches: CATCHES};
   if (withPhotos) { out.photos = {}; for (const c of CATCHES) for (const pid of (c.photos || [])) { const p = await IDB.get('photos', pid); if (p) out.photos[pid] = {big: await blobToDataUrl(p.big), thumb: await blobToDataUrl(p.thumb)}; } }
   const blob = new Blob([JSON.stringify(out)], {type: 'application/json'});
-  const name = 'kenny-av-yedek-' + new Date().toISOString().slice(0, 10) + '.json';
+  const name = 'alyssa-yedek-' + new Date().toISOString().slice(0, 10) + '.json';
   try {
     const f = new File([blob], name, {type: 'application/json'});
-    if (navigator.canShare && navigator.canShare({files: [f]})) { await navigator.share({files: [f], title: 'Kenny Av yedeği'}); $('bkNote').textContent = 'Yedek paylaşıldı.'; return; }
+    if (navigator.canShare && navigator.canShare({files: [f]})) { await navigator.share({files: [f], title: APP_SHORT + ' yedeği'}); $('bkNote').textContent = 'Yedek paylaşıldı.'; return; }
   } catch (e) { if (e && e.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
   $('bkNote').textContent = 'Yedek indirildi (' + Math.round(blob.size / 1024) + ' KB).';
 }
 async function importBackup(file){
   try {
-    const j = JSON.parse(await file.text()); if (j.app !== 'kenny-av' || !j.state) throw new Error('x');
-    Object.assign(S, j.state); persist();
+    const j = JSON.parse(await file.text());
+    if (j.app === 'kenny-av' && j.state) { const st = newState(); migrateV1(st, Object.assign({v: 1}, j.state)); S = normalizeState(Object.assign(st, {onboarded: true})); }
+    else if (j.app === 'alyssa' && j.state) { S = normalizeState(Object.assign(newState(), j.state)); }
+    else throw new Error('x');
+    persist();
     if (j.photos) for (const pid of Object.keys(j.photos)) await IDB.put('photos', {id: pid, big: await dataUrlToBlob(j.photos[pid].big), thumb: await dataUrlToBlob(j.photos[pid].thumb)});
     if (Array.isArray(j.catches)) for (const c of j.catches) await IDB.put('catches', c);
-    await loadCatches(); renderAll(); loadWeather(true);
+    pkgLoadCached(); indexAll(); applyTheme(); await loadCatches(); renderAll(); loadWeather(true);
     $('bkNote').textContent = 'Yedek yüklendi' + (j.catches ? ' · ' + j.catches.length + ' av' : '') + '.';
-  } catch (e) { $('bkNote').textContent = 'Bu dosya Kenny Av yedeği değil.'; }
+  } catch (e) { $('bkNote').textContent = 'Bu dosya ' + APP_SHORT + ' yedeği değil.'; }
+}
+
+// ---------------------------------------------------------------- 80 · bulut yedek (GitHub, uçtan uca şifreli)
+// Dosyalar: kullanicilar/<profil>/profil.json (şifreli profil + av kayıtları) ve kullanicilar/<profil>/foto/<id>.bin (şifreli fotoğraf).
+// Anahtar yedek şifresinden PBKDF2 (600 000 tur, profile özel tuz) ile türetilir; GitHub anahtarı ve yedek şifresi yedeğe girmez.
+const GH_API = 'https://api.github.com';
+const BK = {timer: null, busy: false, dirty: false};
+const bkCfg = () => ({repo: String(S.backup.repo || '').trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, ''), name: slugTR(S.backup.name || S.profile.name || '') || 'profil', tok: lsGet(LS.ghTok) || ''});
+const bkReady = () => { const c = bkCfg(); return /^[^/\s]+\/[^/\s]+$/.test(c.repo) && !!c.tok && !!lsGet(LS.bkKey) && !!S.backup.salt; };
+const ghPath = (c, f) => 'kullanicilar/' + c.name + '/' + f;
+function bkStatusText(){
+  const b = S.backup;
+  if (BK.busy) return 'Yedekleniyor…';
+  if (b.err) return 'Son deneme başarısız: ' + b.err;
+  return b.lastAt ? 'Son yedek ' + fmtDT(new Date(b.lastAt)) + (BK.dirty ? ' · bekleyen değişiklik var' : '') : 'Henüz yedek alınmadı';
+}
+function setBkStatus(){ const el = $('bkStatus'); if (el) el.textContent = bkStatusText(); }
+async function gh(method, c, path, body, raw){
+  const url = GH_API + '/repos/' + c.repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/') + (method === 'GET' ? '?t=' + Date.now() : '');
+  const h = {Authorization: 'Bearer ' + c.tok, Accept: raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'};
+  if (body) h['Content-Type'] = 'application/json';
+  return fetchT(url, {method, headers: h, body: body ? JSON.stringify(body) : undefined, cache: 'no-store'}, 60000);
+}
+function ghErrText(st){
+  return {401: 'GitHub anahtarı geçersiz ya da süresi dolmuş', 403: 'anahtarın bu depoya yazma izni yok (Contents: Read and write)', 404: 'depo bulunamadı ya da anahtar bu depoya erişemiyor',
+    409: 'dosya çakışması, yeniden denenecek', 422: 'GitHub isteği reddetti', 429: 'çok fazla istek, biraz sonra yeniden dene'}[st] || ('GitHub hatası ' + st);
+}
+async function ghCheck(r){ if (!r.ok) throw new Error(ghErrText(r.status)); return r; }
+async function ghSha(c, path){ const r = await gh('GET', c, path); if (r.status === 404) return null; await ghCheck(r); const j = await r.json(); return j.sha || null; }
+async function ghPutFile(c, path, b64, msg, sha){
+  let r = await gh('PUT', c, path, {message: msg, content: b64, sha: sha || undefined});
+  if (r.status === 409 || r.status === 422) { const s2 = await ghSha(c, path); r = await gh('PUT', c, path, {message: msg, content: b64, sha: s2 || undefined}); }
+  await ghCheck(r); const j = await r.json(); return j.content && j.content.sha;
+}
+// fotoğraf paketi: [4 bayt büyük boy][büyük JPEG][küçük JPEG]
+async function packPhoto(p){
+  const big = new Uint8Array(await p.big.arrayBuffer()), th = new Uint8Array(await p.thumb.arrayBuffer());
+  const out = new Uint8Array(4 + big.length + th.length); new DataView(out.buffer).setUint32(0, big.length); out.set(big, 4); out.set(th, 4 + big.length); return out;
+}
+function unpackPhoto(id, u){ const n = new DataView(u.buffer, u.byteOffset, u.byteLength).getUint32(0); return {id, big: new Blob([u.subarray(4, 4 + n)], {type: 'image/jpeg'}), thumb: new Blob([u.subarray(4 + n)], {type: 'image/jpeg'})}; }
+function bkPayload(){
+  const st = JSON.parse(JSON.stringify(S)); st.wx = null;
+  return {app: 'alyssa', v: 1, at: new Date().toISOString(), version: APP_VERSION, state: st, catches: CATCHES, pkgKey: lsGet(LS.pkgKey) || null};
+}
+function markDirty(){
+  BK.dirty = true;
+  if (PREVIEW || !S.backup.auto || !bkReady()) return;
+  clearTimeout(BK.timer); BK.timer = setTimeout(() => backupNow(false), 60000);
+}
+async function backupNow(manual){
+  if (BK.busy) return false;
+  const c = bkCfg(); const raw = b64d(lsGet(LS.bkKey) || '');
+  if (!bkReady()) { if (manual) toast('Önce bulut yedeğini ayarla'); return false; }
+  BK.busy = true; clearTimeout(BK.timer); setBkStatus();
+  try {
+    if (S.backup.photosOn !== false) {
+      for (const ct of CATCHES) for (const pid of (ct.photos || [])) {
+        if (S.backup.photos[pid]) continue;
+        const p = await IDB.get('photos', pid); if (!p) continue;
+        const path = ghPath(c, 'foto/' + pid + '.bin');
+        if (!(await ghSha(c, path))) await ghPutFile(c, path, b64e(await aesEnc(raw, await packPhoto(p))), 'foto ' + pid);
+        S.backup.photos[pid] = 1; persistQuiet();
+      }
+    }
+    BK.dirty = false;
+    const enc = await aesEnc(raw, new TextEncoder().encode(JSON.stringify(bkPayload())));
+    const file = {app: 'alyssa-yedek', v: 1, salt: S.backup.salt, iter: 600000, at: new Date().toISOString(), data: b64e(enc)};
+    S.backup.sha = await ghPutFile(c, ghPath(c, 'profil.json'), b64eUtf8(JSON.stringify(file)), 'yedek ' + new Date().toISOString().slice(0, 16).replace('T', ' '), S.backup.sha);
+    S.backup.lastAt = Date.now(); S.backup.err = null; persistQuiet();
+    if (manual) toast('Yedek alındı');
+    return true;
+  } catch (e) {
+    BK.dirty = true; S.backup.err = String(e && e.name === 'AbortError' ? 'zaman aşımı' : (e && e.message) || e); persistQuiet();
+    if (manual) toast('Yedek alınamadı: ' + S.backup.err);
+    return false;
+  } finally { BK.busy = false; setBkStatus(); if (ui.sheet === null) renderMore(); }
+}
+// uzak profil dosyası: {file} | null (yok)
+async function bkRemote(c){
+  const r = await gh('GET', c, ghPath(c, 'profil.json'), null, true);
+  if (r.status === 404) return null;
+  await ghCheck(r);
+  return JSON.parse(await r.text());
+}
+// "Bağlan ve yedekle" / "Ayarları kaydet"
+async function submitBackupForm(force){
+  const err = m => { $('bkErr').textContent = m; $('bkErr').hidden = false; };
+  $('bkErr').hidden = true; $('bkConflict').innerHTML = '';
+  const repo = $('bk-repo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, ''), name = slugTR($('bk-name').value), tok = $('bk-tok').value.trim(), pass = $('bk-pass').value;
+  if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) { err('Depoyu kullanıcı/depo biçiminde yaz. Ör. ktopdal/alyssa-yedek'); return; }
+  if (!name) { err('Bir profil adı yaz. Ör. kenny'); return; }
+  if (!tok && !lsGet(LS.ghTok)) { err('GitHub anahtarını yapıştır.'); return; }
+  const changed = repo !== S.backup.repo || name !== S.backup.name;
+  S.backup.repo = repo; S.backup.name = name; S.backup.auto = $('bk-auto').checked; S.backup.photosOn = $('bk-photos').checked;
+  if (tok) lsSet(LS.ghTok, tok);
+  if (changed) { S.backup.sha = null; S.backup.photos = {}; }
+  persistQuiet();
+  if (lsGet(LS.bkKey) && S.backup.salt && !pass && !changed) { toast('Ayarlar kaydedildi'); openMore('yedek', true); if (BK.dirty) backupNow(false); return; }
+  if (!pass) { err('Yedek şifresini yaz. Yedeği açmak için bu şifre gerekir.'); return; }
+  const c = bkCfg(); let remote = null;
+  setBusy(true, 'Bağlanıyor…');
+  try { remote = await bkRemote(c); } catch (e) { setBusy(false); err(e.message || String(e)); return; }
+  if (remote && !force) {
+    setBusy(false);
+    $('bkConflict').innerHTML = '<div class="banner stack"><b>Bu profil adıyla bulutta bir yedek var' + (remote.at ? ' (' + esc(fmtDT(new Date(remote.at))) + ')' : '') + '.</b><span>Bu telefona geri yükleyebilir ya da bu telefondaki profille üzerine yazabilirsin.</span>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="bkRestore">Buradan geri yükle</button><button class="btn" type="button" data-act="bkOverwrite">Üzerine yaz</button></div></div>';
+    BK.pendingPass = pass; return;
+  }
+  try {
+    const salt = remote && remote.salt ? remote.salt : b64e(crypto.getRandomValues(new Uint8Array(16)));
+    const raw = await deriveRaw(pass, b64d(salt), 600000);
+    lsSet(LS.bkKey, b64e(raw)); S.backup.salt = salt; S.backup.sha = null; S.backup.err = null; persistQuiet();
+    setBusy(false); openMore('yedek', true);
+    await backupNow(true); openMore('yedek', true);
+  } catch (e) { setBusy(false); err(e.message || String(e)); }
+}
+function setBusy(on, txt){ const f = $('bkForm'); if (!f) return; f.querySelectorAll('button').forEach(b => { b.disabled = on; }); const s = f.querySelector('button[type="submit"]'); if (s) { if (on) { s.dataset.t = s.textContent; s.textContent = txt || '…'; } else if (s.dataset.t) s.textContent = s.dataset.t; } }
+// geri yükleme: profil dosyasını indir, şifreyi doğrula, profili ve avları değiştir, fotoğrafları indir
+async function restoreNow(pass){
+  const c = bkCfg();
+  const remote = await bkRemote(c);
+  if (!remote) throw new Error('Bu profil adıyla bulutta yedek bulunamadı');
+  const raw = await deriveRaw(pass, b64d(remote.salt), remote.iter || 600000);
+  let payload;
+  try { payload = JSON.parse(new TextDecoder().decode(await aesDec(raw, b64d(remote.data)))); } catch (e) { throw new Error('Yedek şifresi tutmadı'); }
+  const keep = {repo: c.repo, name: c.name, auto: S.backup.auto, photosOn: S.backup.photosOn};
+  S = normalizeState(Object.assign(newState(), payload.state));
+  S.backup = Object.assign(S.backup, keep, {salt: remote.salt, err: null, lastAt: Date.now()});
+  S.onboarded = true;
+  lsSet(LS.bkKey, b64e(raw));
+  if (payload.pkgKey) lsSet(LS.pkgKey, payload.pkgKey);
+  persistQuiet();
+  for (const ct of (payload.catches || [])) await IDB.put('catches', ct);
+  await loadCatches();
+  if (S.pkg.unlocked && payload.pkgKey) { const r = await pkgRefresh(); if (r === 'locked') { S.pkg.need = true; } }
+  pkgLoadCached(); indexAll(); applyTheme(); renderAll(); loadWeather(true);
+  // fotoğraflar arka planda
+  let n = 0;
+  for (const ct of CATCHES) for (const pid of (ct.photos || [])) {
+    try {
+      if (await IDB.get('photos', pid)) continue;
+      const r = await gh('GET', c, ghPath(c, 'foto/' + pid + '.bin'), null, true);
+      if (!r.ok) continue;
+      const dec = await aesDec(raw, new Uint8Array(await r.arrayBuffer()));
+      await IDB.put('photos', unpackPhoto(pid, dec)); S.backup.photos[pid] = 1; n++;
+    } catch (e) {}
+  }
+  persistQuiet(); renderCatches();
+  return {catches: CATCHES.length, photos: n};
+}
+async function doRestore(passFromForm){
+  const pass = passFromForm || ($('bk-pass') && $('bk-pass').value) || BK.pendingPass;
+  if (!pass) { const e = $('bkErr'); if (e) { e.textContent = 'Geri yüklemek için yedek şifresini yaz.'; e.hidden = false; } return; }
+  const form = $('bkForm');
+  if (form) { const repo = $('bk-repo').value.trim(), name = slugTR($('bk-name').value), tok = $('bk-tok').value.trim(); if (repo) S.backup.repo = repo.replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, ''); if (name) S.backup.name = name; if (tok) lsSet(LS.ghTok, tok); }
+  setBusy(true, 'Geri yükleniyor…'); toast('Geri yükleniyor…');
+  try {
+    const r = await restoreNow(pass); BK.pendingPass = null;
+    closeSheet(); toast('Geri yüklendi: ' + r.catches + ' av' + (r.photos ? ', ' + r.photos + ' fotoğraf' : ''));
+  } catch (e) { setBusy(false); const el = $('bkErr'); if (el) { el.textContent = e.message || String(e); el.hidden = false; } else toast(e.message || String(e)); }
+}
+
+// ---------------------------------------------------------------- 85 · karşılama (ilk açılış) ve rig sistemi kurulumu girişi
+const hasProfileData = () => Object.keys(S.systems).length > 0 || Object.keys(S.inv.items).length > 0 || Object.keys(S.locations).length > 0 || CATCHES.length > 0;
+function showWelcome(){
+  const w = $('welcome');
+  w.innerHTML = '<div class="box">' +
+    '<span class="wlogo">' + LOGO + '</span>' +
+    '<h2>' + esc(APP_NAME) + '</h2>' +
+    '<p class="sub">Hava, deniz, solunar, rig sistemin, envanterin ve avların tek yerde. Nasıl başlamak istersin?</p>' +
+    '<button class="btn primary bigbtn" type="button" data-wel="kur">Rig sistemimi kur</button>' +
+    '<p class="note" id="welKurNote" hidden>Rig Atölyesi bir sonraki sürümde geliyor: nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel sistemi kuracak. Şimdilik boş başlayabilir, konum ve envanter ekleyebilirsin.</p>' +
+    '<button class="btn bigbtn" type="button" data-wel="paket">Özel paketimi aç</button>' +
+    '<form id="welPkg" class="stack" hidden novalidate><label class="f">Paket şifresi<input id="wel-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<p class="err" id="welErr" hidden></p><button class="btn primary" type="submit" id="welBtn">Aç</button></form>' +
+    '<button class="btn bigbtn" type="button" data-wel="bulut">Buluttan geri yükle</button>' +
+    '<button class="btn linkish" type="button" data-wel="bos">Boş başla</button>' +
+    '</div>';
+  w.hidden = false;
+}
+function hideWelcome(){ $('welcome').hidden = true; $('welcome').innerHTML = ''; if (!S.onboarded) { S.onboarded = true; persist(); } }
+async function welcomeAction(a){
+  if (a === 'kur') { if (typeof startWizard === 'function') { hideWelcome(); startWizard(); } else $('welKurNote').hidden = false; return; }
+  if (a === 'paket') { $('welPkg').hidden = false; setTimeout(() => { try { $('wel-pass').focus(); } catch (e) {} }, 50); return; }
+  if (a === 'bulut') { hideWelcome(); openMore('yedek'); return; }
+  if (a === 'bos') { hideWelcome(); renderAll(); return; }
+}
+async function welcomePkg(){
+  const btn = $('welBtn'); btn.disabled = true; btn.textContent = 'Açılıyor…'; $('welErr').hidden = true;
+  const r = await pkgUnlock($('wel-pass').value);
+  btn.disabled = false; btn.textContent = 'Aç';
+  if (!r.ok) { $('welErr').textContent = r.err; $('welErr').hidden = false; return; }
+  importPackage(D); indexAll(); hideWelcome(); renderAll(); loadWeather(); toast('Özel paket açıldı: ' + D.rigs.length + ' rig');
+}
+// bulunduğun yeri konum olarak ekle (Bugün ekranındaki düğme)
+function gpsToLocation(){
+  if (!navigator.geolocation) { toast('Konum servisi yok'); return; }
+  toast('Konum alınıyor…');
+  navigator.geolocation.getCurrentPosition(p => {
+    addLocation('Bulunduğum yer', +p.coords.latitude.toFixed(6), +p.coords.longitude.toFixed(6), '', '');
+    renderAll(); loadWeather(); toast('Konum eklendi; adını Daha → Konumlar\'dan değiştirebilirsin');
+  }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000});
 }
 
 // ---------------------------------------------------------------- 90 · gezinme, olaylar, açılış
 function renderTop(){
   const L = loc();
-  $('locName').textContent = L ? (L.id === '1' ? 'Konum 1 · ' : '') + L.name : 'Konum yok';
-  $('locSub').textContent = L ? L.lat.toFixed(4) + '°, ' + L.lon.toFixed(4) + '° · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') : '';
+  $('locName').textContent = L ? locLabel(L) : APP_SHORT;
+  $('locSub').textContent = L ? fmtCoord(L.lat, L.lon) + ' · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') : 'Konum seçilmedi';
 }
 function renderAll(){
-  if (!D || !S) return;
+  if (!S) return;
   const a = document.activeElement;
-  if (a && ((a.tagName === 'INPUT' && !['file', 'search', 'checkbox'].includes(a.type)) || a.tagName === 'TEXTAREA') && !$('sheet').contains(a)) { a.addEventListener('blur', () => renderAll(), {once: true}); return; }
+  if (a && ((a.tagName === 'INPUT' && !['file', 'search', 'checkbox', 'color'].includes(a.type)) || a.tagName === 'TEXTAREA') && !$('sheet').contains(a) && !$('welcome').contains(a)) { a.addEventListener('blur', () => renderAll(), {once: true}); return; }
+  DAYS_CACHE = null;
   renderTop(); renderNewVersion(); renderToday(); renderCalendar(); renderCatches(); renderRigs(); renderInventory(); renderMore();
 }
 const VIEWS = ['bugun', 'takvim', 'avlar', 'rigler', 'envanter', 'daha'];
@@ -1691,30 +2380,61 @@ function show(v){
   try { history.replaceState(history.state, '', '#' + v); } catch (e) {}
 }
 function setQty(k, v){
-  if (v === '' || v == null) delete S.qty[k]; else S.qty[k] = Math.max(0, Math.round(Number(String(v).replace(',', '.')) || 0));
+  if (v === '' || v == null) delete S.inv.qty[k]; else S.inv.qty[k] = Math.max(0, Math.round(Number(String(v).replace(',', '.')) || 0));
   persist(); renderAll();
+}
+function armOnce(b, txt){ if (b.dataset.armed) return true; b.dataset.armed = '1'; b.dataset.orig = b.textContent; b.textContent = txt; setTimeout(() => { if (b.isConnected && b.dataset.armed) { delete b.dataset.armed; b.textContent = b.dataset.orig; } }, 5000); return false; }
+async function pkgCheck(manual){
+  const r = await pkgRefresh();
+  if (r === 'updated') { importPackage(D); indexAll(); renderAll(); toast('Rig sistemin güncellendi'); }
+  else if (r === 'locked') { if (!S.pkg.need) { S.pkg.need = true; persistQuiet(); } renderAll(); if (manual) openMore('paket', true); }
+  else if (manual) toast(r === 'offline' ? 'Paket indirilemedi' : 'Paket güncel');
 }
 function bindEvents(){
   document.querySelector('.tabbar').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) show(b.dataset.v); });
-  $('locBtn').addEventListener('click', () => { show('daha'); setTimeout(() => { const el = $('locHead'); if (el) el.scrollIntoView({block: 'start'}); }, 60); });
+  $('locBtn').addEventListener('click', () => openMore('konumlar'));
   $('net').addEventListener('click', () => loadWeather(true));
   $('addCatch').addEventListener('click', () => catchForm(null));
-  document.addEventListener('click', e => {
+  $('addItem').addEventListener('click', () => itemForm(null));
+  document.addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.step) { const k = b.dataset.k; const cur = Number(S.qty[k] || 0); setQty(k, cur + Number(b.dataset.step)); return; }
-    if (b.dataset.rseg) { ui.rigSeg = b.dataset.rseg; renderRigs(); return; }
-    if (b.dataset.iseg) { ui.inv = b.dataset.iseg; renderInventory(); return; }
-    if (b.dataset.hday) { ui.hday = b.dataset.hday; renderHourly(); return; }
-    if (b.dataset.calday) { ui.hday = b.dataset.calday; show('bugun'); renderHourly(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
-    if (b.dataset.use) { S.active = b.dataset.use; persist(); WX = null; renderAll(); loadWeather(); toast('Konum değişti'); return; }
-    if (b.dataset.del) { delete S.locations[b.dataset.del]; if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0]; persist(); renderAll(); return; }
+    const d = b.dataset;
+    if (d.wel) { welcomeAction(d.wel); return; }
+    if (d.open) { openMore(d.open); return; }
+    if (d.step) { const k = d.k; const cur = Number(S.inv.qty[k] || 0); setQty(k, cur + Number(d.step)); return; }
+    if (d.rseg) { ui.rigSeg = d.rseg; renderRigs(); return; }
+    if (d.sys) { ui.sys = d.sys; renderRigs(); return; }
+    if (d.iseg) { ui.inv = d.iseg; renderInventory(); return; }
+    if (d.hday) { ui.hday = d.hday; renderHourly(); return; }
+    if (d.calday) { ui.hday = d.calday; show('bugun'); renderHourly(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
+    if (d.use) { S.active = d.use; persist(); WX = null; renderAll(); loadWeather(); if (ui.sheet === 'konumlar') openMore('konumlar', true); toast('Konum değişti'); return; }
+    if (d.del) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.locations[d.del]; if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null; persist(); WX = null; renderAll(); loadWeather(); openMore('konumlar', true); return; }
+    if (d.set && d.val != null) { setSetting(d.set, d.val); return; }
+    if (d.act) {
+      const a = d.act;
+      if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
+      if (a === 'gpsloc') { gpsToLocation(); return; }
+      if (a === 'gpsfill') { if (!navigator.geolocation) { toast('Konum servisi yok'); return; } navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000}); return; }
+      if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
+      if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }
+      if (a === 'bkNow') { const p = backupNow(true); setBkStatus(); await p; if (ui.sheet === 'yedek') openMore('yedek', true); return; }
+      if (a === 'bkRestoreAsk') { if (hasProfileData() && !armOnce(b, 'Bu telefondaki profil değişecek · onayla')) return; doRestore(); return; }
+      if (a === 'bkRestore') { doRestore(BK.pendingPass); return; }
+      if (a === 'bkOverwrite') { if (!armOnce(b, 'Buluttaki yedeğin üzerine yazılacak · onayla')) return; $('bk-pass').value = BK.pendingPass || $('bk-pass').value; submitBackupForm(true); return; }
+      if (a === 'pkgCheck') { pkgCheck(true); return; }
+      if (a === 'refreshWx') { loadWeather(true); closeSheet(); return; }
+      if (a === 'export') { exportBackup(); return; }
+    }
     if (b.id === 'seenVer') { S.seenVersion = APP_VERSION; persist(); renderNewVersion(); return; }
-    if (b.dataset.catch) { catchDetail(b.dataset.catch); return; }
+    if (d.catch) { catchDetail(d.catch); return; }
     if (b.hasAttribute('data-close')) { closeSheet(); return; }
-    if (b.dataset.editcatch) { const c = CATCHES.find(x => x.id === b.dataset.editcatch); if (c) catchForm(c); return; }
-    if (b.dataset.delCatch) { if (b.dataset.armed) deleteCatch(b.dataset.delCatch); else { b.dataset.armed = '1'; b.textContent = 'Silmek için tekrar dokun'; } return; }
-    if (b.dataset.rmph) {
-      const id = b.dataset.rmph;
+    if (d.editcatch) { const c = CATCHES.find(x => x.id === d.editcatch); if (c) catchForm(c); return; }
+    if (d.delCatch) { if (d.armed) deleteCatch(d.delCatch); else { d.armed = '1'; b.textContent = 'Silmek için tekrar dokun'; } return; }
+    if (d.edititem) { itemForm(d.edititem); return; }
+    if (d.delitem) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; deleteItem(d.delitem); return; }
+    if (b.id === 'itSave') { saveItem(); return; }
+    if (d.rmph) {
+      const id = d.rmph;
       if (FORM.keep.includes(id)) { FORM.keep = FORM.keep.filter(x => x !== id); FORM.removed.push(id); }
       else { const p = FORM.photos.find(x => x.id === id); if (p && p.url) URL.revokeObjectURL(p.url); FORM.photos = FORM.photos.filter(x => x.id !== id); }
       renderFormPhotos(); return;
@@ -1728,48 +2448,60 @@ function bindEvents(){
       return;
     }
   });
+  document.addEventListener('input', e => {
+    const el = e.target;
+    if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; applyTheme(); return; }
+    if (el.id === 'cf-t') { const v = el.value ? new Date(el.value) : null; if (v && !isNaN(v)) $('cf-tlbl').textContent = fmtDT(v); return; }
+  });
   document.addEventListener('change', e => {
     const el = e.target;
     if (el.id === 'cfCam' || el.id === 'cfGal') { addFiles(el.files); el.value = ''; return; }
     if (el.id === 'cf-sp') { $('cf-sp2w').hidden = el.value !== 'diger'; return; }
+    if (el.id === 'cf-bot') { if (FORM) FORM.botTouched = true; return; }
+    if (el.id === 'it-cat') { $('it-patw').hidden = el.value !== 'hook'; return; }
     if (el.id === 'importFile') { const f = el.files[0]; if (f) importBackup(f); el.value = ''; return; }
-    if (el.dataset.qk) { setQty(el.dataset.qk, el.value.trim()); toast('Kaydedildi'); return; }
-    if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; L[el.dataset.f] = el.value.trim(); persist(); renderAll(); toast('Kaydedildi'); return; }
+    if (el.dataset.qk) { setQty(el.dataset.qk, el.value.trim()); if (ui.sheet === 'alisveris') openMore('alisveris', true); toast('Kaydedildi'); return; }
+    if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; if (!L) return; L[el.dataset.f] = el.value.trim() || (el.dataset.f === 'name' ? L.name : ''); persist(); renderAll(); toast('Kaydedildi'); return; }
+    if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; persist(); applyTheme(); renderAll(); openMore('ayarlar', true); return; }
+    if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
+    if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }
+    if (el.dataset.setp) { S.profile[el.dataset.setp] = el.value.trim(); persist(); return; }
+  });
+  document.addEventListener('submit', e => {
+    const f = e.target; e.preventDefault();
+    if (f.id === 'locForm') {
+      const name = $('nl-name').value.trim() || '';
+      const lat = num($('nl-lat').value), lon = num($('nl-lon').value);
+      if (lat == null || lon == null || Math.abs(lat) > 90 || Math.abs(lon) > 180) { $('locErr').textContent = 'Enlem −90…90°, boylam −180…180° olmalı. Ör. 38.1234 ve 26.5678'; $('locErr').hidden = false; return; }
+      const id = addLocation(name, lat, lon, $('nl-bottom').value, $('nl-depth').value.trim());
+      renderAll(); loadWeather(); openMore('konumlar', true); toast('Konum ' + id + ' kaydedildi');
+      return;
+    }
+    if (f.id === 'bkForm') { submitBackupForm(false); return; }
+    if (f.id === 'pkgForm') { submitPkg(); return; }
+    if (f.id === 'welPkg') { welcomePkg(); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
-  $('exportBtn').addEventListener('click', exportBackup);
-  $('locForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const name = $('nl-name').value.trim() || 'Yeni konum';
-    const lat = num($('nl-lat').value), lon = num($('nl-lon').value);
-    if (lat == null || lon == null || Math.abs(lat) > 90 || Math.abs(lon) > 180) { $('locErr').textContent = 'Enlem −90…90°, boylam −180…180° olmalı. Ör. 38.1234 ve 26.5678'; $('locErr').hidden = false; return; }
-    $('locErr').hidden = true;
-    const id = String(Math.max(1, ...Object.keys(S.locations).map(Number).filter(isFinite)) + 1);
-    S.locations[id] = {id, name, lat, lon, bottom: $('nl-bottom').value, depth: $('nl-depth').value.trim()};
-    S.active = id; persist(); e.target.reset(); WX = null; renderAll(); loadWeather(); toast('Konum ' + id + ' kaydedildi');
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); return; }
+    loadWeather(); pkgCheck(false);
   });
-  $('useGps').addEventListener('click', () => {
-    if (!navigator.geolocation) { toast('Konum servisi yok'); return; }
-    navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); },
-      () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000});
-  });
-  document.addEventListener('visibilitychange', async () => { if (document.hidden) return; loadWeather(); if (await refreshData()) { indexData(); renderAll(); toast('Rig verisi güncellendi'); } });
-  if (PREVIEW) { $('exportBtn').hidden = true; $('importFile').closest('label').hidden = true; $('bkNote').textContent = 'Yedek alma ve yükleme telefona kurulan uygulamada çalışır.'; }
 }
-async function start(){
-  indexData(); loadState(); bindEvents();
+(async () => {
+  loadState();
+  pkgLoadCached();
+  if (D && (EMBED || S.pkg.unlocked)) importPackage(D);
+  applyTheme();
+  indexAll(); bindEvents();
   const h = (location.hash || '').slice(1);
   show(VIEWS.includes(h) ? h : 'bugun');
   if (S.wx) WX = buildWx();
   await loadCatches();
   renderAll();
+  if (!PREVIEW && !S.onboarded && !hasProfileData()) showWelcome();
+  else if (!S.onboarded) { S.onboarded = true; persistQuiet(); }
   loadWeather();
-}
-(async () => {
-  const r = await loadData();
-  if (r === 'ok') { start(); return; }
-  if (r && r.locked) { showLock(r.locked, start); return; }
-  document.body.insertAdjacentHTML('beforeend', '<div class="lock"><div class="box"><h2>Kenny Av</h2><p class="sub">Uygulama verisi indirilemedi. İnternet bağlantını kontrol edip uygulamayı yeniden aç.</p></div></div>');
+  if (!EMBED && S.pkg.unlocked) pkgCheck(false);
 })();
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); }
 

@@ -1,12 +1,11 @@
-# Kenny Av — kaynak kod
+# Kaynak kod · Alyssa by Barbossa App
 
-Uygulamanın kaynak dosyaları. Yayındaki `index.html` bunlardan derlenir.
+Yayındaki `index.html` bu dosyalardan derlenir.
 
-- `shell.html`: sayfa iskeleti
-- `app.css`, `app2.css`: görünüm
-- `js/*.js`: uygulama (sıra numarasıyla birleştirilir)
-- `vendor/suncalc.js`: güneş ve ay hesapları (BSD-2, Vladimir Agafonkin)
-- `build_app2.py`: derleyici
+- `src/` · `shell.html`, `app.css`, `app2.css`, `app3.css` ve `js/*.js` (dosyalar sıra numarasıyla tek betikte birleşir)
+- `vendor/` · SunCalc (BSD-2), güneş ve ay hesapları
+- `build_app3.py` · derleyici: site (`index.html`, `paket/ozel.enc.json`, manifest, service worker, ikonlar) ve Claude önizlemesi
+- `qa/v3_check.py` · uçtan uca testler (Playwright; sahte Open-Meteo ve sahte GitHub API ile)
 
-Rig, envanter ve konum verisi bu depoda yalnızca şifreli olarak (`data.enc.json`) bulunur.
-Düz veri ve şifre depoda tutulmaz.
+Kişisel rig sistemi ve envanter düz hâliyle bu depoda **yoktur**; yalnızca `paket/ozel.enc.json` içinde AES-GCM ile şifreli durur.
+Bulut yedekleri kullanıcının kendi (özel) GitHub deposunda, kullanıcının şifresiyle uçtan uca şifrelenmiş olarak tutulur.

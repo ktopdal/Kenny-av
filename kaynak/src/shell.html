@@ -1,4 +1,4 @@
-<title>Kenny Av</title>
+<title>Alyssa by Barbossa App</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="robots" content="noindex,nofollow">
 <!--__HEAD__-->
@@ -7,32 +7,31 @@
 <style>
 /*__CSS__*/
 </style>
+<style id="userTheme"></style>
 
 <header class="top">
   <div class="wrap">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>
-    <button class="locbtn" id="locBtn" aria-label="Konum değiştir"><b id="locName">Kenny Av</b><span id="locSub"></span></button>
+    <button class="locbtn" id="locBtn" aria-label="Konumlar"><b id="locName">Alyssa</b><span id="locSub"></span></button>
     <button class="netstate" id="net" data-s="idle" aria-live="polite" style="border:0;background:none;cursor:pointer" aria-label="Veriyi yenile"><i></i><span>—</span></button>
   </div>
 </header>
 
 <main class="wrap" id="main">
-  <div id="newVer"></div>
+  <div id="banners"></div>
 
   <!-- BUGÜN -->
   <section class="view" id="v-bugun">
     <div class="sec-head"><span class="eyebrow" id="todayLbl">Bugün</span><h2>Bugün denizde</h2></div>
     <div id="previewNote" class="banner" hidden>Bu bir önizleme: canlı hava ve deniz verisi yalnızca telefona kurulan uygulamada gelir. Burada 17 Ekim'in örnek verisi var.</div>
+    <div id="noLoc" hidden></div>
     <div class="panel hourly" id="hourly">
       <div class="hh"><h3>Saatlik</h3><span class="note" id="hourlyNote"></span></div>
       <div class="daychips" id="dayChips"></div>
+      <p class="note hempty" id="hEmpty" hidden>Saatlik veri henüz yok. İnternete bağlanınca kendiliğinden gelir.</p>
       <div class="hscroll" id="hScroll"><table class="htab" id="hTable"></table></div>
-      <div class="legend">
-        <span><i style="background:var(--A-bg);border:1px solid var(--A)"></i>Bft 0–3 · &lt;0,5 m</span>
-        <span><i style="background:var(--B-bg);border:1px solid var(--B)"></i>Bft 4 · 0,5–1 m</span>
-        <span><i style="background:var(--C-bg);border:1px solid var(--C)"></i>Bft 5 · 1–1,5 m</span>
-        <span><i style="background:var(--D-bg);border:1px solid var(--D)"></i>Bft 6+ · 1,5 m+</span>
-      </div>
+      <p class="note seanote" id="seaNote" hidden></p>
+      <div id="hLegend"></div>
       <details><summary>Balık aktivitesi nasıl hesaplanıyor?</summary>
         <div class="explain">
           <span>Her saat için 0–100 arası tahmini bir değerdir. Temeli solunar: ayın üst ve alt geçişi (major, ±60 dk), ay doğuş ve batışı (minor, ±30 dk), şafak ve alacakaranlık (±45 dk).</span>
@@ -43,7 +42,7 @@
     </div>
     <div class="now" id="nowGrid" style="margin-top:12px"></div>
     <div class="classrow" id="classRow"></div>
-    <div class="panel" style="margin-top:12px">
+    <div class="panel" style="margin-top:12px" id="solPanel">
       <div class="row" style="justify-content:space-between"><h3>Solunar</h3><span id="solStars"></span></div>
       <p class="note" id="solSub" style="margin-top:2px"></p>
       <div id="solWins" style="margin-top:6px"></div>
@@ -51,7 +50,7 @@
     <h3 style="margin-top:20px">Bugün bağla</h3>
     <p class="note" id="recNote" style="margin-top:2px"></p>
     <div class="stack" id="recList" style="margin-top:10px"></div>
-    <details style="margin-top:12px"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
+    <details style="margin-top:12px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
   </section>
 
   <!-- TAKVİM -->
@@ -64,7 +63,7 @@
   <!-- AVLAR -->
   <section class="view" id="v-avlar" hidden>
     <div class="sec-head"><span class="eyebrow">Av kaydı</span><h2>Avlarım</h2>
-      <p class="sub">Fotoğraf çek ya da galeriden seç. Saat, konum ve o anki deniz koşulları kendiliğinden yazılır. Fotoğraflar yalnızca bu telefonda saklanır.</p></div>
+      <p class="sub">Fotoğraf çek ya da galeriden seç. Saat, konum ve o anki deniz koşulları kendiliğinden yazılır. Fotoğraflar bu telefonda durur; bulut yedeği açıksa şifreli olarak deponda da saklanır.</p></div>
     <button class="btn primary bigbtn" id="addCatch" type="button">+ Av ekle</button>
     <div class="stats" id="catchStats" style="margin-top:12px"></div>
     <div class="stack" id="catchList" style="margin-top:12px"></div>
@@ -72,57 +71,26 @@
 
   <!-- RİGLER -->
   <section class="view" id="v-rigler" hidden>
-    <div class="sec-head"><span class="eyebrow">32 rig</span><h2>Rigler</h2><p class="sub" id="rigSub"></p></div>
-    <input class="search" id="rigSearch" type="search" placeholder="Rig, tür ya da iğne ara" aria-label="Rig ara">
+    <div class="sec-head"><span class="eyebrow" id="rigEyebrow">Rig sistemleri</span><h2>Rigler</h2><p class="sub" id="rigSub"></p></div>
+    <div class="seg wrapseg" id="sysBar"></div>
+    <input class="search" id="rigSearch" type="search" placeholder="Rig, tür ya da iğne ara" aria-label="Rig ara" style="margin-top:8px">
     <div class="seg" id="rigSeg" style="margin-top:8px"></div>
     <div class="stack" id="rigList" style="margin-top:12px"></div>
   </section>
 
   <!-- ENVANTER -->
   <section class="view" id="v-envanter" hidden>
-    <div class="sec-head"><span class="eyebrow">Adet takibi</span><h2>Envanter</h2>
+    <div class="sec-head"><span class="eyebrow" id="invEyebrow">Adet takibi</span><h2>Envanter</h2>
       <p class="sub">Her boyun adedini gir. 0 adet “bitti”; iğnede 5 adedin, terminal takımda 3 adedin altı “az kaldı” sayılır. Adet girilmemiş kalemler durumuna göre değerlendirilir.</p></div>
-    <div class="seg" id="invSeg"></div>
+    <button class="btn primary bigbtn" id="addItem" type="button">+ Kalem ekle</button>
+    <div class="seg" id="invSeg" style="margin-top:12px"></div>
     <div class="stack" id="invList" style="margin-top:12px"></div>
   </section>
 
   <!-- DAHA FAZLA -->
   <section class="view" id="v-daha" hidden>
-    <div class="sec-head"><span class="eyebrow">Alışveriş · Konumlar · Yedek</span><h2>Daha fazla</h2></div>
-    <h3>Alışveriş listesi</h3>
-    <p class="note" style="margin-top:2px">Rigleri tamamlamak için gerekenler. Aldığında adedini gir; ilgili rigler hemen tamamlanır.</p>
-    <div class="stack" id="buyList" style="margin-top:10px"></div>
-
-    <h3 style="margin-top:24px" id="locHead">Konumlar</h3>
-    <div class="stack" id="locList" style="margin-top:10px"></div>
-    <form class="panel" id="locForm" style="margin-top:10px" novalidate>
-      <h4 style="font-size:16px">Yeni konum</h4>
-      <div class="fields" style="margin-top:8px">
-        <label class="f wide">Ad<input id="nl-name" placeholder="Ör. Sığacık açığı"></label>
-        <label class="f">Enlem (°)<input id="nl-lat" inputmode="decimal" placeholder="ör. 38.1234"></label>
-        <label class="f">Boylam (°)<input id="nl-lon" inputmode="decimal" placeholder="ör. 26.5678"></label>
-        <label class="f">Dip (biliyorsan)<select id="nl-bottom"></select></label>
-        <label class="f">Derinlik (m)<input id="nl-depth" inputmode="decimal" placeholder="—"></label>
-      </div>
-      <p class="err" id="locErr" hidden></p>
-      <div class="row" style="margin-top:10px"><button class="btn primary" type="submit">Kaydet</button><button class="btn" type="button" id="useGps">Bulunduğum yer</button></div>
-    </form>
-
-    <h3 style="margin-top:24px">Takım standartları</h3>
-    <div class="tbl panel" style="margin-top:10px"><table><thead><tr><th>Takım</th><th>Üst köstek (cm)</th><th>Orta köstek (cm)</th><th>Hırsız (cm)</th><th>Köstek arası (cm)</th><th>Kurşun (g)</th><th>Kamış sınırı (g)</th></tr></thead><tbody id="stdRows"></tbody></table></div>
-    <p class="note" style="margin-top:6px">Akıntı 0,5 knot (kn) üstündeyse kurşun +30 g ve hırsız köstek %20 kısa; kurşun kamış sınırını aşmaz. Kayalık rigler (G-P6, G-T2, N-T2) kendi kısa kösteklerini kullanır.</p>
-
-    <h3 style="margin-top:24px">Yedek</h3>
-    <div class="panel stack" style="margin-top:10px">
-      <p class="sub">Envanter, konumlar ve avların yalnızca bu telefonda durur. Ara sıra yedek al; yeni telefona ya da bana (Claude'a) vermek için bu dosyayı kullan.</p>
-      <label class="row note" style="gap:8px"><input type="checkbox" id="bkPhotos"> Fotoğrafları da yedeğe kat (dosya büyür)</label>
-      <div class="row"><button class="btn" id="exportBtn" type="button">Yedeği indir</button><label class="btn filebtn">Yedeği yükle<input type="file" id="importFile" accept="application/json,.json"></label></div>
-      <p class="note" id="bkNote"></p>
-    </div>
-
-    <h3 style="margin-top:24px">Veri kaynakları</h3>
-    <div class="panel" style="margin-top:10px"><div class="srcs" id="srcList"></div>
-      <p class="note" style="margin-top:8px">Rüzgâr: ICON-EU 7 km (yaklaşık 5 gün), sonrası ECMWF. Hamle: GFS. Yağış olasılığı: topluluk (ensemble) modelleri. Dalga: MFWAM (Météo-France, 10 gün), sonrası en iyi deniz modeli. Akıntı ve su sıcaklığı: Météo-France (10 gün). Hepsi Open-Meteo üzerinden, telefonun kendisi çeker.</p></div>
+    <div class="sec-head"><span class="eyebrow">Ayarlar · Yedek · Konumlar</span><h2>Daha fazla</h2></div>
+    <div class="menu" id="moreMenu"></div>
     <p class="note" style="margin-top:18px" id="about"></p>
   </section>
 </main>
@@ -137,17 +105,7 @@
 </nav>
 
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
-<div class="lock" id="lock" hidden>
-  <form class="box" id="lockForm" novalidate>
-    <svg viewBox="0 0 32 32" width="44" height="44" aria-hidden="true" style="color:var(--accent)"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>
-    <h2>Kenny Av</h2>
-    <p class="sub">Rig sistemin ve envanterin şifreli duruyor. Sana verdiğim şifreyi bir kez gir; bu telefon hatırlar.</p>
-    <label class="f">Şifre<input id="lockPass" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="kelime-kelime-kelime-kelime-1234"></label>
-    <p class="err" id="lockErr" hidden></p>
-    <button class="btn primary bigbtn" type="submit" id="lockBtn">Aç</button>
-    <p class="note" id="lockNote"></p>
-  </form>
-</div>
+<div class="lock" id="welcome" hidden></div>
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script>/*__SUNCALC__*/</script>
