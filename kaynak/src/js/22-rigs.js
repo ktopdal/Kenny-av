@@ -5,21 +5,7 @@ const TIERS = ['dunya', 'turkiye', 'envanter'];
 const TIER_TXT = {dunya: 'Dünyanın en iyisi', turkiye: "Türkiye'de en iyi", envanter: 'Envanterimden'};
 const SLOT_LBL = {ust: 'Üst', orta: 'Orta', hirsiz: 'Hırsız', braid: 'Ana ip', beden: 'Beden', kostek: 'Köstek'};
 const LEN_LBL = {ust: 'köstek üst', orta: 'orta', hirsiz: 'hırsız', ara: 'köstek arası', kostek: 'köstek', lider: 'lider', sok: 'şok lider'};
-const SPECIES_BASE = [
-  ['cipura', 'Çipura', 'Sparus aurata'], ['karagoz', 'Karagöz', 'Diplodus vulgaris'], ['sargoz', 'Sargoz', 'Diplodus sargus'],
-  ['isparoz', 'İsparoz', 'Diplodus annularis'], ['mercan', 'Mercan', 'Pagellus erythrinus'], ['fangri', 'Fangri', 'Pagrus pagrus'],
-  ['sinarit', 'Sinarit', 'Dentex dentex'], ['sinagrit', 'Sinagrit', 'Dentex gibbosus'], ['tranca', 'Trança', 'Pagrus auriga'],
-  ['eskina', 'Eşkina', 'Sciaena umbra'], ['akya', 'Akya', 'Lichia amia'], ['levrek', 'Levrek', 'Dicentrarchus labrax'],
-  ['izmarit', 'İzmarit', 'Spicara smaris'], ['mirmir', 'Mırmır', 'Lithognathus mormyrus'], ['kupes', 'Kupes', 'Boops boops'],
-  ['melanurya', 'Melanurya', 'Oblada melanura'], ['minakop', 'Minakop', 'Umbrina cirrosa'], ['lahos', 'Lahos', 'Epinephelus costae'],
-  ['orfoz', 'Orfoz', 'Epinephelus marginatus'], ['iskorpit', 'İskorpit', 'Scorpaena porcus'], ['lipsoz', 'Lipsoz', 'Scorpaena scrofa'],
-  ['kirlangic', 'Kırlangıç', 'Chelidonichthys lucerna'], ['barbunya', 'Barbunya', 'Mullus barbatus'], ['tekir', 'Tekir', 'Mullus surmuletus'],
-  ['mezgit', 'Mezgit', 'Merlangius merlangus'], ['kalkan', 'Kalkan', 'Scophthalmus maximus'], ['dil', 'Dil', 'Solea solea'],
-  ['palamut', 'Palamut', 'Sarda sarda'], ['lufer', 'Lüfer', 'Pomatomus saltatrix'], ['orkinos', 'Orkinos (mavi yüzgeçli)', 'Thunnus thynnus'],
-  ['lambuka', 'Lambuka', 'Coryphaena hippurus'], ['zargana', 'Zargana', 'Belone belone'], ['istavrit', 'İstavrit', 'Trachurus spp.'],
-  ['kolyoz', 'Kolyoz', 'Scomber colias'], ['uskumru', 'Uskumru', 'Scomber scombrus'], ['kefal', 'Kefal', 'Mugilidae'],
-  ['kalamar', 'Kalamar', 'Loligo vulgaris'], ['ahtapot', 'Ahtapot', 'Octopus vulgaris'], ['murekkep', 'Mürekkep balığı', 'Sepia officinalis'],
-].map(([id, name, latin]) => ({id, name, latin}));
+const SPECIES_BASE = KB.SPECIES;   // 21-kb.js
 
 let ITEMS = {}, SPECIES = {}, RIGS = {}, RIG_LIST = [], SETUPS = {};
 const pkgOn = () => !!(D && S.systems.ozel);
@@ -46,7 +32,7 @@ function pkgRigs(){
 }
 function allRigs(){
   let out = pkgRigs();
-  Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => Object.assign({sys: sy.id}, r))); });
+  Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => resolveRig(Object.assign({sys: sy.id}, r)))); });
   return out;
 }
 function indexAll(){
@@ -92,7 +78,7 @@ function shoppingList(){
   RIG_LIST.forEach(rg => missingOf(rg).forEach(sl => {
     const e = sl.t.envanter || {}; const tk = sl.t.turkiye || {};
     const k = e.item ? e.item + '|' + (e.size || '-') : 'x|' + (tk.name || e.name || sl.label) + '|' + (tk.size || '');
-    const n = need[k] = need[k] || {k, item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, rigs: []};
+    const n = need[k] = need[k] || {k, item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, rigs: [], kind: sl.kind, sp: sl.sp || null};
     if (!n.rigs.includes(rg.code || rg.name)) n.rigs.push(rg.code || rg.name);
   }));
   return Object.values(need);

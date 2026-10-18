@@ -19,7 +19,7 @@ DIST = os.path.join(APP, 'dist')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.3.0'
+VERSION = '0.4.0'
 NAME, SHORT = 'Alyssa by Barbossa App', 'Alyssa'
 THEME = '#0B6B7C'
 
@@ -32,14 +32,9 @@ def norm_pass(p):
 
 def app_data():
     db = json.load(open(DB, encoding='utf-8'))
-    seed = []
-    for iid, sizes in {'gamakatsu-chinu': ['No:1', 'No:2'], 'owner-cp-chinu': ['No:1', 'No:2'],
-                       'owner-jobu': ['2/0', '3/0'], 'owner-mutsu-heavy': ['2/0', '3/0', '4/0']}.items():
-        for s in sizes:
-            seed.append(dict(item=iid, size=s, status='bitti', qty=0))
     keep = ('meta', 'setups', 'items', 'rigs', 'species', 'locations', 'rules', 'stores', 'decisions')
     out = {k: db[k] for k in keep}
-    out['seed_status'] = seed
+    out['seed_status'] = db.get('seed_status', [])   # bitti işaretli kalemler özel veride
     # sistem adı özel veride (data/…json → meta.system_name); depoda düz hâliyle yer almaz
     body = json.dumps(out, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
     out['meta'] = dict(out['meta'], data_version=hashlib.sha1((body + '|v3').encode()).hexdigest()[:10], app_version=VERSION)

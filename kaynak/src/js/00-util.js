@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.4.0', notes: [
+    'Rig Atölyesi: nasıl avlandığını, hedef türleri ve takım düzenini sorup sıfırdan rig sistemi kurar (dip, jig, canlı yem, çapari, kalamar, sırtı, orkinos, surf, LRF, spin, şamandıra)',
+    'Her rigde üç malzeme seviyesi: dünyanın en iyisi, envanterimden, Türkiye\'de en iyi (envanterde uygunu varsa o); envanter değiştikçe rigler kendiliğinden güncellenir',
+    'Rigler ekranında seviye seçici ve sistem araçları (cevapları düzenle, kapat/aç, sil)',
+    'Envantere kalem eklerken katalogda arama',
+    '40 türlük bilgi tabanı: boy, mevsim, dip, yem ve korunan türler için uyarılar',
+  ]},
   {v: '0.3.0', notes: [
     'Yeni ad: Alyssa by Barbossa App',
     'Uygulama şifresiz ve boş açılır; senin rig sistemin şifreli özel paket olarak yeni şifreyle açılır',

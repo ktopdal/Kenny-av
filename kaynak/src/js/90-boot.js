@@ -39,6 +39,16 @@ function bindEvents(){
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
+    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
+    if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
+    if (d.systool) {
+      const sy = S.systems[d.sid]; if (!sy) return;
+      if (d.systool === 'edit') { startWizard(sy.id); return; }
+      if (d.systool === 'toggle') { sy.active = sy.active === false; persist(); indexAll(); renderAll(); toast(sy.name + (sy.active ? ' açıldı' : ' kapatıldı')); return; }
+      if (d.systool === 'del') { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.systems[sy.id]; ui.sys = 'all'; persist(); indexAll(); renderAll(); toast('Sistem silindi'); return; }
+    }
+    if (d.catpick != null && d.catpick !== '') { catalogPick(Number(d.catpick)); return; }
+    if (d.buyadd) { buyAdd(d.buyadd); return; }
     if (d.open) { openMore(d.open); return; }
     if (d.step) { const k = d.k; const cur = Number(S.inv.qty[k] || 0); setQty(k, cur + Number(d.step)); return; }
     if (d.rseg) { ui.rigSeg = d.rseg; renderRigs(); return; }
@@ -90,6 +100,9 @@ function bindEvents(){
   document.addEventListener('input', e => {
     const el = e.target;
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; applyTheme(); return; }
+    if (el.id === 'it-search') { catalogSearch(el.value); return; }
+    if (el.id === 'wz-rod' && WZ) { WZ.ans.rodMax = el.value.trim(); return; }
+    if (el.id === 'wz-name' && WZ) { WZ.ans.name = el.value; return; }
     if (el.id === 'cf-t') { const v = el.value ? new Date(el.value) : null; if (v && !isNaN(v)) $('cf-tlbl').textContent = fmtDT(v); return; }
   });
   document.addEventListener('change', e => {

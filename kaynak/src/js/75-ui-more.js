@@ -129,12 +129,14 @@ function addLocation(name, lat, lon, bottom, depth){
 function sheetShopping(){
   const groups = {};
   shoppingList().forEach(n => { const it = n.item && ITEMS[n.item]; const st = (it && it.store) || n.store || (it ? 'Envanter' : 'Yeni'); (groups[st] = groups[st] || []).push(n); });
-  const SN = {A: 'Owner mağazası (A)', B: 'Karma mağaza (B)', Envanter: 'Yeniden alınacak', Yeni: 'Envanterde olmayanlar'};
+  const SN = {Envanter: 'Yeniden alınacak', Yeni: 'Envanterde olmayanlar'};
+  if (pkgOn() && Array.isArray(D.stores)) D.stores.forEach(st => { SN[st.id] = st.name + ' (' + st.id + ')'; });
   const body = Object.keys(groups).sort().map(g => '<div class="eyebrow">' + esc(SN[g] || 'Mağaza ' + g) + '</div>' + groups[g].map(n => {
     const it = n.item && ITEMS[n.item]; const k = n.item ? n.item + '|' + (n.size || '-') : null;
     return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div><span class="chip">' + n.rigs.length + ' rigde</span></div>' +
       '<div class="sp">' + esc(n.rigs.join(', ')) + (it && it.note ? ' · ' + esc(it.note) : '') + '</div>' +
-      (k ? '<div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (adet)<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label></div>' : '') + '</div>';
+      (k ? '<div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (adet)<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label></div>' :
+        (n.sp ? '<div class="row"><button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button></div>' : '')) + '</div>';
   }).join('')).join('');
   return sheetBar('Alışveriş listesi') + '<div class="stack"><p class="note">Rigleri tamamlamak için gerekenler. Aldığında adedini gir; ilgili rigler hemen tamamlanır.</p>' + (body || '<div class="empty">Eksik kalem yok, tüm rigler tamam.</div>') + '</div>';
 }

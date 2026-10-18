@@ -1,18 +1,18 @@
-"""Alyssa v0.3 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+"""Alyssa v0.3–v0.4 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
 Çalıştır: python3 /home/claude/fishapp/qa/v3_check.py
 """
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
 
 ROOT = '/home/claude/fishapp'
-WWW = ROOT + '/qa/www3'
-SHOTS = ROOT + '/qa/v3'
+WWW = ROOT + '/qa/www_t'
+SHOTS = ROOT + '/qa/v4'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8766
+PORT = 8767
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -125,7 +125,9 @@ async def main():
         check('Alyssa by Barbossa App' in await pg.inner_text('#welcome'), 'uygulama adı karşılamada')
         await pg.screenshot(path=SHOTS + '/a_welcome.png')
         await pg.click('button[data-wel="kur"]'); await pg.wait_for_timeout(200)
-        check(await pg.is_visible('#welKurNote'), 'rig atölyesi notu (v0.3) görünüyor')
+        check(await pg.is_visible('#sheet') and 'Rig Atölyesi' in await pg.inner_text('#sheet'), 'karşılamadan Rig Atölyesi açıldı')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(250)
+        check(await pg.is_visible('#welcome'), 'sihirbaz kapatılınca karşılamaya dönüldü')
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', 'yanlis-1234'); await pg.click('#welBtn'); await pg.wait_for_timeout(3500)
         check(await pg.is_visible('#welErr'), 'yanlış şifre uyarısı')
         await pg.fill('#wel-pass', '  ' + KEY['pass_'].upper() + ' '); await pg.click('#welBtn'); await pg.wait_for_timeout(5000)
@@ -299,6 +301,86 @@ async def main():
         print('D errors:', errs); check(not errs, 'D: sayfa hatası yok')
         await ctx.close()
         HANG['gfs'] = False
+
+        # ================================================== F) Rig Atölyesi: sıfırdan sistem, envanter, alışveriş
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="kur"]'); await pg.wait_for_timeout(300)
+        check('Rig Atölyesi' in await pg.inner_text('#sheet'), 'F: sihirbaz açıldı')
+        await pg.click('button[data-wzm="tekne"]'); await pg.click('button[data-wzr="ege"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        check(await pg.is_disabled('button[data-wz="next"]'), 'F: teknik seçmeden ilerlenemez')
+        await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wzt="orkinos"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        for sp in ['karagoz', 'mercan', 'orkinos']: await pg.click(f'button[data-wzs="{sp}"]')
+        await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        await pg.click('button[data-wzl="dip|iki"]')            # hırsızlı + 2 iğneli
+        await pg.click('button[data-wzset="klass"][data-val="porsiyon"]'); await pg.click('button[data-wzset="time"][data-val="gunduz"]')
+        await pg.click('button[data-wzb="kum"]')
+        await pg.screenshot(path=SHOTS + '/f_takim.png')
+        await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(250)
+        cnt = await pg.inner_text('#wzCount'); check(cnt.startswith('5 rig'), 'F: rig sayısı ' + cnt)
+        await pg.fill('#wz-name', 'Ege dip sistemim'); await pg.fill('#wz-rod', '140')
+        await pg.screenshot(path=SHOTS + '/f_kur.png')
+        await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(600)
+        st = await state(pg); sy = [v for v in st['systems'].values() if v['source'] == 'sihirbaz']
+        check(len(sy) == 1 and len(sy[0]['rigs']) == 5, 'F: sistem kaydedildi (%d rig)' % (len(sy[0]['rigs']) if sy else 0))
+        r0 = sy[0]['rigs'][0]
+        check(r0['sinker']['max'] == 140, 'F: kamış sınırı kurşuna işlendi')
+        check(any(sl['k'] == 'hirsiz' for sl in r0['slots']), 'F: hırsızlı yuvaları')
+        names = [r['name'] for r in sy[0]['rigs']]; print('   rigler:', names)
+        check(any('2 iğneli' in n for n in names) and any('Chunking' in n for n in names), 'F: 2 iğneli ve orkinos rigleri var')
+        check(await pg.locator('#rigList article.rig.off').count() == 5, 'F: envanter boşken hepsi tamamlanmadı')
+        await pg.screenshot(path=SHOTS + '/f_rigler_bos.png')
+        # dünya / Türkiye seviyeleri
+        await pg.click('button[data-tier="dunya"]'); await pg.wait_for_timeout(200)
+        t1 = await pg.locator('#rigList article.rig').first.inner_text(); check('Gamakatsu' in t1 or 'Owner' in t1, 'F: dünya seviyesinde ürün önerisi')
+        await pg.click('button[data-tier="envanter"]'); await pg.wait_for_timeout(150)
+        # katalogdan iğne + florokarbon + örgü ip ekle
+        await pg.click('.tabbar button[data-v="envanter"]'); await pg.click('#addItem'); await pg.wait_for_timeout(250)
+        await pg.fill('#it-search', 'chinu'); await pg.wait_for_timeout(150)
+        check(await pg.locator('#itCat .catpick').count() >= 3, 'F: katalog araması sonuç veriyor')
+        await pg.click('#itCat .catpick >> nth=0'); await pg.wait_for_timeout(100)
+        check(await pg.input_value('#it-brand') == 'Gamakatsu' and await pg.input_value('#it-pat') == 'Chinu', 'F: katalog formu doldurdu')
+        await pg.fill('#it-sizes', 'No:1, No:2, No:3'); await pg.click('#itSave'); await pg.wait_for_timeout(300)
+        for nm, cat, spec in [('Seaguar Grandmax FC', 'fc', '0,26 mm'), ('Seaguar Grandmax FC', 'fc', '0,30 mm'), ('Daiwa J-Braid x8', 'braid', '0,16 mm')]:
+            await pg.click('#addItem'); await pg.wait_for_timeout(200)
+            await pg.select_option('#it-cat', cat); await pg.fill('#it-brand', nm.split(' ')[0]); await pg.fill('#it-model', ' '.join(nm.split(' ')[1:])); await pg.fill('#it-spec', spec)
+            await pg.click('#itSave'); await pg.wait_for_timeout(250)
+        await pg.screenshot(path=SHOTS + '/f_envanter.png')
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        ready_n = await pg.locator('#rigList article.rig:not(.off)').count()
+        check(ready_n >= 2, 'F: envanter eklenince porsiyon dip rigleri hazır (%d)' % ready_n)
+        await pg.screenshot(path=SHOTS + '/f_rigler_hazir.png')
+        # alışveriş: orkinos için eksikler, "Aldım, envantere ekle"
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
+        nb = await pg.locator('#sheet button[data-buyadd]').count(); check(nb >= 3, 'F: envanterde olmayan ürünler listede (%d)' % nb)
+        await pg.screenshot(path=SHOTS + '/f_alisveris.png')
+        while await pg.locator('#sheet button[data-buyadd]').count():
+            await pg.click('#sheet button[data-buyadd] >> nth=0'); await pg.wait_for_timeout(200)
+        check('Eksik kalem yok' in await pg.inner_text('#sheet'), 'F: tüm eksikler envantere eklenince liste boşaldı')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#rigList article.rig.off').count() == 0, 'F: bütün rigler hazır')
+        # Bugün önerisi sihirbaz riglerinden
+        await pg.click('#noLoc button[data-act="gpsloc"]') if await pg.is_visible('#noLoc') else None
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.click('#noLoc button[data-act="gpsloc"]'); await pg.wait_for_timeout(3500)
+        check(await pg.locator('#recList article.rig').count() >= 1, 'F: Bugün bağla sihirbaz rigini öneriyor')
+        await pg.screenshot(path=SHOTS + '/f_bugun.png')
+        # sistemi düzenle: sade → daha az rig
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('button[data-systool="edit"]'); await pg.wait_for_timeout(300)
+        for _ in range(4): await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(120)
+        await pg.click('button[data-wzz="sade"]'); await pg.wait_for_timeout(150)
+        await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(500)
+        st = await state(pg); sy = [v for v in st['systems'].values() if v['source'] == 'sihirbaz']
+        check(len(sy) == 1 and len(sy[0]['rigs']) == 3, 'F: sade sistemde rig sayısı %d' % len(sy[0]['rigs']))
+        await pg.click('button[data-systool="toggle"]'); await pg.wait_for_timeout(200)
+        check(await pg.locator('#rigList article.rig').count() == 0, 'F: kapatılan sistem listeden çıktı')
+        await pg.click('button[data-systool="toggle"]'); await pg.wait_for_timeout(200)
+        await pg.click('button[data-systool="del"]'); await pg.click('button[data-systool="del"]'); await pg.wait_for_timeout(200)
+        st = await state(pg); check(not [v for v in st['systems'].values() if v['source'] == 'sihirbaz'], 'F: sistem silindi')
+        for v in ['bugun', 'takvim', 'avlar', 'rigler', 'envanter', 'daha']:
+            await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(120); await overflow(pg, 'F ' + v)
+        print('F errors:', errs); check(not errs, 'F: sayfa hatası yok')
+        await ctx.close()
 
         # ================================================== E) önizleme
         ctx = await b.new_context(viewport={'width': 390, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2)

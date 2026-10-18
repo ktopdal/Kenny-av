@@ -7,8 +7,16 @@ function renderRigs(){
   $('sysBar').innerHTML = (sys.length > 1 ? '<button class="btn small" data-sys="all" aria-pressed="' + (ui.sys === 'all') + '">Tümü</button>' : '') +
     sys.map(sy => '<button class="btn small" data-sys="' + esc(sy.id) + '" aria-pressed="' + (ui.sys === sy.id || sys.length === 1) + '">' + esc(sy.name) + '</button>').join('') +
     '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button>';
+  const one = sys.length === 1 ? sys[0] : S.systems[ui.sys];
+  const tier = S.settings.tier || 'envanter';
+  $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
+      (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
+      '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
+      (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
+    (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
   if (!all.length) {
     $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
+    if (sys.length) { $('rigList').innerHTML = '<div class="empty">Açık sistemde rig yok. Kapalı bir sistemi açabilir ya da yeni sistem kurabilirsin.</div>'; return; }
     $('rigList').innerHTML = '<div class="panel stack"><h3>Rig sistemini kur</h3><p class="sub">Uygulama boş başlar. Nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel bir rig sistemi kurar; her rig için dünyanın en iyisi, envanterinden ve Türkiye\'de bulunabilen en iyi olmak üzere üç malzeme seviyesi verir.</p>' +
       '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
     return;
@@ -27,7 +35,7 @@ function renderRigs(){
     if (!q) return true;
     return trLower([rg.code, rg.name, rg.target, rg.baitText].concat(rg.slots.map(sl => (sl.t.envanter && sl.t.envanter.name) || '')).join(' ')).includes(q);
   });
-  $('rigList').innerHTML = list.length ? list.map(rg => rigCard(rg, dd, null)).join('') : '<div class="empty">Bu filtrede rig yok.</div>';
+  $('rigList').innerHTML = list.length ? list.map(rg => rigCard(rg, dd, null, null, tier)).join('') : '<div class="empty">Bu filtrede rig yok.</div>';
 }
 const INV_SEG = [['hook', 'İğneler'], ['line', 'İp ve florokarbon'], ['gear', 'Makine ve kamış'], ['jig', 'Jig, zoka, sahte'], ['terminal', 'Terminal ve kurşun'], ['bait', 'Yem'], ['ekip', 'Ekipman']];
 const INV_CATS = {hook: ['hook'], line: ['braid', 'fc', 'mono'], gear: ['reel', 'rod'], jig: ['jig', 'lure'], terminal: ['terminal', 'sinker'], bait: ['bait'], ekip: ['ekip']};
@@ -61,7 +69,8 @@ function itemForm(id){
   const cats = Object.keys(CAT_TXT).map(k => '<option value="' + k + '"' + (c.cat === k ? ' selected' : '') + '>' + CAT_TXT[k] + '</option>').join('');
   const pats = '<option value="">—</option>' + HOOK_PATTERNS.map(p => '<option' + (c.pattern === p ? ' selected' : '') + '>' + esc(p) + '</option>').join('');
   openSheet(sheetBar(it ? 'Kalemi düzenle' : 'Yeni kalem', '<button class="btn primary" type="button" id="itSave">Kaydet</button>') +
-    '<div class="stack"><div class="fields">' +
+    '<div class="stack">' + (it ? '' : '<label class="f">Katalogda ara<input id="it-search" type="search" placeholder="Ör. chinu, Seaguar, egi, kurşun" autocomplete="off"></label><div class="catres" id="itCat"></div>') +
+    '<div class="fields">' +
     '<label class="f wide">Kategori<select id="it-cat">' + cats + '</select></label>' +
     '<label class="f">Marka<input id="it-brand" value="' + esc(c.brand || '') + '" placeholder="Ör. Owner"></label>' +
     '<label class="f">Model<input id="it-model" value="' + esc(c.model || '') + '" placeholder="Ör. SSW 5111"></label>' +
@@ -89,4 +98,32 @@ function deleteItem(id){
   Object.keys(S.inv.qty).forEach(k => { if (k.split('|')[0] === id) delete S.inv.qty[k]; });
   Object.keys(S.inv.status).forEach(k => { if (k.split('|')[0] === id) delete S.inv.status[k]; });
   persist(); indexAll(); closeSheet(); renderAll(); toast('Kalem silindi');
+}
+function catalogSearch(q){
+  q = trLower(q.trim()); const el = $('itCat'); if (!el) return;
+  if (q.length < 2) { el.innerHTML = ''; return; }
+  const res = CATALOG.filter(c => trLower(c.name + ' ' + (CAT_TXT[c.cat] || '') + ' ' + c.pattern).indexOf(q) >= 0).slice(0, 10);
+  el.innerHTML = res.map((c, i) => '<button type="button" class="catpick" data-catpick="' + CATALOG.indexOf(c) + '"><b>' + esc(c.name) + '</b><small>' + esc((CAT_TXT[c.cat] || c.cat) + (c.pattern ? ' · ' + c.pattern : '')) + '</small></button>').join('') || '<p class="note">Katalogda yok; aşağıya elle yazabilirsin.</p>';
+}
+function catalogPick(i){
+  const c = CATALOG[i]; if (!c) return;
+  $('it-cat').value = c.cat; $('it-brand').value = c.brand; $('it-model').value = c.model;
+  $('it-patw').hidden = c.cat !== 'hook'; if (c.cat === 'hook') $('it-pat').value = c.pattern;
+  const hint = {hook: 'Ör. No:1, No:2 ya da 2/0, 3/0', braid: 'Ör. 0,16 mm · PE 1', fc: 'Ör. 0,26 mm', mono: 'Ör. 0,30 mm', jig: 'Ör. 120 g', lure: 'Ör. 14 cm · 25 g', sinker: 'Ör. 100–150 g'}[c.cat];
+  if (hint) $('it-spec').placeholder = hint;
+  $('itCat').innerHTML = ''; $('it-search').value = '';
+  ($('it-spec').value ? $('it-sizes') : $('it-spec')).focus();
+}
+// alışveriş listesinden: alınan ürünü envantere kalem olarak ekle (rigler hemen tamamlanır)
+function buyAdd(key){
+  const n = shoppingList().find(x => x.k === key); if (!n || !n.sp) return;
+  const sp = n.sp; const nm = String(n.name || 'Kalem');
+  const parts = nm.indexOf('/') >= 0 ? ['', nm] : [nm.split(' ')[0], nm.split(' ').slice(1).join(' ')];
+  let cat = 'hook', pattern = '', sizes = [], spec = '';
+  if (sp.kind === 'hook') { pattern = KB.PAT[sp.p[0]] ? KB.PAT[sp.p[0]].name : ''; sizes = n.size ? [n.size] : []; }
+  else if (sp.kind === 'line') { cat = sp.cats[0]; spec = n.size || ''; }
+  else { cat = /jig|egi|inchiku|rubber|çapari|zoka/i.test(nm) ? 'jig' : 'lure'; spec = n.size || ''; }
+  const id = 'u-' + (slugTR(nm).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6);
+  S.inv.items[id] = {id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()};
+  persist(); indexAll(); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
 }

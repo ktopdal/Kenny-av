@@ -16,9 +16,9 @@ function showWelcome(){
     '</div>';
   w.hidden = false;
 }
-function hideWelcome(){ $('welcome').hidden = true; $('welcome').innerHTML = ''; if (!S.onboarded) { S.onboarded = true; persist(); } }
+function hideWelcome(keep){ $('welcome').hidden = true; $('welcome').innerHTML = ''; if (!keep && !S.onboarded) { S.onboarded = true; persist(); } }
 async function welcomeAction(a){
-  if (a === 'kur') { if (typeof startWizard === 'function') { hideWelcome(); startWizard(); } else $('welKurNote').hidden = false; return; }
+  if (a === 'kur') { if (typeof startWizard === 'function') { hideWelcome(true); startWizard(); WZ.fromWel = true; } else $('welKurNote').hidden = false; return; }
   if (a === 'paket') { $('welPkg').hidden = false; setTimeout(() => { try { $('wel-pass').focus(); } catch (e) {} }, 50); return; }
   if (a === 'bulut') { hideWelcome(); openMore('yedek'); return; }
   if (a === 'bos') { hideWelcome(); renderAll(); return; }

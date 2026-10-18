@@ -303,6 +303,33 @@ details.panel summary{cursor:pointer;color:var(--brand);font-weight:500;font-siz
 #welcome .box{margin-block:auto}
 .hempty{padding:10px 12px 4px}
 
+/* ---------- v0.4: Rig Atölyesi ---------- */
+.wzsteps{display:flex;gap:4px;flex-wrap:wrap;margin:2px 0 12px}
+.wzsteps span{font:500 11.5px var(--mono);padding:3px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line-2)}
+.wzsteps span.on{background:var(--brand);color:var(--on-brand,#fff);border-color:var(--brand)}
+.wzsteps span.done{color:var(--brand);border-color:var(--brand-soft)}
+.wz h3{font-size:16.5px;margin-top:6px}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.opts.sp{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+.opt{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;color:var(--ink);font:inherit;min-height:44px}
+.opt b{font:600 14.5px var(--body)}
+.opt small{font-size:12px;color:var(--muted);line-height:1.3}
+.opt[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft);box-shadow:inset 0 0 0 1px var(--brand)}
+.famgrp{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.wznav{position:sticky;bottom:0;display:flex;justify-content:space-between;gap:10px;padding:12px 0 calc(8px + env(safe-area-inset-bottom,0px));background:var(--bg);margin-top:12px;border-top:1px solid var(--line-2)}
+.wznav .btn{min-width:110px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.systools{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;margin-top:8px}
+.tiers{margin-top:8px}
+.tierline{padding:4px 12px;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--brand);border-top:1px solid var(--line-2)}
+.catres{display:flex;flex-direction:column;gap:6px}
+.catpick{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;text-align:left;color:var(--ink);font:inherit}
+.catpick b{font:600 14px var(--body)}
+.catpick small{font-size:12px;color:var(--muted)}
+
+.sheet{padding-top:0}
+.sheet .bar{padding-top:calc(env(safe-area-inset-top,0px) + 10px)}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -370,6 +397,7 @@ details.panel summary{cursor:pointer;color:var(--brand);font-weight:500;font-siz
   <section class="view" id="v-rigler" hidden>
     <div class="sec-head"><span class="eyebrow" id="rigEyebrow">Rig sistemleri</span><h2>Rigler</h2><p class="sub" id="rigSub"></p></div>
     <div class="seg wrapseg" id="sysBar"></div>
+    <div id="sysTools"></div>
     <input class="search" id="rigSearch" type="search" placeholder="Rig, tür ya da iğne ara" aria-label="Rig ara" style="margin-top:8px">
     <div class="seg" id="rigSeg" style="margin-top:8px"></div>
     <div class="stack" id="rigList" style="margin-top:12px"></div>
@@ -730,9 +758,16 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.3.0';
+const APP_VERSION = '0.4.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.4.0', notes: [
+    'Rig Atölyesi: nasıl avlandığını, hedef türleri ve takım düzenini sorup sıfırdan rig sistemi kurar (dip, jig, canlı yem, çapari, kalamar, sırtı, orkinos, surf, LRF, spin, şamandıra)',
+    'Her rigde üç malzeme seviyesi: dünyanın en iyisi, envanterimden, Türkiye\'de en iyi (envanterde uygunu varsa o); envanter değiştikçe rigler kendiliğinden güncellenir',
+    'Rigler ekranında seviye seçici ve sistem araçları (cevapları düzenle, kapat/aç, sil)',
+    'Envantere kalem eklerken katalogda arama',
+    '40 türlük bilgi tabanı: boy, mevsim, dip, yem ve korunan türler için uyarılar',
+  ]},
   {v: '0.3.0', notes: [
     'Yeni ad: Alyssa by Barbossa App',
     'Uygulama şifresiz ve boş açılır; senin rig sistemin şifreli özel paket olarak yeni şifreyle açılır',
@@ -995,6 +1030,197 @@ const usable = st => st === 'var' || st === 'az';
 const sizesOf = it => (it.sizes && it.sizes.length) ? it.sizes : ['-'];
 const ST_TXT = {var: 'Var', az: 'Az', bitti: 'Bitti', alinacak: 'Alınacak', yok: 'Yok'};
 
+// ---------------------------------------------------------------- 21 · bilgi tabanı: türler, teknikler, takım düzenleri, ürünler
+// Rig Atölyesi bu tabloları kullanarak, kullanıcının cevaplarına göre kuralla (yapay zekâsız) rig sistemi kurar.
+// Genel bilgidir; bölgeye ve yıla göre değişir. Ürün adları örnek seriler; boy ve çap aralıkları asıl ölçüdür.
+const KB = (() => {
+  // iğne desenleri: sc = boy ölçeği (jp: No:1…; w: #8 … 1 … 1/0 …)
+  const PAT = {
+    chinu: {name: 'Chinu', sc: 'jp'}, maruseigo: {name: 'Maruseigo', sc: 'jp'}, iseama: {name: 'Iseama', sc: 'jp'},
+    octopus: {name: 'Octopus / beak', sc: 'w'}, circle: {name: 'Mutsu / circle', sc: 'w'}, jforged: {name: 'J (dövme, güçlü)', sc: 'w'},
+    baitholder: {name: 'Baitholder (palalı)', sc: 'w'}, aberdeen: {name: 'Aberdeen / uzun pala', sc: 'w'}, livebait: {name: 'Canlı yem', sc: 'w'},
+    assist: {name: 'Assist (jig)', sc: 'w'}, treble: {name: 'Üçlü (treble)', sc: 'w'}, jighead: {name: 'Jighead', sc: 'w'}, sabiki: {name: 'Çapari', sc: 'w'},
+  };
+  // envanterden ikame için uyumlu desen grupları
+  const COMPAT = [['chinu', 'maruseigo', 'iseama'], ['chinu', 'iseama', 'octopus', 'baitholder'], ['octopus', 'circle', 'jforged', 'livebait'], ['aberdeen', 'baitholder'], ['assist'], ['jighead'], ['sabiki'], ['treble']];
+  // ürünler: seviye başına örnek seri (dunya: dünyanın en iyisi, turkiye: Türkiye'de bulunan en iyi)
+  const HOOK = {
+    chinu: {dunya: 'Gamakatsu Hyper Chinu', turkiye: 'Owner Cut Super Chinu'},
+    maruseigo: {dunya: 'Gamakatsu Maruseigo', turkiye: 'BKK Maruseigo-R'},
+    iseama: {dunya: 'Gamakatsu Iseama', turkiye: 'Sasame / BKK Iseama'},
+    octopus: {dunya: 'Owner SSW Cutting Point', turkiye: 'BKK Octopus Beak'},
+    circle: {dunya: 'Owner Mutu Light Circle', turkiye: 'BKK Mutsu Circle Light-SS'},
+    bigcircle: {dunya: 'Owner Super Mutu Circle', turkiye: 'Mustad Demon Perfect Circle'},
+    jforged: {dunya: 'Owner Gorilla', turkiye: 'Owner Ringed Gorilla (5105R)'},
+    baitholder: {dunya: 'Gamakatsu Baitholder', turkiye: 'BKK Beak Baitholder-R'},
+    aberdeen: {dunya: 'Kamasan B940 Aberdeen', turkiye: 'Mustad Aberdeen'},
+    livebait: {dunya: 'Gamakatsu Live Bait', turkiye: 'Mustad Hoodlum'},
+    assist: {dunya: 'Owner assist (çift)', turkiye: 'BKK Lone Fighter Assist'},
+    jighead: {dunya: 'Owner Cultiva jighead', turkiye: 'Decoy / Owner jighead'},
+    sabiki: {dunya: 'Hayabusa çapari', turkiye: 'Hayabusa / Sasame çapari'},
+    treble: {dunya: 'Owner ST-36 üçlü', turkiye: 'BKK / VMC üçlü'},
+  };
+  const LINE = {
+    braid: {dunya: 'YGK X-Braid Upgrade X8', turkiye: 'Daiwa J-Braid x8'},
+    fc: {dunya: 'Seaguar Grandmax FX', turkiye: 'Seaguar Grandmax FC'},
+    fcbig: {dunya: 'Seaguar Big Game FC', turkiye: 'Kalın florokarbon lider (Seaguar, Momoi)'},
+    mono: {dunya: 'Momoi Diamond', turkiye: 'Berkley Trilene Big Game'},
+    shock: {dunya: 'Seaguar Grandmax FX (şok lider)', turkiye: 'Berkley Trilene Big Game (şok lider)'},
+    steel: {dunya: 'AFW Surflon kaplamalı çelik tel', turkiye: 'Kaplamalı çelik tel'},
+  };
+  const LURE = {
+    egi: {dunya: 'Yamashita Egi-Oh K', turkiye: 'DTD / Yo-Zuri Aurie-Q egi', kw: ['egi', 'kalamar', 'zoka']},
+    ahtapot: {dunya: 'Ahtapot egisi (Japon yapımı)', turkiye: 'Ahtapot zokası (yengeç tipi)', kw: ['ahtapot', 'egi', 'zoka']},
+    slowjig: {dunya: 'Shimano Ocea Stingray slow jig', turkiye: 'Hart / Savage Gear slow jig', kw: ['slow', 'jig']},
+    tairubber: {dunya: 'Daiwa Kohga Bayrubber', turkiye: 'Tai rubber zoka', kw: ['tai', 'rubber']},
+    inchiku: {dunya: 'Savage Gear SwimSquid Inchiku', turkiye: 'Savage Gear SwimSquid Inchiku', kw: ['inchiku']},
+    sabiki: {dunya: 'Hayabusa çapari takımı', turkiye: 'Hayabusa / Sasame çapari takımı', kw: ['çapari', 'capari', 'sabiki']},
+    minnow: {dunya: 'Duo Tide Minnow', turkiye: 'Rapala X-Rap', kw: ['minnow', 'rapala', 'maket']},
+    metal: {dunya: 'Shimano Coltsniper metal jig', turkiye: 'Savage Gear / Fujin metal jig', kw: ['metal', 'cast', 'jig']},
+    soft: {dunya: 'Ecogear Grass Minnow silikon', turkiye: 'Savage Gear / Delalande silikon', kw: ['silikon', 'soft', 'shad']},
+    trolling: {dunya: 'Yo-Zuri Crystal Minnow', turkiye: 'Rapala CD Magnum', kw: ['magnum', 'trolling', 'sırtı', 'kaşık']},
+    bigtroll: {dunya: 'Rapala X-Rap Magnum', turkiye: 'Halco Laser Pro', kw: ['magnum', 'laser', 'trolling']},
+    popper: {dunya: 'Shimano Ocea Bubble Dip', turkiye: 'Savage Gear popper / stickbait', kw: ['popper', 'stick']},
+    bigjig: {dunya: 'Shimano Ocea Stingray (ağır)', turkiye: 'Hart / Savage Gear ağır jig', kw: ['jig']},
+    samandira: {dunya: 'Kaliteli kaydırmalı şamandıra', turkiye: 'Kaydırmalı şamandıra', kw: ['şamandıra', 'samandira']},
+  };
+  // türler. fam: takım ailesi; hab: dipler; m: iyi aylar (null = yıl boyu); t: saatler; b: yemler (g gündüz, n gece); bol: bölgeler; sz: boylar
+  const S = (id, name, latin, fam, hab, depth, m, t, b, bol, sz, note) => ({id, name, latin, fam, hab, depth, m, t, b, bol, sz, note: note || ''});
+  const ALL = ['ege', 'akdeniz', 'marmara', 'karadeniz'], AEG = ['ege', 'akdeniz', 'marmara'];
+  const SPECIES = [
+    S('karagoz', 'Karagöz', 'Diplodus vulgaris', 'sk', ['kum', 'kum-kayalik', 'kayalik'], [5, 60], null, ['gunduz', 'gece', 'safak'], {g: ['Sülünez ince şerit', 'Karides'], n: ['Mamun', 'Sülünez']}, AEG, {porsiyon: '100–400 g', trofe: '0,5–1 kg'}),
+    S('isparoz', 'İsparoz', 'Diplodus annularis', 'sk', ['kum-kayalik', 'kum'], [2, 40], null, ['gunduz'], {g: ['Çimçim', 'Mamun parçası'], n: ['Mamun parçası']}, AEG, {porsiyon: '50–200 g'}),
+    S('izmarit', 'İzmarit', 'Spicara smaris', 'sk', ['kum', 'camur', 'karma'], [10, 80], null, ['gunduz'], {g: ['Karides', 'Mamun parçası']}, AEG, {porsiyon: '50–150 g'}),
+    S('kupes', 'Kupes', 'Boops boops', 'sk', ['karma', 'orta-su'], [0, 60], null, ['gunduz'], {g: ['Karides', 'Ekmek']}, AEG, {porsiyon: '50–200 g'}),
+    S('melanurya', 'Melanurya', 'Oblada melanura', 'sk', ['kayalik'], [0, 20], null, ['gunduz', 'safak'], {g: ['Karides', 'Ekmek']}, ['ege', 'akdeniz'], {porsiyon: '100–400 g'}),
+    S('mirmir', 'Mırmır', 'Lithognathus mormyrus', 'sk', ['kum'], [0, 30], null, ['gece', 'safak'], {g: ['Mamun', 'Boru kurdu'], n: ['Mamun', 'Boru kurdu']}, AEG, {porsiyon: '150–500 g'}),
+    S('sargoz', 'Sargoz', 'Diplodus sargus', 'so', ['kayalik', 'saf-kayalik'], [0, 50], null, ['gece', 'safak'], {g: ['Midye', 'Karides'], n: ['Mamun', 'Yengeç']}, AEG, {porsiyon: '200–800 g', trofe: '1–2,5 kg'}),
+    S('mercan', 'Mercan', 'Pagellus erythrinus', 'so', ['karma', 'kum-kayalik', 'camur'], [20, 120], null, ['gunduz', 'safak'], {g: ['Sülünez', 'Karides'], n: ['Mamun']}, AEG, {porsiyon: '150–600 g', trofe: '0,8–2 kg'}),
+    S('cipura', 'Çipura', 'Sparus aurata', 'so', ['kum-kayalik', 'kum', 'karma'], [2, 50], null, ['safak', 'gece'], {g: ['Çimçim', 'Karides', 'Midye'], n: ['Mamun', 'Yengeç']}, AEG, {porsiyon: '300 g–1,5 kg', trofe: '2–5 kg'}),
+    S('minakop', 'Minakop', 'Umbrina cirrosa', 'so', ['kum'], [0, 40], null, ['gece'], {n: ['Mamun', 'Karides']}, AEG, {porsiyon: '0,5–2 kg', trofe: '3–6 kg'}),
+    S('fangri', 'Fangri', 'Pagrus pagrus', 'sg', ['karma', 'kayalik', 'kum-kayalik'], [20, 150], null, ['gunduz', 'gece'], {g: ['Kalamar şerit', 'Sardalya'], n: ['Mamun salkım', 'Kalamar']}, ['ege', 'akdeniz'], {porsiyon: '0,5–2 kg', trofe: '3–8 kg'}),
+    S('sinarit', 'Sinarit', 'Dentex dentex', 'sg', ['kayalik', 'kum-kayalik'], [15, 120], null, ['safak', 'gece'], {g: ['Canlı kalamar', 'Canlı istavrit', 'Sülünez buketi'], n: ['Mamun mega salkım', 'Canlı kalamar']}, ['ege', 'akdeniz'], {porsiyon: '1–4 kg', trofe: '5–12 kg'}),
+    S('sinagrit', 'Sinagrit', 'Dentex gibbosus', 'sg', ['kayalik', 'karma'], [30, 150], null, ['gunduz', 'safak'], {g: ['Kalamar', 'Canlı istavrit']}, ['ege', 'akdeniz'], {porsiyon: '1–3 kg', trofe: '4–10 kg'}),
+    S('tranca', 'Trança', 'Pagrus auriga', 'sg', ['saf-kayalik', 'kayalik'], [20, 100], null, ['gece'], {n: ['Yengeç', 'Mamun mega salkım', 'Kalamar']}, ['ege', 'akdeniz'], {porsiyon: '2–5 kg', trofe: '5–15 kg'}),
+    S('eskina', 'Eşkina', 'Sciaena umbra', 'kaya', ['kayalik', 'kum-kayalik'], [2, 50], null, ['gece'], {n: ['Mamun', 'Karides', 'Yengeç']}, AEG, {porsiyon: '0,5–1,5 kg', trofe: '2–4 kg'}),
+    S('iskorpit', 'İskorpit', 'Scorpaena porcus', 'kaya', ['kayalik'], [2, 60], null, ['gece', 'gunduz'], {g: ['Kalamar', 'Sardalya'], n: ['Kalamar']}, ALL, {porsiyon: '100–400 g'}, 'Dikenleri zehirli; eldivenle tut.'),
+    S('lipsoz', 'Lipsoz', 'Scorpaena scrofa', 'kaya', ['kayalik', 'karma'], [20, 150], null, ['gunduz'], {g: ['Kalamar', 'Sardalya']}, ['ege', 'akdeniz'], {porsiyon: '0,5–1,5 kg', trofe: '2–3 kg'}, 'Dikenleri zehirli; eldivenle tut.'),
+    S('akya', 'Akya', 'Lichia amia', 'yirtici', ['kum-kayalik', 'orta-su'], [0, 40], [6, 7, 8, 9, 10], ['safak', 'gece'], {g: ['Canlı kefal', 'Canlı istavrit'], n: ['Canlı istavrit']}, AEG, {porsiyon: '2–6 kg', trofe: '8–20 kg'}),
+    S('levrek', 'Levrek', 'Dicentrarchus labrax', 'yirtici', ['kayalik', 'kum'], [0, 20], [10, 11, 12, 1, 2, 3, 4], ['gece', 'safak'], {g: ['Canlı karides', 'Sahte yem'], n: ['Mamun', 'Canlı karides']}, ALL, {porsiyon: '0,5–2 kg', trofe: '3–8 kg'}),
+    S('lufer', 'Lüfer', 'Pomatomus saltatrix', 'yirtici', ['orta-su'], [0, 40], [9, 10, 11, 12, 1], ['safak', 'gece'], {g: ['Canlı istavrit', 'Sahte yem'], n: ['Canlı istavrit']}, ['marmara', 'karadeniz', 'ege'], {porsiyon: '0,3–1 kg', trofe: '2–5 kg'}, 'Dişlidir: çelik tel ya da kalın florokarbon lider kullan.'),
+    S('palamut', 'Palamut', 'Sarda sarda', 'pelajikb', ['orta-su'], [0, 60], [8, 9, 10, 11, 12], ['safak', 'gunduz'], {g: ['Sahte yem', 'Kaşık']}, ['karadeniz', 'marmara', 'ege'], {porsiyon: '1–3 kg'}),
+    S('lambuka', 'Lambuka', 'Coryphaena hippurus', 'pelajikb', ['orta-su'], [0, 20], [8, 9, 10, 11], ['gunduz'], {g: ['Sahte yem', 'Canlı balık']}, ['ege', 'akdeniz'], {porsiyon: '1–5 kg', trofe: '8–15 kg'}),
+    S('orkinos', 'Orkinos (mavi yüzgeçli)', 'Thunnus thynnus', 'buyuk', ['orta-su'], [0, 200], [6, 7, 8, 9, 10], ['gunduz', 'safak'], {g: ['Sardalya parçası (chunk)', 'Canlı istavrit']}, AEG, {trofe: '50–300 kg'},
+      'Uluslararası kotaya (ICCAT) tabidir. Amatör avın izinli olup olmadığını, etiket ve yakala-bırak kurallarını güncel tebliğden kontrol et.'),
+    S('zargana', 'Zargana', 'Belone belone', 'pelajikk', ['orta-su'], [0, 10], [9, 10, 11, 3, 4, 5], ['gunduz'], {g: ['Balık şeridi']}, ALL, {porsiyon: '100–300 g'}),
+    S('istavrit', 'İstavrit', 'Trachurus spp.', 'pelajikk', ['orta-su', 'karma'], [5, 100], null, ['gunduz', 'safak'], {g: ['Çapari']}, ALL, {porsiyon: '50–300 g'}),
+    S('kolyoz', 'Kolyoz', 'Scomber colias', 'pelajikk', ['orta-su'], [5, 100], [8, 9, 10, 11], ['gunduz'], {g: ['Çapari']}, AEG, {porsiyon: '150–400 g'}),
+    S('uskumru', 'Uskumru', 'Scomber scombrus', 'pelajikk', ['orta-su'], [5, 100], [10, 11, 12, 1, 2, 3], ['gunduz'], {g: ['Çapari']}, ['karadeniz', 'marmara', 'ege'], {porsiyon: '150–400 g'}),
+    S('kefal', 'Kefal', 'Mugilidae', 'kefal', ['kum', 'camur'], [0, 10], null, ['gunduz'], {g: ['Ekmek hamuru', 'Karides']}, ALL, {porsiyon: '0,3–2 kg'}),
+    S('barbunya', 'Barbunya', 'Mullus barbatus', 'kum', ['camur', 'kum'], [10, 100], null, ['gunduz'], {g: ['Mamun parçası', 'Karides']}, ALL, {porsiyon: '50–200 g'}),
+    S('tekir', 'Tekir', 'Mullus surmuletus', 'kum', ['kum-kayalik', 'kum'], [5, 60], null, ['gunduz'], {g: ['Mamun parçası', 'Karides']}, ALL, {porsiyon: '100–300 g'}),
+    S('kirlangic', 'Kırlangıç', 'Chelidonichthys lucerna', 'kum', ['kum', 'camur'], [20, 150], null, ['gunduz'], {g: ['Kalamar', 'Karides', 'Sardalya']}, ALL, {porsiyon: '0,3–1 kg', trofe: '1,5–3 kg'}),
+    S('mezgit', 'Mezgit', 'Merlangius merlangus', 'kum', ['camur', 'kum'], [20, 120], [11, 12, 1, 2, 3], ['gunduz'], {g: ['Hamsi', 'Karides', 'Kalamar']}, ['karadeniz', 'marmara'], {porsiyon: '100–400 g'}),
+    S('dil', 'Dil', 'Solea solea', 'kum', ['kum', 'camur'], [2, 60], null, ['gece'], {n: ['Kurt (boru kurdu)', 'Mamun']}, ALL, {porsiyon: '200–600 g'}),
+    S('kalkan', 'Kalkan', 'Scophthalmus maximus', 'buyukdip', ['kum', 'camur'], [20, 80], null, ['gunduz', 'gece'], {g: ['Canlı istavrit', 'Canlı mezgit'], n: ['Canlı istavrit']}, ['karadeniz', 'marmara'], {porsiyon: '1–3 kg', trofe: '4–10 kg'}, 'Av yasağı dönemi ve boy sınırı vardır; güncel tebliği kontrol et.'),
+    S('lahos', 'Lahos', 'Epinephelus costae', 'buyukdip', ['kayalik'], [10, 80], null, ['gunduz'], {g: ['Canlı kalamar', 'Kalamar']}, ['ege', 'akdeniz'], {porsiyon: '1–3 kg', trofe: '4–8 kg'}, 'Boy ve av kuralları olabilir; güncel tebliği kontrol et.'),
+    S('orfoz', 'Orfoz', 'Epinephelus marginatus', 'buyukdip', ['kayalik', 'saf-kayalik'], [10, 100], null, ['gunduz'], {g: ['Canlı kalamar', 'Kalamar']}, ['ege', 'akdeniz'], {porsiyon: '2–6 kg', trofe: '8–20 kg'}, 'Koruma ya da ciddi kısıtlama altında olabilir; avlamadan önce güncel tebliği kontrol et.'),
+    S('kalamar', 'Kalamar', 'Loligo vulgaris', 'kafadan', ['kayalik', 'karma', 'orta-su'], [2, 60], [10, 11, 12, 1, 2, 3], ['gece', 'safak'], {g: ['Egi'], n: ['Egi', 'Kalamar çaparisi']}, ALL, {porsiyon: '100–500 g', trofe: '1–2 kg'}),
+    S('murekkep', 'Mürekkep balığı', 'Sepia officinalis', 'kafadan', ['kum', 'karma'], [2, 40], [2, 3, 4, 5], ['gunduz', 'safak'], {g: ['Egi']}, AEG, {porsiyon: '0,3–1,5 kg'}),
+    S('ahtapot', 'Ahtapot', 'Octopus vulgaris', 'kafadan', ['kayalik', 'karma'], [2, 60], null, ['gunduz'], {g: ['Ahtapot zokası', 'Yengeç']}, AEG, {porsiyon: '0,5–2 kg', trofe: '3–8 kg'}, 'Boy ve dönem sınırı olabilir; güncel tebliği kontrol et.'),
+  ];
+  // takım aileleri: iğne deseni ve boy aralığı (jp: No, w: # ve /0), köstek/beden/ana ip çapı (mm)
+  const FAM = {
+    sk: {name: 'Küçük ağızlılar', hook: {porsiyon: {p: ['chinu', 'maruseigo', 'iseama', 'baitholder'], jp: [1, 3], w: ['8', '4']}, trofe: {p: ['chinu', 'iseama', 'octopus'], jp: [3, 5], w: ['4', '1']}},
+      kostek: {porsiyon: [0.20, 0.26], trofe: [0.26, 0.30]}, beden: {porsiyon: [0.26, 0.33], trofe: [0.33, 0.40]}, ana: {porsiyon: [0.14, 0.18], trofe: [0.16, 0.20]}},
+    so: {name: 'Orta boy sparitler', hook: {porsiyon: {p: ['chinu', 'iseama', 'octopus', 'baitholder'], jp: [2, 4], w: ['4', '1']}, trofe: {p: ['octopus', 'jforged', 'circle'], jp: [4, 6], w: ['1/0', '3/0']}},
+      kostek: {porsiyon: [0.24, 0.30], trofe: [0.33, 0.40]}, beden: {porsiyon: [0.30, 0.36], trofe: [0.40, 0.57]}, ana: {porsiyon: [0.16, 0.20], trofe: [0.20, 0.28]}},
+    sg: {name: 'Güçlü sparitler ve sinarit', hook: {porsiyon: {p: ['octopus', 'circle', 'jforged'], w: ['1/0', '3/0']}, trofe: {p: ['jforged', 'circle', 'octopus', 'livebait'], w: ['3/0', '5/0']}},
+      kostek: {porsiyon: [0.35, 0.45], trofe: [0.40, 0.57]}, beden: {porsiyon: [0.45, 0.57], trofe: [0.57, 0.70]}, ana: {porsiyon: [0.20, 0.28], trofe: [0.28, 0.40]}},
+    kaya: {name: 'Kaya balıkları', hook: {porsiyon: {p: ['octopus', 'baitholder', 'chinu'], jp: [4, 6], w: ['2', '1/0']}, trofe: {p: ['octopus', 'jforged'], w: ['1/0', '3/0']}},
+      kostek: {porsiyon: [0.28, 0.35], trofe: [0.40, 0.50]}, beden: {porsiyon: [0.35, 0.45], trofe: [0.50, 0.60]}, ana: {porsiyon: [0.18, 0.23], trofe: [0.23, 0.33]}},
+    yirtici: {name: 'Yırtıcılar', hook: {porsiyon: {p: ['livebait', 'octopus', 'circle'], w: ['1', '2/0']}, trofe: {p: ['livebait', 'circle', 'jforged'], w: ['3/0', '6/0']}},
+      kostek: {porsiyon: [0.35, 0.45], trofe: [0.50, 0.70]}, beden: {porsiyon: [0.45, 0.57], trofe: [0.60, 0.80]}, ana: {porsiyon: [0.20, 0.28], trofe: [0.28, 0.40]}},
+    kum: {name: 'Kum ve çamur balıkları', hook: {porsiyon: {p: ['aberdeen', 'baitholder', 'chinu', 'maruseigo'], jp: [1, 3], w: ['8', '4']}, trofe: {p: ['baitholder', 'aberdeen', 'octopus'], w: ['4', '1']}},
+      kostek: {porsiyon: [0.18, 0.24], trofe: [0.24, 0.30]}, beden: {porsiyon: [0.26, 0.30], trofe: [0.30, 0.35]}, ana: {porsiyon: [0.12, 0.16], trofe: [0.14, 0.18]}},
+    buyukdip: {name: 'Büyük dip balıkları', hook: {porsiyon: {p: ['livebait', 'circle', 'jforged'], w: ['3/0', '5/0']}, trofe: {p: ['livebait', 'circle', 'jforged'], w: ['5/0', '8/0']}},
+      kostek: {porsiyon: [0.50, 0.60], trofe: [0.60, 0.80]}, beden: {porsiyon: [0.60, 0.80], trofe: [0.80, 1.00]}, ana: {porsiyon: [0.28, 0.37], trofe: [0.33, 0.47]}},
+    kefal: {name: 'Kefal', hook: {porsiyon: {p: ['chinu', 'maruseigo', 'aberdeen'], jp: [1, 3], w: ['12', '8']}}, kostek: {porsiyon: [0.16, 0.22]}, beden: {porsiyon: [0.22, 0.26]}, ana: {porsiyon: [0.20, 0.26]}},
+    pelajikk: {name: 'Küçük sürü balıkları', hook: {porsiyon: {p: ['sabiki'], w: ['12', '8']}}, kostek: {porsiyon: [0.18, 0.25]}, beden: {porsiyon: [0.30, 0.40]}, ana: {porsiyon: [0.14, 0.20]}},
+    pelajikb: {name: 'Büyük sürü balıkları', hook: {porsiyon: {p: ['treble', 'livebait'], w: ['2', '2/0']}, trofe: {p: ['livebait', 'circle'], w: ['2/0', '5/0']}}, kostek: {porsiyon: [0.40, 0.50], trofe: [0.50, 0.70]}, beden: {porsiyon: [0.50, 0.60]}, ana: {porsiyon: [0.20, 0.28], trofe: [0.28, 0.37]}},
+    buyuk: {name: 'Orkinos ve büyük av', hook: {trofe: {p: ['circle', 'livebait'], w: ['7/0', '10/0'], big: true}}, kostek: {trofe: [1.20, 1.60]}, beden: {trofe: [1.20, 1.60]}, ana: {trofe: [0.40, 0.52]}},
+    kafadan: {name: 'Kafadanbacaklılar'},
+  };
+  // teknikler ve takım düzenleri
+  const TECH = {
+    dip: {name: 'Dip avı (yemli)', modes: ['tekne', 'kiyi'], fams: ['sk', 'so', 'sg', 'kaya', 'kum', 'yirtici', 'buyukdip'], lay: ['hirsizli', 'iki', 'tek', 'kaydirmali'], code: 'D', desc: 'Kurşunla dipte, doğal yemle: hırsızlı, 2 iğneli, tek iğneli ya da kaydırmalı takım.'},
+    canli: {name: 'Canlı yemle büyük av', modes: ['tekne'], fams: ['sg', 'yirtici', 'buyukdip'], lay: ['canli'], code: 'C', desc: 'Canlı kalamar, istavrit ya da kefalle sinarit, akya, lahos, kalkan.'},
+    jig: {name: 'Jig (slow jig, tai rubber, inchiku)', modes: ['tekne'], fams: ['so', 'sg', 'kaya', 'yirtici', 'buyukdip'], lay: ['slowjig', 'tairubber', 'inchiku'], code: 'J', desc: 'Dikey sahte yemlerle dip ve orta su; çipura, fangri, sinarit, lahos.'},
+    capari: {name: 'Çapari', modes: ['tekne', 'kiyi'], fams: ['pelajikk', 'sk'], lay: ['capari'], code: 'Ç', desc: 'İstavrit, kolyoz, uskumru, izmarit için çok iğneli takım.'},
+    eging: {name: 'Kalamar, mürekkep ve ahtapot', modes: ['tekne', 'kiyi'], fams: ['kafadan'], lay: ['egi', 'ahtapot'], code: 'E', desc: 'Egi (kalamar zokası) ve ahtapot zokası; kalamar için gece ışıkta.'},
+    sirti: {name: 'Sırtı (trolling)', modes: ['tekne'], fams: ['pelajikb', 'yirtici'], lay: ['sirti'], code: 'S', desc: 'Seyir hâlinde sahte yem çekme: palamut, lüfer, lambuka, akya.'},
+    orkinos: {name: 'Orkinos (büyük oyun)', modes: ['tekne'], fams: ['buyuk'], lay: ['chunking', 'popping', 'agirjig', 'agirsirti'], code: 'O', desc: 'Chunking, popping, ağır jig ve ağır sırtı. Ağır takım ve tecrübe ister.'},
+    surf: {name: 'Surf (kıyıdan dibe atma)', modes: ['kiyi'], fams: ['sk', 'so', 'kum', 'yirtici'], lay: ['paternoster', 'kaydirmali'], code: 'K', desc: 'Uzun kamışla dibe atma: çipura, mırmır, sargoz, levrek, minakop.'},
+    lrf: {name: 'LRF (hafif kıyı)', modes: ['kiyi'], fams: ['sk', 'kaya', 'pelajikk', 'yirtici'], lay: ['lrf'], code: 'L', desc: '1–7 g jighead ve silikonla istavrit, iskorpit, isparoz, küçük levrek.'},
+    spin: {name: 'Spin (sahte yem atıp sarma)', modes: ['kiyi', 'tekne'], fams: ['yirtici', 'pelajikb'], lay: ['spin'], code: 'P', desc: 'Maket balık ve metal jigle levrek, lüfer, palamut, akya.'},
+    samandira: {name: 'Şamandıralı', modes: ['kiyi', 'tekne'], fams: ['sk', 'kefal', 'pelajikk', 'yirtici'], lay: ['samandira'], code: 'Ş', desc: 'Kefal, melanurya, zargana, izmarit; canlı karidesle levrek.'},
+  };
+  // dip standartları (cm, g): porsiyon/trofe × gündüz/gece; kayalıkta kısa köstek
+  const STD = {porsiyon: {gunduz: {ust: 25, orta: 30, hirsiz: 80, ara: 50}, gece: {ust: 25, orta: 30, hirsiz: 70, ara: 50}, g: [100, 120], max: 150},
+    trofe: {gunduz: {ust: 35, orta: 40, hirsiz: 100, ara: 70}, gece: {ust: 30, orta: 35, hirsiz: 90, ara: 70}, g: [150, 180], max: 180}};
+  // düzenler: yuvalar [anahtar, etiket, tür, rol]; rol: hook (aile iğnesi), hook+ (bir boy büyük), braid/beden/kostek/sok/mono (aile çapları), lure:<tip>
+  const LAY = {
+    hirsizli: {name: 'Hırsızlı (3 iğne)', slots: [['ust', 'Üst', 'hook'], ['orta', 'Orta', 'hook'], ['hirsiz', 'Hırsız', 'hook+'], ['braid', 'Ana ip', 'braid'], ['beden', 'Beden', 'beden'], ['kostek', 'Köstek', 'kostek']]},
+    iki: {name: '2 iğneli', slots: [['ust', 'Üst', 'hook'], ['hirsiz', 'Alt (hırsız)', 'hook+'], ['braid', 'Ana ip', 'braid'], ['beden', 'Beden', 'beden'], ['kostek', 'Köstek', 'kostek']]},
+    tek: {name: 'Tek iğne (uzun köstek)', slots: [['igne', 'İğne', 'hook+'], ['braid', 'Ana ip', 'braid'], ['beden', 'Beden', 'beden'], ['kostek', 'Köstek', 'kostek']]},
+    kaydirmali: {name: 'Kaydırmalı kurşun (tek iğne)', slots: [['igne', 'İğne', 'hook'], ['braid', 'Ana ip', 'braid'], ['kostek', 'Köstek', 'kostek']]},
+    canli: {name: 'Canlı yem takımı', slots: [['igne', 'İğne', 'hook'], ['braid', 'Ana ip', 'braid'], ['beden', 'Beden', 'beden'], ['kostek', 'Köstek', 'kostek']]},
+    slowjig: {name: 'Slow jig', slots: [['yem', 'Jig', 'lure:slowjig'], ['igne', 'Assist', 'assist'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    tairubber: {name: 'Tai rubber', slots: [['yem', 'Tai rubber', 'lure:tairubber'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    inchiku: {name: 'Inchiku', slots: [['yem', 'Inchiku', 'lure:inchiku'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    capari: {name: 'Çapari', slots: [['yem', 'Çapari', 'lure:sabiki'], ['braid', 'Ana ip', 'braid']]},
+    egi: {name: 'Egi (kalamar zokası)', slots: [['yem', 'Egi', 'lure:egi'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    ahtapot: {name: 'Ahtapot zokası', slots: [['yem', 'Ahtapot zokası', 'lure:ahtapot'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    sirti: {name: 'Sırtı', slots: [['yem', 'Sırtı yemi', 'lure:trolling'], ['ana', 'Ana ip', 'mono'], ['lider', 'Lider', 'kostek']]},
+    chunking: {name: 'Chunking (parça yem)', slots: [['igne', 'Circle iğne', 'hook'], ['ana', 'Ana ip', 'mono'], ['lider', 'Lider', 'kostek']]},
+    popping: {name: 'Popping / stickbait', slots: [['yem', 'Popper / stickbait', 'lure:popper'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    agirjig: {name: 'Ağır jig', slots: [['yem', 'Jig', 'lure:bigjig'], ['igne', 'Assist', 'assist'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    agirsirti: {name: 'Ağır sırtı', slots: [['yem', 'Sırtı yemi', 'lure:bigtroll'], ['ana', 'Ana ip', 'mono'], ['lider', 'Lider', 'kostek']]},
+    paternoster: {name: '2 iğneli paternoster (surf)', slots: [['ust', 'Üst iğne', 'hook'], ['alt', 'Alt iğne', 'hook'], ['ana', 'Ana ip', 'mono'], ['sok', 'Şok lider', 'sok'], ['kostek', 'Köstek', 'kostek']]},
+    lrf: {name: 'LRF jighead', slots: [['igne', 'Jighead', 'jighead'], ['yem', 'Silikon', 'lure:soft'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    spin: {name: 'Spin', slots: [['yem', 'Sahte yem', 'lure:minnow'], ['braid', 'Ana ip', 'braid'], ['lider', 'Lider', 'kostek']]},
+    samandira: {name: 'Şamandıralı', slots: [['igne', 'İğne', 'hook'], ['yem', 'Şamandıra', 'lure:samandira'], ['ana', 'Ana ip', 'mono'], ['kostek', 'Köstek', 'kostek']]},
+  };
+  // teknik başına sabit ölçüler (ailelerden bağımsız): ana ip ve lider çapları, kurşun/yem ağırlığı, boylar
+  const FIX = {
+    slowjig: {braid: [0.20, 0.285], kostek: [0.40, 0.57], g: [100, 250], assist: ['1/0', '3/0'], len: {lider: 400}},
+    tairubber: {braid: [0.148, 0.205], kostek: [0.30, 0.40], g: [60, 150], len: {lider: 400}},
+    inchiku: {braid: [0.165, 0.235], kostek: [0.35, 0.45], g: [80, 200], len: {lider: 400}},
+    capari: {braid: [0.165, 0.235], g: [30, 80], sabiki: ['12', '6']},
+    egi: {braid: [0.128, 0.165], kostek: [0.20, 0.28], egi: '2,5–3,5', len: {lider: 200}},
+    ahtapot: {braid: [0.235, 0.285], kostek: [0.50, 0.70], len: {lider: 100}},
+    sirti: {mono: [0.40, 0.60], kostek: [0.50, 0.70], len: {lider: 300}},
+    chunking: {mono: [0.70, 0.90], kostek: [0.90, 1.20], hook: {p: ['circle'], w: ['7/0', '10/0'], big: true}, len: {lider: 400}},
+    popping: {braid: [0.405, 0.52], kostek: [1.20, 1.60], g: [100, 200], len: {lider: 250}},
+    agirjig: {braid: [0.37, 0.47], kostek: [1.00, 1.40], g: [200, 400], assist: ['7/0', '10/0'], len: {lider: 300}},
+    agirsirti: {mono: [0.80, 1.00], kostek: [1.50, 2.00], len: {lider: 400}},
+    paternoster: {mono: [0.30, 0.35], sok: [0.50, 0.60], g: [80, 150], len: {kostek: 35, ara: 60}},
+    lrf: {braid: [0.104, 0.128], kostek: [0.18, 0.25], jighead: ['8', '4'], g: [1, 7], len: {lider: 100}},
+    spin: {braid: [0.148, 0.205], kostek: [0.30, 0.45], g: [10, 40], len: {lider: 100}},
+    samandira: {mono: [0.20, 0.26], kostek: [0.16, 0.22], g: [2, 8], hook: {p: ['aberdeen', 'chinu', 'maruseigo'], jp: [1, 3], w: ['12', '6']}, len: {kostek: 50}},
+  };
+  const REGIONS = [['ege', 'Ege'], ['marmara', 'Marmara'], ['karadeniz', 'Karadeniz'], ['akdeniz', 'Akdeniz']];
+  return {PAT, COMPAT, HOOK, LINE, LURE, SPECIES, FAM, TECH, STD, LAY, FIX, REGIONS};
+})();
+// konumdan kaba bölge tahmini (kullanıcı değiştirebilir)
+function regionOf(L){
+  if (!L) return 'ege';
+  if (L.lat > 40.9 && L.lon > 27.6) return 'karadeniz';
+  if (L.lat > 40.25 && L.lat < 41.15 && L.lon > 26.6 && L.lon < 29.95) return 'marmara';
+  if (L.lat < 36.95 && L.lon > 28.2) return 'akdeniz';
+  return 'ege';
+}
+
 // ---------------------------------------------------------------- 22 · rig sistemleri, envanter dizini, türler
 // Genel rig biçimi: her rigin "yuvaları" (üst/orta/hırsız iğne, ana ip, beden, köstek…) ve her yuva için üç malzeme seviyesi:
 // dunya (dünyanın en iyisi), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
@@ -1002,21 +1228,7 @@ const TIERS = ['dunya', 'turkiye', 'envanter'];
 const TIER_TXT = {dunya: 'Dünyanın en iyisi', turkiye: "Türkiye'de en iyi", envanter: 'Envanterimden'};
 const SLOT_LBL = {ust: 'Üst', orta: 'Orta', hirsiz: 'Hırsız', braid: 'Ana ip', beden: 'Beden', kostek: 'Köstek'};
 const LEN_LBL = {ust: 'köstek üst', orta: 'orta', hirsiz: 'hırsız', ara: 'köstek arası', kostek: 'köstek', lider: 'lider', sok: 'şok lider'};
-const SPECIES_BASE = [
-  ['cipura', 'Çipura', 'Sparus aurata'], ['karagoz', 'Karagöz', 'Diplodus vulgaris'], ['sargoz', 'Sargoz', 'Diplodus sargus'],
-  ['isparoz', 'İsparoz', 'Diplodus annularis'], ['mercan', 'Mercan', 'Pagellus erythrinus'], ['fangri', 'Fangri', 'Pagrus pagrus'],
-  ['sinarit', 'Sinarit', 'Dentex dentex'], ['sinagrit', 'Sinagrit', 'Dentex gibbosus'], ['tranca', 'Trança', 'Pagrus auriga'],
-  ['eskina', 'Eşkina', 'Sciaena umbra'], ['akya', 'Akya', 'Lichia amia'], ['levrek', 'Levrek', 'Dicentrarchus labrax'],
-  ['izmarit', 'İzmarit', 'Spicara smaris'], ['mirmir', 'Mırmır', 'Lithognathus mormyrus'], ['kupes', 'Kupes', 'Boops boops'],
-  ['melanurya', 'Melanurya', 'Oblada melanura'], ['minakop', 'Minakop', 'Umbrina cirrosa'], ['lahos', 'Lahos', 'Epinephelus costae'],
-  ['orfoz', 'Orfoz', 'Epinephelus marginatus'], ['iskorpit', 'İskorpit', 'Scorpaena porcus'], ['lipsoz', 'Lipsoz', 'Scorpaena scrofa'],
-  ['kirlangic', 'Kırlangıç', 'Chelidonichthys lucerna'], ['barbunya', 'Barbunya', 'Mullus barbatus'], ['tekir', 'Tekir', 'Mullus surmuletus'],
-  ['mezgit', 'Mezgit', 'Merlangius merlangus'], ['kalkan', 'Kalkan', 'Scophthalmus maximus'], ['dil', 'Dil', 'Solea solea'],
-  ['palamut', 'Palamut', 'Sarda sarda'], ['lufer', 'Lüfer', 'Pomatomus saltatrix'], ['orkinos', 'Orkinos (mavi yüzgeçli)', 'Thunnus thynnus'],
-  ['lambuka', 'Lambuka', 'Coryphaena hippurus'], ['zargana', 'Zargana', 'Belone belone'], ['istavrit', 'İstavrit', 'Trachurus spp.'],
-  ['kolyoz', 'Kolyoz', 'Scomber colias'], ['uskumru', 'Uskumru', 'Scomber scombrus'], ['kefal', 'Kefal', 'Mugilidae'],
-  ['kalamar', 'Kalamar', 'Loligo vulgaris'], ['ahtapot', 'Ahtapot', 'Octopus vulgaris'], ['murekkep', 'Mürekkep balığı', 'Sepia officinalis'],
-].map(([id, name, latin]) => ({id, name, latin}));
+const SPECIES_BASE = KB.SPECIES;   // 21-kb.js
 
 let ITEMS = {}, SPECIES = {}, RIGS = {}, RIG_LIST = [], SETUPS = {};
 const pkgOn = () => !!(D && S.systems.ozel);
@@ -1043,7 +1255,7 @@ function pkgRigs(){
 }
 function allRigs(){
   let out = pkgRigs();
-  Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => Object.assign({sys: sy.id}, r))); });
+  Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => resolveRig(Object.assign({sys: sy.id}, r)))); });
   return out;
 }
 function indexAll(){
@@ -1089,11 +1301,247 @@ function shoppingList(){
   RIG_LIST.forEach(rg => missingOf(rg).forEach(sl => {
     const e = sl.t.envanter || {}; const tk = sl.t.turkiye || {};
     const k = e.item ? e.item + '|' + (e.size || '-') : 'x|' + (tk.name || e.name || sl.label) + '|' + (tk.size || '');
-    const n = need[k] = need[k] || {k, item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, rigs: []};
+    const n = need[k] = need[k] || {k, item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, rigs: [], kind: sl.kind, sp: sl.sp || null};
     if (!n.rigs.includes(rg.code || rg.name)) n.rigs.push(rg.code || rg.name);
   }));
   return Object.values(need);
 }
+
+// ---------------------------------------------------------------- 26 · Rig Atölyesi motoru: cevaplardan rig sistemi kurar ve envanterle eşleştirir
+// Her yuvanın bir "ölçüsü" vardır (iğne deseni + boy aralığı, ip çapı aralığı, yem tipi + ağırlık). Üç seviye:
+//   dunya    → ölçüye uyan dünyanın en iyi serisi
+//   turkiye  → envanterde ölçüye tam uyan kalem varsa o (✓), yoksa Türkiye'de bulunan en iyi seri
+//   envanter → envanterdeki en yakın uyumlu kalem (gerekirse bir boy oynar); yoksa eksik
+function hookIdx(s){
+  s = String(s == null ? '' : s).trim();
+  let m = s.match(/^no\s*[:.]?\s*(\d+)/i); if (m) return {sc: 'jp', v: +m[1]};
+  m = s.match(/(\d+)\s*\/\s*0/); if (m) return {sc: 'w', v: +m[1] - 1};
+  m = s.match(/^(?:euro\s*|#\s*)?(\d+)$/i); if (m) return {sc: 'w', v: -(+m[1])};
+  return null;
+}
+const hookFmt = (sc, v) => sc === 'jp' ? 'No:' + v : v >= 0 ? (v + 1) + '/0' : '#' + (-v);
+const wRange = a => a ? [hookIdx(a[0]).v, hookIdx(a[1]).v] : null;
+const PE_MM = [[0.3, 0.09], [0.4, 0.104], [0.6, 0.128], [0.8, 0.148], [1, 0.165], [1.2, 0.185], [1.5, 0.205], [2, 0.235], [2.5, 0.26], [3, 0.285], [4, 0.33], [5, 0.37], [6, 0.405], [8, 0.47], [10, 0.52]];
+const peOf = mm => PE_MM.reduce((b, x) => Math.abs(x[1] - mm) < Math.abs(b[1] - mm) ? x : b)[0];
+const mmTxt = mm => mm.toFixed(mm < 0.1 ? 3 : 2).replace(/0$/, '').replace('.', ',') + ' mm';
+function patOf(it){
+  if (it.pattern) { const k = Object.keys(KB.PAT).find(p => KB.PAT[p].name === it.pattern); if (k) return k; }
+  const t = trLower([it.type, it.model, it.name].join(' '));
+  if (/chinu/.test(t)) return 'chinu'; if (/maruseigo/.test(t)) return 'maruseigo'; if (/iseama/.test(t)) return 'iseama';
+  if (/assist/.test(t)) return 'assist'; if (/jig ?head/.test(t)) return 'jighead'; if (/çapari|capari|sabiki/.test(t)) return 'sabiki';
+  if (/treble|üçlü|uclu/.test(t)) return 'treble'; if (/circle|mutsu|mutu/.test(t)) return 'circle';
+  if (/uzun pala|aberdeen/.test(t)) return 'aberdeen'; if (/baitholder|pala/.test(t)) return 'baitholder';
+  if (/live ?bait|canlı yem|hoodlum/.test(t)) return 'livebait'; if (/octopus|beak|ssw/.test(t)) return 'octopus';
+  if (/gorilla|jobu|forged|dövme|j-hook|j hook/.test(t)) return 'jforged';
+  return null;
+}
+function lineMm(it){
+  const t = [it.name, it.model, it.spec].join(' ').replace(/(\d),(\d)/g, '$1.$2');
+  let m = t.match(/(\d+\.\d+)\s*mm/i) || t.match(/\b(0\.\d{2,3})\b/); if (m) return +m[1];
+  m = t.match(/pe\s*#?\s*(\d+(?:\.\d+)?)/i); if (m) { const pe = +m[1]; return PE_MM.reduce((b, x) => Math.abs(x[0] - pe) < Math.abs(b[0] - pe) ? x : b)[1]; }
+  return null;
+}
+const lureG = it => { const m = [it.name, it.model, it.spec].join(' ').match(/(\d+(?:[.,]\d+)?)\s*g\b/i); return m ? +m[1].replace(',', '.') : null; };
+// ölçüye göre envanterden en iyi kalem: {strict, loose}
+function resolveSlot(sp){
+  let best = null, bestS = null;
+  const take = (c, strict) => { if (!best || c.score < best.score) best = c; if (strict && (!bestS || c.score < bestS.score)) bestS = c; };
+  Object.values(ITEMS).forEach(it => {
+    if (sp.kind === 'hook') {
+      if (it.cat !== 'hook') return; const p = patOf(it); if (!p) return;
+      const pref = sp.p.indexOf(p);
+      if (pref < 0 && !KB.COMPAT.some(g => g.includes(p) && sp.p.some(q => g.includes(q)))) return;
+      const mid = (sp.lo + sp.hi) / 2;
+      sizesOf(it).forEach(sz => {
+        const h = hookIdx(sz); if (!h || h.sc !== sp.sc) return;
+        const inR = h.v >= sp.lo && h.v <= sp.hi; if (!inR && (h.v < sp.lo - 1 || h.v > sp.hi + 1)) return;
+        const ok = usable(stockOf(it.id, sz));
+        take({item: it.id, name: it.name, size: sz, ok, score: (pref >= 0 ? pref : 6) * 2 + Math.abs(h.v - mid) + (inR ? 0 : 3) + (ok ? 0 : 20)}, ok && inR && pref >= 0 && pref <= 1);
+      });
+    } else if (sp.kind === 'line') {
+      if (!sp.cats.includes(it.cat)) return; const mm = lineMm(it); if (mm == null) return;
+      const inR = mm >= sp.lo * 0.93 && mm <= sp.hi * 1.07; if (!inR && (mm < sp.lo * 0.8 || mm > sp.hi * 1.25)) return;
+      const ok = usable(stockOf(it.id, '-')); const mid = (sp.lo + sp.hi) / 2;
+      take({item: it.id, name: it.name, size: null, ok, score: Math.abs(mm - mid) / mid * 10 + (inR ? 0 : 3) + (ok ? 0 : 20) + sp.cats.indexOf(it.cat) * 2}, ok && inR && it.cat === sp.cats[0]);
+    } else if (sp.kind === 'lure') {
+      if (!['jig', 'lure', 'hook', 'terminal'].includes(it.cat)) return;
+      const t = trLower([it.name, it.model, it.spec, it.type].join(' '));
+      if (!sp.kw.some(k => t.indexOf(trLower(k)) >= 0)) return;
+      const g = lureG(it); const inR = !sp.g || g == null || (g >= sp.g[0] && g <= sp.g[1]);
+      const ok = usable(stockOf(it.id, sizesOf(it)[0]));
+      take({item: it.id, name: it.name, size: sizesOf(it)[0] !== '-' ? sizesOf(it)[0] : null, ok, score: (inR ? 0 : 3) + (ok ? 0 : 20)}, ok && inR);
+    }
+  });
+  return {strict: bestS, loose: best};
+}
+// sihirbaz rigini o anki envanterle çöz (envanter değişince rigler kendiliğinden güncellenir)
+function resolveRig(rg){
+  const slots = rg.slots.map(sl => {
+    if (!sl.sp) return sl;
+    const r = resolveSlot(sl.sp);
+    const t = {dunya: sl.t.dunya, turkiye: r.strict ? {name: r.strict.name, size: r.strict.size, item: r.strict.item, inv: true} : sl.t.turkiye,
+      envanter: r.loose ? {name: r.loose.name, size: r.loose.size, item: r.loose.item} : {name: '', size: null, item: null}};
+    return Object.assign({}, sl, {t});
+  });
+  return Object.assign({}, rg, {slots});
+}
+// ---- yuva ölçüsü ve ürün önerisi
+function hookSpec(spec, plus){
+  let pats = spec.p.slice(); let sc = KB.PAT[pats[0]].sc;
+  if (sc === 'jp' && !spec.jp) sc = 'w';
+  if (sc === 'w' && !spec.w) sc = 'jp';
+  pats = pats.filter(p => KB.PAT[p].sc === sc).concat(pats.filter(p => KB.PAT[p].sc !== sc));
+  let [lo, hi] = sc === 'jp' ? spec.jp : wRange(spec.w);
+  if (plus) { lo += 1; hi += 1; }
+  return {kind: 'hook', p: pats, sc, lo, hi, big: !!spec.big};
+}
+function prodHook(sp){
+  const p0 = sp.p[0]; const prod = (sp.big && p0 === 'circle') ? KB.HOOK.bigcircle : KB.HOOK[p0] || KB.HOOK.octopus;
+  const sz = hookFmt(sp.sc, Math.round((sp.lo + sp.hi) / 2));
+  return {dunya: {name: prod.dunya, size: sz}, turkiye: {name: prod.turkiye, size: sz}};
+}
+function prodLine(sp, kind){
+  const mid = (sp.lo + sp.hi) / 2;
+  const prod = kind === 'braid' ? KB.LINE.braid : kind === 'mono' ? KB.LINE.mono : kind === 'sok' ? KB.LINE.shock : (sp.lo >= 0.8 ? KB.LINE.fcbig : KB.LINE.fc);
+  const sz = mmTxt(mid) + (kind === 'braid' ? ' (≈PE ' + String(peOf(mid)).replace('.', ',') + ')' : '');
+  return {dunya: {name: prod.dunya, size: sz}, turkiye: {name: prod.turkiye, size: sz}};
+}
+const rangeTxt = sp => sp.kind === 'hook' ? KB.PAT[sp.p[0]].name + ' ' + hookFmt(sp.sc, sp.lo) + '–' + hookFmt(sp.sc, sp.hi) :
+  sp.kind === 'line' ? mmTxt(sp.lo) + '–' + mmTxt(sp.hi) : (sp.g ? sp.g[0] + '–' + sp.g[1] + ' g' : '');
+function slotFor(role, F, X, klass, rock){
+  const fk = o => o ? (o[klass] || o.porsiyon || o.trofe) : null;
+  if (role === 'hook' || role === 'hook+') {
+    const spec = X.hook || fk(F.hook); if (!spec) return null;
+    const sp = hookSpec(spec, role === 'hook+'); return {sp, t: prodHook(sp)};
+  }
+  if (role === 'assist' || role === 'jighead') {
+    const sp = {kind: 'hook', p: [role], sc: 'w', lo: wRange(X[role])[0], hi: wRange(X[role])[1]};
+    const t = prodHook(sp); if (role === 'jighead' && X.g) { t.dunya.size += ' · ' + X.g.join('–') + ' g'; t.turkiye.size += ' · ' + X.g.join('–') + ' g'; }
+    return {sp, t};
+  }
+  if (['braid', 'beden', 'kostek', 'sok', 'mono'].includes(role)) {
+    let r = role === 'braid' ? (X.braid || fk(F.ana)) : role === 'mono' ? (X.mono || fk(F.ana)) : role === 'sok' ? X.sok : role === 'beden' ? fk(F.beden) : (X.kostek || fk(F.kostek));
+    if (!r) return null;
+    if (rock && (role === 'kostek' || role === 'beden')) r = [r[0] + 0.04, r[1] + 0.04];
+    const cats = role === 'braid' ? ['braid'] : role === 'mono' ? ['mono', 'braid'] : role === 'sok' ? ['mono', 'fc'] : ['fc', 'mono'];
+    const sp = {kind: 'line', cats, lo: r[0], hi: r[1]};
+    return {sp, t: prodLine(sp, role)};
+  }
+  if (role.indexOf('lure:') === 0) {
+    const type = role.slice(5); const L = KB.LURE[type];
+    const sp = {kind: 'lure', kw: L.kw, g: X.g || null};
+    const sz = type === 'egi' ? X.egi : type === 'sabiki' && X.sabiki ? '#' + X.sabiki[0] + '–#' + X.sabiki[1] : X.g ? X.g[0] + '–' + X.g[1] + ' g' : '';
+    return {sp, t: {dunya: {name: L.dunya, size: sz}, turkiye: {name: L.turkiye, size: sz}}};
+  }
+  return null;
+}
+const KLASS_TXT = {porsiyon: 'Porsiyonluk', trofe: 'Trofe'}, TIME_TXT = {gunduz: 'gündüz', gece: 'gece', her: 'gündüz/gece'};
+function topBaits(list, time){
+  const cnt = {};
+  list.forEach(s => { const arr = (time === 'gece' ? (s.b.n || s.b.g) : time === 'gunduz' ? (s.b.g || s.b.n) : (s.b.g || []).concat(s.b.n || [])) || []; arr.forEach((b, i) => { cnt[b] = (cnt[b] || 0) + (3 - Math.min(i, 2)); }); });
+  return Object.entries(cnt).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+}
+function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
+  const T = KB.TECH[tid], L = KB.LAY[lay], F = KB.FAM[fam] || {}, X = KB.FIX[lay] || {};
+  const slots = [];
+  L.slots.forEach(([k, label, role]) => { const s = slotFor(role, F, X, klass, rock); if (s) slots.push({k, label, kind: role.indexOf('lure') === 0 ? 'lure' : role, sp: s.sp, t: s.t}); });
+  const std = KB.STD[klass] || KB.STD.porsiyon; const tk = time === 'gece' ? 'gece' : 'gunduz';
+  let lengths = null, sinker = null;
+  if (lay === 'hirsizli') lengths = rock ? {ust: 8, orta: 10, hirsiz: 20, ara: std.gunduz.ara} : Object.assign({}, std[tk]);
+  else if (lay === 'iki') lengths = rock ? {ust: 10, hirsiz: 25, ara: std.gunduz.ara} : {ust: std[tk].ust, hirsiz: std[tk].hirsiz, ara: std[tk].ara};
+  else if (lay === 'tek') lengths = {kostek: rock ? 40 : klass === 'trofe' ? 120 : 80};
+  else if (lay === 'kaydirmali') lengths = {kostek: rock ? 40 : 80};
+  else if (lay === 'canli') lengths = {kostek: 150};
+  else if (X.len) lengths = Object.assign({}, X.len);
+  const rodMax = num(ans.rodMax);
+  if (['hirsizli', 'iki', 'tek'].includes(lay)) sinker = {g: std.g.slice(), max: rodMax || std.max};
+  else if (lay === 'kaydirmali') sinker = ans.mode === 'kiyi' || tid === 'surf' ? {g: [30, 80], max: rodMax || 120} : {g: [60, 120], max: rodMax || 150};
+  else if (lay === 'canli') sinker = {g: [150, 300], max: rodMax || 300};
+  else if (lay === 'paternoster' || lay === 'capari' || lay === 'samandira') sinker = X.g ? {g: X.g.slice(), max: rodMax || X.g[1]} : null;
+  const months = list.every(s => s.m) ? [...new Set(list.flatMap(s => s.m))].sort((a, b) => a - b) : null;
+  const hab = [...new Set(list.flatMap(s => s.hab))].filter(b => b !== 'orta-su');
+  let bottom = rock ? ['kayalik', 'saf-kayalik'] : (ans.bottoms && ans.bottoms.length ? ans.bottoms.filter(b => hab.includes(b) || (b === 'karma')) : hab);
+  if (!bottom.length) bottom = hab.length ? hab : ['karma'];
+  const baits = topBaits(list, time);
+  const names = list.map(s => s.name);
+  const target = names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '');
+  const isDip = ['dip', 'surf', 'canli'].includes(tid);
+  const code = isDip ? (time === 'gece' ? 'N' : time === 'gunduz' ? 'G' : 'H') + '-' + (klass === 'trofe' ? 'T' : 'P') + n : T.code + n;
+  const mode = (ans.mode === 'kiyi' && T.modes.includes('kiyi')) ? 'kiyi' : T.modes.includes('tekne') ? 'tekne' : 'kiyi';
+  const notes = [];
+  if (rock) notes.push({k: 'Kayalık', t: 'Köstekler kısa ve bir boy kalın; takılmaya karşı kurşunu ince misinayla (kopma bağı) bağla.'});
+  [...new Set(list.map(s => s.note).filter(Boolean))].forEach(t => notes.push({k: 'Dikkat', t}));
+  slots.forEach(sl => { if (sl.sp) notes.push({k: sl.label, t: 'ölçü ' + rangeTxt(sl.sp)}); });
+  if (months) notes.push({k: 'Mevsim', t: months.map(m => MON3[m - 1]).join(', ') + ' (genel bilgi, bölgene göre değişir)'});
+  return {id: '', code, name: target + ' · ' + L.name + (rock ? ' · kayalık' : ''), group: isDip ? (klass === 'trofe' ? 'T' : 'P') + (time === 'gece' ? 'N' : time === 'gunduz' ? 'G' : 'H') : tid,
+    groupName: isDip ? KLASS_TXT[klass] + ' ' + TIME_TXT[time] : T.name, mode, tech: tid, lay, fam, time, klass, species: list.map(s => s.id), target,
+    baitText: baits.slice(0, 2).join(' · '), bottom, season: months, window: null, core: isDip && klass === 'porsiyon' && !months && !rock, current: false, slots,
+    baits: baits.length ? {ana: {dunya: baits[0], turkiye: baits[0], envanter: baits[0]}, alt: {dunya: baits[1] || '', turkiye: baits[1] || '', envanter: baits[1] || ''}} : null,
+    lengths, own: rock, sinker, success: null, notes};
+}
+// sihirbaz cevaplarından rig listesi
+function genSystem(ans){
+  const out = []; const cnt = {};
+  const next = key => (cnt[key] = (cnt[key] || 0) + 1);
+  const chosen = ans.species.map(id => KB.SPECIES.find(s => s.id === id)).filter(Boolean);
+  const klassAns = ans.klass === 'ikisi' ? ['porsiyon', 'trofe'] : [ans.klass || 'porsiyon'];
+  const timeAns = ans.time === 'ikisi' ? ['gunduz', 'gece'] : [ans.time || 'gunduz'];
+  const rockOk = !ans.bottoms || !ans.bottoms.length || ans.bottoms.some(b => b === 'kayalik' || b === 'saf-kayalik');
+  ans.techs.forEach(tid => {
+    const T = KB.TECH[tid]; if (!T) return;
+    let lays = (ans.lay && ans.lay[tid] && ans.lay[tid].length) ? ans.lay[tid].filter(l => T.lay.includes(l)) : [T.lay[0]];
+    if (ans.size === 'sade') lays = lays.slice(0, 1);
+    const groups = {};
+    chosen.filter(s => T.fams.includes(s.fam)).forEach(s => {
+      let g = s.fam;
+      if (tid === 'eging') g = s.id === 'ahtapot' ? 'ahtapot' : 'egi';
+      (groups[g] = groups[g] || []).push(s);
+    });
+    Object.keys(groups).forEach(g => {
+      const list = groups[g]; const fam = list[0].fam;
+      const F = KB.FAM[fam] || {};
+      const famK = F.hook ? Object.keys(F.hook) : ['porsiyon'];
+      let klasses = klassAns.filter(k => famK.includes(k) && list.some(s => s.sz[k]));
+      if (!klasses.length) klasses = [famK.includes('porsiyon') && list.some(s => s.sz.porsiyon) ? 'porsiyon' : 'trofe'];
+      const dayOk = list.some(s => s.t.includes('gunduz') || s.t.includes('safak')), nightOk = list.some(s => s.t.includes('gece') || s.t.includes('safak'));
+      let times = timeAns.filter(t => t === 'gunduz' ? dayOk : nightOk); if (!times.length) times = timeAns.slice(0, 1);
+      const isDip = ['dip', 'surf', 'canli'].includes(tid);
+      if (!isDip || ans.size === 'sade') times = ['her'];
+      if (ans.size === 'sade') klasses = klasses.slice(0, 1);
+      const layList = tid === 'eging' ? [g === 'ahtapot' ? 'ahtapot' : 'egi'] : lays;
+      layList.forEach(lay => klasses.forEach(k => times.forEach(tm => {
+        const key = isDip ? (tm === 'gece' ? 'N' : tm === 'gunduz' ? 'G' : 'H') + (k === 'trofe' ? 'T' : 'P') : T.code;
+        out.push(makeRig(ans, tid, lay, fam, list, k, tm, false, next(key)));
+        if (ans.size === 'tam' && isDip && rockOk && ['hirsizli', 'iki', 'tek'].includes(lay) && list.some(s => s.hab.some(h => h === 'kayalik' || h === 'saf-kayalik')))
+          out.push(makeRig(ans, tid, lay, fam, list.filter(s => s.hab.some(h => h === 'kayalik' || h === 'saf-kayalik')), k, tm, true, next(key)));
+      })));
+    });
+    // keşif rigi: dip bilinmiyorsa karışık türlerle (dip seçilmediyse ya da "bilmiyorum")
+    if (tid === 'dip' && ans.size === 'tam' && (!ans.bottoms || !ans.bottoms.length)) {
+      const mixed = chosen.filter(s => ['sk', 'so'].includes(s.fam));
+      if (mixed.length > 1) timeAns.forEach(tm => { const key = (tm === 'gece' ? 'N' : 'G') + 'P'; const r = makeRig(ans, tid, lays[0], mixed.some(s => s.fam === 'so') ? 'so' : 'sk', mixed, 'porsiyon', tm, false, next(key)); r.bottom = ['bilinmeyen']; r.name = 'Keşif · karma dip · ' + KB.LAY[lays[0]].name; r.notes.unshift({k: 'Keşif', t: 'Dibi bilinmeyen noktada ilk takım; av gelince dip öğrenilir.'}); out.push(r); });
+    }
+  });
+  return out;
+}
+// katalog: envantere eklerken arama (marka, model, kategori, iğne deseni)
+const CATALOG = [
+  ['hook', 'Gamakatsu', 'Hyper Chinu', 'chinu'], ['hook', 'Owner', 'Cut Super Chinu', 'chinu'], ['hook', 'BKK', 'Chinu-R', 'chinu'], ['hook', 'Sasame', 'Chinu', 'chinu'],
+  ['hook', 'Gamakatsu', 'Maruseigo', 'maruseigo'], ['hook', 'BKK', 'Maruseigo-R', 'maruseigo'], ['hook', 'Gamakatsu', 'Iseama', 'iseama'], ['hook', 'Sasame', 'Iseama', 'iseama'],
+  ['hook', 'Owner', 'SSW Cutting Point', 'octopus'], ['hook', 'BKK', 'Octopus Beak', 'octopus'], ['hook', 'Gamakatsu', 'Octopus', 'octopus'],
+  ['hook', 'Owner', 'Mutu Light Circle', 'circle'], ['hook', 'BKK', 'Mutsu Circle Light-SS', 'circle'], ['hook', 'Owner', 'Super Mutu Circle', 'circle'], ['hook', 'Mustad', 'Demon Perfect Circle', 'circle'],
+  ['hook', 'Owner', 'Gorilla', 'jforged'], ['hook', 'Owner', 'Ringed Gorilla (5105R)', 'jforged'], ['hook', 'Gamakatsu', 'Baitholder', 'baitholder'], ['hook', 'BKK', 'Beak Baitholder-R', 'baitholder'],
+  ['hook', 'Kamasan', 'B940 Aberdeen', 'aberdeen'], ['hook', 'Mustad', 'Aberdeen', 'aberdeen'], ['hook', 'Gamakatsu', 'Live Bait', 'livebait'], ['hook', 'Mustad', 'Hoodlum', 'livebait'],
+  ['hook', 'BKK', 'Lone Fighter Assist', 'assist'], ['hook', 'Owner', 'Assist (çift)', 'assist'], ['hook', 'Owner', 'Cultiva jighead', 'jighead'], ['hook', 'Hayabusa', 'Çapari', 'sabiki'], ['hook', 'Owner', 'ST-36 üçlü', 'treble'],
+  ['braid', 'YGK', 'X-Braid Upgrade X8'], ['braid', 'Daiwa', 'J-Braid x8'], ['braid', 'Daiwa', 'Saltiga 8x'], ['braid', 'Spiderwire', 'Stealth Smooth x8'], ['braid', 'PowerPro', 'Super 8 Slick'],
+  ['fc', 'Seaguar', 'Grandmax FX'], ['fc', 'Seaguar', 'Grandmax FC'], ['fc', 'Seaguar', 'FXR'], ['fc', 'Sunline', 'Siglon FC'], ['fc', 'Daiwa', 'Tournament FC'], ['fc', 'Seaguar', 'Big Game FC'],
+  ['mono', 'Berkley', 'Trilene Big Game'], ['mono', 'Momoi', 'Diamond'],
+  ['jig', 'Savage Gear', 'SwimSquid Inchiku'], ['jig', 'Daiwa', 'Kohga Bayrubber'], ['jig', 'Shimano', 'Ocea Stingray'], ['jig', 'Shimano', 'Coltsniper'], ['jig', 'Yamashita', 'Egi-Oh K'], ['jig', 'Yo-Zuri', 'Aurie-Q'], ['jig', 'Hayabusa', 'Çapari takımı'],
+  ['lure', 'Duo', 'Tide Minnow'], ['lure', 'Rapala', 'X-Rap'], ['lure', 'Rapala', 'CD Magnum'], ['lure', 'Yo-Zuri', 'Crystal Minnow'], ['lure', 'Halco', 'Laser Pro'], ['lure', 'Ecogear', 'Grass Minnow'],
+  ['sinker', '', 'Armut kurşun'], ['sinker', '', 'Piramit (grip) kurşun'], ['sinker', '', 'Zeytin (gezer) kurşun'],
+  ['terminal', '', 'T-fırdöndü (3 yollu)'], ['terminal', '', 'Fırdöndü + klips'], ['terminal', '', 'Stop boncuk'], ['terminal', '', 'Fosforlu boncuk'],
+  ['bait', '', 'Mamun'], ['bait', '', 'Sülünez'], ['bait', '', 'Çimçim'], ['bait', '', 'Karides'], ['bait', '', 'Kalamar'], ['bait', '', 'Sardalya'],
+].map(([cat, brand, model, pat]) => ({cat, brand, model, pattern: pat ? KB.PAT[pat].name : '', name: [brand, model].filter(Boolean).join(' ')}));
 
 // ---------------------------------------------------------------- 30 · hava ve deniz (Open-Meteo, telefondan)
 // Rüzgâr: ICON-EU 7 km (≈5 gün) → ECMWF IFS 0,25° → en iyi eşleşme. Hamle: GFS → en iyi eşleşme.
@@ -1447,13 +1895,21 @@ function wxIcon(x){
   return '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">' + inner + '</svg>';
 }
 const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>';
-// rig kartında bir yuva (envanter seviyesi: stok durumu ile)
-function compRow(rg, sl){
-  const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item];
-  const st = slotStock(sl);
-  const q = e.item ? S.inv.qty[e.item + '|' + (e.size || '-')] : undefined;
-  return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(it ? it.name : (e.name || '—')) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') +
-    '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q !== undefined && q !== '' ? ' · ' + esc(q) + ' adet' : '') + '</span></div>';
+// rig kartında bir yuva: envanter seviyesinde stok durumu, Türkiye seviyesinde envanterde mi / alınacak mı
+function compRow(rg, sl, tier){
+  tier = tier || 'envanter';
+  if (tier === 'envanter') {
+    const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item];
+    const st = slotStock(sl);
+    const q = e.item ? S.inv.qty[e.item + '|' + (e.size || '-')] : undefined;
+    const nm = it ? it.name : (e.name || (sl.t.turkiye && sl.t.turkiye.name ? '— (envanterde yok)' : '—'));
+    return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') +
+      '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q !== undefined && q !== '' ? ' · ' + esc(q) + ' adet' : '') + '</span></div>';
+  }
+  const t = sl.t[tier] || {};
+  const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.name || '—');
+  const right = tier === 'turkiye' ? (t.item ? '<span class="dot var"></span>Envanterde' : t.store ? '<span class="dot alinacak"></span>Mağaza ' + esc(t.store) : '<span class="dot alinacak"></span>Alınacak') : '';
+  return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (t.size ? ' <b>' + esc(t.size) + '</b>' : '') + '</span><span class="s">' + right + '</span></div>';
 }
 function lengthsTxt(ld){
   if (!ld) return '';
@@ -1461,31 +1917,36 @@ function lengthsTxt(ld){
   if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>');
   return parts.join(' · ');
 }
-function rigCard(rg, dd, why, extra){
+function rigCard(rg, dd, why, extra, tier){
+  tier = tier || 'envanter';
   const ok = ready(rg); const ld = leadFor(rg, dd);
   const chips = [];
   (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
   if (rg.core) chips.push('<span class="chip gold">12 ay</span>');
-  if (rg.season && rg.season.length) chips.push('<span class="chip C">' + MON3[rg.season[0] - 1] + '–' + MON3[rg.season[rg.season.length - 1] - 1] + '</span>');
+  if (rg.season && rg.season.length) chips.push('<span class="chip C">' + (rg.season.length > 4 ? MON3[rg.season[0] - 1] + '–' + MON3[rg.season[rg.season.length - 1] - 1] : rg.season.map(m => MON3[m - 1]).join(' ')) + '</span>');
   if (rg.current) chips.push('<span class="chip">Akıntıda</span>');
   if (rg.window) chips.push('<span class="chip">' + rg.window.join('–') + '</span>');
+  if (rg.mode === 'kiyi') chips.push('<span class="chip">Kıyı</span>');
   const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
-  const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + esc((sl.t.dunya && (sl.t.dunya.raw || [sl.t.dunya.name, sl.t.dunya.size].filter(Boolean).join(' '))) || '—') +
-    ' · Türkiye: ' + esc((sl.t.turkiye && (sl.t.turkiye.raw || [sl.t.turkiye.name, sl.t.turkiye.size].filter(Boolean).join(' '))) || '—') + '</span>').join('');
+  const other = TIERS.filter(x => x !== tier);
+  const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + other.map(x => { const t = sl.t[x] || {}; const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.raw || [t.name, t.size].filter(Boolean).join(' ')); return esc(TIER_TXT[x]) + ': ' + esc(nm || '—') + (t.item && x !== 'envanter' ? ' ✓' : ''); }).join(' · ') + '</span>').join('');
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
-  const bait = rg.baits ? esc(rg.baits.ana.envanter || rg.baits.ana.turkiye || '') + (rg.baits.alt && (rg.baits.alt.envanter || rg.baits.alt.turkiye) ? ' · alt: ' + esc(rg.baits.alt.envanter || rg.baits.alt.turkiye) : '') : esc(rg.baitText || '');
+  const b = rg.baits; const bt = x => b && b[x] ? (b[x][tier] || b[x].envanter || b[x].turkiye || '') : '';
+  const bait = b ? esc(bt('ana')) + (bt('alt') ? ' · alt: ' + esc(bt('alt')) : '') : esc(rg.baitText || '');
+  const succ = rg.success && rg.success[tier] ? 'başarı %' + rg.success[tier] : '';
   return '<article class="rig' + (ok ? '' : ' off') + '"><div class="rig-h"><div><div class="code">' + esc(head) + '</div><h3>' + esc(rg.name) + '</h3>' +
     '<div class="tg">' + esc(rg.target || '') + (rg.baitText ? ' · ' + esc(rg.baitText) : '') + '</div></div>' +
     (ok ? '<span class="chip A">Hazır</span>' : '<span class="chip buy">Tamamlanmadı</span>') + '</div>' +
     (why && why.length ? '<div class="meta why">' + esc(why.join(' · ')) + '</div>' : '') + (extra || '') +
     (chips.length ? '<div class="meta chips">' + chips.join('') + '</div>' : '') +
-    rg.slots.map(sl => compRow(rg, sl)).join('') +
-    (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + (rg.success && rg.success.envanter ? 'başarı %' + rg.success.envanter : '') + '</span></div>' : '') +
+    (tier !== 'envanter' ? '<div class="tierline">' + esc(TIER_TXT[tier]) + '</div>' : '') +
+    rg.slots.map(sl => compRow(rg, sl, tier)).join('') +
+    (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
     (ld && lengthsTxt(ld) ? '<div class="crow"><span class="k">Takım</span><span class="v">' + lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') + '</span><span class="s"></span></div>' : '') +
-    '<details><summary>Notlar ve alternatifler</summary><div class="more">' + notes.join('') + alt + '</div></details></article>';
+    '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details></article>';
 }
 // menü satırı ve sayfa (sheet) başlığı
-const sheetBar = (title, right) => '<div class="bar"><button class="btn" type="button" data-close>Geri</button><h3 id="sheetTitle">' + esc(title) + '</h3>' + (right || '<span style="width:64px"></span>') + '</div>';
+const sheetBar = (title, right, close) => '<div class="bar"><button class="btn" type="button" data-close>' + (close || 'Geri') + '</button><h3 id="sheetTitle">' + esc(title) + '</h3>' + (right || '<span style="width:64px"></span>') + '</div>';
 const segBtns = (name, opts, cur) => '<div class="seg wrapseg">' + opts.map(([v, t]) => '<button class="btn small" type="button" data-set="' + name + '" data-val="' + esc(v) + '" aria-pressed="' + (String(cur) === String(v)) + '">' + esc(t) + '</button>').join('') + '</div>';
 
 // ---------------------------------------------------------------- 70 · Bugün ekranı (saatlik tablo, anlık durum, solunar, öneri)
@@ -1623,8 +2084,16 @@ function renderRigs(){
   $('sysBar').innerHTML = (sys.length > 1 ? '<button class="btn small" data-sys="all" aria-pressed="' + (ui.sys === 'all') + '">Tümü</button>' : '') +
     sys.map(sy => '<button class="btn small" data-sys="' + esc(sy.id) + '" aria-pressed="' + (ui.sys === sy.id || sys.length === 1) + '">' + esc(sy.name) + '</button>').join('') +
     '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button>';
+  const one = sys.length === 1 ? sys[0] : S.systems[ui.sys];
+  const tier = S.settings.tier || 'envanter';
+  $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
+      (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
+      '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
+      (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
+    (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
   if (!all.length) {
     $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
+    if (sys.length) { $('rigList').innerHTML = '<div class="empty">Açık sistemde rig yok. Kapalı bir sistemi açabilir ya da yeni sistem kurabilirsin.</div>'; return; }
     $('rigList').innerHTML = '<div class="panel stack"><h3>Rig sistemini kur</h3><p class="sub">Uygulama boş başlar. Nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel bir rig sistemi kurar; her rig için dünyanın en iyisi, envanterinden ve Türkiye\'de bulunabilen en iyi olmak üzere üç malzeme seviyesi verir.</p>' +
       '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
     return;
@@ -1643,7 +2112,7 @@ function renderRigs(){
     if (!q) return true;
     return trLower([rg.code, rg.name, rg.target, rg.baitText].concat(rg.slots.map(sl => (sl.t.envanter && sl.t.envanter.name) || '')).join(' ')).includes(q);
   });
-  $('rigList').innerHTML = list.length ? list.map(rg => rigCard(rg, dd, null)).join('') : '<div class="empty">Bu filtrede rig yok.</div>';
+  $('rigList').innerHTML = list.length ? list.map(rg => rigCard(rg, dd, null, null, tier)).join('') : '<div class="empty">Bu filtrede rig yok.</div>';
 }
 const INV_SEG = [['hook', 'İğneler'], ['line', 'İp ve florokarbon'], ['gear', 'Makine ve kamış'], ['jig', 'Jig, zoka, sahte'], ['terminal', 'Terminal ve kurşun'], ['bait', 'Yem'], ['ekip', 'Ekipman']];
 const INV_CATS = {hook: ['hook'], line: ['braid', 'fc', 'mono'], gear: ['reel', 'rod'], jig: ['jig', 'lure'], terminal: ['terminal', 'sinker'], bait: ['bait'], ekip: ['ekip']};
@@ -1677,7 +2146,8 @@ function itemForm(id){
   const cats = Object.keys(CAT_TXT).map(k => '<option value="' + k + '"' + (c.cat === k ? ' selected' : '') + '>' + CAT_TXT[k] + '</option>').join('');
   const pats = '<option value="">—</option>' + HOOK_PATTERNS.map(p => '<option' + (c.pattern === p ? ' selected' : '') + '>' + esc(p) + '</option>').join('');
   openSheet(sheetBar(it ? 'Kalemi düzenle' : 'Yeni kalem', '<button class="btn primary" type="button" id="itSave">Kaydet</button>') +
-    '<div class="stack"><div class="fields">' +
+    '<div class="stack">' + (it ? '' : '<label class="f">Katalogda ara<input id="it-search" type="search" placeholder="Ör. chinu, Seaguar, egi, kurşun" autocomplete="off"></label><div class="catres" id="itCat"></div>') +
+    '<div class="fields">' +
     '<label class="f wide">Kategori<select id="it-cat">' + cats + '</select></label>' +
     '<label class="f">Marka<input id="it-brand" value="' + esc(c.brand || '') + '" placeholder="Ör. Owner"></label>' +
     '<label class="f">Model<input id="it-model" value="' + esc(c.model || '') + '" placeholder="Ör. SSW 5111"></label>' +
@@ -1705,6 +2175,34 @@ function deleteItem(id){
   Object.keys(S.inv.qty).forEach(k => { if (k.split('|')[0] === id) delete S.inv.qty[k]; });
   Object.keys(S.inv.status).forEach(k => { if (k.split('|')[0] === id) delete S.inv.status[k]; });
   persist(); indexAll(); closeSheet(); renderAll(); toast('Kalem silindi');
+}
+function catalogSearch(q){
+  q = trLower(q.trim()); const el = $('itCat'); if (!el) return;
+  if (q.length < 2) { el.innerHTML = ''; return; }
+  const res = CATALOG.filter(c => trLower(c.name + ' ' + (CAT_TXT[c.cat] || '') + ' ' + c.pattern).indexOf(q) >= 0).slice(0, 10);
+  el.innerHTML = res.map((c, i) => '<button type="button" class="catpick" data-catpick="' + CATALOG.indexOf(c) + '"><b>' + esc(c.name) + '</b><small>' + esc((CAT_TXT[c.cat] || c.cat) + (c.pattern ? ' · ' + c.pattern : '')) + '</small></button>').join('') || '<p class="note">Katalogda yok; aşağıya elle yazabilirsin.</p>';
+}
+function catalogPick(i){
+  const c = CATALOG[i]; if (!c) return;
+  $('it-cat').value = c.cat; $('it-brand').value = c.brand; $('it-model').value = c.model;
+  $('it-patw').hidden = c.cat !== 'hook'; if (c.cat === 'hook') $('it-pat').value = c.pattern;
+  const hint = {hook: 'Ör. No:1, No:2 ya da 2/0, 3/0', braid: 'Ör. 0,16 mm · PE 1', fc: 'Ör. 0,26 mm', mono: 'Ör. 0,30 mm', jig: 'Ör. 120 g', lure: 'Ör. 14 cm · 25 g', sinker: 'Ör. 100–150 g'}[c.cat];
+  if (hint) $('it-spec').placeholder = hint;
+  $('itCat').innerHTML = ''; $('it-search').value = '';
+  ($('it-spec').value ? $('it-sizes') : $('it-spec')).focus();
+}
+// alışveriş listesinden: alınan ürünü envantere kalem olarak ekle (rigler hemen tamamlanır)
+function buyAdd(key){
+  const n = shoppingList().find(x => x.k === key); if (!n || !n.sp) return;
+  const sp = n.sp; const nm = String(n.name || 'Kalem');
+  const parts = nm.indexOf('/') >= 0 ? ['', nm] : [nm.split(' ')[0], nm.split(' ').slice(1).join(' ')];
+  let cat = 'hook', pattern = '', sizes = [], spec = '';
+  if (sp.kind === 'hook') { pattern = KB.PAT[sp.p[0]] ? KB.PAT[sp.p[0]].name : ''; sizes = n.size ? [n.size] : []; }
+  else if (sp.kind === 'line') { cat = sp.cats[0]; spec = n.size || ''; }
+  else { cat = /jig|egi|inchiku|rubber|çapari|zoka/i.test(nm) ? 'jig' : 'lure'; spec = n.size || ''; }
+  const id = 'u-' + (slugTR(nm).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6);
+  S.inv.items[id] = {id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()};
+  persist(); indexAll(); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
 }
 
 // ---------------------------------------------------------------- 74 · Av kaydı (fotoğraflar telefonda, IndexedDB)
@@ -1823,7 +2321,7 @@ function openSheet(html, keepScroll){
   sh.innerHTML = '<div class="sin">' + html + '</div>'; sh.hidden = false; sh.scrollTop = keepScroll ? top : 0; document.body.style.overflow = 'hidden';
   if (wasHidden) { try { history.pushState({sheet: 1}, ''); } catch (e) {} }
 }
-function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; ui.sheet = null; ui.sheetArg = null; if (!fromPop) { try { history.back(); } catch (e) {} } }
+function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; const backToWel = !!(WZ && WZ.fromWel && !S.onboarded); sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; WZ = null; ui.sheet = null; ui.sheetArg = null; if (!fromPop) { try { history.back(); } catch (e) {} } if (backToWel && !hasProfileData()) showWelcome(); }
 window.addEventListener('popstate', () => { if (!$('sheet').hidden) closeSheet(true); });
 function toLocalInput(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function nearestLoc(p){ if (!p || p.lat == null) return null; let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
@@ -2095,12 +2593,14 @@ function addLocation(name, lat, lon, bottom, depth){
 function sheetShopping(){
   const groups = {};
   shoppingList().forEach(n => { const it = n.item && ITEMS[n.item]; const st = (it && it.store) || n.store || (it ? 'Envanter' : 'Yeni'); (groups[st] = groups[st] || []).push(n); });
-  const SN = {A: 'Owner mağazası (A)', B: 'Karma mağaza (B)', Envanter: 'Yeniden alınacak', Yeni: 'Envanterde olmayanlar'};
+  const SN = {Envanter: 'Yeniden alınacak', Yeni: 'Envanterde olmayanlar'};
+  if (pkgOn() && Array.isArray(D.stores)) D.stores.forEach(st => { SN[st.id] = st.name + ' (' + st.id + ')'; });
   const body = Object.keys(groups).sort().map(g => '<div class="eyebrow">' + esc(SN[g] || 'Mağaza ' + g) + '</div>' + groups[g].map(n => {
     const it = n.item && ITEMS[n.item]; const k = n.item ? n.item + '|' + (n.size || '-') : null;
     return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div><span class="chip">' + n.rigs.length + ' rigde</span></div>' +
       '<div class="sp">' + esc(n.rigs.join(', ')) + (it && it.note ? ' · ' + esc(it.note) : '') + '</div>' +
-      (k ? '<div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (adet)<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label></div>' : '') + '</div>';
+      (k ? '<div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (adet)<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label></div>' :
+        (n.sp ? '<div class="row"><button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button></div>' : '')) + '</div>';
   }).join('')).join('');
   return sheetBar('Alışveriş listesi') + '<div class="stack"><p class="note">Rigleri tamamlamak için gerekenler. Aldığında adedini gir; ilgili rigler hemen tamamlanır.</p>' + (body || '<div class="empty">Eksik kalem yok, tüm rigler tamam.</div>') + '</div>';
 }
@@ -2155,6 +2655,116 @@ async function importBackup(file){
     pkgLoadCached(); indexAll(); applyTheme(); await loadCatches(); renderAll(); loadWeather(true);
     $('bkNote').textContent = 'Yedek yüklendi' + (j.catches ? ' · ' + j.catches.length + ' av' : '') + '.';
   } catch (e) { $('bkNote').textContent = 'Bu dosya ' + APP_SHORT + ' yedeği değil.'; }
+}
+
+// ---------------------------------------------------------------- 78 · Rig Atölyesi sihirbazı (sıfırdan rig sistemi kurulumu)
+let WZ = null;
+const WZ_STEPS = ['Yer', 'Teknik', 'Türler', 'Takım', 'Kur'];
+const LAY_DESC = {
+  hirsizli: 'Üst, orta ve uzun hırsız köstek; 3 iğne', iki: 'Üst köstek ve uzun alt (hırsız) köstek', tek: 'Tek iğne, uzun köstek (80–120 cm)',
+  kaydirmali: 'Gezer kurşun, tek iğne; temkinli balık için', slowjig: '100–250 g jig, assist iğne', tairubber: '60–150 g tai rubber', inchiku: '80–200 g inchiku',
+  chunking: 'Parça yem ve circle iğne', popping: 'Popper ve stickbait, kalın lider', agirjig: '200–400 g jig', agirsirti: 'Büyük sırtı yemi, kalın mono',
+  paternoster: '2 iğne, piramit kurşun', egi: 'Kalamar ve mürekkep zokası', ahtapot: 'Ahtapot zokası',
+};
+function wzDefaults(){
+  return {mode: S.mode || 'tekne', region: regionOf(loc()), techs: [], species: [], lay: {}, klass: 'ikisi', time: 'ikisi', bottoms: [], size: 'dengeli', rodMax: '', name: ''};
+}
+function startWizard(editId){
+  const sy = editId && S.systems[editId];
+  WZ = {step: 0, ans: sy && sy.answers ? JSON.parse(JSON.stringify(sy.answers)) : wzDefaults(), editId: sy ? editId : null};
+  ui.sheet = 'wizard'; renderWizard();
+}
+const wzTechs = () => Object.keys(KB.TECH).filter(id => WZ.ans.mode === 'ikisi' || KB.TECH[id].modes.includes(WZ.ans.mode));
+function wzFams(){ const f = new Set(); WZ.ans.techs.forEach(t => KB.TECH[t].fams.forEach(x => f.add(x))); return f; }
+const wzSpecies = () => { const f = wzFams(); return KB.SPECIES.filter(s => f.has(s.fam) && s.bol.includes(WZ.ans.region)); };
+const optBtn = (attr, val, on, label, sub) => '<button type="button" class="opt" ' + attr + '="' + esc(val) + '" aria-pressed="' + !!on + '"><b>' + esc(label) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
+const segWz = (name, opts, cur) => '<div class="seg wrapseg">' + opts.map(([v, t]) => '<button class="btn small" type="button" data-wzset="' + name + '" data-val="' + v + '" aria-pressed="' + (cur === v) + '">' + esc(t) + '</button>').join('') + '</div>';
+function wzSummary(){
+  const a = WZ.ans;
+  const mode = {tekne: 'Tekne', kiyi: 'Kıyı', ikisi: 'Tekne ve kıyı'}[a.mode];
+  const reg = (KB.REGIONS.find(r => r[0] === a.region) || [0, ''])[1];
+  const short = s => s.replace(/\s*\(.*?\)/g, '');
+  const techs = a.techs.map(t => short(KB.TECH[t].name) + (a.lay[t] && a.lay[t].length && KB.TECH[t].lay.length > 1 && t !== 'eging' ? ': ' + a.lay[t].map(l => trLower(short(KB.LAY[l].name))).join(', ') : '')).join(' · ');
+  const sps = a.species.map(id => (KB.SPECIES.find(s => s.id === id) || {}).name).filter(Boolean).join(', ');
+  const kl = {porsiyon: 'porsiyonluk', trofe: 'trofe', ikisi: 'porsiyonluk ve trofe'}[a.klass], tm = {gunduz: 'gündüz', gece: 'gece', ikisi: 'gündüz ve gece'}[a.time];
+  return [mode + ' · ' + reg, techs, sps, kl + ' · ' + tm, a.bottoms.length ? 'Dip: ' + a.bottoms.map(b => BOTTOM_TXT[b]).join(', ') : 'Dip: bilinmiyor (keşif)'].filter(Boolean).join(' · ');
+}
+function wzValid(){
+  const a = WZ.ans, st = WZ.step;
+  if (st === 1) return a.techs.length > 0;
+  if (st === 2) return a.species.length > 0;
+  if (st === 4) return a.techs.length > 0 && a.species.length > 0 && genSystem(a).length > 0;
+  return true;
+}
+function renderWizard(keep){
+  const a = WZ.ans; const st = WZ.step; let body = '';
+  if (st === 0) {
+    body = '<h3>Nerede avlanıyorsun?</h3><div class="opts">' + [['tekne', 'Tekneden', 'Dip, jig, sırtı, canlı yem, orkinos'], ['kiyi', 'Kıyıdan', 'Surf, LRF, spin, şamandıra'], ['ikisi', 'İkisinden de', 'Bütün teknikler']].map(([v, t, s]) => optBtn('data-wzm', v, a.mode === v, t, s)).join('') + '</div>' +
+      '<h3>Hangi denizde?</h3><div class="seg wrapseg">' + KB.REGIONS.map(([v, t]) => '<button class="btn small" type="button" data-wzr="' + v + '" aria-pressed="' + (a.region === v) + '">' + t + '</button>').join('') + '</div>' +
+      '<p class="note">Seçili konumuna göre tahmin edildi. Türler bölgeye göre süzülür.</p>';
+  } else if (st === 1) {
+    body = '<h3>Nasıl avlanıyorsun?</h3><p class="note">Birden çok seçebilirsin; her teknik için ayrı rigler kurulur.</p><div class="opts">' + wzTechs().map(id => optBtn('data-wzt', id, a.techs.includes(id), KB.TECH[id].name, KB.TECH[id].desc)).join('') + '</div>';
+  } else if (st === 2) {
+    const by = {}; wzSpecies().forEach(s => { (by[s.fam] = by[s.fam] || []).push(s); });
+    body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve bölgene uyan türler. Altlarındaki aylar genel bilgidir.</p>' +
+      (Object.keys(by).map(f => '<div class="famgrp"><div class="row" style="justify-content:space-between"><span class="eyebrow">' + esc((KB.FAM[f] || {}).name || f) + '</span><button class="linkbtn" type="button" data-wzall="' + f + '">Hepsini seç</button></div><div class="opts sp">' +
+        by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>');
+  } else if (st === 3) {
+    const multi = a.techs.filter(t => KB.TECH[t].lay.length > 1 && t !== 'eging');
+    body = multi.map(t => '<h3>' + esc(KB.TECH[t].name) + ': takım düzeni</h3><p class="note">Birden çok seçebilirsin.</p><div class="opts">' + KB.TECH[t].lay.map(l => optBtn('data-wzl', t + '|' + l, (a.lay[t] || []).includes(l), KB.LAY[l].name, LAY_DESC[l] || '')).join('') + '</div>').join('') +
+      '<h3>Balık boyu</h3>' + segWz('klass', [['porsiyon', 'Porsiyonluk'], ['trofe', 'Trofe (iri)'], ['ikisi', 'İkisi de']], a.klass) +
+      '<h3>Ne zaman?</h3>' + segWz('time', [['gunduz', 'Gündüz'], ['gece', 'Gece'], ['ikisi', 'İkisi de']], a.time) +
+      '<h3>Hangi diplerde?</h3><p class="note">Bilmiyorsan boş bırak; keşif rigleri de kurulur.</p><div class="seg wrapseg">' + [['kum', 'Kum'], ['kum-kayalik', 'Kum–kayalık'], ['kayalik', 'Kayalık'], ['karma', 'Karma'], ['camur', 'Çamur']].map(([v, t]) => '<button class="btn small" type="button" data-wzb="' + v + '" aria-pressed="' + a.bottoms.includes(v) + '">' + t + '</button>').join('') + '</div>';
+  } else {
+    const n = a.techs.length && a.species.length ? genSystem(a).length : 0;
+    body = '<h3>Takımın</h3><div class="fields"><label class="f wide">Kamışının kurşun sınırı (g, biliyorsan)<input id="wz-rod" inputmode="numeric" value="' + esc(a.rodMax || '') + '" placeholder="Ör. 150"></label></div>' +
+      '<h3>Sistem ne kadar ayrıntılı olsun?</h3><div class="opts">' + [['sade', 'Sade', 'Her tür grubu için tek rig'], ['dengeli', 'Dengeli', 'Boya, gündüz/geceye ve takım düzenine göre ayrı rigler'], ['tam', 'Tam', 'Dengeli + kayalık ve keşif rigleri']].map(([v, t, s]) => optBtn('data-wzz', v, a.size === v, t, s)).join('') + '</div>' +
+      '<h3>Sistemin adı</h3><div class="fields"><label class="f wide">Ad<input id="wz-name" value="' + esc(a.name || '') + '" placeholder="Ör. Benim dip sistemim"></label></div>' +
+      '<div class="panel stack"><b id="wzCount">' + n + ' rig kurulacak</b><span class="note">' + esc(wzSummary()) + '</span>' +
+      '<span class="note">Her rigde üç malzeme seviyesi olur: dünyanın en iyisi, envanterinden ve Türkiye\'de bulunabilen en iyi (envanterinde uygun olan varsa o). Envanteri değiştirdikçe rigler kendiliğinden güncellenir.</span></div>';
+  }
+  const ok = wzValid();
+  openSheet(sheetBar(WZ.editId ? 'Rig sistemini düzenle' : 'Rig Atölyesi', null, 'Kapat') +
+    '<div class="wzsteps">' + WZ_STEPS.map((t, i) => '<span class="' + (i === st ? 'on' : i < st ? 'done' : '') + '">' + (i + 1) + ' ' + t + '</span>').join('') + '</div>' +
+    '<div class="stack wz">' + body + '<p class="err" id="wzErr" hidden></p></div>' +
+    '<div class="wznav">' + (st > 0 ? '<button class="btn" type="button" data-wz="back">Geri</button>' : '<span></span>') +
+    (st < 4 ? '<button class="btn primary" type="button" data-wz="next"' + (ok ? '' : ' disabled') + '>İleri</button>' : '<button class="btn primary" type="button" data-wz="done"' + (ok ? '' : ' disabled') + '>' + (WZ.editId ? 'Sistemi güncelle' : 'Sistemi kur') + '</button>') + '</div>', keep);
+}
+function wzToggle(arr, v){ const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
+function wzClick(d){
+  const a = WZ.ans;
+  if (d.wzm) { a.mode = d.wzm; a.techs = a.techs.filter(t => wzTechs().includes(t)); }
+  else if (d.wzr) { a.region = d.wzr; }
+  else if (d.wzt) { wzToggle(a.techs, d.wzt); if (a.techs.includes(d.wzt) && !(a.lay[d.wzt] || []).length) a.lay[d.wzt] = [KB.TECH[d.wzt].lay[0]]; }
+  else if (d.wzs) { wzToggle(a.species, d.wzs); }
+  else if (d.wzall) { const ids = wzSpecies().filter(s => s.fam === d.wzall).map(s => s.id); const all = ids.every(i => a.species.includes(i)); ids.forEach(i => { const k = a.species.indexOf(i); if (all && k >= 0) a.species.splice(k, 1); if (!all && k < 0) a.species.push(i); }); }
+  else if (d.wzl) { const [t, l] = d.wzl.split('|'); a.lay[t] = a.lay[t] || []; wzToggle(a.lay[t], l); }
+  else if (d.wzset) { a[d.wzset] = d.val; }
+  else if (d.wzb) { wzToggle(a.bottoms, d.wzb); }
+  else if (d.wzz) { a.size = d.wzz; }
+  else if (d.wz === 'back') { WZ.step = Math.max(0, WZ.step - 1); renderWizard(); return; }
+  else if (d.wz === 'next') {
+    if (!wzValid()) return;
+    if (WZ.step === 1) { const f = wzFams(); a.species = a.species.filter(id => { const s = KB.SPECIES.find(x => x.id === id); return s && f.has(s.fam); }); }
+    WZ.step = Math.min(4, WZ.step + 1); renderWizard(); return;
+  }
+  else if (d.wz === 'done') { wzFinish(); return; }
+  renderWizard(true);
+}
+function wzFinish(){
+  const a = WZ.ans;
+  const rigs = genSystem(a);
+  if (!rigs.length) { $('wzErr').textContent = 'Bu seçimlerle rig kurulamadı; tür ve teknik seçimini kontrol et.'; $('wzErr').hidden = false; return; }
+  const id = WZ.editId || uid('s');
+  const name = (a.name || '').trim() || (KB.TECH[a.techs[0]].name + ' sistemim');
+  rigs.forEach(r => { r.id = id + ':' + r.code; });
+  const old = S.systems[id] || {};
+  S.systems[id] = Object.assign({}, old, {id, name, source: 'sihirbaz', active: old.active !== false, created: old.created || new Date().toISOString(), updated: new Date().toISOString(), answers: JSON.parse(JSON.stringify(a)), rigs});
+  if (a.mode !== 'ikisi') S.mode = a.mode;
+  S.onboarded = true; persist(); indexAll();
+  const edit = !!WZ.editId; WZ = null; closeSheet();
+  ui.sys = id; ui.rigSeg = 'all'; show('rigler'); renderAll();
+  toast(rigs.length + ' rig ' + (edit ? 'güncellendi' : 'kuruldu'));
 }
 
 // ---------------------------------------------------------------- 80 · bulut yedek (GitHub, uçtan uca şifreli)
@@ -2335,9 +2945,9 @@ function showWelcome(){
     '</div>';
   w.hidden = false;
 }
-function hideWelcome(){ $('welcome').hidden = true; $('welcome').innerHTML = ''; if (!S.onboarded) { S.onboarded = true; persist(); } }
+function hideWelcome(keep){ $('welcome').hidden = true; $('welcome').innerHTML = ''; if (!keep && !S.onboarded) { S.onboarded = true; persist(); } }
 async function welcomeAction(a){
-  if (a === 'kur') { if (typeof startWizard === 'function') { hideWelcome(); startWizard(); } else $('welKurNote').hidden = false; return; }
+  if (a === 'kur') { if (typeof startWizard === 'function') { hideWelcome(true); startWizard(); WZ.fromWel = true; } else $('welKurNote').hidden = false; return; }
   if (a === 'paket') { $('welPkg').hidden = false; setTimeout(() => { try { $('wel-pass').focus(); } catch (e) {} }, 50); return; }
   if (a === 'bulut') { hideWelcome(); openMore('yedek'); return; }
   if (a === 'bos') { hideWelcome(); renderAll(); return; }
@@ -2400,6 +3010,16 @@ function bindEvents(){
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
+    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
+    if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
+    if (d.systool) {
+      const sy = S.systems[d.sid]; if (!sy) return;
+      if (d.systool === 'edit') { startWizard(sy.id); return; }
+      if (d.systool === 'toggle') { sy.active = sy.active === false; persist(); indexAll(); renderAll(); toast(sy.name + (sy.active ? ' açıldı' : ' kapatıldı')); return; }
+      if (d.systool === 'del') { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.systems[sy.id]; ui.sys = 'all'; persist(); indexAll(); renderAll(); toast('Sistem silindi'); return; }
+    }
+    if (d.catpick != null && d.catpick !== '') { catalogPick(Number(d.catpick)); return; }
+    if (d.buyadd) { buyAdd(d.buyadd); return; }
     if (d.open) { openMore(d.open); return; }
     if (d.step) { const k = d.k; const cur = Number(S.inv.qty[k] || 0); setQty(k, cur + Number(d.step)); return; }
     if (d.rseg) { ui.rigSeg = d.rseg; renderRigs(); return; }
@@ -2451,6 +3071,9 @@ function bindEvents(){
   document.addEventListener('input', e => {
     const el = e.target;
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; applyTheme(); return; }
+    if (el.id === 'it-search') { catalogSearch(el.value); return; }
+    if (el.id === 'wz-rod' && WZ) { WZ.ans.rodMax = el.value.trim(); return; }
+    if (el.id === 'wz-name' && WZ) { WZ.ans.name = el.value; return; }
     if (el.id === 'cf-t') { const v = el.value ? new Date(el.value) : null; if (v && !isNaN(v)) $('cf-tlbl').textContent = fmtDT(v); return; }
   });
   document.addEventListener('change', e => {

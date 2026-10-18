@@ -16,13 +16,21 @@ function wxIcon(x){
   return '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">' + inner + '</svg>';
 }
 const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>';
-// rig kartında bir yuva (envanter seviyesi: stok durumu ile)
-function compRow(rg, sl){
-  const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item];
-  const st = slotStock(sl);
-  const q = e.item ? S.inv.qty[e.item + '|' + (e.size || '-')] : undefined;
-  return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(it ? it.name : (e.name || '—')) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') +
-    '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q !== undefined && q !== '' ? ' · ' + esc(q) + ' adet' : '') + '</span></div>';
+// rig kartında bir yuva: envanter seviyesinde stok durumu, Türkiye seviyesinde envanterde mi / alınacak mı
+function compRow(rg, sl, tier){
+  tier = tier || 'envanter';
+  if (tier === 'envanter') {
+    const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item];
+    const st = slotStock(sl);
+    const q = e.item ? S.inv.qty[e.item + '|' + (e.size || '-')] : undefined;
+    const nm = it ? it.name : (e.name || (sl.t.turkiye && sl.t.turkiye.name ? '— (envanterde yok)' : '—'));
+    return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') +
+      '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q !== undefined && q !== '' ? ' · ' + esc(q) + ' adet' : '') + '</span></div>';
+  }
+  const t = sl.t[tier] || {};
+  const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.name || '—');
+  const right = tier === 'turkiye' ? (t.item ? '<span class="dot var"></span>Envanterde' : t.store ? '<span class="dot alinacak"></span>Mağaza ' + esc(t.store) : '<span class="dot alinacak"></span>Alınacak') : '';
+  return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (t.size ? ' <b>' + esc(t.size) + '</b>' : '') + '</span><span class="s">' + right + '</span></div>';
 }
 function lengthsTxt(ld){
   if (!ld) return '';
@@ -30,29 +38,34 @@ function lengthsTxt(ld){
   if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>');
   return parts.join(' · ');
 }
-function rigCard(rg, dd, why, extra){
+function rigCard(rg, dd, why, extra, tier){
+  tier = tier || 'envanter';
   const ok = ready(rg); const ld = leadFor(rg, dd);
   const chips = [];
   (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
   if (rg.core) chips.push('<span class="chip gold">12 ay</span>');
-  if (rg.season && rg.season.length) chips.push('<span class="chip C">' + MON3[rg.season[0] - 1] + '–' + MON3[rg.season[rg.season.length - 1] - 1] + '</span>');
+  if (rg.season && rg.season.length) chips.push('<span class="chip C">' + (rg.season.length > 4 ? MON3[rg.season[0] - 1] + '–' + MON3[rg.season[rg.season.length - 1] - 1] : rg.season.map(m => MON3[m - 1]).join(' ')) + '</span>');
   if (rg.current) chips.push('<span class="chip">Akıntıda</span>');
   if (rg.window) chips.push('<span class="chip">' + rg.window.join('–') + '</span>');
+  if (rg.mode === 'kiyi') chips.push('<span class="chip">Kıyı</span>');
   const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
-  const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + esc((sl.t.dunya && (sl.t.dunya.raw || [sl.t.dunya.name, sl.t.dunya.size].filter(Boolean).join(' '))) || '—') +
-    ' · Türkiye: ' + esc((sl.t.turkiye && (sl.t.turkiye.raw || [sl.t.turkiye.name, sl.t.turkiye.size].filter(Boolean).join(' '))) || '—') + '</span>').join('');
+  const other = TIERS.filter(x => x !== tier);
+  const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + other.map(x => { const t = sl.t[x] || {}; const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.raw || [t.name, t.size].filter(Boolean).join(' ')); return esc(TIER_TXT[x]) + ': ' + esc(nm || '—') + (t.item && x !== 'envanter' ? ' ✓' : ''); }).join(' · ') + '</span>').join('');
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
-  const bait = rg.baits ? esc(rg.baits.ana.envanter || rg.baits.ana.turkiye || '') + (rg.baits.alt && (rg.baits.alt.envanter || rg.baits.alt.turkiye) ? ' · alt: ' + esc(rg.baits.alt.envanter || rg.baits.alt.turkiye) : '') : esc(rg.baitText || '');
+  const b = rg.baits; const bt = x => b && b[x] ? (b[x][tier] || b[x].envanter || b[x].turkiye || '') : '';
+  const bait = b ? esc(bt('ana')) + (bt('alt') ? ' · alt: ' + esc(bt('alt')) : '') : esc(rg.baitText || '');
+  const succ = rg.success && rg.success[tier] ? 'başarı %' + rg.success[tier] : '';
   return '<article class="rig' + (ok ? '' : ' off') + '"><div class="rig-h"><div><div class="code">' + esc(head) + '</div><h3>' + esc(rg.name) + '</h3>' +
     '<div class="tg">' + esc(rg.target || '') + (rg.baitText ? ' · ' + esc(rg.baitText) : '') + '</div></div>' +
     (ok ? '<span class="chip A">Hazır</span>' : '<span class="chip buy">Tamamlanmadı</span>') + '</div>' +
     (why && why.length ? '<div class="meta why">' + esc(why.join(' · ')) + '</div>' : '') + (extra || '') +
     (chips.length ? '<div class="meta chips">' + chips.join('') + '</div>' : '') +
-    rg.slots.map(sl => compRow(rg, sl)).join('') +
-    (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + (rg.success && rg.success.envanter ? 'başarı %' + rg.success.envanter : '') + '</span></div>' : '') +
+    (tier !== 'envanter' ? '<div class="tierline">' + esc(TIER_TXT[tier]) + '</div>' : '') +
+    rg.slots.map(sl => compRow(rg, sl, tier)).join('') +
+    (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
     (ld && lengthsTxt(ld) ? '<div class="crow"><span class="k">Takım</span><span class="v">' + lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') + '</span><span class="s"></span></div>' : '') +
-    '<details><summary>Notlar ve alternatifler</summary><div class="more">' + notes.join('') + alt + '</div></details></article>';
+    '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details></article>';
 }
 // menü satırı ve sayfa (sheet) başlığı
-const sheetBar = (title, right) => '<div class="bar"><button class="btn" type="button" data-close>Geri</button><h3 id="sheetTitle">' + esc(title) + '</h3>' + (right || '<span style="width:64px"></span>') + '</div>';
+const sheetBar = (title, right, close) => '<div class="bar"><button class="btn" type="button" data-close>' + (close || 'Geri') + '</button><h3 id="sheetTitle">' + esc(title) + '</h3>' + (right || '<span style="width:64px"></span>') + '</div>';
 const segBtns = (name, opts, cur) => '<div class="seg wrapseg">' + opts.map(([v, t]) => '<button class="btn small" type="button" data-set="' + name + '" data-val="' + esc(v) + '" aria-pressed="' + (String(cur) === String(v)) + '">' + esc(t) + '</button>').join('') + '</div>';
