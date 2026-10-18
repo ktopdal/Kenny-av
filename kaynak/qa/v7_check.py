@@ -1,18 +1,18 @@
-"""Alyssa v0.3–v0.6 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v6_check.py
+"""Alyssa v0.3–v0.7 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v7_check.py
 """
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v6'
+SHOTS = ROOT + '/qa/v7'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8769
+PORT = 8770
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -101,6 +101,33 @@ async def mock_gh(route):
         return await route.fulfill(status=201 if not cur else 200, headers=hdr, content_type='application/json', body=json.dumps({'content': {'sha': sha, 'path': path}}))
     return await route.fulfill(status=405, headers=hdr, body='{}')
 
+PNG1 = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=')
+MAP_LOG = []
+async def mock_tiles(route):
+    MAP_LOG.append(route.request.url)
+    return await route.fulfill(status=200, content_type='image/png', body=PNG1, headers=CORS)
+
+async def mock_geo(route):
+    u = route.request.url; MAP_LOG.append(u)
+    if 'nominatim' in u:
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(u).query); lat, lon = float(q['lat'][0]), float(q['lon'][0])
+        if LAND(lat, lon):
+            return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'lat': str(lat), 'lon': str(lon), 'name': '', 'address': {'village': 'Test Köyü', 'province': 'İzmir'}}))
+        return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'error': 'Unable to geocode'}))
+    if 'overpass' in u:
+        body = urllib.parse.unquote_plus(route.request.post_data or '')
+        mm = re.search(r'around:6000,([-\d.]+),([-\d.]+)', body); lat, lon = float(mm.group(1)), float(mm.group(2))
+        els = [{'type': 'way', 'id': 1, 'tags': {'natural': 'coastline'}, 'geometry': [{'lat': lat + 0.02, 'lon': lon - 0.05}, {'lat': lat + 0.02, 'lon': lon + 0.05}]},
+               {'type': 'node', 'id': 2, 'lat': lat + 0.03, 'lon': lon, 'tags': {'place': 'village', 'name': 'Deneme'}},
+               {'type': 'node', 'id': 3, 'lat': lat + 0.09, 'lon': lon, 'tags': {'place': 'town', 'name': 'Uzakkasaba'}}]
+        return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'elements': els}))
+    if 'emodnet-bathymetry.eu/depth_sample' in u:
+        g = urllib.parse.unquote(urllib.parse.parse_qs(urllib.parse.urlparse(u).query)['geom'][0]); mm = re.search(r'POINT\(([-\d.]+) ([-\d.]+)\)', g)
+        lon, lat = float(mm.group(1)), float(mm.group(2))
+        if LAND(lat, lon): return await route.fulfill(status=404, headers=CORS, body='{}')
+        return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'min': 53.1, 'max': 55.2, 'avg': 54.3, 'smoothed': 54.0}))
+    return await route.fulfill(status=404, headers=CORS, body='{}')
+
 async def new_ctx(b, storage=None, w=390):
     ctx = await b.new_context(viewport={'width': w, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2, permissions=['geolocation'], geolocation={'latitude': 38.45, 'longitude': 27.20})
     await ctx.add_init_script(FAKE_NOW)
@@ -108,6 +135,10 @@ async def new_ctx(b, storage=None, w=390):
         await ctx.add_init_script('if(!sessionStorage.getItem("seeded")){' + ''.join('localStorage.setItem(%s,%s);' % (json.dumps(k), json.dumps(v)) for k, v in storage.items()) + 'sessionStorage.setItem("seeded","1");}')
     await ctx.route('https://api.open-meteo.com/**', mock_meteo); await ctx.route('https://marine-api.open-meteo.com/**', mock_meteo)
     await ctx.route('https://api.github.com/**', mock_gh)
+    for pat in ['https://tile.openstreetmap.org/**', 'https://server.arcgisonline.com/**', 'https://tiles.openseamap.org/**', 'https://ows.emodnet-bathymetry.eu/**', 'https://drive.emodnet-geology.eu/**']:
+        await ctx.route(pat, mock_tiles)
+    for pat in ['https://nominatim.openstreetmap.org/**', 'https://overpass-api.de/**', 'https://rest.emodnet-bathymetry.eu/**']:
+        await ctx.route(pat, mock_geo)
     pg = await ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
     pg.on('console', lambda m: errs.append('console: ' + m.text) if m.type == 'error' and 'fonts' not in m.text and 'ERR_' not in m.text and 'Failed to load resource' not in m.text else None)
@@ -176,7 +207,7 @@ async def main():
         for v in ['takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(200); await overflow(pg, v)
         await pg.screenshot(path=SHOTS + '/a_daha.png')
-        check(await pg.locator('#moreMenu .mrow').count() == 10, 'Daha menüsü 10 satır')
+        check(await pg.locator('#moreMenu .mrow').count() == 11, 'Daha menüsü 11 satır')
         # alışveriş: aynı rig iki kez yok
         await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
         lines = await pg.locator('#sheet .item .sp').all_inner_texts()
@@ -209,7 +240,7 @@ async def main():
         await pg.click('button[data-set="zoom"][data-val="0"]'); await pg.click('button[data-set="scheme"][data-val="auto"]'); await pg.click('button[data-act="resetBft"]'); await pg.wait_for_timeout(150)
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(150)
         # konum: karadaki nokta → en yakın deniz noktası
-        await pg.click('#locBtn'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(200)
         await pg.fill('#nl-name', 'Kara noktası'); await pg.fill('#nl-lat', '38.45'); await pg.fill('#nl-lon', '27.20')
         await pg.click('#locForm button[type="submit"]'); await pg.wait_for_timeout(300)
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(4000)
@@ -223,7 +254,7 @@ async def main():
         net = await pg.inner_text('#net'); check(net.startswith('Güncel'), 'durum karadaki noktada da Güncel: ' + net)
         await pg.screenshot(path=SHOTS + '/a_kara_nokta.png')
         # Konum 1'e dön ve av ekle (fotoğraf + dip)
-        await pg.click('#locBtn'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(200)
         await pg.click('#sheet button[data-use="1"]'); await pg.wait_for_timeout(300); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(1500)
         await pg.click('.tabbar button[data-v="avlar"]'); await pg.click('#addCatch'); await pg.wait_for_timeout(250)
         check(await pg.input_value('#cf-bot') == 'kum', 'av formu: seçili konumun dibi (kum)')
@@ -373,9 +404,9 @@ async def main():
         check(lead['hi'][1] > lead['lo'][1], 'G: akış arttıkça kurşun artıyor')
         # derinlik: Konumlar'dan 25 m girilince artış yarıya iner ve panel derinliği yazar
         x50 = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const x = Q.days()[0].hs[9]; return Q.leadExtra(Q.driftAt(x), 50); }""")
-        await pg.click('#locBtn'); await pg.wait_for_timeout(250)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(250)
         await pg.evaluate("""() => { const i = document.querySelector('#sheet input[data-f="depth"]'); i.value = '25'; i.dispatchEvent(new Event('input', {bubbles: true})); i.dispatchEvent(new Event('change', {bubbles: true})); }""")
-        await pg.wait_for_timeout(200); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(300)
+        await pg.wait_for_timeout(200); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(300); await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(200)
         x25 = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const x = Q.days()[0].hs[9]; return Q.leadExtra(Q.driftAt(x), Q.loc().depth ? +Q.loc().depth : null); }""")
         check(abs(x25 - x50 / 2) <= 10 and 'Derinlik 25 m' in await pg.inner_text('#driftPanel'), 'G: derinlik kurşuna giriyor (50 m: +%d g, 25 m: +%d g)' % (x50, x25))
         # av kaydı o saatin koşullarını yeni ölçek ve sürüklenmeyle saklar
@@ -489,6 +520,51 @@ async def main():
         await pg.screenshot(path=SHOTS + '/i_gorunum_320.png', full_page=True)
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
         print('I errors:', errs); check(not errs, 'I: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== J) v0.7: harita
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        n0 = len((await state(pg))['locations'])
+        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(600)
+        check(await pg.is_visible('#map') and await pg.locator('.mpin').count() >= 1, 'J: harita açıldı, konum işaretleri var (%d)' % await pg.locator('.mpin').count())
+        check(any('tile.openstreetmap.org' in u for u in MAP_LOG) and any('openseamap' in u for u in MAP_LOG) and any('contours' in u for u in MAP_LOG), 'J: OSM, deniz işaretleri ve derinlik eğrisi katmanları istendi')
+        bb = await pg.locator('#map').bounding_box()
+        await pg.mouse.click(bb['x'] + bb['width'] * 0.3, bb['y'] + bb['height'] * 0.35); await pg.wait_for_timeout(1800)
+        card = await pg.inner_text('#mapCard'); print('   kart:', card.replace('\n', ' | ')[:220])
+        check('Deneme açıkları' in card and 'derinlik ≈ 54 m' in card and 'kıyıya 2,2 km' in card and '′ K' in card and '′ D' in card, 'J: deniz noktası kartı (ad, kıyı, derinlik, derece-dakika)')
+        await pg.screenshot(path=SHOTS + '/j_harita.png')
+        await pg.click('#mapCard button[data-mapact="copy"]'); await pg.wait_for_timeout(200)
+        check('°' in await pg.inner_text('#toast'), 'J: koordinat kopyalandı: ' + await pg.inner_text('#toast'))
+        await pg.click('#mapCard button[data-mapact="save"]'); await pg.wait_for_timeout(400)
+        st = await state(pg); newl = [v for v in st['locations'].values() if v['name'] == 'Deneme açıkları']
+        check(len(st['locations']) == n0 + 1 and newl and newl[0]['depth'] == '54' and st['active'] != newl[0]['id'], 'J: nokta derinliğiyle kaydedildi, seçili konum değişmedi')
+        check(await pg.locator('.mpin').count() >= 2, 'J: kaydedilen nokta haritada')
+        # kara noktası
+        await pg.evaluate('window.ALYSSA_QA.pickPoint(38.45, 27.20)'); await pg.wait_for_timeout(1800)
+        card2 = await pg.inner_text('#mapCard'); check('Test Köyü, İzmir' in card2 and 'Kara' in card2, 'J: kara noktası adı: ' + card2.replace('\n', ' | ')[:120])
+        # katmanlar
+        await pg.click('button[data-mapact="layers"]'); await pg.wait_for_timeout(200)
+        await pg.click('#mapLayers input[data-maplayer="depth"]'); await pg.wait_for_timeout(500)
+        await pg.click('#mapLayers button[data-mapbase="uydu"]'); await pg.wait_for_timeout(500)
+        st = await state(pg); check(st['settings']['map']['depth'] and st['settings']['map']['base'] == 'uydu', 'J: katman ayarları kaydedildi')
+        check(any('mean_multicolour' in u for u in MAP_LOG) and any('arcgisonline' in u for u in MAP_LOG), 'J: derinlik renkleri ve uydu istendi')
+        await pg.screenshot(path=SHOTS + '/j_katmanlar.png')
+        await pg.click('button[data-mapact="layers"]'); await pg.wait_for_timeout(150)
+        # kayıtlı noktaya dokun → seç ve tahmin
+        await pg.locator('.mpin', has_text='Deneme açıkları').click(); await pg.wait_for_timeout(500)
+        card3 = await pg.inner_text('#mapCard'); check('Seç ve tahmin' in card3, 'J: kayıtlı nokta kartı')
+        await pg.click('#mapCard button[data-mapact="use"]'); await pg.wait_for_timeout(1500)
+        st = await state(pg); check(st['active'] == newl[0]['id'] and not await pg.is_visible('#sheet') and 'Deneme' in await pg.inner_text('#locName'), 'J: harita noktası seçildi, Bugün ekranına dönüldü')
+        await pg.set_viewport_size({'width': 320, 'height': 700}); await pg.wait_for_timeout(200)
+        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
+        await overflow(pg, 'J 320 px harita')
+        bb = await pg.locator('#map').bounding_box(); await pg.mouse.click(bb['x'] + bb['width'] * 0.6, bb['y'] + bb['height'] * 0.3); await pg.wait_for_timeout(1800)
+        await pg.screenshot(path=SHOTS + '/j_harita_320.png'); await overflow(pg, 'J 320 px kart')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(300)
+        check(not await pg.is_visible('#sheet'), 'J: harita kapandı')
+        print('J errors:', errs); check(not errs, 'J: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== F) Rig Atölyesi: sıfırdan sistem, envanter, alışveriş

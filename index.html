@@ -414,6 +414,38 @@ b.warn{color:var(--D)}
 .hbar .msel::-webkit-scrollbar{display:none}
 .hbar .msel .btn{flex:0 0 auto;min-height:28px;padding:3px 10px;font-size:12px}
 
+/* ---------- v0.7: harita ---------- */
+.sheet.full{overflow:hidden;padding:0}
+.sheet.full .sin{max-width:none;margin:0;padding:0;height:100%;display:flex;flex-direction:column;zoom:1}
+.sheet.full .bar{padding-left:12px;padding-right:12px;flex:0 0 auto}
+.mapwrap{position:relative;flex:1;min-height:0}
+#map{position:absolute;inset:0;background:var(--surface-2)}
+.mapmsg{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:3;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px;margin:0}
+.maptools{position:absolute;left:10px;top:10px;z-index:500;display:flex;gap:6px}
+.maptools .btn{min-height:36px;padding:4px 12px;font-size:14px;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.maplayers{position:absolute;left:10px;top:54px;z-index:600;width:min(300px,calc(100% - 20px));max-height:calc(100% - 70px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;box-shadow:0 4px 16px rgba(0,0,0,.18);font-size:14px}
+.maplayers .seg{margin:0 0 4px}
+.mapcard{position:absolute;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;box-shadow:0 6px 20px rgba(0,0,0,.22);max-height:60%;overflow:auto}
+.mapcard .mc-h{display:flex;align-items:center;gap:8px}
+.mapcard .mc-h b{flex:1;min-width:0;font:700 17px var(--display)}
+.mapcard .x{border:0;background:none;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 6px}
+.mapcard .mc-c{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.mapcard .mc-c .mono{font:600 15px var(--mono)}
+.mapcard .mc-d{font-size:12px;color:var(--muted)}
+.mapcard .mc-i{font-size:13.5px;color:var(--ink-2)}
+.mapcard .row{flex-wrap:wrap;gap:6px}
+.mapcard a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.mpin{background:none;border:0}
+.mpin svg path{fill:var(--brand);stroke:#fff;stroke-width:1.5}
+.mpin svg circle{fill:#fff}
+.mpin.act svg path{fill:var(--accent)}
+.mpin.pick svg path{fill:#1F1F1F}
+.mpin span{position:absolute;left:22px;top:2px;white-space:nowrap;font:600 11px var(--body);color:#10232C;background:rgba(255,255,255,.88);border-radius:6px;padding:1px 5px;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.leaflet-container .mcatch{stroke:#fff;fill:var(--gold-fill);fill-opacity:.95}
+.leaflet-container{font:inherit}
+.leaflet-control-attribution{font-size:10px;line-height:1.35}
+.leaflet-bottom{bottom:env(safe-area-inset-bottom,0px)}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -859,9 +891,16 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.6.0';
+const APP_VERSION = '0.7.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.7.0', notes: [
+    'Harita: üstteki konum adına dokun; haritada bir noktaya dokununca yer adı, derece-dakika koordinat (kopyalanır), kıyıya uzaklık ve EMODnet derinliği gelir',
+    'Denizde seçilen noktaya en yakın yerin adıyla ad verilir (ör. “Sığacık açıkları”); koy içindeyse koyun adı',
+    '“Bu noktanın tahmini” ve “Kaydet”: nokta derinliğiyle konumlarına eklenir; derinlik kurşun hesabına girer',
+    'Katmanlar: harita ya da uydu; deniz işaretleri (OpenSeaMap), derinlik renkleri ve eğrileri (EMODnet), dip türü (AB suları), konumların ve avların',
+    'Kayıtlı konumun derinliği boşsa haritadan tek dokunuşla yazılır; Google yer adları için Ayarlar’a anahtar eklenebilir',
+  ]},
   {v: '0.6.0', notes: [
     'Saatlik tablo Windy düzeninde: güneş ve ay satırı (ay evresiyle), gece saatleri gri, balık çubukları ve günün eğrisi, basınç grafiği; sıcaklık, yağış, su ve basınç renkli',
     'Hava modeli seçici (Karma, ICON-EU, ECMWF, GFS), ECMWF karşılaştırma satırı ve model uyumu satırı',
@@ -1086,7 +1125,7 @@ function newState(){
   return {v: 2, created: new Date().toISOString(), seenVersion: APP_VERSION, onboarded: false, mode: 'tekne',
     profile: {name: ''},
     settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter', anchor: 'surukle', leeway: 'orta',
-      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null},
+      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: ''},
     inv: {items: {}, qty: {}, status: {}},
     systems: {}, locations: {}, active: null, wx: null,
     pkg: {unlocked: false, version: null, need: false, locs: []},
@@ -2902,10 +2941,12 @@ async function renderCatches(){
 let FORM = null;
 function openSheet(html, keepScroll){
   const sh = $('sheet'); const wasHidden = sh.hidden; const top = sh.scrollTop;
+  if (ui.sheet !== 'harita' && MAP) closeMap();
+  sh.classList.toggle('full', ui.sheet === 'harita');
   sh.innerHTML = '<div class="sin">' + html + '</div>'; sh.hidden = false; sh.scrollTop = keepScroll ? top : 0; document.body.style.overflow = 'hidden';
   if (wasHidden) { try { history.pushState({sheet: 1}, ''); } catch (e) {} }
 }
-function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; const backToWel = !!(WZ && WZ.fromWel && !S.onboarded); sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; WZ = null; ui.sheet = null; ui.sheetArg = null; if (!fromPop) { try { history.back(); } catch (e) {} } if (backToWel && !hasProfileData()) showWelcome(); }
+function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; const backToWel = !!(WZ && WZ.fromWel && !S.onboarded); closeMap(); sh.classList.remove('full'); sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; WZ = null; ui.sheet = null; ui.sheetArg = null; if (!fromPop) { try { history.back(); } catch (e) {} } if (backToWel && !hasProfileData()) showWelcome(); }
 window.addEventListener('popstate', () => { if (!$('sheet').hidden) closeSheet(true); });
 function toLocalInput(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function nearestLoc(p){ if (!p || p.lat == null) return null; let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
@@ -3054,6 +3095,7 @@ const MORE = [
   ['gorunum', 'Görünüm', () => 'Tablo satırları, Bugün kartları, birimler, hava modeli'],
   ['yedek', 'Bulut yedek', () => bkReady() ? (S.backup.err ? '⚠ ' + S.backup.err : S.backup.lastAt ? 'Son yedek ' + fmtDT(new Date(S.backup.lastAt)) : 'Bağlı, henüz yedek yok') : 'Kapalı · GitHub deponda şifreli yedek'],
   ['paket', 'Özel paket', () => S.pkg.need ? '⚠ Güncellendi, yeni şifreyle aç' : pkgOn() ? 'Açık · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem' : 'Kapalı'],
+  ['harita', 'Harita', () => 'Nokta seç: yer adı, derece-dakika koordinat, derinlik, deniz işaretleri'],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
@@ -3075,6 +3117,7 @@ function renderNewVersion(){
   el.innerHTML = out.join('');
 }
 function openMore(name, keep){
+  if (name === 'harita') { openMap(); return; }
   ui.sheet = name;
   const F = {ayarlar: sheetSettings, gorunum: sheetView, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
@@ -3098,6 +3141,8 @@ function sheetSettings(){
     '<section class="set"><h4>Tekne ve sürüklenme</h4>' + segBtns('anchor', [['surukle', 'Sürüklenerek avlanırım'], ['demir', 'Demirli avlanırım']], st.anchor === 'demir' ? 'demir' : 'surukle') +
     '<p class="note" style="margin-top:8px">Teknen rüzgârdan ne kadar etkilenir?</p>' + segBtns('leeway', Object.entries(LEEWAY_TXT), st.leeway || 'orta') +
     '<p class="note">Rüzgâr, hızının %3 / %4,5 / %6’sı kadar sürüklenme ekler. Plotterdeki gerçek sürüklenmen hesaplanandan hızlıysa bir üst, yavaşsa bir alt seçeneği seç.</p></section>' +
+    '<section class="set"><h4>Harita</h4><label class="f wide">Google Maps API anahtarı (isteğe bağlı)<input id="gkey" data-setk="gkey" value="' + esc(st.gkey || '') + '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="AIza…"></label>' +
+    '<p class="note">Yer adları OpenStreetMap’ten gelir. Google adlarını istersen Google Cloud’da “Maps JavaScript API” ve “Geocoding API”yi aç, anahtarı yalnızca <b>https://ktopdal.github.io/Kenny-av/*</b> adresine kısıtla ve buraya yapıştır. Ayda 10.000 sorgu ücretsiz.</p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '</div>';
 }
@@ -3181,7 +3226,7 @@ async function submitPkg(){
 function sheetLocations(){
   const ccount = id => CATCHES.filter(c => c.loc && distKm(c.loc, S.locations[id]) <= 0.5).length;
   const list = Object.values(S.locations);
-  return sheetBar('Konumlar') + '<div class="stack">' +
+  return sheetBar('Konumlar', '<button class="btn" type="button" data-open="harita">Harita</button>') + '<div class="stack">' +
     (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +
       '<div class="sp mono">' + fmtCoord(L.lat, L.lon, true) + (ccount(L.id) ? ' · ' + ccount(L.id) + ' av' : '') + '</div>' +
       (L.sea && L.sea.lat != null ? '<div class="sp">Deniz verisi ' + f1(L.sea.km) + ' km ' + dir8(L.sea.dir) + ' yönündeki noktadan</div>' : '') + '</div>' +
@@ -3198,10 +3243,11 @@ function sheetLocations(){
     '<p class="err" id="locErr" hidden></p><div class="row" style="margin-top:10px"><button class="btn primary" type="submit">Kaydet</button><button class="btn" type="button" data-act="gpsfill">Bulunduğum yer</button></div>' +
     '<p class="note" style="margin-top:8px">Nokta karadaysa ya da kıyıya çok yakınsa dalga ve akıntı en yakın deniz noktasından alınır.</p></form></div>';
 }
-function addLocation(name, lat, lon, bottom, depth){
+function addLocation(name, lat, lon, bottom, depth, activate){
   const id = nextLocId();
   S.locations[id] = {id, name: name || 'Konum ' + id, lat, lon, bottom: bottom || '', depth: depth || ''};
-  S.active = id; S.onboarded = true; persist(); WX = null; return id;
+  if (activate !== false || !S.active) { S.active = id; WX = null; }
+  S.onboarded = true; persist(); return id;
 }
 // ---- Alışveriş
 function sheetShopping(){
@@ -3269,6 +3315,258 @@ async function importBackup(file){
     pkgLoadCached(); indexAll(); applyTheme(); await loadCatches(); renderAll(); loadWeather(true);
     $('bkNote').textContent = 'Yedek yüklendi' + (j.catches ? ' · ' + j.catches.length + ' av' : '') + '.';
   } catch (e) { $('bkNote').textContent = 'Bu dosya ' + APP_SHORT + ' yedeği değil.'; }
+}
+
+// ---------------------------------------------------------------- 77 · Harita: nokta seç, yer adı, derece-dakika koordinat, derinlik, katmanlar
+// Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
+// Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
+// Yer adı: OpenStreetMap Nominatim (karada) ve Overpass (denizde en yakın yer, koy, kıyıya uzaklık) · Derinlik: EMODnet Bathymetry
+const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, substrate: false, locs: true, catches: true};
+const mapCfg = () => Object.assign({}, MAP_DEF, S.settings.map || {});
+const NOMI = 'https://nominatim.openstreetmap.org/reverse';
+const OVERPASS = 'https://overpass-api.de/api/interpreter';
+const EMOD_DEPTH = 'https://rest.emodnet-bathymetry.eu/depth_sample';
+let MAP = null, MAPL = null, MPICK = null, PICK_ID = 0;
+const LF = () => window.L;
+function loadLeaflet(){
+  if (window.L && window.L.map) return Promise.resolve();
+  if (loadLeaflet.p) return loadLeaflet.p;
+  const base = PREVIEW ? 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/' : 'vendor/leaflet/';
+  loadLeaflet.p = new Promise((res, rej) => {
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = base + 'leaflet.css'; document.head.appendChild(css);
+    const s = document.createElement('script'); s.src = base + 'leaflet.js';
+    s.onload = () => res(); s.onerror = () => { loadLeaflet.p = null; s.remove(); rej(new Error('harita kütüphanesi yüklenemedi')); };
+    document.head.appendChild(s);
+  });
+  return loadLeaflet.p;
+}
+async function fetchJ(url, opt, ms){ const r = await fetchT(url, opt, ms || 12000); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+let NOMI_AT = 0;
+async function nominatim(lat, lon){
+  const wait = NOMI_AT + 1100 - Date.now(); if (wait > 0) await new Promise(r => setTimeout(r, wait));   // Nominatim: saniyede en çok 1 istek
+  NOMI_AT = Date.now();
+  return fetchJ(NOMI + '?format=jsonv2&addressdetails=1&zoom=14&accept-language=tr&lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5));
+}
+function overpassNear(lat, lon){
+  const b = [lat - 0.06, lon - 0.075, lat + 0.06, lon + 0.075].map(v => v.toFixed(4)).join(',');
+  const q = '[out:json][timeout:15];way(around:6000,' + lat.toFixed(5) + ',' + lon.toFixed(5) + ')[natural=coastline];out geom(' + b + ');' +
+    'node(around:15000,' + lat.toFixed(5) + ',' + lon.toFixed(5) + ')[place~"^(city|town|village|suburb|hamlet|neighbourhood|locality|island|islet)$"][name];out;' +
+    'nwr(around:6000,' + lat.toFixed(5) + ',' + lon.toFixed(5) + ')[natural~"^(bay|cape|peninsula|strait)$"][name];out center;';
+  return fetchJ(OVERPASS, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'data=' + encodeURIComponent(q)}, 20000);
+}
+async function depthAt(lat, lon){
+  const j = await fetchJ(EMOD_DEPTH + '?geom=' + encodeURIComponent('POINT(' + lon.toFixed(5) + ' ' + lat.toFixed(5) + ')'));
+  const v = j && (j.avg != null ? j.avg : j.smoothed);
+  return v == null || !isFinite(v) ? null : Number(v);
+}
+// Google yer adları (isteğe bağlı): Ayarlar'a anahtar girilirse Maps JavaScript API'nin Geocoder'ı kullanılır
+function loadGoogle(){
+  const key = (S.settings.gkey || '').trim(); if (!key) return Promise.reject(new Error('anahtar yok'));
+  if (window.google && window.google.maps && window.google.maps.Geocoder) return Promise.resolve();
+  if (loadGoogle.p && loadGoogle.key === key) return loadGoogle.p;
+  loadGoogle.key = key;
+  loadGoogle.p = new Promise((res, rej) => {
+    window.__alyssaGm = () => res();
+    const s = document.createElement('script'); s.async = true;
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&language=tr&region=TR&callback=__alyssaGm';
+    s.onerror = () => { loadGoogle.p = null; rej(new Error('Google yüklenemedi')); };
+    document.head.appendChild(s);
+    setTimeout(() => rej(new Error('zaman aşımı')), 15000);
+  });
+  return loadGoogle.p;
+}
+async function googleName(lat, lon){
+  await loadGoogle();
+  const r = await new window.google.maps.Geocoder().geocode({location: {lat, lng: lon}});
+  const res = (r && r.results) || [];
+  const comp = type => { for (const x of res) for (const c of (x.address_components || [])) if (c.types.includes(type)) return c.long_name; return null; };
+  const local = comp('administrative_area_level_4') || comp('neighborhood') || comp('locality') || comp('administrative_area_level_2');
+  const region = comp('administrative_area_level_1');
+  return [local, region && region !== local ? region : null].filter(Boolean).join(', ') || null;
+}
+// bir noktadan doğru parçasına uzaklık (km), küçük alanda düzlem yaklaşımı
+function segKm(p, a, b){
+  const kx = 111.32 * Math.cos(p.lat * Math.PI / 180), ky = 110.57;
+  const ax = (a.lon - p.lon) * kx, ay = (a.lat - p.lat) * ky, bx = (b.lon - p.lon) * kx, by = (b.lat - p.lat) * ky;
+  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy; let t = l2 ? -(ax * dx + ay * dy) / l2 : 0; t = Math.max(0, Math.min(1, t));
+  return Math.hypot(ax + t * dx, ay + t * dy);
+}
+const PLACE_W = {city: 0.5, town: 0.6, village: 0.8, suburb: 0.9, island: 0.8, islet: 1, hamlet: 1.2, neighbourhood: 1.3, locality: 1.4};
+async function placeInfo(lat, lon){
+  const p = {lat, lon};
+  const [rv, op, dep, gname] = await Promise.all([nominatim(lat, lon).catch(() => null), overpassNear(lat, lon).catch(() => null), depthAt(lat, lon).catch(() => null),
+    S.settings.gkey ? googleName(lat, lon).catch(() => null) : Promise.resolve(null)]);
+  let land = null, rvKm = null;
+  if (rv && !rv.error && rv.lat != null) {
+    rvKm = distKm(p, {lat: +rv.lat, lon: +rv.lon}); const a = rv.address || {};
+    const local = a.village || a.town || a.suburb || a.neighbourhood || a.quarter || a.hamlet || a.city_district || a.municipality || a.district || a.city;
+    const region = a.province || a.city || a.state;
+    land = [local, region && region !== local ? region : null].filter(Boolean).join(', ') || rv.name || null;
+  }
+  let coastKm = null; const places = [], feats = [];
+  ((op && op.elements) || []).forEach(el => {
+    const t = el.tags || {};
+    if (t.natural === 'coastline' && el.geometry) { for (let i = 1; i < el.geometry.length; i++) { const d = segKm(p, el.geometry[i - 1], el.geometry[i]); if (coastKm == null || d < coastKm) coastKm = d; } return; }
+    const c = el.center || (el.lat != null ? {lat: el.lat, lon: el.lon} : null); if (!c || !t.name) return;
+    const o = {name: t['name:tr'] || t.name, kind: t.place || t.natural, d: distKm(p, c)};
+    (t.place ? places : feats).push(o);
+  });
+  // deniz mi kara mı: derinlik varsa ona, yoksa Nominatim'in bulduğu nesnenin uzaklığına bak
+  const sea = dep != null ? dep > 0.5 : (rv && !rv.error ? rvKm > 0.35 : true);
+  let name = null;
+  if (!sea) name = gname || land || (places.sort((a, b) => a.d - b.d)[0] || {}).name || null;
+  else {
+    const bay = feats.filter(f => f.kind === 'bay' && f.d <= 4).sort((a, b) => a.d - b.d)[0];
+    const pl = places.slice().sort((a, b) => a.d * (PLACE_W[a.kind] || 1) - b.d * (PLACE_W[b.kind] || 1))[0];
+    const gl = gname ? gname.split(',')[0] : null;
+    name = bay ? bay.name : gl ? gl + ' açıkları' : pl ? pl.name + ' açıkları' : land ? land + ' açıkları' : 'Açık deniz';
+  }
+  return {name, sea, coastKm, depth: dep != null && dep > 0.5 ? Math.round(dep) : null, land, src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || dep != null || gname)};
+}
+// ---- harita sayfası
+function sheetMap(){
+  return '<div class="bar"><button class="btn" type="button" data-close>Geri</button><h3 id="sheetTitle">Harita</h3><button class="btn" type="button" data-mapact="list">Liste</button></div>' +
+    '<div class="mapwrap"><div id="map" role="application" aria-label="Harita: bir noktaya dokun"></div>' +
+    '<p class="mapmsg" id="mapMsg">Harita yükleniyor…</p>' +
+    '<div class="maptools"><button class="btn" type="button" data-mapact="layers" aria-label="Katmanlar">Katmanlar</button><button class="btn" type="button" data-mapact="gps" aria-label="Bulunduğum yer">⌖</button></div>' +
+    '<div class="maplayers" id="mapLayers" hidden></div>' +
+    '<div class="mapcard" id="mapCard" hidden></div></div>';
+}
+async function openMap(){
+  ui.sheet = 'harita';
+  openSheet(sheetMap());
+  try { await loadLeaflet(); } catch (e) { const m = $('mapMsg'); if (m) m.textContent = 'Harita yüklenemedi; internet bağlantısını kontrol et.'; return; }
+  if (ui.sheet !== 'harita' || !$('map')) return;
+  initMap();
+}
+function initMap(){
+  const LL = LF(); const cur = loc(); const v = S.settings.mapView;
+  if (MAP) { try { MAP.remove(); } catch (e) {} MAP = null; }
+  const center = cur ? [cur.lat, cur.lon] : v ? [v.lat, v.lon] : [38.4, 26.6];
+  MAP = LL.map('map', {zoomControl: false, attributionControl: true}).setView(center, cur ? 11 : v ? v.z : 8);
+  LL.control.zoom({position: 'topright'}).addTo(MAP);
+  MAP.attributionControl.setPrefix(false);
+  MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), pick: null};
+  const cfg = mapCfg(); setBase(cfg.base); ['seamark', 'depth', 'contours', 'substrate'].forEach(k => setOver(k, cfg[k]));
+  drawLocs(); drawCatches();
+  if (cfg.locs) MAPL.locs.addTo(MAP); if (cfg.catches) MAPL.catches.addTo(MAP);
+  MAP.on('click', e => pickPoint(e.latlng.lat, e.latlng.lng));
+  MAP.on('moveend', () => { const c = MAP.getCenter(); S.settings.mapView = {lat: +c.lat.toFixed(5), lon: +c.lng.toFixed(5), z: MAP.getZoom()}; persistQuiet(); });
+  const m = $('mapMsg'); if (m) m.hidden = true;
+  setTimeout(() => { if (MAP) MAP.invalidateSize(); }, 80);
+}
+function closeMap(){ if (MAP) { try { MAP.remove(); } catch (e) {} } MAP = null; MAPL = null; MPICK = null; }
+const BASES = {
+  osm: () => LF().tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> katkıcıları'}),
+  uydu: () => LF().tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, attribution: 'Uydu © Esri, Maxar, Earthstar Geographics'}),
+};
+const OVERS = {
+  seamark: () => LF().tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {maxZoom: 18, attribution: 'Deniz işaretleri © <a href="https://www.openseamap.org" target="_blank" rel="noopener">OpenSeaMap</a>'}),
+  depth: () => LF().tileLayer.wms('https://ows.emodnet-bathymetry.eu/wms', {layers: 'emodnet:mean_multicolour', format: 'image/png', transparent: true, opacity: 0.55, attribution: 'Derinlik © EMODnet Bathymetry'}),
+  contours: () => LF().tileLayer.wms('https://ows.emodnet-bathymetry.eu/wms', {layers: 'emodnet:contours', format: 'image/png', transparent: true, attribution: 'Derinlik eğrileri © EMODnet Bathymetry'}),
+  substrate: () => LF().tileLayer.wms('https://drive.emodnet-geology.eu/geoserver/wms', {layers: 'cp_wp3_seabed_substrate_folk_7', format: 'image/png', transparent: true, opacity: 0.6, attribution: 'Dip türü © EMODnet Geology'}),
+};
+const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', substrate: 'Dip türü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım'};
+function setBase(k){ if (!MAP) return; if (MAPL.base) MAP.removeLayer(MAPL.base); MAPL.base = (BASES[k] || BASES.osm)().addTo(MAP); MAPL.base.bringToBack(); }
+function setOver(k, on){
+  if (!MAP) return;
+  if (k === 'locs' || k === 'catches') { const g = MAPL[k]; if (on) g.addTo(MAP); else MAP.removeLayer(g); return; }
+  if (on && !MAPL.over[k]) MAPL.over[k] = OVERS[k]().addTo(MAP);
+  if (!on && MAPL.over[k]) { MAP.removeLayer(MAPL.over[k]); delete MAPL.over[k]; }
+}
+function renderLayers(){
+  const cfg = mapCfg(), el = $('mapLayers'); if (!el) return;
+  el.innerHTML = '<b>Altlık</b><div class="seg">' + [['osm', 'Harita'], ['uydu', 'Uydu']].map(([v, t]) => '<button class="btn small" type="button" data-mapbase="' + v + '" aria-pressed="' + (cfg.base === v) + '">' + t + '</button>').join('') + '</div>' +
+    '<b>Katmanlar</b>' + Object.keys(OVER_TXT).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
+    '<p class="note">Derinlik ve dip türü EMODnet verisidir; seyir için resmî harita yerine geçmez.</p>';
+}
+function mapLayerSet(k, v){ const cfg = mapCfg(); cfg[k] = v; S.settings.map = cfg; persistQuiet(); if (k === 'base') setBase(v); else setOver(k, v); renderLayers(); }
+// ---- işaretler
+const pinIcon = (cls, label) => LF().divIcon({className: 'mpin ' + cls, html: '<svg viewBox="0 0 24 32" width="24" height="32" aria-hidden="true"><path d="M12 31s10-11.3 10-19A10 10 0 0 0 2 12c0 7.7 10 19 10 19z"/><circle cx="12" cy="12" r="3.8"/></svg>' + (label ? '<span>' + esc(label) + '</span>' : ''), iconSize: [24, 32], iconAnchor: [12, 31]});
+function drawLocs(){
+  if (!MAPL) return; MAPL.locs.clearLayers();
+  Object.values(S.locations).forEach(Lc => {
+    const m = LF().marker([Lc.lat, Lc.lon], {icon: pinIcon(S.active === Lc.id ? 'act' : 'loc', Lc.name), title: Lc.name, keyboard: false});
+    m.on('click', e => { if (e.originalEvent) LF().DomEvent.stopPropagation(e.originalEvent); locCard(Lc.id); });
+    MAPL.locs.addLayer(m);
+  });
+}
+function drawCatches(){
+  if (!MAPL) return; MAPL.catches.clearLayers();
+  CATCHES.forEach(c => {
+    if (!c.loc || c.loc.lat == null) return; const l = catchLine(c);
+    const m = LF().circleMarker([c.loc.lat, c.loc.lon], {radius: 7, weight: 2, className: 'mcatch'});
+    m.bindPopup('<b>' + esc(l.sp) + '</b><br>' + l.d.getDate() + ' ' + MON3[l.d.getMonth()] + ' ' + l.d.getFullYear() + (l.bits ? ' · ' + esc(l.bits) : '') + (c.rig ? '<br>' + esc(rigShort(c.rig)) : ''));
+    MAPL.catches.addLayer(m);
+  });
+}
+// ---- nokta kartı
+async function pickPoint(lat, lon){
+  if (!MAP) return;
+  if (MAPL.pick) MAPL.pick.setLatLng([lat, lon]); else MAPL.pick = LF().marker([lat, lon], {icon: pinIcon('pick'), keyboard: false}).addTo(MAP);
+  const my = ++PICK_ID; MPICK = {lat, lon, busy: true};
+  $('mapLayers').hidden = true; renderPick();
+  const info = await placeInfo(lat, lon).catch(() => null);
+  if (my !== PICK_ID || !MPICK) return;
+  Object.assign(MPICK, info || {}, {busy: false, failed: !info || !info.ok}); renderPick();
+}
+function coordBlock(lat, lon){
+  return '<div class="mc-c"><span class="mono">' + ddm(lat, 'K', 'G') + '&nbsp; ' + ddm(lon, 'D', 'B') + '</span><button class="btn small" type="button" data-mapact="copy">Kopyala</button></div>' +
+    '<div class="mc-d mono">' + lat.toFixed(5) + '°, ' + lon.toFixed(5) + '°</div>';
+}
+const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lon.toFixed(6);
+function renderPick(){
+  const p = MPICK, el = $('mapCard'); if (!el || !p) return;
+  const info = p.busy ? 'Yer adı, kıyı ve derinlik aranıyor…' : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servis yanıt vermedi).' :
+    [p.sea ? 'Deniz' : 'Kara', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + f1(p.coastKm) + ' km') : p.sea ? 'kıyı 6 km’den uzak' : '', p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : ''].filter(Boolean).join(' · ');
+  el.innerHTML = '<div class="mc-h"><b>' + esc(p.busy ? 'Seçilen nokta' : (p.name || 'Seçilen nokta')) + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
+    coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' +
+    '<div class="row"><button class="btn primary" type="button" data-mapact="forecast">Bu noktanın tahmini</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
+    '<a class="btn" href="' + gmapsUrl(p.lat, p.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
+  el.hidden = false;
+}
+async function locCard(id){
+  const Lc = S.locations[id], el = $('mapCard'); if (!Lc || !el) return;
+  MPICK = {lat: Lc.lat, lon: Lc.lon, id, name: Lc.name};
+  if (MAPL && MAPL.pick) { MAP.removeLayer(MAPL.pick); MAPL.pick = null; }
+  const draw = dep => {
+    el.innerHTML = '<div class="mc-h"><b>' + esc(locLabel(Lc)) + '</b>' + (S.active === id ? '<span class="chip A">Seçili</span>' : '') + '<button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
+      coordBlock(Lc.lat, Lc.lon) + '<div class="mc-i">dip: ' + esc(BOTTOM_TXT[Lc.bottom || ''] || 'bilinmiyor') + ' · derinlik: ' + (Lc.depth ? esc(Lc.depth) + ' m' : 'yazılmamış') +
+      (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') + '</div>' +
+      '<div class="row">' + (S.active === id ? '<button class="btn primary" type="button" data-mapact="today">Tahmine dön</button>' : '<button class="btn primary" type="button" data-mapact="use">Seç ve tahmin</button>') +
+      '<a class="btn" href="' + gmapsUrl(Lc.lat, Lc.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
+    el.hidden = false;
+  };
+  draw(null);
+  if (!Lc.depth) { const d = await depthAt(Lc.lat, Lc.lon).catch(() => null); if (MPICK && MPICK.id === id && d != null && d > 0.5) draw(Math.round(d)); }
+}
+async function mapAct(a, b){
+  const p = MPICK;
+  if (a === 'list') { openMore('konumlar'); return; }
+  if (a === 'layers') { const el = $('mapLayers'); renderLayers(); el.hidden = !el.hidden; if (!el.hidden) $('mapCard').hidden = true; return; }
+  if (a === 'gps') {
+    if (!navigator.geolocation) { toast('Konum servisi yok'); return; }
+    toast('Konum alınıyor…');
+    navigator.geolocation.getCurrentPosition(g => { if (!MAP) return; MAP.setView([g.coords.latitude, g.coords.longitude], Math.max(MAP.getZoom(), 12)); pickPoint(g.coords.latitude, g.coords.longitude); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000});
+    return;
+  }
+  if (a === 'close') { $('mapCard').hidden = true; if (MAPL && MAPL.pick) { MAP.removeLayer(MAPL.pick); MAPL.pick = null; } MPICK = null; return; }
+  if (!p) return;
+  if (a === 'copy') {
+    const txt = ddm(p.lat, 'K', 'G') + ' ' + ddm(p.lon, 'D', 'B');
+    try { await navigator.clipboard.writeText(txt); toast('Kopyalandı: ' + txt); } catch (e) { toast(txt); }
+    return;
+  }
+  if (a === 'setdepth' && p.id && S.locations[p.id]) { S.locations[p.id].depth = String(b.dataset.dep); persist(); renderAll(); locCard(p.id); toast('Derinlik kaydedildi'); return; }
+  if (a === 'use' && p.id) { S.active = p.id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast('Konum değişti'); return; }
+  if (a === 'today') { closeSheet(); show('bugun'); return; }
+  if (a === 'save' || a === 'forecast') {
+    const n = nearestLoc(p); let id = n && n.d <= 0.2 ? n.L.id : null;
+    if (!id) id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', a === 'forecast');
+    if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
+    persist(); drawLocs(); renderAll(); toast('Konumlarına kaydedildi: ' + S.locations[id].name);
+    locCard(id);
+  }
 }
 
 // ---------------------------------------------------------------- 78 · Rig Atölyesi sihirbazı (sıfırdan rig sistemi kurulumu)
@@ -3619,7 +3917,7 @@ async function pkgCheck(manual){
 }
 function bindEvents(){
   document.querySelector('.tabbar').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) show(b.dataset.v); });
-  $('locBtn').addEventListener('click', () => openMore('konumlar'));
+  $('locBtn').addEventListener('click', () => openMap());
   $('net').addEventListener('click', () => loadWeather(true));
   $('compass').addEventListener('click', () => { const x = nowHour(); if (x) toast(compassTxt(x)); });
   $('addCatch').addEventListener('click', () => catchForm(null));
@@ -3648,6 +3946,8 @@ function bindEvents(){
     if (d.use) { S.active = d.use; persist(); WX = null; renderAll(); loadWeather(); if (ui.sheet === 'konumlar') openMore('konumlar', true); toast('Konum değişti'); return; }
     if (d.del) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.locations[d.del]; if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null; persist(); WX = null; renderAll(); loadWeather(); openMore('konumlar', true); return; }
     if (d.set && d.val != null) { setSetting(d.set, d.val); return; }
+    if (d.mapact) { mapAct(d.mapact, b); return; }
+    if (d.mapbase) { mapLayerSet('base', d.mapbase); return; }
     if (d.rowmv) { const [l, id, dir] = d.rowmv.split('|'); moveRow(l, id, Number(dir)); return; }
     if (d.rowreset) { S.settings[d.rowreset] = null; persist(); renderAll(); if (ui.sheet === 'gorunum') openMore('gorunum', true); toast('Varsayılan düzen'); return; }
     if (d.act) {
@@ -3708,6 +4008,8 @@ function bindEvents(){
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; persist(); applyTheme(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }
+    if (el.dataset.setk) { S.settings[el.dataset.setk] = el.value.trim(); persist(); toast(el.value.trim() ? 'Anahtar kaydedildi' : 'Anahtar silindi'); return; }
+    if (el.dataset.maplayer) { mapLayerSet(el.dataset.maplayer, el.checked); return; }
     if (el.dataset.rowtog) { const [l, id] = el.dataset.rowtog.split('|'); toggleRow(l, id, el.checked); return; }
     if (el.dataset.setp) { S.profile[el.dataset.setp] = el.value.trim(); persist(); return; }
   });
@@ -3733,7 +4035,7 @@ function bindEvents(){
 }
 // test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
-  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
+  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
 (async () => {
   loadState();
   pkgLoadCached();

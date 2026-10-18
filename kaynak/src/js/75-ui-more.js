@@ -4,6 +4,7 @@ const MORE = [
   ['gorunum', 'Görünüm', () => 'Tablo satırları, Bugün kartları, birimler, hava modeli'],
   ['yedek', 'Bulut yedek', () => bkReady() ? (S.backup.err ? '⚠ ' + S.backup.err : S.backup.lastAt ? 'Son yedek ' + fmtDT(new Date(S.backup.lastAt)) : 'Bağlı, henüz yedek yok') : 'Kapalı · GitHub deponda şifreli yedek'],
   ['paket', 'Özel paket', () => S.pkg.need ? '⚠ Güncellendi, yeni şifreyle aç' : pkgOn() ? 'Açık · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem' : 'Kapalı'],
+  ['harita', 'Harita', () => 'Nokta seç: yer adı, derece-dakika koordinat, derinlik, deniz işaretleri'],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
@@ -25,6 +26,7 @@ function renderNewVersion(){
   el.innerHTML = out.join('');
 }
 function openMore(name, keep){
+  if (name === 'harita') { openMap(); return; }
   ui.sheet = name;
   const F = {ayarlar: sheetSettings, gorunum: sheetView, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
@@ -48,6 +50,8 @@ function sheetSettings(){
     '<section class="set"><h4>Tekne ve sürüklenme</h4>' + segBtns('anchor', [['surukle', 'Sürüklenerek avlanırım'], ['demir', 'Demirli avlanırım']], st.anchor === 'demir' ? 'demir' : 'surukle') +
     '<p class="note" style="margin-top:8px">Teknen rüzgârdan ne kadar etkilenir?</p>' + segBtns('leeway', Object.entries(LEEWAY_TXT), st.leeway || 'orta') +
     '<p class="note">Rüzgâr, hızının %3 / %4,5 / %6’sı kadar sürüklenme ekler. Plotterdeki gerçek sürüklenmen hesaplanandan hızlıysa bir üst, yavaşsa bir alt seçeneği seç.</p></section>' +
+    '<section class="set"><h4>Harita</h4><label class="f wide">Google Maps API anahtarı (isteğe bağlı)<input id="gkey" data-setk="gkey" value="' + esc(st.gkey || '') + '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="AIza…"></label>' +
+    '<p class="note">Yer adları OpenStreetMap’ten gelir. Google adlarını istersen Google Cloud’da “Maps JavaScript API” ve “Geocoding API”yi aç, anahtarı yalnızca <b>https://ktopdal.github.io/Kenny-av/*</b> adresine kısıtla ve buraya yapıştır. Ayda 10.000 sorgu ücretsiz.</p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '</div>';
 }
@@ -131,7 +135,7 @@ async function submitPkg(){
 function sheetLocations(){
   const ccount = id => CATCHES.filter(c => c.loc && distKm(c.loc, S.locations[id]) <= 0.5).length;
   const list = Object.values(S.locations);
-  return sheetBar('Konumlar') + '<div class="stack">' +
+  return sheetBar('Konumlar', '<button class="btn" type="button" data-open="harita">Harita</button>') + '<div class="stack">' +
     (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +
       '<div class="sp mono">' + fmtCoord(L.lat, L.lon, true) + (ccount(L.id) ? ' · ' + ccount(L.id) + ' av' : '') + '</div>' +
       (L.sea && L.sea.lat != null ? '<div class="sp">Deniz verisi ' + f1(L.sea.km) + ' km ' + dir8(L.sea.dir) + ' yönündeki noktadan</div>' : '') + '</div>' +
@@ -148,10 +152,11 @@ function sheetLocations(){
     '<p class="err" id="locErr" hidden></p><div class="row" style="margin-top:10px"><button class="btn primary" type="submit">Kaydet</button><button class="btn" type="button" data-act="gpsfill">Bulunduğum yer</button></div>' +
     '<p class="note" style="margin-top:8px">Nokta karadaysa ya da kıyıya çok yakınsa dalga ve akıntı en yakın deniz noktasından alınır.</p></form></div>';
 }
-function addLocation(name, lat, lon, bottom, depth){
+function addLocation(name, lat, lon, bottom, depth, activate){
   const id = nextLocId();
   S.locations[id] = {id, name: name || 'Konum ' + id, lat, lon, bottom: bottom || '', depth: depth || ''};
-  S.active = id; S.onboarded = true; persist(); WX = null; return id;
+  if (activate !== false || !S.active) { S.active = id; WX = null; }
+  S.onboarded = true; persist(); return id;
 }
 // ---- Alışveriş
 function sheetShopping(){

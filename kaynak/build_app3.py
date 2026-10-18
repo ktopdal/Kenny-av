@@ -19,7 +19,7 @@ DIST = os.path.join(APP, 'dist')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.6.0'
+VERSION = '0.7.0'
 NAME, SHORT = 'Alyssa by Barbossa App', 'Alyssa'
 THEME = '#0B6B7C'
 
@@ -187,8 +187,13 @@ def main():
         '# %s\n\nDeniz avı uygulaması: hava, deniz, solunar, rig sistemleri, envanter ve fotoğraflı av kaydı.\n\n'
         'Uygulama boş açılır. Kişisel rig sistemi `paket/ozel.enc.json` içinde şifrelidir (AES-GCM). '
         'Bulut yedekleri kullanıcının kendi GitHub deposunda uçtan uca şifreli tutulur. Hava ve deniz verisi Open-Meteo üzerinden gelir.\n'
-        'Güneş ve ay hesapları için [SunCalc](https://github.com/mourner/suncalc) (BSD-2) kullanılır.\n' % NAME)
+        'Güneş ve ay hesapları için [SunCalc](https://github.com/mourner/suncalc) (BSD-2), harita için [Leaflet](https://leafletjs.com) (BSD-2) kullanılır.\n'
+        'Harita verileri: © OpenStreetMap katkıcıları (Nominatim, Overpass), OpenSeaMap, EMODnet Bathymetry ve Geology, Esri uydu görüntüsü.\n' % NAME)
     shutil.copy(os.path.join(APP, 'vendor/LICENSE'), os.path.join(DIST, 'LICENSE-suncalc.txt'))
+    # harita kütüphanesi (Leaflet, BSD-2): harita ilk açıldığında yüklenir
+    os.makedirs(os.path.join(DIST, 'vendor', 'leaflet'), exist_ok=True)
+    for f in ('leaflet.js', 'leaflet.css', 'LICENSE'):
+        shutil.copy(os.path.join(APP, 'vendor', 'leaflet', f), os.path.join(DIST, 'vendor', 'leaflet', f))
     icons()
     for root, _, files in os.walk(DIST):
         for f in sorted(files):

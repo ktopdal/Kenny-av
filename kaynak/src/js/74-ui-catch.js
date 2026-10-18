@@ -118,10 +118,12 @@ async function renderCatches(){
 let FORM = null;
 function openSheet(html, keepScroll){
   const sh = $('sheet'); const wasHidden = sh.hidden; const top = sh.scrollTop;
+  if (ui.sheet !== 'harita' && MAP) closeMap();
+  sh.classList.toggle('full', ui.sheet === 'harita');
   sh.innerHTML = '<div class="sin">' + html + '</div>'; sh.hidden = false; sh.scrollTop = keepScroll ? top : 0; document.body.style.overflow = 'hidden';
   if (wasHidden) { try { history.pushState({sheet: 1}, ''); } catch (e) {} }
 }
-function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; const backToWel = !!(WZ && WZ.fromWel && !S.onboarded); sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; WZ = null; ui.sheet = null; ui.sheetArg = null; if (!fromPop) { try { history.back(); } catch (e) {} } if (backToWel && !hasProfileData()) showWelcome(); }
+function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; const backToWel = !!(WZ && WZ.fromWel && !S.onboarded); closeMap(); sh.classList.remove('full'); sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; WZ = null; ui.sheet = null; ui.sheetArg = null; if (!fromPop) { try { history.back(); } catch (e) {} } if (backToWel && !hasProfileData()) showWelcome(); }
 window.addEventListener('popstate', () => { if (!$('sheet').hidden) closeSheet(true); });
 function toLocalInput(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function nearestLoc(p){ if (!p || p.lat == null) return null; let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }

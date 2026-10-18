@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.7.0', notes: [
+    'Harita: üstteki konum adına dokun; haritada bir noktaya dokununca yer adı, derece-dakika koordinat (kopyalanır), kıyıya uzaklık ve EMODnet derinliği gelir',
+    'Denizde seçilen noktaya en yakın yerin adıyla ad verilir (ör. “Sığacık açıkları”); koy içindeyse koyun adı',
+    '“Bu noktanın tahmini” ve “Kaydet”: nokta derinliğiyle konumlarına eklenir; derinlik kurşun hesabına girer',
+    'Katmanlar: harita ya da uydu; deniz işaretleri (OpenSeaMap), derinlik renkleri ve eğrileri (EMODnet), dip türü (AB suları), konumların ve avların',
+    'Kayıtlı konumun derinliği boşsa haritadan tek dokunuşla yazılır; Google yer adları için Ayarlar’a anahtar eklenebilir',
+  ]},
   {v: '0.6.0', notes: [
     'Saatlik tablo Windy düzeninde: güneş ve ay satırı (ay evresiyle), gece saatleri gri, balık çubukları ve günün eğrisi, basınç grafiği; sıcaklık, yağış, su ve basınç renkli',
     'Hava modeli seçici (Karma, ICON-EU, ECMWF, GFS), ECMWF karşılaştırma satırı ve model uyumu satırı',
