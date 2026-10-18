@@ -1,18 +1,18 @@
-"""Alyssa v0.3–v0.8 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v8_check.py
+"""Alyssa v0.3–v0.9 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v9_check.py
 """
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v8'
+SHOTS = ROOT + '/qa/v9'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8773
+PORT = 8774
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -139,6 +139,7 @@ async def new_ctx(b, storage=None, w=390):
         await ctx.route(pat, mock_tiles)
     for pat in ['https://nominatim.openstreetmap.org/**', 'https://overpass-api.de/**', 'https://rest.emodnet-bathymetry.eu/**']:
         await ctx.route(pat, mock_geo)
+    await ctx.route('https://wa.me/**', lambda route: route.fulfill(status=200, content_type='text/html', body='<p>wa</p>'))
     pg = await ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
     pg.on('console', lambda m: errs.append('console: ' + m.text) if m.type == 'error' and 'fonts' not in m.text and 'ERR_' not in m.text and 'Failed to load resource' not in m.text else None)
@@ -207,7 +208,7 @@ async def main():
         for v in ['takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(200); await overflow(pg, v)
         await pg.screenshot(path=SHOTS + '/a_daha.png')
-        check(await pg.locator('#moreMenu .mrow').count() == 11, 'Daha menüsü 11 satır')
+        check(await pg.locator('#moreMenu .mrow').count() == 14, 'Daha menüsü 14 satır')
         # alışveriş: aynı rig iki kez yok
         await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
         lines = await pg.locator('#sheet .item .sp').all_inner_texts()
@@ -621,6 +622,81 @@ async def main():
         lbls = await pg.locator('#hTable th.lbl b').all_inner_texts(); st = await state(pg)
         check(st['mode'] == 'tekne' and 'Sürüklenme' in lbls and 'Kıyıya göre' not in lbls, 'K: tekne moduna dönüldü')
         print('K errors:', errs); check(not errs, 'K: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== L) v0.9: paylaşım, takvim uyarısı, çıkış listesi, güvenlik mesajı, yedek hatırlatma
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="ayarlar"]'); await pg.wait_for_timeout(200)
+        await pg.fill('#pf-name', 'Kenny'); await pg.dispatch_event('#pf-name', 'change'); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        await pg.click('#moreMenu button[data-open="paylas"]'); await pg.wait_for_timeout(300)
+        await pg.click('#sheet button[data-share="envanter"]'); await pg.wait_for_timeout(800)
+        href = await pg.get_attribute('#shareOut a.btn', 'href'); txt = urllib.parse.unquote(href.split('text=', 1)[1])
+        link = txt[txt.index('http'):]; frag = link.split('#', 1)[1]
+        check(frag.startswith('al=z') and len(link) < 20000, 'L: envanter bağlantısı (sıkıştırılmış, %d karakter)' % len(link))
+        await pg.screenshot(path=SHOTS + '/l_paylas.png')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        # takvim uyarısı ve .ics
+        await pg.click('#moreMenu button[data-open="uyari"]'); await pg.wait_for_timeout(300)
+        await pg.select_option('#sheet select[data-alert="bft"]', '6'); await pg.wait_for_timeout(200)
+        await pg.select_option('#sheet select[data-alert="wave"]', '1.5'); await pg.wait_for_timeout(200)
+        await pg.select_option('#sheet select[data-alert="fish"]', '3'); await pg.wait_for_timeout(300)
+        nmatch = await pg.locator('#sheet .item').count(); check(nmatch >= 2, 'L: kurala uyan pencereler (%d)' % nmatch)
+        await pg.screenshot(path=SHOTS + '/l_uyari.png')
+        async with pg.expect_download() as dl_info:
+            await pg.click('#sheet button[data-act="icsAll"]')
+        dl = await dl_info.value; ics = open(await dl.path(), encoding='utf-8', newline='').read()
+        check(dl.suggested_filename.endswith('.ics') and ics.count('BEGIN:VEVENT') == nmatch and 'BEGIN:VALARM' in ics and 'TRIGGER:-PT120M' in ics and ics.startswith('BEGIN:VCALENDAR'), 'L: takvim dosyası (%d etkinlik, alarm 2 sa önce)' % ics.count('BEGIN:VEVENT'))
+        check(all(len(l.encode()) <= 75 for l in ics.split('\r\n')), 'L: .ics satırları 75 baytı aşmıyor')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        # çıkış listesi
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.click('.rechead button[data-open="liste"]'); await pg.wait_for_timeout(300)
+        ck = await pg.inner_text('#sheet'); check('Bugünün rigleri' in ck and 'Can yelekleri' in ck and 'Kurşun' in ck, 'L: çıkış listesi rigler, kurşun ve güvenlik')
+        await pg.click('#sheet input[data-ck^="k:Can"]'); await pg.wait_for_timeout(200)
+        await pg.fill('#sf-ret', '14:00'); await pg.dispatch_event('#sf-ret', 'change'); await pg.fill('#sf-not', 'Alya 8, 2 kişi'); await pg.dispatch_event('#sf-not', 'change')
+        async with ctx.expect_page() as pinfo:
+            await pg.click('#sheet button[data-act="safety"]')
+        wp = await pinfo.value; wurl = urllib.parse.unquote(wp.url)
+        check(wurl.startswith('https://wa.me/') and 'Dönüş: 14:00' in wurl and 'Alya 8, 2 kişi' in wurl and '′ K' in wurl, 'L: WhatsApp güvenlik mesajı: ' + wurl[:140])
+        await wp.close()
+        await pg.screenshot(path=SHOTS + '/l_liste.png', full_page=True)
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        await pg.click('.rechead button[data-open="liste"]'); await pg.wait_for_timeout(300)
+        check(await pg.is_checked('#sheet input[data-ck^="k:Can"]'), 'L: işaret bugün için saklandı')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        print('L1 errors:', errs); check(not errs, 'L: sayfa hatası yok (Kenny)')
+        await ctx.close()
+        # Ogün: bağlantıyla açar, kendi envanterine kopyalar
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/#' + frag); await pg.wait_for_timeout(1500)
+        sh = await pg.inner_text('#sheet') if await pg.is_visible('#sheet') else ''
+        check('Kenny' in sh and 'envanter' in sh.lower() and not await pg.is_visible('#welcome'), 'L: bağlantı açılınca kopyalama sorusu: ' + sh.replace('\n', ' ')[:120])
+        await pg.click('#sheet button[data-share="al"]'); await pg.wait_for_timeout(600)
+        st = await state(pg)
+        check(len(st['inv']['items']) >= 50 and not st['pkg']['unlocked'] and not st['systems'], 'L: %d kalem Ogün’ün envanterine kopyalandı, özel paket yok' % len(st['inv']['items']))
+        check('#al=' not in pg.url, 'L: bağlantı adresten silindi')
+        check(await pg.locator('#invList .item').count() > 3, 'L: envanter ekranı dolu')
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
+        bn = await pg.inner_text('#banners'); check('Bulut yedeğin kapalı' in bn, 'L: yedek hatırlatma bandı')
+        await pg.click('#banners button[data-act="bkSnooze"]'); await pg.wait_for_timeout(200)
+        check('Bulut yedeğin kapalı' not in await pg.inner_text('#banners'), 'L: hatırlatma 7 gün ertelendi')
+        # aynı bağlantı ikinci kez: tekrar eklemez
+        await pg.evaluate('(f) => { location.hash = f; }', frag); await pg.wait_for_timeout(1500)
+        await pg.click('#sheet button[data-share="al"]'); await pg.wait_for_timeout(500)
+        st2 = await state(pg); check(len(st2['inv']['items']) == len(st['inv']['items']), 'L: aynı kalemler ikinci kez eklenmedi')
+        print('L2 errors:', errs); check(not errs, 'L: sayfa hatası yok (Ogün)')
+        await ctx.close()
+        # rig sistemi bağlantısı (sıkıştırmasız biçim)
+        ans = {'mode': 'tekne', 'region': 'ege', 'techs': ['dip'], 'species': ['karagoz', 'mercan'], 'lay': {'dip': ['hirsizli']}, 'klass': 'porsiyon', 'time': 'gunduz', 'bottoms': ['kum'], 'size': 'dengeli', 'rodMax': '', 'name': 'Ege dip'}
+        raw = 'j' + base64.urlsafe_b64encode(json.dumps({'t': 'sistem', 'v': 1, 'from': 'Kenny', 'systems': [{'name': 'Ege dip', 'answers': ans}]}).encode()).decode().rstrip('=')
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/#al=' + raw); await pg.wait_for_timeout(1200)
+        await pg.click('#sheet button[data-share="al"]'); await pg.wait_for_timeout(600)
+        st = await state(pg); sy = list(st['systems'].values())
+        check(len(sy) == 1 and sy[0]['name'] == 'Ege dip (Kenny)' and len(sy[0]['rigs']) >= 2, 'L: paylaşılan rig sistemi kuruldu (%d rig)' % (len(sy[0]['rigs']) if sy else 0))
+        check(await pg.locator('#rigList article.rig').count() == len(sy[0]['rigs']), 'L: Rigler ekranında')
+        print('L3 errors:', errs); check(not errs, 'L: sayfa hatası yok (sistem)')
         await ctx.close()
 
         # ================================================== F) Rig Atölyesi: sıfırdan sistem, envanter, alışveriş

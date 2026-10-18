@@ -203,3 +203,11 @@ b.warn{color:var(--D)}
 .shorebtns select{min-height:34px}
 .modebtn span{display:none}.modebtn{padding:0;width:36px;justify-content:center}
 @media (min-width:600px){.modebtn span{display:inline}.modebtn{width:auto;padding:0 9px 0 6px}}
+
+/* ---------- v0.9: paylaşım, takvim uyarısı, çıkış listesi ---------- */
+.rechead h3{margin:0}
+.chk.ckl{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-top:1px solid var(--line-2);font-size:14.5px}
+.chk.ckl:first-of-type{border-top:0}
+.chk.ckl input{margin-top:3px;flex:0 0 auto}
+.chk.ckl small{display:block;color:var(--muted);font-size:12px}
+.chk.ckl input:checked + span{color:var(--muted);text-decoration:line-through}

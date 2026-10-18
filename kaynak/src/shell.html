@@ -62,7 +62,7 @@
     </div>
     </div>
     <div class="tcard" data-card="oneri">
-    <h3 style="margin-top:20px" id="recHead">Bugün bağla</h3>
+    <div class="row rechead" style="margin-top:20px;justify-content:space-between;align-items:center"><h3 id="recHead">Bugün bağla</h3><button class="btn small" type="button" data-open="liste">Çıkış listesi</button></div>
     <p class="note" id="recNote" style="margin-top:2px"></p>
     <div class="stack" id="recList" style="margin-top:10px"></div>
     <details style="margin-top:12px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
@@ -73,7 +73,8 @@
   <!-- TAKVİM -->
   <section class="view" id="v-takvim" hidden>
     <div class="sec-head"><span class="eyebrow">15 gün</span><h2>Av takvimi</h2>
-      <p class="sub" id="calSub">Sınıf: A çok uygun, B uygun, C dikkat, D uygun değil. Bir güne dokun, saatlik tablosu açılır.</p></div>
+      <p class="sub" id="calSub">Sınıf: A çok uygun, B uygun, C dikkat, D uygun değil. Bir güne dokun, saatlik tablosu açılır.</p>
+      <div class="row" style="margin-top:8px"><button class="btn small" type="button" data-open="uyari">Takvim uyarısı kur</button></div></div>
     <div class="days" id="dayList"></div>
   </section>
 

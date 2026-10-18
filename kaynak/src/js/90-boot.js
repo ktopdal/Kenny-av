@@ -69,6 +69,7 @@ function bindEvents(){
     if (d.del) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.locations[d.del]; if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null; persist(); WX = null; renderAll(); loadWeather(); openMore('konumlar', true); return; }
     if (d.set && d.val != null) { setSetting(d.set, d.val); return; }
     if (d.mapact) { mapAct(d.mapact, b); return; }
+    if (d.share) { shareAct(d.share); return; }
     if (d.mapbase) { mapLayerSet('base', d.mapbase); return; }
     if (d.rowmv) { const [l, id, dir] = d.rowmv.split('|'); moveRow(l, id, Number(dir)); return; }
     if (d.rowreset) { S.settings[d.rowreset] = null; persist(); renderAll(); if (ui.sheet === 'gorunum') openMore('gorunum', true); toast('Varsayılan düzen'); return; }
@@ -76,6 +77,11 @@ function bindEvents(){
       const a = d.act;
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
       if (a === 'gpsloc') { gpsToLocation(); return; }
+      if (a === 'icsAll') { const list = alertMatches(); if (!list.length) return; const r = await deliverFile('alyssa-av-pencereleri.ics', 'text/calendar', buildIcs(list)); if (r !== 'abort') toast(list.length + ' pencere takvim dosyasına yazıldı'); return; }
+      if (a === 'safety') { saveSafety(); const tel = (S.settings.safety || {}).tel; window.open('https://wa.me/' + (tel || '') + '?text=' + encodeURIComponent(safetyText()), '_blank', 'noopener'); return; }
+      if (a === 'safetyShare') { saveSafety(); try { await navigator.share({text: safetyText()}); } catch (e) {} return; }
+      if (a === 'ckReset') { S.check = {date: dateKey(new Date()), done: {}}; persist(); openMore('liste', true); return; }
+      if (a === 'bkSnooze') { S.settings.bkSnooze = new Date(Date.now() + 7 * 86400000).toISOString(); persist(); renderNewVersion(); return; }
       if (a === 'heading') { const Lc = loc(); if (!Lc) return; b.textContent = 'Telefonu denize tut…';
         try { const h = await captureHeading(); Lc.facing = String(Math.round(h)); persist(); renderAll(); toast('Kıyının bakışı ' + dir8(h) + ' (' + Math.round(h) + '°)'); }
         catch (e) { toast(e.message || 'Pusula okunamadı'); b.textContent = 'Pusulayla al'; } return; }
@@ -134,6 +140,9 @@ function bindEvents(){
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }
     if (el.dataset.setk) { S.settings[el.dataset.setk] = el.value.trim(); persist(); toast(el.value.trim() ? 'Anahtar kaydedildi' : 'Anahtar silindi'); return; }
+    if (el.dataset.alert) { const c = alertCfg(); const v = el.value; c[el.dataset.alert] = el.dataset.alert === 'part' ? v : Number(v); S.settings.alert = c; persist(); openMore('uyari', true); return; }
+    if (el.dataset.ck) { if (!S.check || S.check.date !== dateKey(new Date())) S.check = {date: dateKey(new Date()), done: {}}; if (el.checked) S.check.done[el.dataset.ck] = 1; else delete S.check.done[el.dataset.ck]; persistQuiet(); return; }
+    if (el.id === 'sf-ret' || el.id === 'sf-tel' || el.id === 'sf-not') { saveSafety(); return; }
     if (el.dataset.maplayer) { mapLayerSet(el.dataset.maplayer, el.checked); return; }
     if (el.dataset.rowtog) { const [l, id] = el.dataset.rowtog.split('|'); toggleRow(l, id, el.checked); return; }
     if (el.dataset.setp) { S.profile[el.dataset.setp] = el.value.trim(); persist(); return; }
@@ -153,6 +162,7 @@ function bindEvents(){
     if (f.id === 'welPkg') { welcomePkg(); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
+  window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); return; }
     loadWeather(); pkgCheck(false);
@@ -168,12 +178,15 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   applyTheme();
   indexAll(); bindEvents();
   const h = (location.hash || '').slice(1);
+  const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null;
   show(VIEWS.includes(h) ? h : 'bugun');
   if (S.wx) WX = buildWx();
   await loadCatches();
   renderAll();
-  if (!PREVIEW && !S.onboarded && !hasProfileData()) showWelcome();
+  if (shareRaw) openShareLink(shareRaw);
+  else if (!PREVIEW && !S.onboarded && !hasProfileData()) showWelcome();
   else if (!S.onboarded) { S.onboarded = true; persistQuiet(); }
+  if (CATCHES.length) { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }
   loadWeather();
   if (!EMBED && S.pkg.unlocked) pkgCheck(false);
 })();

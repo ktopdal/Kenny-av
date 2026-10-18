@@ -456,6 +456,14 @@ b.warn{color:var(--D)}
 .modebtn span{display:none}.modebtn{padding:0;width:36px;justify-content:center}
 @media (min-width:600px){.modebtn span{display:inline}.modebtn{width:auto;padding:0 9px 0 6px}}
 
+/* ---------- v0.9: paylaşım, takvim uyarısı, çıkış listesi ---------- */
+.rechead h3{margin:0}
+.chk.ckl{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-top:1px solid var(--line-2);font-size:14.5px}
+.chk.ckl:first-of-type{border-top:0}
+.chk.ckl input{margin-top:3px;flex:0 0 auto}
+.chk.ckl small{display:block;color:var(--muted);font-size:12px}
+.chk.ckl input:checked + span{color:var(--muted);text-decoration:line-through}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -512,7 +520,7 @@ b.warn{color:var(--D)}
     </div>
     </div>
     <div class="tcard" data-card="oneri">
-    <h3 style="margin-top:20px" id="recHead">Bugün bağla</h3>
+    <div class="row rechead" style="margin-top:20px;justify-content:space-between;align-items:center"><h3 id="recHead">Bugün bağla</h3><button class="btn small" type="button" data-open="liste">Çıkış listesi</button></div>
     <p class="note" id="recNote" style="margin-top:2px"></p>
     <div class="stack" id="recList" style="margin-top:10px"></div>
     <details style="margin-top:12px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
@@ -523,7 +531,8 @@ b.warn{color:var(--D)}
   <!-- TAKVİM -->
   <section class="view" id="v-takvim" hidden>
     <div class="sec-head"><span class="eyebrow">15 gün</span><h2>Av takvimi</h2>
-      <p class="sub" id="calSub">Sınıf: A çok uygun, B uygun, C dikkat, D uygun değil. Bir güne dokun, saatlik tablosu açılır.</p></div>
+      <p class="sub" id="calSub">Sınıf: A çok uygun, B uygun, C dikkat, D uygun değil. Bir güne dokun, saatlik tablosu açılır.</p>
+      <div class="row" style="margin-top:8px"><button class="btn small" type="button" data-open="uyari">Takvim uyarısı kur</button></div></div>
     <div class="days" id="dayList"></div>
   </section>
 
@@ -902,9 +911,16 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.8.0';
+const APP_VERSION = '0.9.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.9.0', notes: [
+    'Paylaş: envanterini ya da Rig Atölyesi sistemini bağlantıyla gönder; açan kişi kendi profiline kopyalar, senin verine dokunamaz',
+    'Takvim uyarısı: rüzgâr, dalga ve balık kuralına uyan pencereler alarmıyla telefon takvimine eklenir (.ics) ya da Google Takvim’e',
+    'Çıkış listesi: bugünün rigleri için iğne, misina, kurşun ve yem; tekne güvenliği ya da kıyı ekipmanı; işaretler gün boyu saklanır',
+    'Güvenlik mesajı: yer (derece-dakika ve harita bağlantısı), dönüş saati ve hava WhatsApp’tan tek dokunuşla',
+    'Yedek hatırlatma: bulut yedek kapalıysa ya da 14 günden eskiyse; Daha menüsünde geri bildirim',
+  ]},
   {v: '0.8.0', notes: [
     'Kıyı modu: üstteki tekne/kıyı düğmesiyle tek dokunuşta geçilir',
     'Kıyının bakışı: telefonu denize tutup “Pusulayla al”, yönü elle seç ya da haritada kıyıya dokun (kıyı çizgisinden kendiliğinden bulunur)',
@@ -1143,7 +1159,7 @@ function newState(){
   return {v: 2, created: new Date().toISOString(), seenVersion: APP_VERSION, onboarded: false, mode: 'tekne',
     profile: {name: ''},
     settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter', anchor: 'surukle', leeway: 'orta',
-      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: ''},
+      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null},
     inv: {items: {}, qty: {}, status: {}},
     systems: {}, locations: {}, active: null, wx: null,
     pkg: {unlocked: false, version: null, need: false, locs: []},
@@ -3214,6 +3230,9 @@ const MORE = [
   ['yedek', 'Bulut yedek', () => bkReady() ? (S.backup.err ? '⚠ ' + S.backup.err : S.backup.lastAt ? 'Son yedek ' + fmtDT(new Date(S.backup.lastAt)) : 'Bağlı, henüz yedek yok') : 'Kapalı · GitHub deponda şifreli yedek'],
   ['paket', 'Özel paket', () => S.pkg.need ? '⚠ Güncellendi, yeni şifreyle aç' : pkgOn() ? 'Açık · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem' : 'Kapalı'],
   ['harita', 'Harita', () => 'Nokta seç: yer adı, derece-dakika koordinat, derinlik, deniz işaretleri'],
+  ['liste', 'Çıkış listesi ve güvenlik', () => 'Bugünün rigleri, ' + (shoreMode() ? 'kıyı ekipmanı' : 'tekne güvenliği') + ', WhatsApp güvenlik mesajı'],
+  ['uyari', 'Takvim uyarısı', () => { const c = alertCfg(); return 'Rüzgâr ≤ ' + c.bft + ' Bft, dalga ≤ ' + fmtNum(c.wave, 1) + ' m, balık ≥ ' + c.fish + ' → telefon takvimine'; }],
+  ['paylas', 'Paylaş ve geri bildirim', () => 'Envanterini ya da rig sistemini bağlantıyla paylaş'],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
@@ -3231,13 +3250,14 @@ function renderNewVersion(){
     const notes = CHANGELOG.filter(c => verGt(c.v, S.seenVersion) && !verGt(c.v, APP_VERSION)).flatMap(c => c.notes);
     out.push('<div class="newver"><b>' + APP_SHORT + ' güncellendi · v' + APP_VERSION + '</b><ul>' + notes.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul><div><button class="btn small" type="button" id="seenVer">Tamam</button></div></div>');
   }
+  const br = backupReminder(); if (br) out.push(br);
   if (S.pkg.need) out.push('<div class="newver warn"><b>Rig sistemin güncellendi</b><span class="note">Özel paketin yeni şifreyle şifrelendi. Bir kez yeni şifreyi gir; telefon hatırlar.</span><div><button class="btn small primary" type="button" data-open="paket">Şifreyi gir</button></div></div>');
   el.innerHTML = out.join('');
 }
 function openMore(name, keep){
   if (name === 'harita') { openMap(); return; }
   ui.sheet = name;
-  const F = {ayarlar: sheetSettings, gorunum: sheetView, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -3960,6 +3980,256 @@ async function doRestore(passFromForm){
   } catch (e) { setBusy(false); const el = $('bkErr'); if (el) { el.textContent = e.message || String(e); el.hidden = false; } else toast(e.message || String(e)); }
 }
 
+// ---------------------------------------------------------------- 82 · paylaşım: envanter ve rig sistemi bağlantısı, geri bildirim
+// Bağlantı verinin kendisini taşır (adresin # sonrası sunucuya gitmez): #al=<z|j><base64url>; z = deflate-raw sıkıştırılmış JSON.
+// Açan kişi veriyi KENDİ profiline kopyalar; gönderenin envanteri, konumları, avları ve özel paketi paylaşılmaz, bağlantı tek yönlüdür.
+const SHARE_URL = () => location.origin + location.pathname;
+const b64url = bytes => b64e(bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64urlDec = s => b64d(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4));
+async function packShare(obj){
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  if (typeof CompressionStream === 'function') {
+    try { const out = await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer(); return 'z' + b64url(new Uint8Array(out)); } catch (e) {}
+  }
+  return 'j' + b64url(bytes);
+}
+async function unpackShare(s){
+  const kind = s[0], bytes = b64urlDec(s.slice(1));
+  const json = kind === 'z' ? await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text() : new TextDecoder().decode(bytes);
+  return JSON.parse(json);
+}
+const ITEM_KEYS = ['cat', 'brand', 'model', 'name', 'spec', 'pattern', 'sizes', 'unit'];
+function invPayload(){
+  const items = Object.values(ITEMS).map(it => {
+    const o = {}; ITEM_KEYS.forEach(k => { if (it[k] != null && it[k] !== '' && !(Array.isArray(it[k]) && !it[k].length)) o[k] = it[k]; });
+    if (it.use || it.note) o.note = it.use || it.note;
+    o.st = {}; o.q = {};
+    sizesOf(it).forEach(sz => { o.st[sz] = stockOf(it.id, sz); const q = S.inv.qty[it.id + '|' + sz]; if (q !== undefined && q !== '') o.q[sz] = Number(q); });
+    return o;
+  });
+  return {t: 'envanter', v: 1, from: (S.profile.name || '').trim() || 'Bir arkadaşın', at: new Date().toISOString().slice(0, 10), items};
+}
+function sysPayload(ids){
+  const list = ids.map(id => S.systems[id]).filter(sy => sy && sy.source === 'sihirbaz' && sy.answers).map(sy => ({name: sy.name, answers: sy.answers}));
+  return {t: 'sistem', v: 1, from: (S.profile.name || '').trim() || 'Bir arkadaşın', systems: list};
+}
+let SHARE_IN = null;
+function sheetShare(){
+  const wiz = Object.values(S.systems).filter(sy => sy.source === 'sihirbaz');
+  const nItems = Object.keys(ITEMS).length;
+  return sheetBar('Paylaş') + '<div class="stack">' +
+    '<section class="set"><h4>Envanterimi paylaş</h4><p class="note">' + nItems + ' kalem, stok durumları ve adetleriyle tek bir bağlantıya girer. Açan kişi bunu kendi envanterine kopyalar; sonra iki envanter ayrı kalır, senin envanterine dokunamaz. Konumların, avların ve fotoğrafların gitmez.</p>' +
+    (nItems ? '<button class="btn primary" type="button" data-share="envanter">Bağlantı oluştur</button>' : '<p class="note">Envanterin boş.</p>') + '</section>' +
+    '<section class="set"><h4>Rig sistemimi paylaş</h4>' + (wiz.length ? '<p class="note">Rig Atölyesi’nde kurduğun sistemlerin cevapları gider; açan kişide aynı sistem kendi envanterine göre kurulur.</p>' +
+      wiz.map(sy => '<label class="chk"><input type="checkbox" data-sharesys="' + esc(sy.id) + '" checked> ' + esc(sy.name) + ' (' + (sy.rigs || []).length + ' rig)</label>').join('') +
+      '<button class="btn primary" type="button" data-share="sistem">Bağlantı oluştur</button>' : '<p class="note">Rig Atölyesi’nde kurulmuş sistemin yok.</p>') +
+    '<p class="note">Özel paketindeki rigler bu yolla paylaşılmaz; paketin şifresini bilen kendi telefonunda açabilir.</p></section>' +
+    '<div id="shareOut"></div>' +
+    '<section class="set"><h4>Geri bildirim</h4><p class="note">Bir hata ya da öneri için WhatsApp mesajı hazırlar; sürüm ve telefon bilgisi eklenir, kime gideceğini sen seçersin.</p><button class="btn" type="button" data-share="geri">Geri bildirim yaz</button></section>' +
+    '</div>';
+}
+async function makeShare(kind){
+  const out = $('shareOut'); if (!out) return;
+  let payload;
+  if (kind === 'envanter') payload = invPayload();
+  else { const ids = [...document.querySelectorAll('input[data-sharesys]')].filter(i => i.checked).map(i => i.dataset.sharesys); if (!ids.length) { toast('Bir sistem seç'); return; } payload = sysPayload(ids); }
+  const url = SHARE_URL() + '#al=' + await packShare(payload);
+  const label = kind === 'envanter' ? 'envanterini' : 'rig sistemini';
+  const text = (S.profile.name ? S.profile.name + ' ' : '') + 'Alyssa’da ' + label + ' paylaştı. Açmak için dokun: ' + url;
+  out.innerHTML = '<section class="set"><h4>Bağlantı hazır</h4><p class="note mono" style="word-break:break-all;max-height:80px;overflow:hidden">' + esc(url.slice(0, 160)) + '…</p>' +
+    '<div class="row"><a class="btn primary" href="https://wa.me/?text=' + encodeURIComponent(text) + '" target="_blank" rel="noopener">WhatsApp ile gönder</a>' +
+    '<button class="btn" type="button" data-share="kopyala">Kopyala</button>' + (navigator.share ? '<button class="btn" type="button" data-share="paylas">Paylaş…</button>' : '') + '</div>' +
+    '<p class="note">' + Math.round(url.length / 1024 * 10) / 10 + ' KB · bağlantıdaki veri yalnızca bunu açan telefona kopyalanır.</p></section>';
+  makeShare.last = {url, text};
+}
+async function shareAct(a){
+  if (a === 'envanter' || a === 'sistem') { await makeShare(a); return; }
+  if (a === 'kopyala' && makeShare.last) { try { await navigator.clipboard.writeText(makeShare.last.url); toast('Bağlantı kopyalandı'); } catch (e) { toast('Kopyalanamadı'); } return; }
+  if (a === 'paylas' && makeShare.last) { try { await navigator.share({title: APP_NAME, text: makeShare.last.text}); } catch (e) {} return; }
+  if (a === 'geri') {
+    const t = APP_NAME + ' v' + APP_VERSION + ' geri bildirim\n' + (navigator.userAgent.match(/\(([^)]+)\)/) || ['', ''])[1] + '\n\n';
+    window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); return;
+  }
+  if (a === 'al') { importShare(); return; }
+  if (a === 'vazgec') { SHARE_IN = null; closeSheet(); clearShareHash(); return; }
+}
+function clearShareHash(){ try { history.replaceState(history.state, '', location.pathname + location.search + '#bugun'); } catch (e) {} }
+// gelen bağlantı: ne geldiğini göster, onayla kopyala
+async function openShareLink(raw){
+  let data = null;
+  try { data = await unpackShare(raw); } catch (e) { toast('Paylaşım bağlantısı açılamadı'); clearShareHash(); return; }
+  if (!data || (data.t !== 'envanter' && data.t !== 'sistem')) { toast('Tanınmayan bağlantı'); clearShareHash(); return; }
+  SHARE_IN = data; ui.sheet = 'paylasim';
+  let body = '';
+  if (data.t === 'envanter') {
+    const by = {}; (data.items || []).forEach(i => { by[i.cat] = (by[i.cat] || 0) + 1; });
+    body = '<p class="sub"><b>' + esc(data.from) + '</b> envanterini paylaştı: ' + (data.items || []).length + ' kalem' + (data.at ? ' (' + esc(data.at) + ')' : '') + '.</p>' +
+      '<p class="note">' + Object.entries(by).map(([c, n]) => esc(CAT_TXT[c] || c) + ' ' + n).join(' · ') + '</p>' +
+      '<p class="note">Kalemler stok durumları ve adetleriyle senin envanterine kopyalanır. Senin var olan kalemlerin silinmez; aynı adlı kalem varsa üzerine yazılmaz, atlanır. Sonra iki envanter ayrıdır.</p>';
+  } else {
+    body = '<p class="sub"><b>' + esc(data.from) + '</b> rig sistemi paylaştı:</p><ul>' + (data.systems || []).map(sy => '<li>' + esc(sy.name) + '</li>').join('') + '</ul>' +
+      '<p class="note">Sistemler senin envanterine göre kurulur; eksik kalemler alışveriş listene düşer.</p>';
+  }
+  openSheet(sheetBar('Paylaşılan ' + (data.t === 'envanter' ? 'envanter' : 'rig sistemi'), null, 'Kapat') + '<div class="stack">' + body +
+    '<div class="row"><button class="btn primary" type="button" data-share="al">' + (data.t === 'envanter' ? 'Envanterime kopyala' : 'Sistemlerime ekle') + '</button><button class="btn" type="button" data-share="vazgec">Vazgeç</button></div></div>');
+}
+function importShare(){
+  const data = SHARE_IN; if (!data) return;
+  let n = 0;
+  if (data.t === 'envanter') {
+    const have = new Set(Object.values(ITEMS).map(i => trLower(i.name || ((i.brand || '') + ' ' + (i.model || '')))));
+    (data.items || []).forEach(i => {
+      const name = i.name || [i.brand, i.model].filter(Boolean).join(' '); if (!name || have.has(trLower(name))) return;
+      const id = 'u-' + (slugTR(name).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6);
+      const sizes = Array.isArray(i.sizes) && i.sizes.length ? i.sizes : [];
+      const stock = {}; (sizes.length ? sizes : ['-']).forEach(sz => { const st = (i.st || {})[sz]; stock[sz] = st === 'az' ? 'var' : (st || 'var'); });
+      S.inv.items[id] = {id, cat: i.cat || 'other', brand: i.brand || '', model: i.model || '', name, pattern: i.pattern || '', spec: i.spec || '', note: i.note || '', sizes, stock, src: 'paylasim', from: data.from, created: new Date().toISOString()};
+      Object.entries(i.q || {}).forEach(([sz, q]) => { S.inv.qty[id + '|' + sz] = q; });
+      have.add(trLower(name)); n++;
+    });
+  } else {
+    (data.systems || []).forEach(sy => {
+      if (!sy.answers || !Array.isArray(sy.answers.techs)) return;
+      const a = Object.assign(wzDefaults(), sy.answers); const rigs = genSystem(a); if (!rigs.length) return;
+      const id = uid('s'); rigs.forEach(r => { r.id = id + ':' + r.code; });
+      S.systems[id] = {id, name: sy.name + ' (' + data.from + ')', source: 'sihirbaz', active: true, created: new Date().toISOString(), updated: new Date().toISOString(), answers: a, rigs, from: data.from}; n++;
+    });
+  }
+  S.onboarded = true; persist(); indexAll(); SHARE_IN = null; closeSheet(); clearShareHash();
+  if ($('welcome') && !$('welcome').hidden) hideWelcome();
+  show(data.t === 'envanter' ? 'envanter' : 'rigler'); renderAll();
+  toast(n ? (data.t === 'envanter' ? n + ' kalem envanterine eklendi' : n + ' sistem eklendi') : 'Yeni kalem yok; hepsi zaten envanterinde');
+}
+
+// ---------------------------------------------------------------- 83 · takvim uyarısı (.ics), çıkış listesi, güvenlik mesajı, yedek hatırlatma
+// Uyarı kuralı: rüzgâr ≤ X Bft, dalga ≤ Y m, balık ≥ Z; uyan pencereler alarmıyla telefon takvimine eklenir.
+// Anlık bildirim için sunucu gerekir; takvim alarmı bunun yerine telefonun kendi takviminden çalar.
+const ALERT_DEF = {bft: 3, wave: 0.5, fish: 4, part: 'ikisi', lead: 120, days: 7};
+const alertCfg = () => Object.assign({}, ALERT_DEF, S.settings.alert || {});
+function alertMatches(){
+  const cfg = alertCfg(), now = new Date(), out = [];
+  days().slice(0, cfg.days).forEach(dd => {
+    const parts = cfg.part === 'ikisi' ? ['gun', 'gece'] : [cfg.part];
+    const seen = [];
+    parts.forEach(part => bestWindows(dd, part, 2, dd.key === dateKey(now) ? now : null).forEach(w => {
+      if (seen.some(s => s.a < w.b && w.a < s.b)) return;
+      if (w.fish < cfg.fish) return;
+      const hs = WX.hours.filter(x => x.t >= new Date(w.a.getTime() - 1800000) && x.t <= new Date(w.b.getTime() + 1800000));
+      const wmax = Math.max(...hs.map(x => x.wind == null ? 0 : x.wind)), gmax = Math.max(...hs.map(x => x.wave == null ? 0 : x.wave));
+      if (bft(wmax) > cfg.bft || gmax > cfg.wave) return;
+      seen.push(w); out.push({dd, w, part, bft: bft(wmax), wave: gmax});
+    }));
+  });
+  return out.sort((p, q) => p.w.a - q.w.a);
+}
+const icsDate = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+const icsEsc = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+function icsFold(line){ const out = []; let s = line; while (new TextEncoder().encode(s).length > 74) { let n = 74; while (new TextEncoder().encode(s.slice(0, n)).length > 74) n--; out.push(s.slice(0, n)); s = ' ' + s.slice(n); } out.push(s); return out.join('\r\n'); }
+function matchText(m){
+  const Lc = loc();
+  return {title: 'Av penceresi · balık %' + m.w.pct + ' · ' + (Lc ? Lc.name : APP_SHORT),
+    desc: winTxt(m.w) + ' · ' + m.w.evs.map(evChip).join(', ') + '\nRüzgâr en çok ' + m.bft + ' Bft, dalga en çok ' + f1(m.wave) + ' m' + (m.w.cls ? ', deniz ' + m.w.cls : '') + '\n' + APP_NAME + ' tahmini; çıkmadan önce güncel hava durumuna bak.'};
+}
+function buildIcs(list){
+  const Lc = loc(), cfg = alertCfg(), now = new Date();
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Alyssa by Barbossa App//TR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Alyssa av pencereleri'];
+  list.forEach(m => {
+    const t = matchText(m);
+    L.push('BEGIN:VEVENT', 'UID:' + icsDate(m.w.a) + '-' + (Lc ? Lc.id : 'x') + '@alyssa', 'DTSTAMP:' + icsDate(now), 'DTSTART:' + icsDate(m.w.a), 'DTEND:' + icsDate(m.w.b),
+      'SUMMARY:' + icsEsc(t.title), 'DESCRIPTION:' + icsEsc(t.desc), Lc ? 'LOCATION:' + icsEsc(Lc.name) : null, Lc ? 'GEO:' + Lc.lat.toFixed(5) + ';' + Lc.lon.toFixed(5) : null,
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(t.title), 'TRIGGER:-PT' + cfg.lead + 'M', 'END:VALARM', 'END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  return L.filter(Boolean).map(icsFold).join('\r\n') + '\r\n';
+}
+const gcalUrl = m => { const t = matchText(m); return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(t.title) + '&dates=' + icsDate(m.w.a) + '/' + icsDate(m.w.b) + '&details=' + encodeURIComponent(t.desc) + (loc() ? '&location=' + encodeURIComponent(loc().name) : ''); };
+async function deliverFile(name, type, text){
+  const file = new File([text], name, {type});
+  try { if (navigator.canShare && navigator.canShare({files: [file]})) { await navigator.share({files: [file], title: name}); return 'share'; } } catch (e) { if (e && e.name === 'AbortError') return 'abort'; }
+  const u = URL.createObjectURL(file); const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+  return 'download';
+}
+function sheetAlert(){
+  const cfg = alertCfg(); const ok = !!(WX && days().length);
+  const list = ok ? alertMatches() : [];
+  const sel = (k, opts) => '<select data-alert="' + k + '">' + opts.map(([v, t]) => '<option value="' + v + '"' + (String(cfg[k]) === String(v) ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>';
+  return sheetBar('Takvim uyarısı') + '<div class="stack">' +
+    '<p class="sub">Kurala uyan av pencereleri alarmıyla telefonunun takvimine eklenir. Alarmı takvim çalar; uygulama kapalıyken de çalışır.</p>' +
+    '<div class="fields">' +
+    '<label class="f">Rüzgâr en çok' + sel('bft', [1, 2, 3, 4, 5, 6].map(v => [v, v + ' Bft'])) + '</label>' +
+    '<label class="f">Dalga en çok' + sel('wave', [[0.3, '0,3 m'], [0.5, '0,5 m'], [0.8, '0,8 m'], [1, '1 m'], [1.5, '1,5 m']]) + '</label>' +
+    '<label class="f">Balık en az' + sel('fish', [1, 2, 3, 4, 5].map(v => [v, v + ' balık (%' + ((v - 1) * 20 + 1) + '+)'])) + '</label>' +
+    '<label class="f">Ne zaman' + sel('part', [['ikisi', 'Gündüz ve gece'], ['gun', 'Gündüz'], ['gece', 'Gece']]) + '</label>' +
+    '<label class="f">Alarm' + sel('lead', [[30, '30 dk önce'], [60, '1 saat önce'], [120, '2 saat önce'], [720, '12 saat önce']]) + '</label>' +
+    '<label class="f">Kaç gün' + sel('days', [[3, '3 gün'], [7, '7 gün'], [10, '10 gün'], [15, '15 gün']]) + '</label></div>' +
+    (!ok ? '<div class="empty">Hava verisi yok; önce bir konum seç.</div>' : list.length ?
+      '<div class="eyebrow">' + list.length + ' pencere uyuyor · ' + esc(loc() ? loc().name : '') + '</div>' + list.map(m => '<div class="item"><div class="row" style="justify-content:space-between"><b>' + m.dd.date.getDate() + ' ' + MON3[m.dd.date.getMonth()] + ' ' + DOW[m.dd.date.getDay()] + ' · ' + winTxt(m.w) + '</b>' + fishHtml(m.w.fish) + '</div>' +
+        '<div class="sp">balık %' + m.w.pct + ' · rüzgâr en çok ' + m.bft + ' Bft · dalga ' + f1(m.wave) + ' m · ' + esc(m.w.evs.map(e => e.k).join(' + ')) + ' · <a href="' + gcalUrl(m) + '" target="_blank" rel="noopener">Google Takvim</a></div></div>').join('') +
+      '<button class="btn primary" type="button" data-act="icsAll">Hepsini takvime ekle</button><p class="note">iPhone’da açılan pencerede “Tümünü Ekle”ye dokun. Tahmin değişirse uyarıyı yeniden kur; eski etkinlikler aynı kimlikle güncellenir.</p>' :
+      '<div class="empty">Önümüzdeki ' + cfg.days + ' günde bu kurala uyan pencere yok. Rüzgâr ya da dalga sınırını gevşet, balık sınırını düşür.</div>') + '</div>';
+}
+// ---- çıkış listesi ve güvenlik mesajı
+const BOAT_KIT = ['Can yelekleri (herkese bir)', 'VHF telsiz ya da şarjlı telefon (su geçirmez kılıfta)', 'Yakıt: dolu depo ve yedek', 'Çapa ve halat', 'İlk yardım çantası', 'El feneri / kafa lambası', 'Su ve yiyecek', 'Güneş kremi, şapka, güneş gözlüğü', 'Pense, makas, iğne çıkarıcı', 'Kepçe ya da kanca', 'Buz kutusu ve buz', 'Paraşüt çapa (drift sock)'];
+const SHORE_KIT = ['Kamış ayağı', 'Kafa lambası ve yedek pil', 'Kaymaz ayakkabı', 'Kepçe ya da uzun saplı kanca', 'Pense ve iğne çıkarıcı', 'Yedek şok lider ve köstek', 'Çapalı (grip) kurşun', 'Yem kutusu ve havlu', 'Buz kutusu', 'Şarjlı telefon', 'Su, mont ya da yağmurluk'];
+function checklist(){
+  const ds = days(); const dd = ds.find(d => d.key === dateKey(new Date())) || ds[0];
+  const out = {rigs: [], gear: [], bait: [], kit: shoreMode() ? SHORE_KIT : BOAT_KIT};
+  if (dd && RIG_LIST.length) {
+    const recs = [false, true].flatMap(n => { const R = recommend(dd, n); return R.filter(x => x.ok).slice(0, 2).map(x => ({rg: x.rg, x: R.x})); });
+    const seenRig = new Set(), gear = {}, bait = new Set();
+    recs.forEach(({rg, x}) => {
+      if (seenRig.has(rg.id)) return; seenRig.add(rg.id); out.rigs.push(rg);
+      rg.slots.forEach(sl => { const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item]; const nm = (it ? it.name : e.name || sl.label) + (e.size ? ' ' + e.size : ''); gear[nm] = (gear[nm] || []).concat(rg.code || rg.name); });
+      const ld = leadFor(rg, dd, x); if (ld && ld.kursun) { const k = 'Kurşun ' + ld.kursun + (ld.grip ? ' (çapalı)' : ''); gear[k] = (gear[k] || []).concat(rg.code || rg.name); }
+      String(rg.baitText || '').split('·').map(s => s.trim()).filter(Boolean).forEach(b => bait.add(b));
+    });
+    out.gear = Object.entries(gear).map(([k, v]) => ({k, v: [...new Set(v)]}));
+    out.bait = [...bait];
+  }
+  return out;
+}
+function sheetChecklist(){
+  const c = checklist(); const today = dateKey(new Date());
+  if (!S.check || S.check.date !== today) S.check = {date: today, done: {}};
+  const box = (key, label, sub) => '<label class="chk ckl"><input type="checkbox" data-ck="' + esc(key) + '"' + (S.check.done[key] ? ' checked' : '') + '> <span>' + esc(label) + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</span></label>';
+  const Lc = loc(); const sp = S.settings.safety || {};
+  return sheetBar('Çıkış listesi') + '<div class="stack">' +
+    '<p class="sub">' + (shoreMode() ? 'Kıyı' : 'Tekne') + ' · ' + (Lc ? esc(Lc.name) : 'konum yok') + ' · işaretler bugün için saklanır.</p>' +
+    (c.rigs.length ? '<section class="set"><h4>Bugünün rigleri</h4><p class="note">' + esc(c.rigs.map(r => (r.code ? r.code + ' ' : '') + r.name).join(' · ')) + '</p>' +
+      c.gear.map(g => box('g:' + g.k, g.k, g.v.join(', '))).join('') + (c.bait.length ? c.bait.map(b => box('y:' + b, 'Yem: ' + b)).join('') : '') + '</section>' :
+      '<section class="set"><h4>Bugünün rigleri</h4><p class="note">Önerilen hazır rig yok; Bugün ekranından rig seçtiğinde burada malzemeleri listelenir.</p></section>') +
+    '<section class="set"><h4>' + (shoreMode() ? 'Kıyı ekipmanı' : 'Tekne ve güvenlik') + '</h4>' + c.kit.map(k => box('k:' + k, k)).join('') + '</section>' +
+    '<section class="set"><h4>Güvenlik mesajı</h4><p class="note">Çıkmadan önce bir yakınına nerede olduğunu ve dönüş saatini WhatsApp’tan gönder.</p>' +
+    '<div class="fields"><label class="f">Dönüş saati<input type="time" id="sf-ret" value="' + esc(sp.ret || '') + '"></label>' +
+    '<label class="f">Kime (telefon, isteğe bağlı)<input id="sf-tel" inputmode="tel" value="' + esc(sp.tel || '') + '" placeholder="905xxxxxxxxx"></label>' +
+    '<label class="f wide">Not (tekne adı, kişi sayısı)<input id="sf-not" value="' + esc(sp.not || '') + '" placeholder="Ör. Alya 8, 2 kişi"></label></div>' +
+    '<div class="row"><button class="btn primary" type="button" data-act="safety">WhatsApp ile gönder</button>' + (navigator.share ? '<button class="btn" type="button" data-act="safetyShare">Paylaş…</button>' : '') + '</div></section>' +
+    '<button class="btn small" type="button" data-act="ckReset">İşaretleri temizle</button></div>';
+}
+function safetyText(){
+  const sp = S.settings.safety || {}; const Lc = loc(); const x = nowHour();
+  const parts = [shoreMode() ? 'Kıyıda avdayım.' : 'Denize çıktım.'];
+  if (Lc) parts.push('Yer: ' + Lc.name + ' (' + ddm(Lc.lat, 'K', 'G') + ' ' + ddm(Lc.lon, 'D', 'B') + ') https://www.google.com/maps/search/?api=1&query=' + Lc.lat.toFixed(5) + ',' + Lc.lon.toFixed(5));
+  if (sp.not) parts.push(sp.not + '.');
+  if (sp.ret) parts.push('Dönüş: ' + sp.ret + '. Bu saatte haber vermezsem ara.');
+  if (x && x.wind != null) parts.push('Hava: rüzgâr ' + bft(x.wind) + ' Bft ' + windName(x.wdir) + (x.wave != null ? ', dalga ' + f1(x.wave) + ' m' : '') + '.');
+  return parts.join('\n');
+}
+function saveSafety(){ S.settings.safety = {ret: ($('sf-ret') || {}).value || '', tel: (($('sf-tel') || {}).value || '').replace(/[^\d]/g, ''), not: (($('sf-not') || {}).value || '').trim()}; persist(); }
+// ---- yedek hatırlatma: veri var ama bulut yedek yok ya da 14 günden eski
+function backupReminder(){
+  if (PREVIEW) return '';
+  const hasData = CATCHES.length > 0 || Object.values(S.systems).some(sy => sy.source === 'sihirbaz') || Object.keys(S.inv.items).length > 0;
+  if (!hasData) return '';
+  const last = S.backup && S.backup.lastAt ? new Date(S.backup.lastAt) : null;
+  const age = last ? (Date.now() - last.getTime()) / 86400000 : null;
+  if (bkReady() && age != null && age < 14) return '';
+  const snooze = S.settings.bkSnooze ? new Date(S.settings.bkSnooze).getTime() : 0;
+  if (Date.now() < snooze) return '';
+  return '<div class="newver warn"><b>' + (bkReady() ? 'Son yedek ' + Math.floor(age) + ' gün önce' : 'Bulut yedeğin kapalı') + '</b><span class="note">Avların, fotoğrafların ve kendi kurduğun sistemler yalnızca bu telefonda. Telefon kaybolursa geri gelmez.</span>' +
+    '<div class="row"><button class="btn small primary" type="button" data-open="yedek">' + (bkReady() ? 'Şimdi yedekle' : 'Bulut yedeği aç') + '</button><button class="btn small" type="button" data-act="bkSnooze">7 gün sonra hatırlat</button></div></div>';
+}
+
 // ---------------------------------------------------------------- 85 · karşılama (ilk açılış) ve rig sistemi kurulumu girişi
 const hasProfileData = () => Object.keys(S.systems).length > 0 || Object.keys(S.inv.items).length > 0 || Object.keys(S.locations).length > 0 || CATCHES.length > 0;
 function showWelcome(){
@@ -4073,6 +4343,7 @@ function bindEvents(){
     if (d.del) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.locations[d.del]; if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null; persist(); WX = null; renderAll(); loadWeather(); openMore('konumlar', true); return; }
     if (d.set && d.val != null) { setSetting(d.set, d.val); return; }
     if (d.mapact) { mapAct(d.mapact, b); return; }
+    if (d.share) { shareAct(d.share); return; }
     if (d.mapbase) { mapLayerSet('base', d.mapbase); return; }
     if (d.rowmv) { const [l, id, dir] = d.rowmv.split('|'); moveRow(l, id, Number(dir)); return; }
     if (d.rowreset) { S.settings[d.rowreset] = null; persist(); renderAll(); if (ui.sheet === 'gorunum') openMore('gorunum', true); toast('Varsayılan düzen'); return; }
@@ -4080,6 +4351,11 @@ function bindEvents(){
       const a = d.act;
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
       if (a === 'gpsloc') { gpsToLocation(); return; }
+      if (a === 'icsAll') { const list = alertMatches(); if (!list.length) return; const r = await deliverFile('alyssa-av-pencereleri.ics', 'text/calendar', buildIcs(list)); if (r !== 'abort') toast(list.length + ' pencere takvim dosyasına yazıldı'); return; }
+      if (a === 'safety') { saveSafety(); const tel = (S.settings.safety || {}).tel; window.open('https://wa.me/' + (tel || '') + '?text=' + encodeURIComponent(safetyText()), '_blank', 'noopener'); return; }
+      if (a === 'safetyShare') { saveSafety(); try { await navigator.share({text: safetyText()}); } catch (e) {} return; }
+      if (a === 'ckReset') { S.check = {date: dateKey(new Date()), done: {}}; persist(); openMore('liste', true); return; }
+      if (a === 'bkSnooze') { S.settings.bkSnooze = new Date(Date.now() + 7 * 86400000).toISOString(); persist(); renderNewVersion(); return; }
       if (a === 'heading') { const Lc = loc(); if (!Lc) return; b.textContent = 'Telefonu denize tut…';
         try { const h = await captureHeading(); Lc.facing = String(Math.round(h)); persist(); renderAll(); toast('Kıyının bakışı ' + dir8(h) + ' (' + Math.round(h) + '°)'); }
         catch (e) { toast(e.message || 'Pusula okunamadı'); b.textContent = 'Pusulayla al'; } return; }
@@ -4138,6 +4414,9 @@ function bindEvents(){
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }
     if (el.dataset.setk) { S.settings[el.dataset.setk] = el.value.trim(); persist(); toast(el.value.trim() ? 'Anahtar kaydedildi' : 'Anahtar silindi'); return; }
+    if (el.dataset.alert) { const c = alertCfg(); const v = el.value; c[el.dataset.alert] = el.dataset.alert === 'part' ? v : Number(v); S.settings.alert = c; persist(); openMore('uyari', true); return; }
+    if (el.dataset.ck) { if (!S.check || S.check.date !== dateKey(new Date())) S.check = {date: dateKey(new Date()), done: {}}; if (el.checked) S.check.done[el.dataset.ck] = 1; else delete S.check.done[el.dataset.ck]; persistQuiet(); return; }
+    if (el.id === 'sf-ret' || el.id === 'sf-tel' || el.id === 'sf-not') { saveSafety(); return; }
     if (el.dataset.maplayer) { mapLayerSet(el.dataset.maplayer, el.checked); return; }
     if (el.dataset.rowtog) { const [l, id] = el.dataset.rowtog.split('|'); toggleRow(l, id, el.checked); return; }
     if (el.dataset.setp) { S.profile[el.dataset.setp] = el.value.trim(); persist(); return; }
@@ -4157,6 +4436,7 @@ function bindEvents(){
     if (f.id === 'welPkg') { welcomePkg(); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
+  window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); return; }
     loadWeather(); pkgCheck(false);
@@ -4172,12 +4452,15 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   applyTheme();
   indexAll(); bindEvents();
   const h = (location.hash || '').slice(1);
+  const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null;
   show(VIEWS.includes(h) ? h : 'bugun');
   if (S.wx) WX = buildWx();
   await loadCatches();
   renderAll();
-  if (!PREVIEW && !S.onboarded && !hasProfileData()) showWelcome();
+  if (shareRaw) openShareLink(shareRaw);
+  else if (!PREVIEW && !S.onboarded && !hasProfileData()) showWelcome();
   else if (!S.onboarded) { S.onboarded = true; persistQuiet(); }
+  if (CATCHES.length) { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }
   loadWeather();
   if (!EMBED && S.pkg.unlocked) pkgCheck(false);
 })();

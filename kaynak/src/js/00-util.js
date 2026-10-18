@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.9.0', notes: [
+    'Paylaş: envanterini ya da Rig Atölyesi sistemini bağlantıyla gönder; açan kişi kendi profiline kopyalar, senin verine dokunamaz',
+    'Takvim uyarısı: rüzgâr, dalga ve balık kuralına uyan pencereler alarmıyla telefon takvimine eklenir (.ics) ya da Google Takvim’e',
+    'Çıkış listesi: bugünün rigleri için iğne, misina, kurşun ve yem; tekne güvenliği ya da kıyı ekipmanı; işaretler gün boyu saklanır',
+    'Güvenlik mesajı: yer (derece-dakika ve harita bağlantısı), dönüş saati ve hava WhatsApp’tan tek dokunuşla',
+    'Yedek hatırlatma: bulut yedek kapalıysa ya da 14 günden eskiyse; Daha menüsünde geri bildirim',
+  ]},
   {v: '0.8.0', notes: [
     'Kıyı modu: üstteki tekne/kıyı düğmesiyle tek dokunuşta geçilir',
     'Kıyının bakışı: telefonu denize tutup “Pusulayla al”, yönü elle seç ya da haritada kıyıya dokun (kıyı çizgisinden kendiliğinden bulunur)',
