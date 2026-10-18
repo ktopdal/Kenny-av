@@ -193,3 +193,13 @@ b.warn{color:var(--D)}
 .leaflet-container{font:inherit}
 .leaflet-control-attribution{font-size:10px;line-height:1.35}
 .leaflet-bottom{bottom:env(safe-area-inset-bottom,0px)}
+
+/* ---------- v0.8: kıyı modu ---------- */
+.modebtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 9px 0 6px;flex:0 0 auto;cursor:pointer;color:var(--ink);font:600 12px var(--body)}
+.modebtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.modebtn svg circle{fill:currentColor;stroke:none}
+.shorebtns{align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.shorebtns .f.inl{flex-direction:row;align-items:center;gap:6px;font-size:13px}
+.shorebtns select{min-height:34px}
+.modebtn span{display:none}.modebtn{padding:0;width:36px;justify-content:center}
+@media (min-width:600px){.modebtn span{display:inline}.modebtn{width:auto;padding:0 9px 0 6px}}

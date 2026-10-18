@@ -43,6 +43,7 @@ function refHour(dd){
 // İpe binen akış 0,4 kn üstündeyse hırsız köstek %20 kısalır (kayalık rigler zaten kısa).
 function leadFor(rg, dd, x){
   x = x || refHour(dd);
+  if (rg.mode === 'kiyi') return shoreLead(rg, x);
   const dr = x ? driftAt(x) : null;
   const depth = locDepth();
   const k = Object.assign({}, rg.lengths || {});

@@ -446,6 +446,16 @@ b.warn{color:var(--D)}
 .leaflet-control-attribution{font-size:10px;line-height:1.35}
 .leaflet-bottom{bottom:env(safe-area-inset-bottom,0px)}
 
+/* ---------- v0.8: kıyı modu ---------- */
+.modebtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 9px 0 6px;flex:0 0 auto;cursor:pointer;color:var(--ink);font:600 12px var(--body)}
+.modebtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.modebtn svg circle{fill:currentColor;stroke:none}
+.shorebtns{align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.shorebtns .f.inl{flex-direction:row;align-items:center;gap:6px;font-size:13px}
+.shorebtns select{min-height:34px}
+.modebtn span{display:none}.modebtn{padding:0;width:36px;justify-content:center}
+@media (min-width:600px){.modebtn span{display:inline}.modebtn{width:auto;padding:0 9px 0 6px}}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -453,6 +463,7 @@ b.warn{color:var(--D)}
   <div class="wrap">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>
     <button class="locbtn" id="locBtn" aria-label="Konumlar"><b id="locName">Alyssa</b><span id="locSub"></span></button>
+    <button class="modebtn" id="modeBtn" type="button" aria-label="Tekne ya da kıyı modu"></button>
     <button class="compass" id="compass" type="button" aria-label="Rüzgâr, dalga ve akıntı yönü" hidden></button>
     <button class="netstate" id="net" data-s="idle" aria-live="polite" style="border:0;background:none;cursor:pointer" aria-label="Veriyi yenile"><i></i><span>—</span></button>
   </div>
@@ -463,7 +474,7 @@ b.warn{color:var(--D)}
 
   <!-- BUGÜN -->
   <section class="view" id="v-bugun">
-    <div class="sec-head"><span class="eyebrow" id="todayLbl">Bugün</span><h2>Bugün denizde</h2></div>
+    <div class="sec-head"><span class="eyebrow" id="todayLbl">Bugün</span><h2 id="todayTitle">Bugün denizde</h2></div>
     <div id="previewNote" class="banner" hidden>Bu bir önizleme: canlı hava ve deniz verisi yalnızca telefona kurulan uygulamada gelir. Burada 17 Ekim'in örnek verisi var.</div>
     <div id="noLoc" hidden></div>
     <div id="todayCards">
@@ -891,9 +902,16 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.7.0';
+const APP_VERSION = '0.8.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.8.0', notes: [
+    'Kıyı modu: üstteki tekne/kıyı düğmesiyle tek dokunuşta geçilir',
+    'Kıyının bakışı: telefonu denize tutup “Pusulayla al”, yönü elle seç ya da haritada kıyıya dokun (kıyı çizgisinden kendiliğinden bulunur)',
+    'Rüzgâr kıyıya göre: kıyıya vuran (denizden), kıyıdan esen (karadan) ya da yandan; saatlik tabloda ayrı satır ve kısa yorum',
+    'Kıyı deniz sınıfı: kıyıya vuran rüzgâr ve kıyıdaki dalgaya göre; takvim, pencere ve öneriler buna göre',
+    'Kıyı rigleri: surf, LRF, spin, şamandıra; kurşun kamışın atış ağırlığına göre, dalga ve akıntıda çapalı kurşun',
+  ]},
   {v: '0.7.0', notes: [
     'Harita: üstteki konum adına dokun; haritada bir noktaya dokununca yer adı, derece-dakika koordinat (kopyalanır), kıyıya uzaklık ve EMODnet derinliği gelir',
     'Denizde seçilen noktaya en yakın yerin adıyla ad verilir (ör. “Sığacık açıkları”); koy içindeyse koyun adı',
@@ -1622,7 +1640,7 @@ function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
   const names = list.map(s => s.name);
   const target = names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '');
   const isDip = ['dip', 'surf', 'canli'].includes(tid);
-  const code = isDip ? (time === 'gece' ? 'N' : time === 'gunduz' ? 'G' : 'H') + '-' + (klass === 'trofe' ? 'T' : 'P') + n : T.code + n;
+  const code = isDip ? (tid === 'surf' ? 'K' : '') + (time === 'gece' ? 'N' : time === 'gunduz' ? 'G' : 'H') + '-' + (klass === 'trofe' ? 'T' : 'P') + n : T.code + n;   // surf: KG-P1 (kıyı)
   const mode = (ans.mode === 'kiyi' && T.modes.includes('kiyi')) ? 'kiyi' : T.modes.includes('tekne') ? 'tekne' : 'kiyi';
   const notes = [];
   if (rock) notes.push({k: 'Kayalık', t: 'Köstekler kısa ve bir boy kalın; takılmaya karşı kurşunu ince misinayla (kopma bağı) bağla.'});
@@ -1893,6 +1911,9 @@ function days(){
       clsD: wd == null ? null : bump(seaClass(wd), wv), clsN: wn == null ? null : bump(seaClass(wn), wv),
       conf: idx < 3 ? 'yüksek' : idx < 7 ? 'iyi' : idx < 10 ? 'orta' : 'düşük', sol: solunar(d)};
   });
+  if (shoreMode()) { const f = facingOf(loc()); out.forEach((dd, i) => { const next = (out[i + 1] || {hs: []}).hs;
+    dd.clsD = worstCls(dd.hs.filter(x => x.h >= 7 && x.h < 18).map(x => shoreClass(x, f)));
+    dd.clsN = worstCls(dd.hs.filter(x => x.h >= 19).concat(next.filter(x => x.h < 6)).map(x => shoreClass(x, f))); }); }
   DAYS_CACHE = {src: WX, days: out};
   return out;
 }
@@ -2008,7 +2029,7 @@ function hourRec(t){
   const r = new Date(t.getTime() + 30 * 60000);
   return WX._byH[dateKey(r) + 'T' + pad(r.getHours())] || null;
 }
-const clsOf = x => x && x.wind != null ? bump(seaClass(x.wind), x.wave) : null;
+const clsOf = x => seaClsAt(x);
 function curve(dd){
   if (dd._curve) return dd._curve;
   const sp = solSpan(dd.date);
@@ -2136,6 +2157,7 @@ function refHour(dd){
 // İpe binen akış 0,4 kn üstündeyse hırsız köstek %20 kısalır (kayalık rigler zaten kısa).
 function leadFor(rg, dd, x){
   x = x || refHour(dd);
+  if (rg.mode === 'kiyi') return shoreLead(rg, x);
   const dr = x ? driftAt(x) : null;
   const depth = locDepth();
   const k = Object.assign({}, rg.lengths || {});
@@ -2153,6 +2175,85 @@ function driftSentence(dr){
   if (!dr || !dr.known) return 'Rüzgâr ve akıntı verisi yok; sürüklenme hesaplanamadı.';
   if (dr.anchored) return 'Demirli: akıntı ' + (dr.curKnown ? f1(dr.cur) + ' kn ' + dir8(dr.curDir) + ' yönüne' : 'bilinmiyor') + '; ipe binen akış ' + f1(dr.line) + ' kn.';
   return 'Tekne ' + f1(dr.sog) + ' kn ile ' + dir8(dr.dir) + ' yönüne sürüklenir (rüzgâr payı ' + f1(dr.lee) + ' kn' + (dr.curKnown ? ', akıntı ' + f1(dr.cur) + ' kn ' + dir8(dr.curDir) + ' yönüne' : ', akıntı verisi yok') + ').';
+}
+
+// ---------------------------------------------------------------- 46 · kıyı modu
+// Kıyının bakışı (facing): kıyıdan denize doğru yön, ° (ör. 225 = güneybatıya bakan kıyı).
+// Rüzgâr kıyıya göre: geldiği yön kıyının bakışına yakınsa "kıyıya vuran" (denizden), tersineyse "kıyıdan esen" (karadan), değilse "yandan".
+// Bakış: telefonun pusulasıyla, haritada kıyı çizgisinden (OSM kıyı çizgisinde kara solda, deniz sağda) ya da elle seçilir.
+const shoreMode = () => S.mode === 'kiyi';
+const facingOf = Lc => Lc && Lc.facing !== '' && Lc.facing != null && isFinite(Lc.facing) ? ((Number(Lc.facing) % 360) + 360) % 360 : null;
+const angDiff = (a, b) => Math.abs((((a - b) % 360) + 540) % 360 - 180);
+function shoreRel(wdir, facing){ if (wdir == null || facing == null) return null; const d = angDiff(wdir, facing); return d <= 50 ? 'vuran' : d >= 130 ? 'esen' : 'yandan'; }
+const REL_TXT = {vuran: 'kıyıya vuran (denizden)', esen: 'kıyıdan esen (karadan)', yandan: 'kıyıya yandan'};
+const SHORE_TOP = ['levrek', 'cipura', 'sargoz', 'mirmir', 'karagoz', 'istavrit', 'zargana'];
+// kıyı için deniz sınıfı: kıyıya vuran rüzgâr ve kıyıdaki dalga belirleyici
+function shoreClass(x, facing){
+  if (!x || x.wind == null) return null;
+  const b = bft(x.wind), rel = shoreRel(x.wdir, facing), w = x.wave || 0, on = rel === 'vuran' || rel == null;
+  if (w >= 1.5 || (on && b >= 6) || b >= 8) return 'D';
+  if (w >= 1.0 || (on && b >= 5) || b >= 7) return 'C';
+  if (w >= 0.6 || (on && b >= 4) || b >= 6) return 'B';
+  return 'A';
+}
+// seçili moda göre saatlik deniz sınıfı (pencere seçimi, takvim ve öneriler bunu kullanır)
+function seaClsAt(x){ if (!x || x.wind == null) return null; return shoreMode() ? shoreClass(x, facingOf(loc())) : bump(seaClass(x.wind), x.wave); }
+const worstCls = arr => arr.reduce((w, c) => !c ? w : (!w || 'ABCD'.indexOf(c) > 'ABCD'.indexOf(w)) ? c : w, null);
+// kıyı rigi için kurşun: atış ağırlığı sınırı; kıyıya vuran dalga ya da akıntıda çapalı (grip) kurşun ve +20 g
+function shoreLead(rg, x){
+  const k = Object.assign({}, rg.lengths || {});
+  if (!rg.sinker || !rg.sinker.g) return rg.lengths ? Object.assign(k, {kursun: null}) : null;
+  let [lo, hi] = rg.sinker.g; const max = rg.sinker.max || hi;
+  const rel = x ? shoreRel(x.wdir, facingOf(loc())) : null; let extra = 0; const why = [];
+  if (x && (x.wave || 0) >= 0.6 && rel !== 'esen') { extra += 20; why.push('dalga'); }
+  if (x && (x.cur || 0) >= 0.5) { extra += 20; why.push('akıntı'); }
+  const need = lo + extra; lo = Math.min(need, max); hi = Math.min(hi + extra, max);
+  return Object.assign(k, {kursun: lo === hi ? lo + ' g' : lo + '–' + hi + ' g', max, extra, need, over: need > max, grip: extra > 0, shore: true, shoreWhy: why});
+}
+// kıyıda ne demek: kısa yorum
+function shoreAdvice(x, facing){
+  if (!x || x.wind == null) return '';
+  const rel = shoreRel(x.wdir, facing), b = bft(x.wind), w = x.wave || 0;
+  if (rel == null) return 'Kıyının bakışını gir; rüzgârın kıyıya vurup vurmadığını ona göre yazarım.';
+  if (rel === 'vuran') return w >= 1.0 || b >= 5 ? 'Rüzgâr ve dalga yüzüne geliyor: atış zor, kayalık kıyıda tehlikeli. Korunaklı bir koy seç.' :
+    w >= 0.3 ? 'Hafif kıyıya vuran rüzgâr: dalga yemi kıyıya taşır; surf ve dipten atma için iyi, şamandıra için zor.' : 'Rüzgâr denizden ama zayıf: her teknik uygun.';
+  if (rel === 'esen') return b >= 5 ? 'Karadan sert esiyor: deniz kıyıda düz ama hafif yem ve şamandıra açığa sürüklenir; misinayı gergin tut.' :
+    'Rüzgâr arkadan: atışlar uzar, deniz kıyıda sakin; LRF, spin ve şamandıra için iyi.';
+  return b >= 5 ? 'Yandan sert rüzgâr: misina kavis yapar, ağır kurşunla dibi tut.' : 'Rüzgâr yandan: atışı rüzgâra göre biraz yukarıdan yap.';
+}
+// telefonun pusulasıyla kıyının bakışı: telefonu denize doğru tut
+async function captureHeading(){
+  const D = window.DeviceOrientationEvent;
+  if (!D) throw new Error('Bu telefonda pusula yok');
+  if (typeof D.requestPermission === 'function') { const r = await D.requestPermission(); if (r !== 'granted') throw new Error('Pusula izni verilmedi'); }
+  return new Promise((res, rej) => {
+    const vals = [];
+    const done = () => { window.removeEventListener('deviceorientationabsolute', h, true); window.removeEventListener('deviceorientation', h, true); clearTimeout(t); };
+    const t = setTimeout(() => { done(); rej(new Error('Pusula okunamadı; yönü elle seç')); }, 5000);
+    function h(e){
+      let hd = null;
+      if (e.webkitCompassHeading != null && isFinite(e.webkitCompassHeading)) hd = e.webkitCompassHeading;
+      else if ((e.absolute || e.type === 'deviceorientationabsolute') && e.alpha != null) hd = (360 - e.alpha) % 360;
+      if (hd == null) return;
+      vals.push(hd);
+      if (vals.length >= 5) { done(); const s = vals.reduce((a, v) => a + Math.sin(v * Math.PI / 180), 0), c = vals.reduce((a, v) => a + Math.cos(v * Math.PI / 180), 0); res((Math.atan2(s, c) * 180 / Math.PI + 360) % 360); }
+    }
+    window.addEventListener('deviceorientationabsolute', h, true); window.addEventListener('deviceorientation', h, true);
+  });
+}
+const dirOpts = () => DIR8.map((d, i) => [String(i * 45), d + ' · ' + WIND_NAMES[i]]);
+function renderShore(dd, cur){
+  const el = $('driftPanel'); if (!el) return;
+  const Lc = loc(); if (!dd || !cur || !Lc) { el.hidden = true; return; }
+  el.hidden = false;
+  const f = facingOf(Lc), rel = shoreRel(cur.wdir, f);
+  const sel = '<select data-lk="' + esc(Lc.id) + '" data-f="facing" aria-label="Kıyının bakışı"><option value="">Seç</option>' +
+    dirOpts().map(([v, t]) => '<option value="' + v + '"' + (f != null && Math.round(f / 45) % 8 * 45 === Number(v) ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>';
+  el.innerHTML = '<div class="row" style="justify-content:space-between;align-items:center"><h3>Kıyı</h3>' + segBtns('mode', [['tekne', 'Tekne'], ['kiyi', 'Kıyı']], 'kiyi') + '</div>' +
+    '<p class="dline">' + (f == null ? 'Kıyının bakışı bilinmiyor. Telefonu denize doğru tut ve “Pusulayla al”a dokun ya da yönü seç.' :
+      'Kıyı <b>' + dir8(f) + '</b> yönüne bakıyor (' + Math.round(f) + '°). Şimdi rüzgâr ' + esc(windName(cur.wdir)) + ' ' + kn(cur.wind) + ' kn: <b>' + esc(REL_TXT[rel] || '–') + '</b>' + (cur.wave != null ? ', kıyıda dalga ' + f1(cur.wave) + ' m' : '') + '.') + '</p>' +
+    (f != null ? '<p class="note">' + esc(shoreAdvice(cur, f)) + '</p>' : '') +
+    '<div class="row shorebtns"><button class="btn small" type="button" data-act="heading">Pusulayla al</button><label class="f inl">Bakış ' + sel + '</label></div>';
 }
 
 // ---------------------------------------------------------------- 50 · öneri motoru (kurallar şeffaf, her önerinin nedeni yazılır)
@@ -2178,6 +2279,11 @@ function techRule(rg, c){
   if ((t === 'orkinos' || t === 'sirti') && c.cls && c.cls !== 'A' && c.cls !== 'B') add(-3, 'açık deniz için rüzgâr fazla');
   if (t === 'samandira' && line != null && line > 0.5) add(-1, 'şamandıra için akıntı fazla');
   if ((t === 'lrf' || t === 'spin') && dusk) add(1, 'şafak/alacakaranlıkta yüzey avı');
+  if (rg.mode === 'kiyi' && c.x) {
+    const rel = shoreRel(c.x.wdir, facingOf(loc())), b = bft(c.x.wind), w = c.x.wave || 0;
+    if (t === 'surf') { if (w >= 0.3 && w <= 1.0 && rel === 'vuran') add(1, 'dalga yemi kıyıya taşır'); if (w > 1.2) add(-2, 'dalga çok yüksek'); if (rel === 'vuran' && b >= 5) add(-1, 'rüzgâr yüzüne, atış zor'); if (rel === 'esen') add(0.5, 'rüzgâr arkadan, atış uzar'); }
+    if (t === 'lrf' || t === 'spin' || t === 'samandira') { if (w >= 0.8) add(-1.5, 'dalga hafif takım için fazla'); if (rel === 'esen' && b <= 4) add(0.5, 'kıyıda deniz sakin'); if (t === 'samandira' && rel === 'esen' && b >= 5) add(-1, 'şamandıra açığa sürüklenir'); }
+  }
   return out;
 }
 function recommend(dd, night, from){
@@ -2337,7 +2443,8 @@ function compRow(rg, sl, tier){
 function lengthsTxt(ld){
   if (!ld) return '';
   const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %20 kısa)' : ''));
-  if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
+  if (ld.kursun && ld.shore) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g ' + ld.shoreWhy.join(' ve ') + ' için, çapalı kurşun)' : '') + (ld.over ? ' · <b class="warn">atış sınırı ' + ld.max + ' g: daha korunaklı bir nokta seç</b>' : ''));
+  else if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
     (ld.over ? ' · <b class="warn">gereken ≈ ' + ld.need + ' g, kamış sınırı ' + ld.max + ' g: paraşüt çapa at, motorla karşıla ya da demirle</b>' : ''));
   return parts.join(' · ');
 }
@@ -2400,6 +2507,7 @@ function applyCards(){
 }
 function renderToday(){
   $('previewNote').hidden = !PREVIEW;
+  $('todayTitle').textContent = shoreMode() ? 'Bugün kıyıda' : 'Bugün denizde';
   applyCards();
   const L = loc();
   $('noLoc').hidden = !!L;
@@ -2439,7 +2547,7 @@ function renderToday(){
     if (w) wl.push(winRow('Yarın · ' + winLabel(w), w));
   }
   $('solWins').innerHTML = wl.join('');
-  renderDrift(dd, cur);
+  if (shoreMode()) renderShore(dd, cur); else renderDrift(dd, cur);
   renderRecs(dd);
 }
 const skipTxt = k => hm(k.t) + ' civarında balık daha yüksek (%' + k.pct + ') ama deniz ' + (k.cls || 'bilinmiyor') + '; sakin deniz öne alındı.';
@@ -2469,6 +2577,12 @@ function renderRecs(dd){
     $('recBlockedW').hidden = true; return;
   }
   $('recBlockedW').hidden = false;
+  if (!RIG_LIST.some(r => !r.mode || r.mode === (S.mode || 'tekne'))) {
+    $('recNote').textContent = '';
+    $('recList').innerHTML = '<div class="panel stack"><h3>' + (shoreMode() ? 'Kıyı rigin yok' : 'Tekne rigin yok') + '</h3><p class="sub">' + (shoreMode() ? 'Sistemlerindeki rigler tekne için. Rig Atölyesi’nde “Kıyıdan” seçip surf, LRF, spin ya da şamandıra sistemini kur.' : 'Sistemlerindeki rigler kıyı için. Rig Atölyesi’nde “Tekneden” seçip sistem kur.') + '</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">' + (shoreMode() ? 'Kıyı sistemimi kur' : 'Tekne sistemimi kur') + '</button><button class="btn" type="button" data-set="mode" data-val="' + (shoreMode() ? 'tekne' : 'kiyi') + '">' + (shoreMode() ? 'Tekne moduna dön' : 'Kıyı moduna geç') + '</button></div></div>';
+    $('recBlocked').innerHTML = ''; $('recBlockedW').hidden = true; return;
+  }
   if (!dd) { $('recNote').textContent = 'Hava verisi gelince öneriler hazırlanır.'; $('recList').innerHTML = ''; $('recBlocked').innerHTML = ''; return; }
   // bugün akşamdan sonra gündüz önerileri yarının; gece yarısından sonra gece önerileri dün başlayan gecenin
   const now = new Date(), ds = days(), i0 = ds.indexOf(dd), isToday = dd.key === dateKey(now);
@@ -2564,7 +2678,8 @@ const HROWS = [
   {id: 'dalga', t: 'Dalga'},
   {id: 'periyot', t: 'Dalga periyodu ve yönü'},
   {id: 'akinti', t: 'Akıntı'},
-  {id: 'suruklenme', t: 'Sürüklenme'},
+  {id: 'suruklenme', t: 'Sürüklenme (tekne)', mode: 'tekne'},
+  {id: 'kiyiya', t: 'Rüzgâr kıyıya göre (kıyı)', mode: 'kiyi'},
   {id: 'su', t: 'Su sıcaklığı'},
   {id: 'basinc', t: 'Basınç'},
   {id: 'basincgrafik', t: 'Basınç grafiği'},
@@ -2654,6 +2769,9 @@ function renderHourly(){
     akinti: () => row('Akıntı', 'kn · ok gittiği yön', hs.map(x => '<td class="' + cls(x) + '">' + f1(x.cur) + '<small>' + arrowTo(x.curDir) + '</small></td>').join('')),
     suruklenme: () => { const anch = S.settings.anchor === 'demir';
       return row(anch ? 'İpe akış' : 'Sürüklenme', anch ? 'kn · demirli' : 'kn · teknenin gidişi', hs.map(x => { const dr = driftAt(x); return '<td class="' + cls(x) + '">' + (dr && dr.known ? f1(anch ? dr.line : dr.sog) + (anch ? '' : '<small>' + arrowTo(dr.dir) + '</small>') : '–') + '</td>'; }).join('')); },
+    kiyiya: () => { const f = facingOf(loc());
+      return row('Kıyıya göre', f == null ? 'kıyının bakışını gir' : 'kıyının bakışı ' + dir8(f), hs.map(x => { const r = shoreRel(x.wdir, f), c = shoreClass(x, f);
+        return '<td class="' + cls(x, c ? 'b' + c : '') + '">' + (r ? {vuran: 'vuran', esen: 'esen', yandan: 'yandan'}[r] : '–') + '</td>'; }).join('')); },
     su: () => row('Su', '°C', hs.map(x => '<td class="' + cls(x) + '" style="' + tint(scaleColor(SST_STOPS, x.sst)) + '">' + f1(x.sst) + '</td>').join('')),
     basinc: () => row('Basınç', (pressU() === 'mmhg' ? 'mmHg' : 'hPa') + ' · 3 sa değişim', hs.map(x => '<td class="' + cls(x) + '" style="' + tint(scaleColor(PRESS_STOPS, x.press), 36) + '">' + (x.press == null ? '–' : Math.round(pressNum(x.press))) + '<small>' + (x.dp3 == null ? '' : (x.dp3 > 0 ? '+' : '') + f1(pressU() === 'mmhg' ? x.dp3 * 0.750062 : x.dp3)) + '</small></td>').join('')),
     basincgrafik: () => {
@@ -2666,7 +2784,7 @@ function renderHourly(){
     },
     bulut: () => row('Bulut', '%', hs.map(x => '<td class="' + cls(x) + '" style="' + (x.cloud != null ? tint('#8A9AAE', Math.round(x.cloud * 0.5)) : '') + '">' + f0(x.cloud) + '</td>').join('')),
   };
-  const rows = orderedRows(HROWS, S.settings.hrows).filter(r => r.on && R[r.id]).map(r => R[r.id]());
+  const rows = orderedRows(HROWS, S.settings.hrows).filter(r => r.on && R[r.id] && (!r.mode || r.mode === (S.mode || 'tekne'))).map(r => R[r.id]());
   tbl.innerHTML = '<tbody>' + rows.join('') + '</tbody>';
   const sea = WX && WX.sea;
   const sp = hs.map(spreadKn).filter(v => v != null); const mx = sp.length ? Math.max(...sp) : null;
@@ -3403,10 +3521,11 @@ async function placeInfo(lat, lon){
     const region = a.province || a.city || a.state;
     land = [local, region && region !== local ? region : null].filter(Boolean).join(', ') || rv.name || null;
   }
-  let coastKm = null; const places = [], feats = [];
+  let coastKm = null, facing = null; const places = [], feats = [];
   ((op && op.elements) || []).forEach(el => {
     const t = el.tags || {};
-    if (t.natural === 'coastline' && el.geometry) { for (let i = 1; i < el.geometry.length; i++) { const d = segKm(p, el.geometry[i - 1], el.geometry[i]); if (coastKm == null || d < coastKm) coastKm = d; } return; }
+    if (t.natural === 'coastline' && el.geometry) { for (let i = 1; i < el.geometry.length; i++) { const a = el.geometry[i - 1], b2 = el.geometry[i]; const d = segKm(p, a, b2);
+      if (coastKm == null || d < coastKm) { coastKm = d; const br = (Math.atan2((b2.lon - a.lon) * Math.cos(p.lat * Math.PI / 180), b2.lat - a.lat) * 180 / Math.PI + 360) % 360; facing = Math.round((br + 90) % 360); } } return; }
     const c = el.center || (el.lat != null ? {lat: el.lat, lon: el.lon} : null); if (!c || !t.name) return;
     const o = {name: t['name:tr'] || t.name, kind: t.place || t.natural, d: distKm(p, c)};
     (t.place ? places : feats).push(o);
@@ -3421,7 +3540,7 @@ async function placeInfo(lat, lon){
     const gl = gname ? gname.split(',')[0] : null;
     name = bay ? bay.name : gl ? gl + ' açıkları' : pl ? pl.name + ' açıkları' : land ? land + ' açıkları' : 'Açık deniz';
   }
-  return {name, sea, coastKm, depth: dep != null && dep > 0.5 ? Math.round(dep) : null, land, src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || dep != null || gname)};
+  return {name, sea, coastKm, facing: coastKm != null && coastKm <= 0.8 ? facing : null, depth: dep != null && dep > 0.5 ? Math.round(dep) : null, land, src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || dep != null || gname)};
 }
 // ---- harita sayfası
 function sheetMap(){
@@ -3518,7 +3637,8 @@ const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=
 function renderPick(){
   const p = MPICK, el = $('mapCard'); if (!el || !p) return;
   const info = p.busy ? 'Yer adı, kıyı ve derinlik aranıyor…' : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servis yanıt vermedi).' :
-    [p.sea ? 'Deniz' : 'Kara', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + f1(p.coastKm) + ' km') : p.sea ? 'kıyı 6 km’den uzak' : '', p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : ''].filter(Boolean).join(' · ');
+    [p.sea ? 'Deniz' : 'Kara', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + f1(p.coastKm) + ' km') : p.sea ? 'kıyı 6 km’den uzak' : '', p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '',
+      p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean).join(' · ');
   el.innerHTML = '<div class="mc-h"><b>' + esc(p.busy ? 'Seçilen nokta' : (p.name || 'Seçilen nokta')) + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
     coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' +
     '<div class="row"><button class="btn primary" type="button" data-mapact="forecast">Bu noktanın tahmini</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
@@ -3562,7 +3682,7 @@ async function mapAct(a, b){
   if (a === 'today') { closeSheet(); show('bugun'); return; }
   if (a === 'save' || a === 'forecast') {
     const n = nearestLoc(p); let id = n && n.d <= 0.2 ? n.L.id : null;
-    if (!id) id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', a === 'forecast');
+    if (!id) { id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', a === 'forecast'); if (p.facing != null) S.locations[id].facing = String(p.facing); }
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
     persist(); drawLocs(); renderAll(); toast('Konumlarına kaydedildi: ' + S.locations[id].name);
     locCard(id);
@@ -3588,7 +3708,8 @@ function startWizard(editId){
 }
 const wzTechs = () => Object.keys(KB.TECH).filter(id => WZ.ans.mode === 'ikisi' || KB.TECH[id].modes.includes(WZ.ans.mode));
 function wzFams(){ const f = new Set(); WZ.ans.techs.forEach(t => KB.TECH[t].fams.forEach(x => f.add(x))); return f; }
-const wzSpecies = () => { const f = wzFams(); return KB.SPECIES.filter(s => f.has(s.fam) && s.bol.includes(WZ.ans.region)); };
+const wzSpecies = () => { const f = wzFams(); const list = KB.SPECIES.filter(s => f.has(s.fam) && s.bol.includes(WZ.ans.region));
+  if (WZ.ans.mode === 'kiyi') list.sort((a, b) => (SHORE_TOP.includes(b.id) ? 1 : 0) - (SHORE_TOP.includes(a.id) ? 1 : 0)); return list; };
 const optBtn = (attr, val, on, label, sub) => '<button type="button" class="opt" ' + attr + '="' + esc(val) + '" aria-pressed="' + !!on + '"><b>' + esc(label) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
 const segWz = (name, opts, cur) => '<div class="seg wrapseg">' + opts.map(([v, t]) => '<button class="btn small" type="button" data-wzset="' + name + '" data-val="' + v + '" aria-pressed="' + (cur === v) + '">' + esc(t) + '</button>').join('') + '</div>';
 function wzSummary(){
@@ -3629,7 +3750,7 @@ function renderWizard(keep){
       '<h3>Hangi diplerde?</h3><p class="note">Bilmiyorsan boş bırak; keşif rigleri de kurulur.</p><div class="seg wrapseg">' + [['kum', 'Kum'], ['kum-kayalik', 'Kum–kayalık'], ['kayalik', 'Kayalık'], ['karma', 'Karma'], ['camur', 'Çamur']].map(([v, t]) => '<button class="btn small" type="button" data-wzb="' + v + '" aria-pressed="' + a.bottoms.includes(v) + '">' + t + '</button>').join('') + '</div>';
   } else {
     const n = a.techs.length && a.species.length ? genSystem(a).length : 0;
-    body = '<h3>Takımın</h3><div class="fields"><label class="f wide">Kamışının kurşun sınırı (g, biliyorsan)<input id="wz-rod" inputmode="numeric" value="' + esc(a.rodMax || '') + '" placeholder="Ör. 150"></label></div>' +
+    body = '<h3>Takımın</h3><div class="fields"><label class="f wide">' + (a.mode === 'kiyi' ? 'Kamışının atış ağırlığı üst sınırı (g, biliyorsan)' : 'Kamışının kurşun sınırı (g, biliyorsan)') + '<input id="wz-rod" inputmode="numeric" value="' + esc(a.rodMax || '') + '" placeholder="' + (a.mode === 'kiyi' ? 'Ör. 100' : 'Ör. 150') + '"></label></div>' +
       '<h3>Sistem ne kadar ayrıntılı olsun?</h3><div class="opts">' + [['sade', 'Sade', 'Her tür grubu için tek rig'], ['dengeli', 'Dengeli', 'Boya, gündüz/geceye ve takım düzenine göre ayrı rigler'], ['tam', 'Tam', 'Dengeli + kayalık ve keşif rigleri']].map(([v, t, s]) => optBtn('data-wzz', v, a.size === v, t, s)).join('') + '</div>' +
       '<h3>Sistemin adı</h3><div class="fields"><label class="f wide">Ad<input id="wz-name" value="' + esc(a.name || '') + '" placeholder="Ör. Benim dip sistemim"></label></div>' +
       '<div class="panel stack"><b id="wzCount">' + n + ' rig kurulacak</b><span class="note">' + esc(wzSummary()) + '</span>' +
@@ -3887,6 +4008,10 @@ function renderTop(){
   const L = loc();
   $('locName').textContent = L ? locLabel(L) : APP_SHORT;
   $('locSub').textContent = L ? fmtCoord(L.lat, L.lon) + ' · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') : 'Konum seçilmedi';
+  const mb = $('modeBtn'); const sh = S.mode === 'kiyi';
+  mb.innerHTML = sh ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18" stroke-width="1.8"/><path d="M6 20l3-9 3 1" stroke-width="1.6"/><path d="M12 12l7-9" stroke-width="1.4"/><path d="M19 3c.5 4 .4 7-1 10" stroke-width="1" stroke-dasharray="1.5 1.5"/><circle cx="9" cy="8" r="1.6"/></svg><span>Kıyı</span>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15h18l-3 5H6z" stroke-width="1.6"/><path d="M12 3v12M12 4l6 9h-6" stroke-width="1.6"/><path d="M2 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1" stroke-width="1"/></svg><span>Tekne</span>';
+  mb.setAttribute('aria-label', (sh ? 'Kıyı' : 'Tekne') + ' modu; değiştirmek için dokun');
   const x = L ? nowHour() : null; const c = $('compass');
   c.hidden = !x; c.innerHTML = x ? compassHtml(x) : '';
 }
@@ -3920,6 +4045,7 @@ function bindEvents(){
   $('locBtn').addEventListener('click', () => openMap());
   $('net').addEventListener('click', () => loadWeather(true));
   $('compass').addEventListener('click', () => { const x = nowHour(); if (x) toast(compassTxt(x)); });
+  $('modeBtn').addEventListener('click', () => { const m = S.mode === 'kiyi' ? 'tekne' : 'kiyi'; setSetting('mode', m); toast(m === 'kiyi' ? 'Kıyı modu: kıyı rigleri, kıyıya göre rüzgâr' : 'Tekne modu: tekne rigleri, sürüklenme ve kurşun'); });
   $('addCatch').addEventListener('click', () => catchForm(null));
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
@@ -3954,6 +4080,9 @@ function bindEvents(){
       const a = d.act;
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
       if (a === 'gpsloc') { gpsToLocation(); return; }
+      if (a === 'heading') { const Lc = loc(); if (!Lc) return; b.textContent = 'Telefonu denize tut…';
+        try { const h = await captureHeading(); Lc.facing = String(Math.round(h)); persist(); renderAll(); toast('Kıyının bakışı ' + dir8(h) + ' (' + Math.round(h) + '°)'); }
+        catch (e) { toast(e.message || 'Pusula okunamadı'); b.textContent = 'Pusulayla al'; } return; }
       if (a === 'gpsfill') { if (!navigator.geolocation) { toast('Konum servisi yok'); return; } navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000}); return; }
       if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
       if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }

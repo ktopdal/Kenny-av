@@ -21,6 +21,11 @@ function techRule(rg, c){
   if ((t === 'orkinos' || t === 'sirti') && c.cls && c.cls !== 'A' && c.cls !== 'B') add(-3, 'açık deniz için rüzgâr fazla');
   if (t === 'samandira' && line != null && line > 0.5) add(-1, 'şamandıra için akıntı fazla');
   if ((t === 'lrf' || t === 'spin') && dusk) add(1, 'şafak/alacakaranlıkta yüzey avı');
+  if (rg.mode === 'kiyi' && c.x) {
+    const rel = shoreRel(c.x.wdir, facingOf(loc())), b = bft(c.x.wind), w = c.x.wave || 0;
+    if (t === 'surf') { if (w >= 0.3 && w <= 1.0 && rel === 'vuran') add(1, 'dalga yemi kıyıya taşır'); if (w > 1.2) add(-2, 'dalga çok yüksek'); if (rel === 'vuran' && b >= 5) add(-1, 'rüzgâr yüzüne, atış zor'); if (rel === 'esen') add(0.5, 'rüzgâr arkadan, atış uzar'); }
+    if (t === 'lrf' || t === 'spin' || t === 'samandira') { if (w >= 0.8) add(-1.5, 'dalga hafif takım için fazla'); if (rel === 'esen' && b <= 4) add(0.5, 'kıyıda deniz sakin'); if (t === 'samandira' && rel === 'esen' && b >= 5) add(-1, 'şamandıra açığa sürüklenir'); }
+  }
   return out;
 }
 function recommend(dd, night, from){

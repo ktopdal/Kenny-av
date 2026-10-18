@@ -157,7 +157,7 @@ function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
   const names = list.map(s => s.name);
   const target = names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '');
   const isDip = ['dip', 'surf', 'canli'].includes(tid);
-  const code = isDip ? (time === 'gece' ? 'N' : time === 'gunduz' ? 'G' : 'H') + '-' + (klass === 'trofe' ? 'T' : 'P') + n : T.code + n;
+  const code = isDip ? (tid === 'surf' ? 'K' : '') + (time === 'gece' ? 'N' : time === 'gunduz' ? 'G' : 'H') + '-' + (klass === 'trofe' ? 'T' : 'P') + n : T.code + n;   // surf: KG-P1 (kıyı)
   const mode = (ans.mode === 'kiyi' && T.modes.includes('kiyi')) ? 'kiyi' : T.modes.includes('tekne') ? 'tekne' : 'kiyi';
   const notes = [];
   if (rock) notes.push({k: 'Kayalık', t: 'Köstekler kısa ve bir boy kalın; takılmaya karşı kurşunu ince misinayla (kopma bağı) bağla.'});

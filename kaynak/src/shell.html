@@ -13,6 +13,7 @@
   <div class="wrap">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>
     <button class="locbtn" id="locBtn" aria-label="Konumlar"><b id="locName">Alyssa</b><span id="locSub"></span></button>
+    <button class="modebtn" id="modeBtn" type="button" aria-label="Tekne ya da kıyı modu"></button>
     <button class="compass" id="compass" type="button" aria-label="Rüzgâr, dalga ve akıntı yönü" hidden></button>
     <button class="netstate" id="net" data-s="idle" aria-live="polite" style="border:0;background:none;cursor:pointer" aria-label="Veriyi yenile"><i></i><span>—</span></button>
   </div>
@@ -23,7 +24,7 @@
 
   <!-- BUGÜN -->
   <section class="view" id="v-bugun">
-    <div class="sec-head"><span class="eyebrow" id="todayLbl">Bugün</span><h2>Bugün denizde</h2></div>
+    <div class="sec-head"><span class="eyebrow" id="todayLbl">Bugün</span><h2 id="todayTitle">Bugün denizde</h2></div>
     <div id="previewNote" class="banner" hidden>Bu bir önizleme: canlı hava ve deniz verisi yalnızca telefona kurulan uygulamada gelir. Burada 17 Ekim'in örnek verisi var.</div>
     <div id="noLoc" hidden></div>
     <div id="todayCards">

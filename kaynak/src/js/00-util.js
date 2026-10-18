@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.8.0', notes: [
+    'Kıyı modu: üstteki tekne/kıyı düğmesiyle tek dokunuşta geçilir',
+    'Kıyının bakışı: telefonu denize tutup “Pusulayla al”, yönü elle seç ya da haritada kıyıya dokun (kıyı çizgisinden kendiliğinden bulunur)',
+    'Rüzgâr kıyıya göre: kıyıya vuran (denizden), kıyıdan esen (karadan) ya da yandan; saatlik tabloda ayrı satır ve kısa yorum',
+    'Kıyı deniz sınıfı: kıyıya vuran rüzgâr ve kıyıdaki dalgaya göre; takvim, pencere ve öneriler buna göre',
+    'Kıyı rigleri: surf, LRF, spin, şamandıra; kurşun kamışın atış ağırlığına göre, dalga ve akıntıda çapalı kurşun',
+  ]},
   {v: '0.7.0', notes: [
     'Harita: üstteki konum adına dokun; haritada bir noktaya dokununca yer adı, derece-dakika koordinat (kopyalanır), kıyıya uzaklık ve EMODnet derinliği gelir',
     'Denizde seçilen noktaya en yakın yerin adıyla ad verilir (ör. “Sığacık açıkları”); koy içindeyse koyun adı',

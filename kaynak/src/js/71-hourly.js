@@ -47,7 +47,8 @@ const HROWS = [
   {id: 'dalga', t: 'Dalga'},
   {id: 'periyot', t: 'Dalga periyodu ve yönü'},
   {id: 'akinti', t: 'Akıntı'},
-  {id: 'suruklenme', t: 'Sürüklenme'},
+  {id: 'suruklenme', t: 'Sürüklenme (tekne)', mode: 'tekne'},
+  {id: 'kiyiya', t: 'Rüzgâr kıyıya göre (kıyı)', mode: 'kiyi'},
   {id: 'su', t: 'Su sıcaklığı'},
   {id: 'basinc', t: 'Basınç'},
   {id: 'basincgrafik', t: 'Basınç grafiği'},
@@ -137,6 +138,9 @@ function renderHourly(){
     akinti: () => row('Akıntı', 'kn · ok gittiği yön', hs.map(x => '<td class="' + cls(x) + '">' + f1(x.cur) + '<small>' + arrowTo(x.curDir) + '</small></td>').join('')),
     suruklenme: () => { const anch = S.settings.anchor === 'demir';
       return row(anch ? 'İpe akış' : 'Sürüklenme', anch ? 'kn · demirli' : 'kn · teknenin gidişi', hs.map(x => { const dr = driftAt(x); return '<td class="' + cls(x) + '">' + (dr && dr.known ? f1(anch ? dr.line : dr.sog) + (anch ? '' : '<small>' + arrowTo(dr.dir) + '</small>') : '–') + '</td>'; }).join('')); },
+    kiyiya: () => { const f = facingOf(loc());
+      return row('Kıyıya göre', f == null ? 'kıyının bakışını gir' : 'kıyının bakışı ' + dir8(f), hs.map(x => { const r = shoreRel(x.wdir, f), c = shoreClass(x, f);
+        return '<td class="' + cls(x, c ? 'b' + c : '') + '">' + (r ? {vuran: 'vuran', esen: 'esen', yandan: 'yandan'}[r] : '–') + '</td>'; }).join('')); },
     su: () => row('Su', '°C', hs.map(x => '<td class="' + cls(x) + '" style="' + tint(scaleColor(SST_STOPS, x.sst)) + '">' + f1(x.sst) + '</td>').join('')),
     basinc: () => row('Basınç', (pressU() === 'mmhg' ? 'mmHg' : 'hPa') + ' · 3 sa değişim', hs.map(x => '<td class="' + cls(x) + '" style="' + tint(scaleColor(PRESS_STOPS, x.press), 36) + '">' + (x.press == null ? '–' : Math.round(pressNum(x.press))) + '<small>' + (x.dp3 == null ? '' : (x.dp3 > 0 ? '+' : '') + f1(pressU() === 'mmhg' ? x.dp3 * 0.750062 : x.dp3)) + '</small></td>').join('')),
     basincgrafik: () => {
@@ -149,7 +153,7 @@ function renderHourly(){
     },
     bulut: () => row('Bulut', '%', hs.map(x => '<td class="' + cls(x) + '" style="' + (x.cloud != null ? tint('#8A9AAE', Math.round(x.cloud * 0.5)) : '') + '">' + f0(x.cloud) + '</td>').join('')),
   };
-  const rows = orderedRows(HROWS, S.settings.hrows).filter(r => r.on && R[r.id]).map(r => R[r.id]());
+  const rows = orderedRows(HROWS, S.settings.hrows).filter(r => r.on && R[r.id] && (!r.mode || r.mode === (S.mode || 'tekne'))).map(r => R[r.id]());
   tbl.innerHTML = '<tbody>' + rows.join('') + '</tbody>';
   const sea = WX && WX.sea;
   const sp = hs.map(spreadKn).filter(v => v != null); const mx = sp.length ? Math.max(...sp) : null;

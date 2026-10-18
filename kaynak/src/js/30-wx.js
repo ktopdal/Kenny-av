@@ -192,6 +192,9 @@ function days(){
       clsD: wd == null ? null : bump(seaClass(wd), wv), clsN: wn == null ? null : bump(seaClass(wn), wv),
       conf: idx < 3 ? 'yüksek' : idx < 7 ? 'iyi' : idx < 10 ? 'orta' : 'düşük', sol: solunar(d)};
   });
+  if (shoreMode()) { const f = facingOf(loc()); out.forEach((dd, i) => { const next = (out[i + 1] || {hs: []}).hs;
+    dd.clsD = worstCls(dd.hs.filter(x => x.h >= 7 && x.h < 18).map(x => shoreClass(x, f)));
+    dd.clsN = worstCls(dd.hs.filter(x => x.h >= 19).concat(next.filter(x => x.h < 6)).map(x => shoreClass(x, f))); }); }
   DAYS_CACHE = {src: WX, days: out};
   return out;
 }

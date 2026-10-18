@@ -17,7 +17,8 @@ function startWizard(editId){
 }
 const wzTechs = () => Object.keys(KB.TECH).filter(id => WZ.ans.mode === 'ikisi' || KB.TECH[id].modes.includes(WZ.ans.mode));
 function wzFams(){ const f = new Set(); WZ.ans.techs.forEach(t => KB.TECH[t].fams.forEach(x => f.add(x))); return f; }
-const wzSpecies = () => { const f = wzFams(); return KB.SPECIES.filter(s => f.has(s.fam) && s.bol.includes(WZ.ans.region)); };
+const wzSpecies = () => { const f = wzFams(); const list = KB.SPECIES.filter(s => f.has(s.fam) && s.bol.includes(WZ.ans.region));
+  if (WZ.ans.mode === 'kiyi') list.sort((a, b) => (SHORE_TOP.includes(b.id) ? 1 : 0) - (SHORE_TOP.includes(a.id) ? 1 : 0)); return list; };
 const optBtn = (attr, val, on, label, sub) => '<button type="button" class="opt" ' + attr + '="' + esc(val) + '" aria-pressed="' + !!on + '"><b>' + esc(label) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
 const segWz = (name, opts, cur) => '<div class="seg wrapseg">' + opts.map(([v, t]) => '<button class="btn small" type="button" data-wzset="' + name + '" data-val="' + v + '" aria-pressed="' + (cur === v) + '">' + esc(t) + '</button>').join('') + '</div>';
 function wzSummary(){
@@ -58,7 +59,7 @@ function renderWizard(keep){
       '<h3>Hangi diplerde?</h3><p class="note">Bilmiyorsan boş bırak; keşif rigleri de kurulur.</p><div class="seg wrapseg">' + [['kum', 'Kum'], ['kum-kayalik', 'Kum–kayalık'], ['kayalik', 'Kayalık'], ['karma', 'Karma'], ['camur', 'Çamur']].map(([v, t]) => '<button class="btn small" type="button" data-wzb="' + v + '" aria-pressed="' + a.bottoms.includes(v) + '">' + t + '</button>').join('') + '</div>';
   } else {
     const n = a.techs.length && a.species.length ? genSystem(a).length : 0;
-    body = '<h3>Takımın</h3><div class="fields"><label class="f wide">Kamışının kurşun sınırı (g, biliyorsan)<input id="wz-rod" inputmode="numeric" value="' + esc(a.rodMax || '') + '" placeholder="Ör. 150"></label></div>' +
+    body = '<h3>Takımın</h3><div class="fields"><label class="f wide">' + (a.mode === 'kiyi' ? 'Kamışının atış ağırlığı üst sınırı (g, biliyorsan)' : 'Kamışının kurşun sınırı (g, biliyorsan)') + '<input id="wz-rod" inputmode="numeric" value="' + esc(a.rodMax || '') + '" placeholder="' + (a.mode === 'kiyi' ? 'Ör. 100' : 'Ör. 150') + '"></label></div>' +
       '<h3>Sistem ne kadar ayrıntılı olsun?</h3><div class="opts">' + [['sade', 'Sade', 'Her tür grubu için tek rig'], ['dengeli', 'Dengeli', 'Boya, gündüz/geceye ve takım düzenine göre ayrı rigler'], ['tam', 'Tam', 'Dengeli + kayalık ve keşif rigleri']].map(([v, t, s]) => optBtn('data-wzz', v, a.size === v, t, s)).join('') + '</div>' +
       '<h3>Sistemin adı</h3><div class="fields"><label class="f wide">Ad<input id="wz-name" value="' + esc(a.name || '') + '" placeholder="Ör. Benim dip sistemim"></label></div>' +
       '<div class="panel stack"><b id="wzCount">' + n + ' rig kurulacak</b><span class="note">' + esc(wzSummary()) + '</span>' +

@@ -1,18 +1,18 @@
-"""Alyssa v0.3–v0.7 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v7_check.py
+"""Alyssa v0.3–v0.8 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v8_check.py
 """
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v7'
+SHOTS = ROOT + '/qa/v8'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8770
+PORT = 8773
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -565,6 +565,62 @@ async def main():
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(300)
         check(not await pg.is_visible('#sheet'), 'J: harita kapandı')
         print('J errors:', errs); check(not errs, 'J: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== K) v0.8: kıyı modu
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        check('Tekne' in await pg.evaluate("document.getElementById('modeBtn').textContent"), 'K: üst çubukta mod düğmesi (Tekne)')
+        await pg.click('#modeBtn'); await pg.wait_for_timeout(500)
+        st = await state(pg); lbls = await pg.locator('#hTable th.lbl b').all_inner_texts()
+        check(st['mode'] == 'kiyi' and await pg.inner_text('#todayTitle') == 'Bugün kıyıda' and 'Kıyı' in await pg.evaluate("document.getElementById('modeBtn').textContent"), 'K: kıyı moduna geçildi')
+        check('Kıyıya göre' in lbls and 'Sürüklenme' not in lbls, 'K: tabloda kıyıya göre satırı, sürüklenme yok')
+        check('Kıyı rigin yok' in await pg.inner_text('#recList'), 'K: kıyı rigi yokken kurulum önerisi')
+        dp = await pg.inner_text('#driftPanel'); check('bilinmiyor' in dp, 'K: kıyının bakışı soruluyor')
+        await pg.select_option('#driftPanel select[data-f="facing"]', '180'); await pg.wait_for_timeout(400)
+        dp = await pg.inner_text('#driftPanel'); print('   kıyı:', dp.replace('\n', ' ')[:220])
+        check('G yönüne bakıyor' in dp and ('kıyıya vuran' in dp or 'kıyıdan esen' in dp or 'kıyıya yandan' in dp), 'K: kıyıya göre rüzgâr yorumu')
+        rels = await pg.evaluate("""() => { const r = [...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === 'Kıyıya göre'); return [...r.querySelectorAll('td')].map(td => td.textContent); }""")
+        check(rels and all(x in ('vuran', 'esen', 'yandan') for x in rels), 'K: saat saat vuran/esen/yandan: ' + str(sorted(set(rels))))
+        # Yıldız (kuzeyden) rüzgâr, güneye bakan kıyı → kıyıdan esen
+        check(rels.count('esen') >= 12, 'K: kuzey rüzgârı güneye bakan kıyıda "esen"')
+        await pg.screenshot(path=SHOTS + '/k_kiyi.png', full_page=True)
+        # pusulayla bakış
+        await pg.click('#driftPanel button[data-act="heading"]')
+        await pg.evaluate("""async () => { for (let i = 0; i < 6; i++) { window.dispatchEvent(new DeviceOrientationEvent('deviceorientationabsolute', {alpha: 90, beta: 80, gamma: 0, absolute: true})); await new Promise(r => setTimeout(r, 60)); } }""")
+        await pg.wait_for_timeout(500)
+        st = await state(pg); check(st['locations'][st['active']].get('facing') == '270', 'K: pusulayla kıyının bakışı alındı: ' + str(st['locations'][st['active']].get('facing')))
+        # kıyı sistemi kur: surf
+        await pg.click('#recList button[data-act="wizard"]'); await pg.wait_for_timeout(300)
+        check(await pg.get_attribute('button[data-wzm="kiyi"]', 'aria-pressed') == 'true', 'K: sihirbaz kıyı modunda açıldı')
+        await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        await pg.click('button[data-wzt="surf"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        first = await pg.locator('button[data-wzs]').first.get_attribute('data-wzs'); check(first in ('levrek', 'cipura', 'sargoz', 'mirmir', 'karagoz', 'istavrit', 'zargana'), 'K: kıyıda öne çıkan türler önce: ' + str(first))
+        for sp in ['cipura', 'mirmir', 'levrek']: await pg.click(f'button[data-wzs="{sp}"]')
+        await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(200)
+        check('atış ağırlığı' in await pg.evaluate("document.getElementById('sheet').textContent"), 'K: kıyı için atış ağırlığı sorusu')
+        await pg.fill('#wz-rod', '120'); await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(600)
+        st = await state(pg); sy = [v for v in st['systems'].values() if v['source'] == 'sihirbaz']
+        check(sy and all(r['mode'] == 'kiyi' for r in sy[0]['rigs']), 'K: kıyı sistemi kuruldu (%d rig)' % (len(sy[0]['rigs']) if sy else 0))
+        # rigleri hazır etmek için alışverişteki her şeyi "aldım" yap
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
+        while await pg.locator('#sheet button[data-buyadd]').count():
+            await pg.click('#sheet button[data-buyadd] >> nth=0'); await pg.wait_for_timeout(150)
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(400)
+        recs = await pg.locator('#recList article.rig').all_inner_texts(); print('   kıyı önerileri:', [r.split('\n')[0:2] for r in recs])
+        check(recs and all('surf' in r.lower() and r.startswith('K') for r in recs), 'K: Bugün bağla kıyı riglerini öneriyor (%d)' % len(recs))
+        check(any('kurşun' in r for r in recs), 'K: kıyı rig kartında kurşun')
+        await pg.screenshot(path=SHOTS + '/k_kiyi_oneri.png', full_page=True)
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(200)
+            for v in ['bugun', 'takvim']:
+                await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(150); await overflow(pg, 'K %d px %s' % (w, v))
+        await pg.click('#modeBtn'); await pg.wait_for_timeout(400)
+        lbls = await pg.locator('#hTable th.lbl b').all_inner_texts(); st = await state(pg)
+        check(st['mode'] == 'tekne' and 'Sürüklenme' in lbls and 'Kıyıya göre' not in lbls, 'K: tekne moduna dönüldü')
+        print('K errors:', errs); check(not errs, 'K: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== F) Rig Atölyesi: sıfırdan sistem, envanter, alışveriş

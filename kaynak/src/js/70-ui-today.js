@@ -25,6 +25,7 @@ function applyCards(){
 }
 function renderToday(){
   $('previewNote').hidden = !PREVIEW;
+  $('todayTitle').textContent = shoreMode() ? 'Bugün kıyıda' : 'Bugün denizde';
   applyCards();
   const L = loc();
   $('noLoc').hidden = !!L;
@@ -64,7 +65,7 @@ function renderToday(){
     if (w) wl.push(winRow('Yarın · ' + winLabel(w), w));
   }
   $('solWins').innerHTML = wl.join('');
-  renderDrift(dd, cur);
+  if (shoreMode()) renderShore(dd, cur); else renderDrift(dd, cur);
   renderRecs(dd);
 }
 const skipTxt = k => hm(k.t) + ' civarında balık daha yüksek (%' + k.pct + ') ama deniz ' + (k.cls || 'bilinmiyor') + '; sakin deniz öne alındı.';
@@ -94,6 +95,12 @@ function renderRecs(dd){
     $('recBlockedW').hidden = true; return;
   }
   $('recBlockedW').hidden = false;
+  if (!RIG_LIST.some(r => !r.mode || r.mode === (S.mode || 'tekne'))) {
+    $('recNote').textContent = '';
+    $('recList').innerHTML = '<div class="panel stack"><h3>' + (shoreMode() ? 'Kıyı rigin yok' : 'Tekne rigin yok') + '</h3><p class="sub">' + (shoreMode() ? 'Sistemlerindeki rigler tekne için. Rig Atölyesi’nde “Kıyıdan” seçip surf, LRF, spin ya da şamandıra sistemini kur.' : 'Sistemlerindeki rigler kıyı için. Rig Atölyesi’nde “Tekneden” seçip sistem kur.') + '</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">' + (shoreMode() ? 'Kıyı sistemimi kur' : 'Tekne sistemimi kur') + '</button><button class="btn" type="button" data-set="mode" data-val="' + (shoreMode() ? 'tekne' : 'kiyi') + '">' + (shoreMode() ? 'Tekne moduna dön' : 'Kıyı moduna geç') + '</button></div></div>';
+    $('recBlocked').innerHTML = ''; $('recBlockedW').hidden = true; return;
+  }
   if (!dd) { $('recNote').textContent = 'Hava verisi gelince öneriler hazırlanır.'; $('recList').innerHTML = ''; $('recBlocked').innerHTML = ''; return; }
   // bugün akşamdan sonra gündüz önerileri yarının; gece yarısından sonra gece önerileri dün başlayan gecenin
   const now = new Date(), ds = days(), i0 = ds.indexOf(dd), isToday = dd.key === dateKey(now);

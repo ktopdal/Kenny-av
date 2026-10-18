@@ -84,10 +84,11 @@ async function placeInfo(lat, lon){
     const region = a.province || a.city || a.state;
     land = [local, region && region !== local ? region : null].filter(Boolean).join(', ') || rv.name || null;
   }
-  let coastKm = null; const places = [], feats = [];
+  let coastKm = null, facing = null; const places = [], feats = [];
   ((op && op.elements) || []).forEach(el => {
     const t = el.tags || {};
-    if (t.natural === 'coastline' && el.geometry) { for (let i = 1; i < el.geometry.length; i++) { const d = segKm(p, el.geometry[i - 1], el.geometry[i]); if (coastKm == null || d < coastKm) coastKm = d; } return; }
+    if (t.natural === 'coastline' && el.geometry) { for (let i = 1; i < el.geometry.length; i++) { const a = el.geometry[i - 1], b2 = el.geometry[i]; const d = segKm(p, a, b2);
+      if (coastKm == null || d < coastKm) { coastKm = d; const br = (Math.atan2((b2.lon - a.lon) * Math.cos(p.lat * Math.PI / 180), b2.lat - a.lat) * 180 / Math.PI + 360) % 360; facing = Math.round((br + 90) % 360); } } return; }
     const c = el.center || (el.lat != null ? {lat: el.lat, lon: el.lon} : null); if (!c || !t.name) return;
     const o = {name: t['name:tr'] || t.name, kind: t.place || t.natural, d: distKm(p, c)};
     (t.place ? places : feats).push(o);
@@ -102,7 +103,7 @@ async function placeInfo(lat, lon){
     const gl = gname ? gname.split(',')[0] : null;
     name = bay ? bay.name : gl ? gl + ' açıkları' : pl ? pl.name + ' açıkları' : land ? land + ' açıkları' : 'Açık deniz';
   }
-  return {name, sea, coastKm, depth: dep != null && dep > 0.5 ? Math.round(dep) : null, land, src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || dep != null || gname)};
+  return {name, sea, coastKm, facing: coastKm != null && coastKm <= 0.8 ? facing : null, depth: dep != null && dep > 0.5 ? Math.round(dep) : null, land, src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || dep != null || gname)};
 }
 // ---- harita sayfası
 function sheetMap(){
@@ -199,7 +200,8 @@ const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=
 function renderPick(){
   const p = MPICK, el = $('mapCard'); if (!el || !p) return;
   const info = p.busy ? 'Yer adı, kıyı ve derinlik aranıyor…' : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servis yanıt vermedi).' :
-    [p.sea ? 'Deniz' : 'Kara', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + f1(p.coastKm) + ' km') : p.sea ? 'kıyı 6 km’den uzak' : '', p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : ''].filter(Boolean).join(' · ');
+    [p.sea ? 'Deniz' : 'Kara', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + f1(p.coastKm) + ' km') : p.sea ? 'kıyı 6 km’den uzak' : '', p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '',
+      p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean).join(' · ');
   el.innerHTML = '<div class="mc-h"><b>' + esc(p.busy ? 'Seçilen nokta' : (p.name || 'Seçilen nokta')) + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
     coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' +
     '<div class="row"><button class="btn primary" type="button" data-mapact="forecast">Bu noktanın tahmini</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
@@ -243,7 +245,7 @@ async function mapAct(a, b){
   if (a === 'today') { closeSheet(); show('bugun'); return; }
   if (a === 'save' || a === 'forecast') {
     const n = nearestLoc(p); let id = n && n.d <= 0.2 ? n.L.id : null;
-    if (!id) id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', a === 'forecast');
+    if (!id) { id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', a === 'forecast'); if (p.facing != null) S.locations[id].facing = String(p.facing); }
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
     persist(); drawLocs(); renderAll(); toast('Konumlarına kaydedildi: ' + S.locations[id].name);
     locCard(id);

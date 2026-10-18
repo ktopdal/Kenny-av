@@ -109,7 +109,7 @@ function hourRec(t){
   const r = new Date(t.getTime() + 30 * 60000);
   return WX._byH[dateKey(r) + 'T' + pad(r.getHours())] || null;
 }
-const clsOf = x => x && x.wind != null ? bump(seaClass(x.wind), x.wave) : null;
+const clsOf = x => seaClsAt(x);
 function curve(dd){
   if (dd._curve) return dd._curve;
   const sp = solSpan(dd.date);

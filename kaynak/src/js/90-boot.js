@@ -4,6 +4,10 @@ function renderTop(){
   const L = loc();
   $('locName').textContent = L ? locLabel(L) : APP_SHORT;
   $('locSub').textContent = L ? fmtCoord(L.lat, L.lon) + ' · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') : 'Konum seçilmedi';
+  const mb = $('modeBtn'); const sh = S.mode === 'kiyi';
+  mb.innerHTML = sh ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18" stroke-width="1.8"/><path d="M6 20l3-9 3 1" stroke-width="1.6"/><path d="M12 12l7-9" stroke-width="1.4"/><path d="M19 3c.5 4 .4 7-1 10" stroke-width="1" stroke-dasharray="1.5 1.5"/><circle cx="9" cy="8" r="1.6"/></svg><span>Kıyı</span>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15h18l-3 5H6z" stroke-width="1.6"/><path d="M12 3v12M12 4l6 9h-6" stroke-width="1.6"/><path d="M2 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1" stroke-width="1"/></svg><span>Tekne</span>';
+  mb.setAttribute('aria-label', (sh ? 'Kıyı' : 'Tekne') + ' modu; değiştirmek için dokun');
   const x = L ? nowHour() : null; const c = $('compass');
   c.hidden = !x; c.innerHTML = x ? compassHtml(x) : '';
 }
@@ -37,6 +41,7 @@ function bindEvents(){
   $('locBtn').addEventListener('click', () => openMap());
   $('net').addEventListener('click', () => loadWeather(true));
   $('compass').addEventListener('click', () => { const x = nowHour(); if (x) toast(compassTxt(x)); });
+  $('modeBtn').addEventListener('click', () => { const m = S.mode === 'kiyi' ? 'tekne' : 'kiyi'; setSetting('mode', m); toast(m === 'kiyi' ? 'Kıyı modu: kıyı rigleri, kıyıya göre rüzgâr' : 'Tekne modu: tekne rigleri, sürüklenme ve kurşun'); });
   $('addCatch').addEventListener('click', () => catchForm(null));
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
@@ -71,6 +76,9 @@ function bindEvents(){
       const a = d.act;
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
       if (a === 'gpsloc') { gpsToLocation(); return; }
+      if (a === 'heading') { const Lc = loc(); if (!Lc) return; b.textContent = 'Telefonu denize tut…';
+        try { const h = await captureHeading(); Lc.facing = String(Math.round(h)); persist(); renderAll(); toast('Kıyının bakışı ' + dir8(h) + ' (' + Math.round(h) + '°)'); }
+        catch (e) { toast(e.message || 'Pusula okunamadı'); b.textContent = 'Pusulayla al'; } return; }
       if (a === 'gpsfill') { if (!navigator.geolocation) { toast('Konum servisi yok'); return; } navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000}); return; }
       if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
       if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }
