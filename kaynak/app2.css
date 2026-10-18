@@ -1,0 +1,79 @@
+/* ---------- v0.2 eklemeleri ---------- */
+.tabbar{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tabbar button{font-size:11px;padding:6px 0}
+.tabbar button svg{width:21px;height:21px}
+.tabbar .av{color:var(--accent)}
+.tabbar button[aria-current="page"].av{color:var(--accent);background:var(--D-bg)}
+
+/* saatlik tablo */
+.hourly{margin-top:12px;padding:12px 0 6px;overflow:hidden}
+.hourly .hh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:0 12px}
+.daychips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 12px 2px}
+.daychips::-webkit-scrollbar{display:none}
+.hscroll{overflow-x:auto;margin-top:8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.htab{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.htab th,.htab td{padding:0;text-align:center;white-space:nowrap}
+.htab .lbl{position:sticky;left:0;z-index:2;background:var(--surface);text-align:left;min-width:108px;max-width:108px;width:108px;padding:4px 6px 4px 12px;border-right:1px solid var(--line-2);vertical-align:middle;white-space:normal;overflow-wrap:anywhere}
+.htab .lbl b{display:block;font:600 12px/1.2 var(--body);color:var(--ink)}
+.htab .lbl small{display:block;font:500 10px/1.2 var(--mono);color:var(--muted);letter-spacing:.02em}
+.htab td.c{min-width:46px;width:46px;height:34px;font:600 13px/1 var(--mono);color:var(--ink);border-bottom:1px solid var(--line-2)}
+.htab td.c small{display:block;font:500 10px/1.1 var(--mono);color:var(--muted);margin-top:2px}
+.htab tr.hours td.c{height:26px;font:600 12px var(--mono);color:var(--ink-2);background:var(--surface-2)}
+.htab td.night{background:color-mix(in srgb,var(--surface-2) 70%,transparent)}
+.htab td.curh{box-shadow:inset 2px 0 0 var(--accent),inset -2px 0 0 var(--accent)}
+.htab tr.hours td.curh{background:var(--accent);color:var(--surface)}
+.htab td.bA{background:var(--A-bg);color:var(--A)}.htab td.bB{background:var(--B-bg);color:var(--B)}
+.htab td.bC{background:var(--C-bg);color:var(--C)}.htab td.bD{background:var(--D-bg);color:var(--D)}
+.htab td.p0{color:var(--muted)}
+.htab td.fish{height:44px}
+.htab td.fish .fi{display:flex;justify-content:center;gap:0;height:14px;margin-bottom:2px}
+.htab td.fish svg{width:13px;height:13px}
+.htab td.fish .on{fill:var(--gold-fill);stroke:var(--gold)}
+.htab td.fish .off{fill:none;stroke:var(--line)}
+.htab td.fish.hi{background:var(--gold-bg)}
+.htab td.sol{font:600 10.5px var(--mono);color:var(--gold)}
+.arr{width:14px;height:14px;display:inline-block;vertical-align:middle}
+.arr path{fill:currentColor}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;padding:8px 12px 0;font:500 11px var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.hourly details{padding:6px 12px 4px}
+.hourly summary{cursor:pointer;font-size:13px;color:var(--brand);font-weight:500}
+.hourly .explain{font-size:12.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:4px;margin-top:6px}
+
+/* kilit ekranı */
+.lock{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;align-items:center;justify-content:center;
+  padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.lock .box{width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
+.lock h2{font-size:28px}
+.lock input{font:500 17px var(--mono);padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);min-height:50px;width:100%}
+
+/* güncelleme bandı */
+.newver{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--brand-soft);border:1px solid var(--brand);display:flex;flex-direction:column;gap:6px}
+.newver ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)}
+
+/* av kaydı */
+.bigbtn{width:100%;min-height:52px;font-size:16px;font-weight:600}
+.catch{display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit}
+.catch .th{width:84px;height:84px;border-radius:9px;background:var(--surface-2);object-fit:cover;display:block}
+.catch .th.ph{display:grid;place-items:center;color:var(--muted)}
+.catch b{font:700 16px var(--display)}
+.catch .m{font-size:13px;color:var(--ink-2)}
+.catch .s{font:500 11.5px var(--mono);color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.photos{display:flex;gap:8px;flex-wrap:wrap}
+.photos .p{position:relative;width:86px;height:86px}
+.photos .p img{width:86px;height:86px;object-fit:cover;border-radius:9px;display:block}
+.photos .p button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;font:600 14px var(--body);line-height:1}
+.filebtn{position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.sheet{position:fixed;inset:0;z-index:55;background:var(--bg);overflow-y:auto;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}
+.sheet .hero img{width:100%;max-height:60vh;object-fit:contain;border-radius:12px;background:var(--surface-2);display:block}
+.kv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.kv div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.kv span{display:block;font:500 11px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.kv b{font:600 15px var(--body);overflow-wrap:anywhere}
+.srcs{display:flex;flex-direction:column;gap:4px;font:500 12px var(--mono)}
+.srcs .ok{color:var(--A)}.srcs .no{color:var(--D)}
