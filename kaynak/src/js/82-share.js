@@ -17,12 +17,17 @@ async function unpackShare(s){
   return JSON.parse(json);
 }
 const ITEM_KEYS = ['cat', 'brand', 'model', 'name', 'spec', 'pattern', 'sizes', 'unit'];
+// hazır listedeki kalemler yalnızca işaretlendiyse gider (alıcıda zaten var; std kimliğiyle eşleşir)
+const shareable = it => !it.std || sizesOf(it).some(sz => stockOf(it.id, sz) !== 'yok');
 function invPayload(){
-  const items = Object.values(ITEMS).map(it => {
+  const items = Object.values(ITEMS).filter(shareable).map(it => {
     const o = {}; ITEM_KEYS.forEach(k => { if (it[k] != null && it[k] !== '' && !(Array.isArray(it[k]) && !it[k].length)) o[k] = it[k]; });
     if (it.use || it.note) o.note = it.use || it.note;
+    if (it.std) o.std = it.id;
+    if (it.rod) o.rod = it.rod; if (it.reel) o.reel = it.reel;
+    const u = unitOf(it); if (u !== 'durum') o.unit = u;
     o.st = {}; o.q = {};
-    sizesOf(it).forEach(sz => { o.st[sz] = stockOf(it.id, sz); const q = S.inv.qty[it.id + '|' + sz]; if (q !== undefined && q !== '') o.q[sz] = Number(q); });
+    sizesOf(it).forEach(sz => { o.st[sz] = stockOf(it.id, sz); const q = qtyOf(it.id + '|' + sz); if (q != null && u !== 'durum') o.q[sz] = q; });
     return o;
   });
   return {t: 'envanter', v: 1, from: (S.profile.name || '').trim() || 'Bir arkadaşın', at: new Date().toISOString().slice(0, 10), items};
@@ -34,7 +39,7 @@ function sysPayload(ids){
 let SHARE_IN = null;
 function sheetShare(){
   const wiz = Object.values(S.systems).filter(sy => sy.source === 'sihirbaz');
-  const nItems = Object.keys(ITEMS).length;
+  const nItems = Object.values(ITEMS).filter(shareable).length;
   return sheetBar('Paylaş') + '<div class="stack">' +
     '<section class="set"><h4>Envanterimi paylaş</h4><p class="note">' + nItems + ' kalem, stok durumları ve adetleriyle tek bir bağlantıya girer. Açan kişi bunu kendi envanterine kopyalar; sonra iki envanter ayrı kalır, senin envanterine dokunamaz. Konumların, avların ve fotoğrafların gitmez.</p>' +
     (nItems ? '<button class="btn primary" type="button" data-share="envanter">Bağlantı oluştur</button>' : '<p class="note">Envanterin boş.</p>') + '</section>' +
@@ -97,11 +102,20 @@ function importShare(){
   if (data.t === 'envanter') {
     const have = new Set(Object.values(ITEMS).map(i => trLower(i.name || ((i.brand || '') + ' ' + (i.model || '')))));
     (data.items || []).forEach(i => {
+      // hazır liste kalemi (ya da aynı adlı kalem): alıcının kendi hazır listesindeki kaleme işaret konur (onda bir işaret yoksa)
+      const nm0 = trLower(i.name || [i.brand, i.model].filter(Boolean).join(' '));
+      const tgt = (i.std && ITEMS[i.std]) || Object.values(ITEMS).find(x => x.std && x.cat === i.cat && trLower(x.name) === nm0);
+      if (tgt) { const it = tgt; let t = 0;
+        sizesOf(it).forEach(sz => { const k = it.id + '|' + sz; const st = (i.st || {})[sz]; if (!st || st === 'yok' || S.inv.status[k] != null || qtyOf(k) != null) return; S.inv.status[k] = st === 'az' ? 'var' : st; if (i.q && i.q[sz] != null) S.inv.qty[k] = i.q[sz]; t++; });
+        if (i.unit && !S.inv.unit[it.id]) S.inv.unit[it.id] = i.unit; if (t) n++; return; }
       const name = i.name || [i.brand, i.model].filter(Boolean).join(' '); if (!name || have.has(trLower(name))) return;
       const id = 'u-' + (slugTR(name).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6);
       const sizes = Array.isArray(i.sizes) && i.sizes.length ? i.sizes : [];
       const stock = {}; (sizes.length ? sizes : ['-']).forEach(sz => { const st = (i.st || {})[sz]; stock[sz] = st === 'az' ? 'var' : (st || 'var'); });
       S.inv.items[id] = {id, cat: i.cat || 'other', brand: i.brand || '', model: i.model || '', name, pattern: i.pattern || '', spec: i.spec || '', note: i.note || '', sizes, stock, src: 'paylasim', from: data.from, created: new Date().toISOString()};
+      if (i.rod) S.inv.items[id].rod = i.rod; if (i.reel) S.inv.items[id].reel = i.reel;
+      if (i.unit && UNITS[i.cat] && UNITS[i.cat].includes(i.unit)) S.inv.unit[id] = i.unit;
+      if (i.cat === 'bait') Object.entries(i.st || {}).forEach(([sz, st]) => { if (st === 'var') S.inv.status[id + '|' + sz] = 'var'; });
       Object.entries(i.q || {}).forEach(([sz, q]) => { S.inv.qty[id + '|' + sz] = q; });
       have.add(trLower(name)); n++;
     });

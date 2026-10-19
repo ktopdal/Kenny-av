@@ -47,7 +47,9 @@ function resolveSlot(sp){
         const h = hookIdx(sz); if (!h || h.sc !== sp.sc) return;
         const inR = h.v >= sp.lo && h.v <= sp.hi; if (!inR && (h.v < sp.lo - 1 || h.v > sp.hi + 1)) return;
         const ok = usable(stockOf(it.id, sz));
-        take({item: it.id, name: it.name, size: sz, ok, score: (pref >= 0 ? pref : 6) * 2 + Math.abs(h.v - mid) + (inR ? 0 : 3) + (ok ? 0 : 20)}, ok && inR && pref >= 0 && pref <= 1);
+        // elde yoksa: önce kendi (bitti/alınacak) kalemin, sonra hazır listedeki Türkiye'de bulunan seri önerilir
+        const stdPen = it.std ? (it.rank === 0 ? 0.2 : it.rank === 1 ? 0.4 : 0.6) : 0;
+        take({item: it.id, name: it.name, size: sz, ok, score: (pref >= 0 ? pref : 6) * 2 + Math.abs(h.v - mid) + (inR ? 0 : 3) + (ok ? 0 : 20) + stdPen}, ok && inR && pref >= 0 && pref <= 1);
       });
     } else if (sp.kind === 'line') {
       if (!sp.cats.includes(it.cat)) return; const mm = lineMm(it); if (mm == null) return;
@@ -55,12 +57,22 @@ function resolveSlot(sp){
       const ok = usable(stockOf(it.id, '-')); const mid = (sp.lo + sp.hi) / 2;
       take({item: it.id, name: it.name, size: null, ok, score: Math.abs(mm - mid) / mid * 10 + (inR ? 0 : 3) + (ok ? 0 : 20) + sp.cats.indexOf(it.cat) * 2}, ok && inR && it.cat === sp.cats[0]);
     } else if (sp.kind === 'lure') {
+      // sahte yem tipi eşleşmeli (slow jig yuvasına metal jig ya da jighead girmez); ağırlık ve çapari boyu aralığa bakılır, her boy ayrı denenir
       if (!['jig', 'lure', 'hook', 'terminal'].includes(it.cat)) return;
-      const t = trLower([it.name, it.model, it.spec, it.type].join(' '));
-      if (!sp.kw.some(k => t.indexOf(trLower(k)) >= 0)) return;
-      const g = lureG(it); const inR = !sp.g || g == null || (g >= sp.g[0] && g <= sp.g[1]);
-      const ok = usable(stockOf(it.id, sizesOf(it)[0]));
-      take({item: it.id, name: it.name, size: sizesOf(it)[0] !== '-' ? sizesOf(it)[0] : null, ok, score: (inR ? 0 : 3) + (ok ? 0 : 20)}, ok && inR);
+      const lt = sp.lt || lureTypeFromKw(sp.kw); const okT = lt ? (LURE_OK[lt] || [lt]) : null;
+      const ty = lureTypeOf(it);
+      if (okT) { if (!okT.includes(ty)) return; }
+      else { const t = trLower([it.name, it.model, it.spec, it.type].join(' ')); if (!(sp.kw || []).some(k => t.indexOf(trLower(k)) >= 0)) return; }
+      const pref = okT ? okT.indexOf(ty) : 0;
+      const hs = sp.hs ? wRange(sp.hs) : null;
+      sizesOf(it).forEach(sz => {
+        const g = sz !== '-' ? lureG({name: sz}) : null; const gi = g != null ? g : lureG(it);
+        let inR = !sp.g || gi == null || (gi >= sp.g[0] * 0.8 && gi <= sp.g[1] * 1.2);
+        if (sp.g && gi != null && (gi < sp.g[0] * 0.5 || gi > sp.g[1] * 2)) return;
+        if (hs && sz !== '-') { const h = hookIdx(sz); if (h && h.sc === 'w') { const lo = Math.min(hs[0], hs[1]), hi = Math.max(hs[0], hs[1]); if (h.v < lo - 1 || h.v > hi + 1) return; if (h.v < lo || h.v > hi) inR = false; } }
+        const ok = usable(stockOf(it.id, sz));
+        take({item: it.id, name: it.name, size: sz !== '-' ? sz : null, ok, score: pref * 2 + (inR ? 0 : 3) + (ok ? 0 : 20) + (it.std ? 0.5 : 0)}, ok && inR && pref === 0);
+      });
     }
   });
   return {strict: bestS, loose: best};
@@ -120,7 +132,7 @@ function slotFor(role, F, X, klass, rock){
   }
   if (role.indexOf('lure:') === 0) {
     const type = role.slice(5); const L = KB.LURE[type];
-    const sp = {kind: 'lure', kw: L.kw, g: X.g || null};
+    const sp = {kind: 'lure', lt: type, kw: L.kw, g: X.g || null, hs: type === 'sabiki' && X.sabiki ? X.sabiki : null};
     const sz = type === 'egi' ? X.egi : type === 'sabiki' && X.sabiki ? '#' + X.sabiki[0] + '–#' + X.sabiki[1] : X.g ? X.g[0] + '–' + X.g[1] + ' g' : '';
     return {sp, t: {dunya: {name: L.dunya, size: sz}, turkiye: {name: L.turkiye, size: sz}}};
   }
@@ -131,6 +143,17 @@ function topBaits(list, time){
   const cnt = {};
   list.forEach(s => { const arr = (time === 'gece' ? (s.b.n || s.b.g) : time === 'gunduz' ? (s.b.g || s.b.n) : (s.b.g || []).concat(s.b.n || [])) || []; arr.forEach((b, i) => { cnt[b] = (cnt[b] || 0) + (3 - Math.min(i, 2)); }); });
   return Object.entries(cnt).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+}
+// sihirbazda seçilen yemler: türün yemleri arasındaysa öne alınır; aileye uygunsa alternatif olarak eklenir (rig yemden bağımsızdır, yalnızca öneri)
+function prefBaits(list, pref, fam){
+  pref = Array.isArray(pref) ? pref : [];
+  if (!pref.length) return list;
+  const isPref = t => pref.includes(baitKey(t));
+  const out = list.filter(isPref).concat(list.filter(t => !isPref(t)));
+  const have = new Set(out.map(baitKey).filter(Boolean));
+  const extra = pref.filter(k => !have.has(k) && (FAM_BAITS[fam] || []).includes(k)).map(k => (STD_BAITS.find(x => x.key === k) || {}).name).filter(Boolean);
+  out.splice(Math.min(1, out.length), 0, ...extra);
+  return out;
 }
 function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
   const T = KB.TECH[tid], L = KB.LAY[lay], F = KB.FAM[fam] || {}, X = KB.FIX[lay] || {};
@@ -153,7 +176,7 @@ function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
   const hab = [...new Set(list.flatMap(s => s.hab))].filter(b => b !== 'orta-su');
   let bottom = rock ? ['kayalik', 'saf-kayalik'] : (ans.bottoms && ans.bottoms.length ? ans.bottoms.filter(b => hab.includes(b) || (b === 'karma')) : hab);
   if (!bottom.length) bottom = hab.length ? hab : ['karma'];
-  const baits = topBaits(list, time);
+  const baits = prefBaits(topBaits(list, time), ans.baits, fam);
   const names = list.map(s => s.name);
   const target = names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '');
   const isDip = ['dip', 'surf', 'canli'].includes(tid);

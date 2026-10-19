@@ -56,12 +56,15 @@ function sheetSettings(){
     '<section class="set"><h4>Tekne ve sürüklenme</h4>' + segBtns('anchor', [['surukle', 'Sürüklenerek avlanırım'], ['demir', 'Demirli avlanırım']], st.anchor === 'demir' ? 'demir' : 'surukle') +
     '<p class="note" style="margin-top:8px">Teknen rüzgârdan ne kadar etkilenir?</p>' + segBtns('leeway', Object.entries(LEEWAY_TXT), st.leeway || 'orta') +
     '<p class="note">Rüzgâr, hızının %3 / %4,5 / %6’sı kadar sürüklenme ekler. Plotterdeki gerçek sürüklenmen hesaplanandan hızlıysa bir üst, yavaşsa bir alt seçeneği seç.</p></section>' +
+    '<section class="set"><h4>Envanter</h4><p class="note">İğneleri nasıl sayarsın? Her kalemin üstünden ayrı ayrı da seçebilirsin.</p>' + segBtns('hookUnit', [['durum', 'Yalnız var / yok'], ['adet', 'Adet'], ['paket', 'Paket']], st.hookUnit || 'durum') +
+      '<p class="note">Makine, kamış, ip, terminal, kurşun ve yemde adet sorulmaz: var, alınacak ya da yok. Jig ve zokada istersen adet.</p></section>' +
     '<section class="set"><h4>Harita</h4><label class="f wide">Google Maps API anahtarı (isteğe bağlı)<input id="gkey" data-setk="gkey" value="' + esc(st.gkey || '') + '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="AIza…"></label>' +
     '<p class="note">Yer adları OpenStreetMap’ten gelir. Google adlarını istersen Google Cloud’da “Maps JavaScript API” ve “Geocoding API”yi aç, anahtarı yalnızca <b>https://ktopdal.github.io/Kenny-av/*</b> adresine kısıtla ve buraya yapıştır. Ayda 10.000 sorgu ücretsiz.</p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '</div>';
 }
 function setSetting(name, val){
+  if (name === 'hookUnit') Object.values(ITEMS).forEach(it => { if (it.cat === 'hook' && !S.inv.unit[it.id] && sizesOf(it).some(sz => qtyOf(it.id + '|' + sz) != null)) S.inv.unit[it.id] = S.settings.hookUnit || 'durum'; });   // sayılmış kalemin birimi korunur
   if (name === 'mode') S.mode = val;
   else if (name === 'preset') { S.settings.preset = val; S.settings.brand = ''; S.settings.accent = ''; }
   else if (name === 'zoom') S.settings.zoom = Number(val) || 0;
@@ -164,20 +167,25 @@ function addLocation(name, lat, lon, bottom, depth, activate){
   if (activate !== false || !S.active) { S.active = id; WX = null; }
   S.onboarded = true; persist(); return id;
 }
-// ---- Alışveriş
+// ---- Alışveriş: mağazaya göre (paketteki mağaza işaretleri), sonra bitti, alınacak (istek) ve rigleri tamamlamak için
 function sheetShopping(){
-  const groups = {};
-  shoppingList().forEach(n => { const it = n.item && ITEMS[n.item]; const st = (it && it.store) || n.store || (it ? 'Envanter' : 'Yeni'); (groups[st] = groups[st] || []).push(n); });
-  const SN = {Envanter: 'Yeniden alınacak', Yeni: 'Envanterde olmayanlar'};
-  if (pkgOn() && Array.isArray(D.stores)) D.stores.forEach(st => { SN[st.id] = st.name + ' (' + st.id + ')'; });
-  const body = Object.keys(groups).sort().map(g => '<div class="eyebrow">' + esc(SN[g] || 'Mağaza ' + g) + '</div>' + groups[g].map(n => {
-    const it = n.item && ITEMS[n.item]; const k = n.item ? n.item + '|' + (n.size || '-') : null;
-    return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div><span class="chip">' + n.rigs.length + ' rigde</span></div>' +
-      '<div class="sp">' + esc(n.rigs.join(', ')) + (it && it.note ? ' · ' + esc(it.note) : '') + '</div>' +
-      (k ? '<div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (adet)<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label></div>' :
-        (n.sp ? '<div class="row"><button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button></div>' : '')) + '</div>';
+  const G = {};
+  shoppingList().forEach(n => { const it = n.item && ITEMS[n.item]; const store = (it && it.store) || n.store;
+    const g = store ? 'm:' + store : n.why.includes('bitti') || n.why.includes('alinacak') ? 'al' : 'rig'; (G[g] = G[g] || []).push(n); });
+  const SN = {al: 'Bitti ya da alınacak', rig: 'Rigleri tamamlamak için'};
+  if (pkgOn() && Array.isArray(D.stores)) D.stores.forEach(st => { SN['m:' + st.id] = st.name + ' (' + st.id + ')'; });
+  const order = Object.keys(G).filter(g => g.indexOf('m:') === 0).sort().concat(['al', 'rig'].filter(g => G[g]));
+  const body = order.map(g => '<div class="eyebrow">' + esc(SN[g] || 'Mağaza ' + g.slice(2)) + ' (' + G[g].length + ')</div>' + G[g].map(n => {
+    const it = n.item && ITEMS[n.item]; const k = n.item ? n.item + '|' + (n.size || '-') : null; const u = it ? unitOf(it) : 'durum';
+    const tag = n.rigs.length ? '<span class="chip">' + n.rigs.length + ' rigde</span>' : '<span class="chip">' + esc(CAT_TXT[(it || {}).cat] || '') + '</span>';
+    const act = k ? (u !== 'durum' ? '<label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (' + (u === 'paket' ? 'paket' : 'adet') + ')<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label>' :
+        '<button class="btn small primary" type="button" data-bought="' + esc(k) + '">Aldım</button>') :
+      (n.sp ? '<button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button>' : '');
+    return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div>' + tag + '</div>' +
+      ((n.rigs.length || (it && it.note)) ? '<div class="sp">' + esc(n.rigs.join(', ')) + (it && it.note ? (n.rigs.length ? ' · ' : '') + esc(it.note) : '') + '</div>' : '') +
+      (act ? '<div class="row">' + act + '</div>' : '') + '</div>';
   }).join('')).join('');
-  return sheetBar('Alışveriş listesi') + '<div class="stack"><p class="note">Rigleri tamamlamak için gerekenler. Aldığında adedini gir; ilgili rigler hemen tamamlanır.</p>' + (body || '<div class="empty">Eksik kalem yok, tüm rigler tamam.</div>') + '</div>';
+  return sheetBar('Alışveriş listesi') + '<div class="stack"><p class="note">Rigleri tamamlamak için gerekenler ve envanterde “bitti” ya da “alınacak” işaretlediklerin. Aldığında “Aldım” de; rig hemen tamamlanır. Yemler burada değil: Çıkış listesinde “gitmeden al” olarak yazar.</p>' + (body || '<div class="empty">Alınacak bir şey yok, tüm rigler tamam.</div>') + '</div>';
 }
 function sheetStandards(){
   const rows = Object.values(SETUPS).map(s => { const st = s.standard_cm; return '<tr><td>' + esc(s.name) + '</td><td>' + st.ust + '</td><td>' + st.orta + '</td><td>' + st.hirsiz + '</td><td>' + st.aralik + '</td><td>' + st.kursun_g.join('–') + '</td><td>' + st.kursun_max_g + '</td></tr>'; }).join('');

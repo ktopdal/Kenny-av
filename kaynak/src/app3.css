@@ -216,3 +216,44 @@ b.warn{color:var(--D)}
 .leaflet-container .mgrp{stroke:#fff;fill:#2C8FB8;fill-opacity:.9}
 .leaflet-container .mgrp.me{fill:var(--accent)}
 .grpbox{margin-top:10px}
+
+/* ---------- v0.11: envanter düzeni, hazır listeler, yemler ---------- */
+.item .ih{display:flex;flex-direction:column;gap:2px}
+.szs{display:flex;flex-wrap:wrap;gap:6px}
+.szc{display:inline-flex;align-items:center;gap:4px;min-height:34px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font:600 12.5px var(--mono);cursor:pointer}
+.szc.on{background:var(--A-bg);border-color:var(--A);color:var(--A)}
+.szc.buy{background:var(--buy-bg);border-color:var(--buy);color:var(--buy)}
+.szc small{font:500 10.5px var(--mono)}
+.stseg,.useg{display:inline-flex;flex-wrap:wrap;gap:4px}
+.stseg button,.useg button{min-height:34px;padding:4px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font:500 13px var(--body);cursor:pointer}
+.stseg button[aria-pressed="true"]{font-weight:600}
+.stseg button[data-st="var"][aria-pressed="true"]{background:var(--A-bg);border-color:var(--A);color:var(--A)}
+.stseg button[data-st="alinacak"][aria-pressed="true"]{background:var(--buy-bg);border-color:var(--buy);color:var(--buy)}
+.stseg button[data-st="yok"][aria-pressed="true"]{background:var(--surface-2);border-color:var(--muted);color:var(--ink)}
+.useg button{min-height:28px;padding:2px 9px;font-size:12px}
+.useg button[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand);color:var(--ink);font-weight:600}
+.qrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.qrow .lb{font:600 12.5px var(--mono);display:inline-flex;gap:5px;align-items:center;min-width:58px}
+.qrow .u{font:500 12px var(--mono);color:var(--muted)}
+.albtn{min-height:34px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font:500 12.5px var(--body);cursor:pointer}
+.albtn[aria-pressed="true"]{background:var(--buy-bg);border-color:var(--buy);color:var(--buy);font-weight:600}
+details.stdl{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+details.stdl>summary{cursor:pointer;color:var(--brand);font-weight:600;font-size:14px;min-height:28px}
+details.stdl[open]>summary{margin-bottom:6px}
+.sgrp{display:flex;flex-direction:column;margin-top:10px}
+.srow{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--line-2)}
+.srow .nm{font-weight:600;font-size:14px;display:flex;flex-direction:column}
+.srow .nm small{font-weight:400;font-size:12px;color:var(--muted)}
+.srow>.szc{align-self:flex-start}
+.bchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bchip{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font:500 13.5px var(--body);cursor:pointer}
+.bchip.on{background:var(--A-bg);border-color:var(--A);color:var(--A);font-weight:600}
+.wz .bchip[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand);color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--brand)}
+.bchip small{font-size:11px}
+.bchips .linkbtn{padding:0 4px;min-height:36px}
+.warnt{color:var(--C);font-weight:600}
+details.wzmore summary{cursor:pointer;color:var(--brand);font-weight:500;margin:8px 0 6px}
+#invSeg .btn{white-space:nowrap}
+.sgrp .gh{font:600 13px var(--body);color:var(--ink-2);padding:6px 0 2px;border-bottom:1px solid var(--line-2)}
+.sgrp .bchips{padding:8px 0}
+.szs .note{align-self:center}

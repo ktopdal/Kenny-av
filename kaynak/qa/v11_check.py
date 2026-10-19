@@ -1,18 +1,18 @@
-"""Alyssa v0.3–v0.10 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v10_check.py
+"""Alyssa v0.3–v0.11 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v11_check.py
 """
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v10'
+SHOTS = ROOT + '/qa/v11'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8775
+PORT = 8776
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -166,6 +166,8 @@ async def overflow(pg, tag):
 
 async def row_idx(pg, name):
     return await pg.evaluate('(n) => [...document.querySelectorAll("#hTable tr")].findIndex(tr => { const b = tr.querySelector("th b"); return b && b.textContent === n && tr.querySelectorAll("td").length > 2; })', name)
+
+def U(t): return t.upper().replace('İ', 'I')
 
 async def state(pg):
     return await pg.evaluate('JSON.parse(localStorage.getItem("alyssa-v1"))')
@@ -603,6 +605,8 @@ async def main():
         await pg.click('button[data-wzt="surf"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         first = await pg.locator('button[data-wzs]').first.get_attribute('data-wzs'); check(first in ('levrek', 'cipura', 'sargoz', 'mirmir', 'karagoz', 'istavrit', 'zargana'), 'K: kıyıda öne çıkan türler önce: ' + str(first))
         for sp in ['cipura', 'mirmir', 'levrek']: await pg.click(f'button[data-wzs="{sp}"]')
+        await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        check('Hangi yemlerle' in await pg.inner_text('#sheet'), 'K: yem adımı')
         await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(200)
         check('atış ağırlığı' in await pg.evaluate("document.getElementById('sheet').textContent"), 'K: kıyı için atış ağırlığı sorusu')
         await pg.fill('#wz-rod', '120'); await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(600)
@@ -610,8 +614,8 @@ async def main():
         check(sy and all(r['mode'] == 'kiyi' for r in sy[0]['rigs']), 'K: kıyı sistemi kuruldu (%d rig)' % (len(sy[0]['rigs']) if sy else 0))
         # rigleri hazır etmek için alışverişteki her şeyi "aldım" yap
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
-        while await pg.locator('#sheet button[data-buyadd]').count():
-            await pg.click('#sheet button[data-buyadd] >> nth=0'); await pg.wait_for_timeout(150)
+        while await pg.locator('#sheet button[data-buyadd], #sheet button[data-bought]').count():
+            await pg.click('#sheet button[data-buyadd], #sheet button[data-bought] >> nth=0'); await pg.wait_for_timeout(150)
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
         await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(400)
         recs = await pg.locator('#recList article.rig').all_inner_texts(); print('   kıyı önerileri:', [r.split('\n')[0:2] for r in recs])
@@ -759,6 +763,12 @@ async def main():
         await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wzt="orkinos"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         for sp in ['karagoz', 'mercan', 'orkinos']: await pg.click(f'button[data-wzs="{sp}"]')
         await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        yem = await pg.locator('#sheet .bchips button[data-wzy]').all_inner_texts()
+        check('Hangi yemlerle' in await pg.inner_text('#sheet') and any('Mamun' in y for y in yem) and any('Sardalya' in y for y in yem), 'F: yem adımı, türlere uygun yemler (%d)' % len(yem))
+        await pg.click('button[data-wzy="mamun"]'); await pg.click('button[data-wzy="midye"]'); await pg.wait_for_timeout(100)
+        check(await pg.get_attribute('button[data-wzy="mamun"]', 'aria-pressed') == 'true', 'F: yem seçildi')
+        await pg.screenshot(path=SHOTS + '/f_yem.png')
+        await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         await pg.click('button[data-wzl="dip|iki"]')            # hırsızlı + 2 iğneli
         await pg.click('button[data-wzset="klass"][data-val="porsiyon"]'); await pg.click('button[data-wzset="time"][data-val="gunduz"]')
         await pg.click('button[data-wzb="kum"]')
@@ -770,6 +780,9 @@ async def main():
         await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(600)
         st = await state(pg); sy = [v for v in st['systems'].values() if v['source'] == 'sihirbaz']
         check(len(sy) == 1 and len(sy[0]['rigs']) == 5, 'F: sistem kaydedildi (%d rig)' % (len(sy[0]['rigs']) if sy else 0))
+        check(sy[0]['answers'].get('baits') == ['mamun', 'midye'] and st['profile'].get('baits') == ['mamun', 'midye'], 'F: yem tercihi kaydedildi')
+        kg = [r for r in sy[0]['rigs'] if 'karagoz' in r['species']][0]
+        check(kg['baits'] and 'Mamun' in (kg['baits']['ana']['envanter'] + kg['baits']['alt']['envanter']), 'F: tercih edilen yem rige girdi: ' + json.dumps(kg['baits'], ensure_ascii=False)[:120])
         r0 = sy[0]['rigs'][0]
         check(r0['sinker']['max'] == 140, 'F: kamış sınırı kurşuna işlendi')
         check(any(sl['k'] == 'hirsiz' for sl in r0['slots']), 'F: hırsızlı yuvaları')
@@ -799,11 +812,12 @@ async def main():
         await pg.screenshot(path=SHOTS + '/f_rigler_hazir.png')
         # alışveriş: orkinos için eksikler, "Aldım, envantere ekle"
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
-        nb = await pg.locator('#sheet button[data-buyadd]').count(); check(nb >= 3, 'F: envanterde olmayan ürünler listede (%d)' % nb)
+        nb = await pg.locator('#sheet button[data-buyadd], #sheet button[data-bought]').count(); check(nb >= 3, 'F: envanterde olmayan ürünler listede (%d)' % nb)
+        sh = await pg.inner_text('#sheet'); check('Super Mutu' in sh or 'Demon' in sh, 'F: eksik iğne hazır listeden ürün adıyla öneriliyor')
         await pg.screenshot(path=SHOTS + '/f_alisveris.png')
-        while await pg.locator('#sheet button[data-buyadd]').count():
-            await pg.click('#sheet button[data-buyadd] >> nth=0'); await pg.wait_for_timeout(200)
-        check('Eksik kalem yok' in await pg.inner_text('#sheet'), 'F: tüm eksikler envantere eklenince liste boşaldı')
+        while await pg.locator('#sheet button[data-buyadd], #sheet button[data-bought]').count():
+            await pg.click('#sheet button[data-buyadd], #sheet button[data-bought] >> nth=0'); await pg.wait_for_timeout(200)
+        check('Alınacak bir şey yok' in await pg.inner_text('#sheet'), 'F: tüm eksikler envantere eklenince liste boşaldı')
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
         check(await pg.locator('#rigList article.rig.off').count() == 0, 'F: bütün rigler hazır')
@@ -814,7 +828,7 @@ async def main():
         await pg.screenshot(path=SHOTS + '/f_bugun.png')
         # sistemi düzenle: sade → daha az rig
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('button[data-systool="edit"]'); await pg.wait_for_timeout(300)
-        for _ in range(4): await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(120)
+        for _ in range(5): await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(120)
         await pg.click('button[data-wzz="sade"]'); await pg.wait_for_timeout(150)
         await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(500)
         st = await state(pg); sy = [v for v in st['systems'].values() if v['source'] == 'sihirbaz']
@@ -828,6 +842,158 @@ async def main():
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(120); await overflow(pg, 'F ' + v)
         print('F errors:', errs); check(not errs, 'F: sayfa hatası yok')
         await ctx.close()
+
+        # ================================================== N) v0.11: envanter düzeni, hazır listeler, yemler, alışveriş, göç, harita anahtarı
+        GKEY = json.load(open(ROOT + '/data/kenny_av_db.json', encoding='utf-8')).get('settings', {}).get('gkey', '')
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="bos"]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="envanter"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#invList details.stdl').count() == 1, 'N: iğnelerde hazır liste')
+        nstd = await pg.locator('#invList details.stdl .srow').count(); check(nstd >= 35, 'N: hazır iğne listesi %d model' % nstd)
+        await pg.screenshot(path=SHOTS + '/n_igne_bos.png')
+        # boy çipi: yok → var → bitti → yok
+        k = 'std:h:gamakatsu-hyper-chinu|No:2'
+        await pg.click(f'#invList button[data-cyc="{k}"]'); await pg.wait_for_timeout(200)
+        st = await state(pg); check(st['inv']['status'].get(k) == 'var', 'N: boya dokununca var')
+        check(await pg.locator('#invList > .item').count() == 1 and U('Var (1)') in U(await pg.inner_text('#invList')), 'N: işaretlenen kalem “Var” bölümüne çıktı')
+        check(await pg.evaluate('document.querySelector("#invList details.stdl").open') is True, 'N: hazır liste açık kaldı')
+        await pg.click(f'#invList .item button[data-cyc="{k}"]'); await pg.wait_for_timeout(200)
+        st = await state(pg); check(st['inv']['status'].get(k) == 'bitti', 'N: ikinci dokunuş bitti (alınacak)')
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
+        sh = await pg.inner_text('#sheet'); check('Gamakatsu Hyper Chinu' in sh and U('Bitti ya da alınacak') in U(sh), 'N: bitti iğne alışveriş listesinde')
+        await pg.click(f'#sheet button[data-bought="{k}"]'); await pg.wait_for_timeout(300)
+        st = await state(pg); check(st['inv']['status'].get(k) == 'var', 'N: “Aldım” ile yeniden var')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        # paket birimi
+        await pg.click('.tabbar button[data-v="envanter"]'); await pg.wait_for_timeout(200)
+        await pg.click('#invList .item button[data-unit="std:h:gamakatsu-hyper-chinu"][data-u="paket"]'); await pg.wait_for_timeout(250)
+        st = await state(pg); check(st['inv']['unit'].get('std:h:gamakatsu-hyper-chinu') == 'paket', 'N: kalem paketle sayılıyor')
+        qsel = '#invList input[data-qk="%s"]' % k
+        await pg.fill(qsel, '2'); await pg.dispatch_event(qsel, 'change'); await pg.wait_for_timeout(250)
+        st = await state(pg); check(st['inv']['qty'].get(k) == 2 and await pg.evaluate('(k) => ALYSSA_QA.stockOf(k.split("|")[0], k.split("|")[1])', k) == 'var', 'N: 2 paket var')
+        txt = await pg.inner_text('#invList'); check('paket' in txt, 'N: paket birimi yazıyor')
+        check(await pg.locator('#invList .item .qrow').count() == 1, 'N: yalnızca işaretli boy satır, diğerleri çip')
+        k3 = 'std:h:gamakatsu-hyper-chinu|No:3'
+        await pg.click(f'#invList button[data-qadd="{k3}"]'); await pg.wait_for_timeout(250)
+        st = await state(pg); check(st['inv']['qty'].get(k3) == 1 and await pg.locator('#invList .item .qrow').count() == 2, 'N: diğer boy çipi 1 paketle eklendi')
+        await pg.click(f'#invList button[data-step="-1"][data-k="{k}"]'); await pg.wait_for_timeout(150); await pg.click(f'#invList button[data-step="-1"][data-k="{k}"]'); await pg.wait_for_timeout(250)
+        check(await pg.evaluate('(k) => ALYSSA_QA.stockOf(k.split("|")[0], k.split("|")[1])', k) == 'bitti', 'N: 0 paket → bitti')
+        sl = await pg.evaluate('ALYSSA_QA.shoppingList().map(n => n.k)'); check(k in sl, 'N: 0 paket alışveriş listesinde')
+        await pg.screenshot(path=SHOTS + '/n_igne_paket.png')
+        await pg.click(f'#invList button[data-alk="{k}"]'); await pg.wait_for_timeout(250)
+        check(await pg.evaluate('(k) => ALYSSA_QA.stockOf(k.split("|")[0], k.split("|")[1])', k) == 'yok' and k not in await pg.evaluate('ALYSSA_QA.shoppingList().map(n => n.k)'), 'N: “Alınacak” kaldırılınca listeden çıktı')
+        # ayarlardan iğne birimi
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="ayarlar"]'); await pg.wait_for_timeout(250)
+        await pg.click('button[data-set="hookUnit"][data-val="paket"]'); await pg.wait_for_timeout(200)
+        st = await state(pg); check(st['settings']['hookUnit'] == 'paket', 'N: ayar: iğne paketle')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        # terminal ve kurşun
+        await pg.click('.tabbar button[data-v="envanter"]'); await pg.click('button[data-iseg="terminal"]'); await pg.wait_for_timeout(250)
+        check(await pg.locator('#invList details.stdl .srow, #invList details.stdl .bchip').count() >= 20, 'N: hazır terminal ve kurşun listesi')
+        await pg.click('#invList button[data-stk="std:t:tfirdondu|-"]'); await pg.wait_for_timeout(200)
+        await pg.click('#invList button[data-cyc="std:t:k-armut|120 g"]'); await pg.wait_for_timeout(200)
+        st = await state(pg); check(st['inv']['status'].get('std:t:tfirdondu|-') == 'var' and st['inv']['status'].get('std:t:k-armut|120 g') == 'var', 'N: T-fırdöndü ve 120 g armut kurşun var')
+        check(not any(k2.startswith('std:t:') for k2 in st['inv']['qty']), 'N: terminalde adet tutulmuyor')
+        await pg.click('#invList .item button[data-stk="std:t:tfirdondu|-"][data-st="alinacak"]'); await pg.wait_for_timeout(200)
+        check('std:t:tfirdondu|-' in await pg.evaluate('ALYSSA_QA.shoppingList().map(n => n.k)'), 'N: terminal alınacak → alışveriş listesinde')
+        await pg.screenshot(path=SHOTS + '/n_terminal.png')
+        # yemler
+        await pg.click('button[data-iseg="bait"]'); await pg.wait_for_timeout(250)
+        nb = await pg.locator('#invList button[data-bait]').count(); check(nb >= 30, 'N: hazır yem listesi %d' % nb)
+        txt = await pg.inner_text('#invList'); check('Canlı istavrit' in txt and 'Teke (canlı karides)' in txt and U('Canlı yem') in U(txt), 'N: canlı yemler listede')
+        check(await pg.locator('#invList button.bchip.on').count() == 0, 'N: yemler varsayılan yok')
+        await pg.click('#invList button[data-bait="std:y:mamun"]'); await pg.click('#invList button[data-bait="std:y:canli-istavrit"]'); await pg.wait_for_timeout(250)
+        check(await pg.locator('#invList button.bchip.on').count() == 2, 'N: iki yem var')
+        await pg.screenshot(path=SHOTS + '/n_yem.png')
+        st = await state(pg); check(not any(k2.startswith('std:y:') for k2 in st['inv']['qty']), 'N: yemde adet yok')
+        await pg.click('#invList button[data-act="baitReset"]'); await pg.wait_for_timeout(250)
+        check(await pg.locator('#invList button.bchip.on').count() == 0, 'N: avdan dönünce hepsi yok')
+        # kamış ve makine: hayalindeki kamış "alınacak"
+        await pg.click('button[data-iseg="gear"]'); await pg.click('#addItem'); await pg.wait_for_timeout(250)
+        check(await pg.input_value('#it-cat') == 'rod' and await pg.is_visible('#it-rodw'), 'N: kamış formu')
+        await pg.fill('#it-brand', 'Major Craft'); await pg.fill('#it-model', 'Giant Killing Slow'); await pg.select_option('#it-rodt', 'slowjig')
+        await pg.fill('#it-rodl', '1,98'); await pg.fill('#it-rodm', '220'); await pg.fill('#it-rodp', '3')
+        await pg.click('#it-st button[data-itst="alinacak"]'); await pg.click('#itSave'); await pg.wait_for_timeout(300)
+        st = await state(pg); rod = [i for i in st['inv']['items'].values() if i['cat'] == 'rod'][0]
+        check(rod['rod'] == {'type': 'slowjig', 'len': 1.98, 'max': 220, 'pe': 3} and rod['stock'] == {'-': 'alinacak'}, 'N: kamış bilgileri ve alınacak: ' + json.dumps(rod['rod']))
+        txt = await pg.inner_text('#invList'); check('Slow jig · 1,98 m · max 220 g · PE 3' in txt and U('Alınacak / bitti') in U(txt), 'N: kamış alınacak bölümünde')
+        await pg.click('#addItem'); await pg.wait_for_timeout(200); await pg.select_option('#it-cat', 'reel'); await pg.wait_for_timeout(100)
+        check(await pg.is_visible('#it-reelw') and not await pg.is_visible('#it-rodw') and not await pg.is_visible('#it-sizew'), 'N: makine formu')
+        await pg.fill('#it-brand', 'Shimano'); await pg.fill('#it-model', 'Stradic 4000'); await pg.fill('#it-reels', '4000'); await pg.click('#itSave'); await pg.wait_for_timeout(300)
+        txt = await pg.inner_text('#invList'); check('Spinning (açık makara) · boy 4000' in txt, 'N: makine var bölümünde')
+        await pg.screenshot(path=SHOTS + '/n_kamis.png')
+        sl = await pg.evaluate('ALYSSA_QA.shoppingList().map(n => n.k)'); check(any(x.startswith(rod['id']) for x in sl), 'N: hayaldeki kamış alışveriş listesinde')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150)
+            for seg in ['hook', 'line', 'gear', 'jig', 'terminal', 'bait']:
+                await pg.click(f'button[data-iseg="{seg}"]'); await pg.wait_for_timeout(120)
+                await pg.evaluate('document.querySelectorAll("#invList details").forEach(d => d.open = true)'); await pg.wait_for_timeout(60); await overflow(pg, 'N %d px envanter %s' % (w, seg))
+        await pg.click('button[data-iseg="hook"]'); await pg.wait_for_timeout(100); await pg.screenshot(path=SHOTS + '/n_igne_320.png')
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="alisveris"]'); await pg.wait_for_timeout(250); await overflow(pg, 'N 320 px alışveriş')
+        await pg.screenshot(path=SHOTS + '/n_alisveris_320.png'); await pg.click('#sheet [data-close]')
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        # yem katmanı: rig yemden bağımsız; kart elindeki uygun yemi yazar
+        ans = {'mode': 'tekne', 'region': 'ege', 'techs': ['dip', 'capari'], 'species': ['karagoz', 'istavrit'], 'baits': [], 'lay': {'dip': ['hirsizli']}, 'klass': 'porsiyon', 'time': 'gunduz', 'bottoms': ['kum'], 'size': 'sade', 'rodMax': '', 'name': 'T'}
+        rigs = await pg.evaluate('(a) => ALYSSA_QA.genSystem(a)', ans)
+        kg = [r for r in rigs if 'karagoz' in r['species']][0]
+        bp = await pg.evaluate('(r) => { const p = ALYSSA_QA.baitPick(r); return {use: p.use && p.use.t, st: p.use && p.use.st, n: p.list.length}; }', kg)
+        check(bp['st'] == 'yok' and bp['n'] >= 2, 'N: yem yokken öneri “al”: ' + json.dumps(bp, ensure_ascii=False))
+        await pg.evaluate('() => { const S = ALYSSA_QA.state(); S.inv.status["std:y:karides|-"] = "var"; }')
+        bp = await pg.evaluate('(r) => { const p = ALYSSA_QA.baitPick(r); return {use: p.use && p.use.t, st: p.use && p.use.st}; }', kg)
+        check(bp['st'] == 'var' and 'Karides' in bp['use'], 'N: elindeki uygun yem öne çıktı: ' + json.dumps(bp, ensure_ascii=False))
+        cp = [r for r in rigs if r['tech'] == 'capari'][0]
+        sp = [sl for sl in cp['slots'] if sl['k'] == 'yem'][0]['sp']
+        r1 = await pg.evaluate('(sp) => ALYSSA_QA.resolveSlot(sp)', sp)
+        check(r1['loose'] and r1['loose']['item'] == 'std:j:capari-takimi' and not r1['loose']['ok'], 'N: çapari yuvası hazır listedeki çapari takımına bağlandı (yok)')
+        await pg.evaluate('() => { ALYSSA_QA.state().inv.status["std:j:capari-takimi|#10"] = "var"; }')
+        r1 = await pg.evaluate('(sp) => ALYSSA_QA.resolveSlot(sp)', sp)
+        check(r1['strict'] and r1['strict']['size'] == '#10', 'N: #10 çapari var → yuva tamam')
+        sj = {'kind': 'lure', 'lt': 'slowjig', 'kw': ['slow', 'jig'], 'g': [100, 250]}
+        await pg.evaluate('() => { ALYSSA_QA.state().inv.status["std:j:metal-jig-atma|30 g"] = "var"; }')
+        r2 = await pg.evaluate('(sp) => ALYSSA_QA.resolveSlot(sp)', sj)
+        check(not r2['strict'] and (not r2['loose'] or not r2['loose']['ok']), 'N: 30 g metal jig slow jig yuvasını doldurmuyor')
+        tt = await pg.evaluate('() => [ALYSSA_QA.termTypes({cat: "terminal", name: "T-fırdöndü (boncuklu)"}), ALYSSA_QA.termTypes({cat: "sinker", name: "Kurşunlar 50–200 g", spec: "Armut/damla (dip) + gezer zeytin"}), ALYSSA_QA.baitKey("Canlı karides"), ALYSSA_QA.baitKey("Sülünez ince şerit"), ALYSSA_QA.baitKey("Kalamar çaparisi"), ALYSSA_QA.baitKey("Canlı balık")]')
+        check(tt == [['tfirdondub', 'tfirdondu'], ['k-armut', 'k-damla', 'k-zeytin'], 'teke', 'sulunez', None, '*canli'], 'N: terminal tipi ve yem eşleme: ' + json.dumps(tt, ensure_ascii=False))
+        print('N1 errors:', errs); check(not errs, 'N: sayfa hatası yok (yeni kullanıcı)')
+        await ctx.close()
+        # Kenny: özel paket — yemler varsayılan yok, rig kartı “gitmeden al”, harita anahtarı paketle geldi, standart kalem paket kalemiyle çakışmıyor
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        st = await state(pg); check(GKEY and st['settings'].get('gkey') == GKEY, 'N: harita anahtarı özel paketle geldi')
+        it = await pg.evaluate('() => { const I = ALYSSA_QA.items(); return {mamunStd: !!I["std:y:mamun"], chinuStd: !!I["std:h:gamakatsu-chinu"], hyper: !!I["std:h:gamakatsu-hyper-chinu"], stopStd: !!I["std:t:stop"], tStd: !!I["std:t:tfirdondu"], kursun: !!I["std:t:k-armut"], boncuk: !!I["std:t:boncuk"]}; }')
+        check(it == {'mamunStd': False, 'chinuStd': False, 'hyper': True, 'stopStd': False, 'tStd': False, 'kursun': False, 'boncuk': True}, 'N: paketteki kalemlerin hazır liste karşılığı gizli: ' + json.dumps(it))
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#rigList article.rig').count() == 32, 'N: 32 rig yerinde')
+        t0 = await pg.locator('#rigList article.rig').first.inner_text(); check('gitmeden al' in t0, 'N: yem yokken rig kartı “gitmeden al”')
+        await pg.click('.tabbar button[data-v="envanter"]'); await pg.click('button[data-iseg="bait"]'); await pg.wait_for_timeout(250)
+        bid = await pg.evaluate('() => Object.values(ALYSSA_QA.items()).find(i => i.cat === "bait" && /Sülünez/.test(i.name)).id')
+        await pg.click(f'#invList button[data-bait="{bid}"]'); await pg.wait_for_timeout(250)
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        t0 = await pg.locator('#rigList article.rig').first.inner_text(); check('gitmeden al' not in t0 and 'Sülünez' in t0, 'N: Sülünez var → kart elindeki yemi yazıyor')
+        await pg.screenshot(path=SHOTS + '/n_kenny_rig.png')
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.click('.rechead button[data-open="liste"]'); await pg.wait_for_timeout(300)
+        ck = await pg.inner_text('#sheet'); check('Yem:' in ck and ('(elinde)' in ck or '(gitmeden al)' in ck), 'N: çıkış listesinde yem durumu')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        print('N2 errors:', errs); check(not errs, 'N: sayfa hatası yok (Kenny)')
+        await ctx.close()
+        # v0.10 profilinden göç: ip ve terminal adetleri duruma döner, iğne adedi "adet" birimiyle kalır
+        old = {'v': 2, 'created': '2026-10-01T00:00:00Z', 'seenVersion': '0.10.0', 'onboarded': True, 'mode': 'tekne', 'profile': {'name': ''}, 'settings': {},
+               'inv': {'items': {'u-fc': {'id': 'u-fc', 'cat': 'fc', 'brand': 'Seaguar', 'model': 'FC 0,30 mm', 'name': 'Seaguar FC 0,30 mm', 'spec': '0,30 mm', 'sizes': [], 'stock': {'-': 'var'}, 'src': 'kullanici'},
+                                  'u-hk': {'id': 'u-hk', 'cat': 'hook', 'brand': 'Owner', 'model': 'Test Chinu', 'name': 'Owner Test Chinu', 'pattern': 'Chinu', 'sizes': ['No:1'], 'stock': {'No:1': 'var'}, 'src': 'kullanici'},
+                                  'u-tr': {'id': 'u-tr', 'cat': 'terminal', 'brand': '', 'model': 'Fırdöndü', 'name': 'Fırdöndü', 'sizes': [], 'stock': {'-': 'var'}, 'src': 'kullanici'}},
+                       'qty': {'u-fc|-': 3, 'u-hk|No:1': 12, 'u-tr|-': 0}, 'status': {}},
+               'systems': {}, 'locations': {}, 'active': None, 'wx': None, 'pkg': {'unlocked': False, 'version': None, 'need': False, 'locs': []}, 'backup': {}}
+        ctx, pg, errs = await new_ctx(b, {'alyssa-v1': json.dumps(old)})
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1500)
+        st = await state(pg); inv = st['inv']
+        check(inv.get('v') == 2 and inv['qty'] == {'u-hk|No:1': 12} and inv['unit'].get('u-hk') == 'adet' and inv['status'].get('u-fc|-') == 'var' and inv['status'].get('u-tr|-') == 'bitti', 'N: göç: ' + json.dumps({k: inv.get(k) for k in ('qty', 'unit', 'status')}))
+        check(await pg.evaluate('ALYSSA_QA.stockOf("u-hk", "No:1")') == 'var', 'N: göç sonrası iğne 12 adet var')
+        print('N3 errors:', errs); check(not errs, 'N: sayfa hatası yok (göç)')
+        await ctx.close()
+        check(GKEY and GKEY not in open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read(), 'N: önizlemede harita anahtarı yok')
+        check(GKEY and GKEY not in open(ROOT + '/app/dist/index.html', encoding='utf-8').read() and GKEY not in open(ROOT + '/app/dist/paket/ozel.enc.json', encoding='utf-8').read(), 'N: yayın dosyalarında anahtar düz yazılı değil')
 
         # ================================================== E) önizleme
         ctx = await b.new_context(viewport={'width': 390, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2)

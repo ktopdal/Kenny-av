@@ -14,7 +14,7 @@ function renderTop(){
 function renderAll(){
   if (!S) return;
   const a = document.activeElement;
-  if (a && ((a.tagName === 'INPUT' && !['file', 'search', 'checkbox', 'color'].includes(a.type)) || a.tagName === 'TEXTAREA') && !$('sheet').contains(a) && !$('welcome').contains(a)) { a.addEventListener('blur', () => renderAll(), {once: true}); return; }
+  if (a && ((a.tagName === 'INPUT' && !['file', 'search', 'checkbox', 'color'].includes(a.type)) || a.tagName === 'TEXTAREA') && !$('sheet').contains(a) && !$('welcome').contains(a)) { a.addEventListener('blur', () => setTimeout(renderAll, 300), {once: true}); return; }   // gecikme: odaktan çıkaran dokunuş (ör. −/+ düğmesi) önce kendi işini yapsın
   DAYS_CACHE = null;
   renderTop(); renderNewVersion(); renderToday(); renderCalendar(); renderCatches(); renderRigs(); renderInventory(); renderMore();
 }
@@ -25,10 +25,15 @@ function show(v){
   window.scrollTo({top: 0});
   try { history.replaceState(history.state, '', '#' + v); } catch (e) {}
 }
-function setQty(k, v){
-  if (v === '' || v == null) delete S.inv.qty[k]; else S.inv.qty[k] = Math.max(0, Math.round(Number(String(v).replace(',', '.')) || 0));
+function setQty(k, v){ setQtyVal(k, v); persist(); renderAll(); }
+// adet/paket satırındaki "Alınacak": işaretliyse kaldırır (0 sayısı da silinir), değilse alınacak listesine koyar
+function alkToggle(k){
+  const st = stockOf(k.split('|')[0], k.split('|')[1]);
+  if (toBuy(st) || S.inv.status[k] === 'alinacak') { if (qtyOf(k) === 0) delete S.inv.qty[k]; delete S.inv.status[k]; }
+  else S.inv.status[k] = 'alinacak';
   persist(); renderAll();
 }
+const reShop = () => { if (ui.sheet === 'alisveris') openMore('alisveris', true); };
 function armOnce(b, txt){ if (b.dataset.armed) return true; b.dataset.armed = '1'; b.dataset.orig = b.textContent; b.textContent = txt; setTimeout(() => { if (b.isConnected && b.dataset.armed) { delete b.dataset.armed; b.textContent = b.dataset.orig; } }, 5000); return false; }
 async function pkgCheck(manual){
   const r = await pkgRefresh();
@@ -48,7 +53,7 @@ function bindEvents(){
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
-    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
+    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
     if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
     if (d.systool) {
       const sy = S.systems[d.sid]; if (!sy) return;
@@ -59,7 +64,15 @@ function bindEvents(){
     if (d.catpick != null && d.catpick !== '') { catalogPick(Number(d.catpick)); return; }
     if (d.buyadd) { buyAdd(d.buyadd); return; }
     if (d.open) { openMore(d.open); return; }
-    if (d.step) { const k = d.k; const cur = Number(S.inv.qty[k] || 0); setQty(k, cur + Number(d.step)); return; }
+    if (d.step) { const k = d.k; const cur = Number(S.inv.qty[k] || 0); setQty(k, Math.max(0, cur + Number(d.step))); return; }
+    if (d.cyc) { cycleStatus(d.cyc); persist(); renderAll(); return; }
+    if (d.stk && d.st) { setStatus(d.stk, d.st); persist(); renderAll(); return; }
+    if (d.unit && d.u) { setUnit(d.unit, d.u); persist(); renderAll(); toast(UNIT_TXT[d.u] + ' ile sayılıyor'); return; }
+    if (d.alk) { alkToggle(d.alk); return; }
+    if (d.qadd) { setQtyVal(d.qadd, 1); persist(); renderAll(); return; }
+    if (d.bait) { const k = d.bait + '|-'; setStatus(k, usable(stockOf(d.bait, '-')) ? 'yok' : 'var'); persist(); renderAll(); return; }
+    if (d.bought) { setStatus(d.bought, 'var'); persist(); renderAll(); reShop(); toast('Envantere işlendi'); return; }
+    if (d.itst) { document.querySelectorAll('#it-st button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); return; }
     if (d.rseg) { ui.rigSeg = d.rseg; renderRigs(); return; }
     if (d.sys) { ui.sys = d.sys; renderRigs(); return; }
     if (d.iseg) { ui.inv = d.iseg; renderInventory(); return; }
@@ -87,6 +100,7 @@ function bindEvents(){
         try { const h = await captureHeading(); Lc.facing = String(Math.round(h)); persist(); renderAll(); toast('Kıyının bakışı ' + dir8(h) + ' (' + Math.round(h) + '°)'); }
         catch (e) { toast(e.message || 'Pusula okunamadı'); b.textContent = 'Pusulayla al'; } return; }
       if (a === 'gpsfill') { if (!navigator.geolocation) { toast('Konum servisi yok'); return; } navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000}); return; }
+      if (a === 'baitReset') { Object.values(ITEMS).forEach(i => { if (i.cat === 'bait') { delete S.inv.status[i.id + '|-']; delete S.inv.qty[i.id + '|-']; } }); persist(); renderAll(); toast('Bütün yemler “yok”'); return; }
       if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
       if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }
       if (a === 'bkNow') { const p = backupNow(true); setBkStatus(); await p; if (ui.sheet === 'yedek') openMore('yedek', true); return; }
@@ -133,9 +147,14 @@ function bindEvents(){
     if (el.id === 'cfCam' || el.id === 'cfGal') { addFiles(el.files); el.value = ''; return; }
     if (el.id === 'cf-sp') { $('cf-sp2w').hidden = el.value !== 'diger'; return; }
     if (el.id === 'cf-bot') { if (FORM) FORM.botTouched = true; return; }
-    if (el.id === 'it-cat') { $('it-patw').hidden = el.value !== 'hook'; return; }
+    if (el.id === 'it-cat') { itemFormCat(el.value); return; }
     if (el.id === 'importFile') { const f = el.files[0]; if (f) importBackup(f); el.value = ''; return; }
-    if (el.dataset.qk) { setQty(el.dataset.qk, el.value.trim()); if (ui.sheet === 'alisveris') openMore('alisveris', true); toast('Kaydedildi'); return; }
+    if (el.dataset.qk) {
+      // sayı odaktan çıkarken de "change" olur: değişmediyse bir şey yapma; değiştiyse çizimi biraz geciktir ki aynı dokunuştaki −/+ kaybolmasın
+      const k = el.dataset.qk, v = el.value.trim(); const cur = qtyOf(k);
+      if ((cur == null ? '' : String(cur)) === v) return;
+      setQtyVal(k, v); persist(); setTimeout(() => { renderAll(); reShop(); }, 250); toast('Kaydedildi'); return;
+    }
     if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; if (!L) return; L[el.dataset.f] = el.value.trim() || (el.dataset.f === 'name' ? L.name : ''); persist(); renderAll(); toast('Kaydedildi'); return; }
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; persist(); applyTheme(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
@@ -167,6 +186,8 @@ function bindEvents(){
     if (f.id === 'grpForm') { grpCreate(); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
+  // açılır bölümlerin (hazır liste) açık/kapalı hâli yeniden çizimde korunur
+  document.addEventListener('toggle', e => { const el = e.target; if (el && el.dataset && el.dataset.dk) { ui.open = ui.open || {}; ui.open[el.dataset.dk] = el.open; } }, true);
   window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); return; }
@@ -175,7 +196,8 @@ function bindEvents(){
 }
 // test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
-  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc()};
+  state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc(),
+  items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD};
 (async () => {
   loadState();
   pkgLoadCached();

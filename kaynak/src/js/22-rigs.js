@@ -39,6 +39,9 @@ function indexAll(){
   ITEMS = {};
   if (pkgOn()) D.items.forEach(i => { ITEMS[i.id] = Object.assign({src: 'paket'}, i); });
   Object.values(S.inv.items).forEach(i => { ITEMS[i.id] = i; });
+  const own = Object.values(ITEMS);
+  STD.forEach(s => { if (!ITEMS[s.id] && !stdHidden(s, own)) ITEMS[s.id] = s; });   // 23-std.js: hazır liste
+  migrateInv();
   SPECIES = Object.fromEntries(SPECIES_BASE.map(s => [s.id, Object.assign({}, s)]));
   if (D && D.species) D.species.forEach(s => { SPECIES[s.id] = Object.assign({}, SPECIES[s.id] || {}, s); });
   SETUPS = pkgOn() ? Object.fromEntries(D.setups.map(s => [s.id, s])) : {};
@@ -49,8 +52,9 @@ function indexAll(){
 // açılan özel paketi profile bağla (paket kalemleri ve rigleri paketten okunur; burada yalnızca sistem, durum tohumları ve konumlar)
 function importPackage(d){
   if (!d || !d.rigs) return;
-  const before = JSON.stringify([S.systems.ozel, S.inv.status, S.pkg, S.locations, S.active, S.onboarded]);
+  const before = JSON.stringify([S.systems.ozel, S.inv.status, S.pkg, S.locations, S.active, S.onboarded, S.settings.gkey]);
   if (!S.systems.ozel) S.systems.ozel = {id: 'ozel', name: (d.meta && d.meta.system_name) || 'Özel rig sistemi', source: 'paket', active: true, created: new Date().toISOString()};
+  if (d.settings && d.settings.gkey && !S.settings.gkey) S.settings.gkey = d.settings.gkey;   // paketle gelen harita anahtarı (kullanıcı kendi anahtarını girdiyse ona dokunulmaz)
   if (d.meta && d.meta.system_name && S.systems.ozel.name !== d.meta.system_name) S.systems.ozel.name = d.meta.system_name;
   (d.seed_status || []).forEach(x => { const k = x.item + '|' + x.size; if (S.inv.status[k] == null && S.inv.qty[k] == null) S.inv.status[k] = x.status; });
   S.pkg.locs = S.pkg.locs || [];
@@ -65,21 +69,29 @@ function importPackage(d){
   Object.values(S.locations).forEach(x => { if (!x.pkg && (d.locations || []).some(l => l.id === x.id && distKm(x, l) < 0.3)) x.pkg = true; });
   if (!S.active || !S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null;
   S.pkg.unlocked = true; S.pkg.version = d.meta && d.meta.data_version; S.pkg.need = false; S.onboarded = true;
-  if (JSON.stringify([S.systems.ozel, S.inv.status, S.pkg, S.locations, S.active, S.onboarded]) !== before) persist();
+  if (JSON.stringify([S.systems.ozel, S.inv.status, S.pkg, S.locations, S.active, S.onboarded, S.settings.gkey]) !== before) persist();
 }
 // ---- hazır olma (envanter seviyesine göre)
 function slotStock(sl){ const e = sl.t && sl.t.envanter; return e && e.item ? stockOf(e.item, e.size) : 'yok'; }
 const missingOf = rg => rg.slots.filter(sl => !usable(slotStock(sl)));
 const ready = rg => missingOf(rg).length === 0;
 const sysName = id => (S.systems[id] && S.systems[id].name) || id;
-// alışveriş: eksik yuvalar kaleme göre toplanır; aynı rig bir kez sayılır
+// alışveriş: rigleri tamamlamak için eksik yuvalar (kaleme göre, aynı rig bir kez) + bitti / alınacak işaretli kalemler (rigde olmasa da; yemler hariç)
 function shoppingList(){
   const need = {};
+  const add = (k, o) => need[k] = need[k] || Object.assign({k, rigs: [], why: []}, o);
   RIG_LIST.forEach(rg => missingOf(rg).forEach(sl => {
     const e = sl.t.envanter || {}; const tk = sl.t.turkiye || {};
     const k = e.item ? e.item + '|' + (e.size || '-') : 'x|' + (tk.name || e.name || sl.label) + '|' + (tk.size || '');
-    const n = need[k] = need[k] || {k, item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, rigs: [], kind: sl.kind, sp: sl.sp || null};
+    const n = add(k, {item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, kind: sl.kind, sp: sl.sp || null});
+    if (!n.why.includes('rig')) n.why.push('rig');
     if (!n.rigs.includes(rg.code || rg.name)) n.rigs.push(rg.code || rg.name);
   }));
+  Object.values(ITEMS).forEach(it => { if (it.cat === 'bait') return; sizesOf(it).forEach(sz => {
+    const k = it.id + '|' + sz; const st = stockOf(it.id, sz);
+    if (!toBuy(st) && S.inv.status[k] !== 'alinacak') return;
+    const n = add(k, {item: it.id, size: sz !== '-' ? sz : null, name: null, store: null, kind: it.cat, sp: null});
+    const w = st === 'bitti' ? 'bitti' : 'alinacak'; if (!n.why.includes(w)) n.why.push(w);
+  }); });
   return Object.values(need);
 }

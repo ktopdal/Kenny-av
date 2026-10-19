@@ -3,6 +3,15 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.11.0', notes: [
+    'Envanter yeni düzen: makine, kamış, ip, terminal, kurşun ve yemde adet yok; yalnızca var, alınacak ya da yok',
+    'İğnede adet ya da paket (Ayarlar → Envanter ya da kalemin üstünden); sayı 0 olunca “bitti · al” olur ve alışveriş listesine düşer. Sayısız işaretlemede boya dokun: var → bitti → yok',
+    'Hazır listeler: iğne markaları ve boyları, jig ve zokalar, fırdöndü, boncuk, burç, klips, kurşun gramajları, ölü ve canlı yemler; elindekine dokun, “var” olsun',
+    'Yemler adetsiz ve varsayılanı “yok”: avdan önce aldığın yemi işaretle; rig kartı elindeki uygun yemi yazar, yoksa “gitmeden al” der. Rigler yemden bağımsız',
+    'Rig Atölyesi’ne Yem adımı: hangi yemlerle avlandığını seç, rigler ona göre sıralansın',
+    'Kamış ve makine için tip, boy, en fazla gram, PE; hayalindeki takımı “alınacak” olarak girebilirsin',
+    'Alışveriş listesi: mağazaya göre, “bitti ya da alınacak” ve “rigleri tamamlamak için” ayrı; “Aldım” ile envantere işlenir',
+  ]},
   {v: '0.10.0', notes: [
     'Ortak av haritası: kapalı grup (sen, Ogün, arkadaşların); grup senin GitHub deponda, grubun anahtarıyla şifreli',
     'Grubu Daha → Ortak av haritası’ndan kur, davet bağlantısını WhatsApp’tan gönder; bağlantıya dokunan gruba katılır',

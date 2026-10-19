@@ -23,10 +23,10 @@ function compRow(rg, sl, tier){
   if (tier === 'envanter') {
     const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item];
     const st = slotStock(sl);
-    const q = e.item ? S.inv.qty[e.item + '|' + (e.size || '-')] : undefined;
+    const u = it ? unitOf(it) : 'durum'; const q = e.item && u !== 'durum' ? qtyOf(e.item + '|' + (e.size || '-')) : null;
     const nm = it ? it.name : (e.name || (sl.t.turkiye && sl.t.turkiye.name ? '— (envanterde yok)' : '—'));
     return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') +
-      '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q !== undefined && q !== '' ? ' · ' + esc(q) + ' adet' : '') + '</span></div>';
+      '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q != null && q > 0 ? ' · ' + q + ' ' + (u === 'paket' ? 'paket' : 'adet') : '') + '</span></div>';
   }
   const t = sl.t[tier] || {};
   const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.name || '—');
@@ -40,6 +40,19 @@ function lengthsTxt(ld){
   else if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
     (ld.over ? ' · <b class="warn">gereken ≈ ' + ld.need + ' g, kamış sınırı ' + ld.max + ' g: paraşüt çapa at, motorla karşıla ya da demirle</b>' : ''));
   return parts.join(' · ');
+}
+// yem satırı: rigin kendi yemleri (elinde mi), elinde başka uygun yem varsa o; hiçbiri yoksa "gitmeden al"
+function baitHtml(rg, tier){
+  const p = baitPick(rg, tier); const bi = p.list;
+  if (!bi.length) return esc(rg.baitText || '');
+  const own = bi.filter(x => x.src === 'rig'); const show = own.length ? own.slice(0, 2) : bi.slice(0, 2);
+  const mark = x => x.st ? ' <span class="dot ' + (x.st === 'var' ? 'var' : 'yok') + '" title="' + (x.st === 'var' ? 'elinde' : 'elinde yok') + '"></span>' : '';
+  let h = show.map((x, i) => (i && own.length ? 'alt: ' : '') + esc(x.t) + mark(x)).join(' · ');
+  const extraHave = p.have.filter(x => !show.includes(x));
+  if (extraHave.length && !show.some(x => x.st === 'var')) h += ' · <b>elindeki uygun yem: ' + extraHave.slice(0, 2).map(x => esc(x.t)).join(', ') + '</b>';
+  else if (extraHave.length) h += ' · elinde ayrıca: ' + extraHave.slice(0, 2).map(x => esc(x.t)).join(', ');
+  if (!p.have.length && bi.some(x => x.st)) h += ' · <span class="warnt">elinde yok, gitmeden al</span>';
+  return h;
 }
 function rigCard(rg, dd, why, extra, tier, x){
   tier = tier || 'envanter';
@@ -55,8 +68,7 @@ function rigCard(rg, dd, why, extra, tier, x){
   const other = TIERS.filter(x => x !== tier);
   const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + other.map(x => { const t = sl.t[x] || {}; const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.raw || [t.name, t.size].filter(Boolean).join(' ')); return esc(TIER_TXT[x]) + ': ' + esc(nm || '—') + (t.item && x !== 'envanter' ? ' ✓' : ''); }).join(' · ') + '</span>').join('');
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
-  const b = rg.baits; const bt = x => b && b[x] ? (b[x][tier] || b[x].envanter || b[x].turkiye || '') : '';
-  const bait = b ? esc(bt('ana')) + (bt('alt') ? ' · alt: ' + esc(bt('alt')) : '') : esc(rg.baitText || '');
+  const bait = baitHtml(rg, tier);
   const succ = rg.success && rg.success[tier] ? 'başarı %' + rg.success[tier] : '';
   return '<article class="rig' + (ok ? '' : ' off') + '"><div class="rig-h"><div><div class="code">' + esc(head) + '</div><h3>' + esc(rg.name) + '</h3>' +
     '<div class="tg">' + esc(rg.target || '') + (rg.baitText ? ' · ' + esc(rg.baitText) : '') + '</div></div>' +

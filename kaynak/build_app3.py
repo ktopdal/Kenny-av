@@ -19,7 +19,7 @@ DIST = os.path.join(APP, 'dist')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.10.0'
+VERSION = '0.11.0'
 NAME, SHORT = 'Alyssa by Barbossa App', 'Alyssa'
 THEME = '#0B6B7C'
 
@@ -35,6 +35,8 @@ def app_data():
     keep = ('meta', 'setups', 'items', 'rigs', 'species', 'locations', 'rules', 'stores', 'decisions')
     out = {k: db[k] for k in keep}
     out['seed_status'] = db.get('seed_status', [])   # bitti işaretli kalemler özel veride
+    if db.get('settings'):
+        out['settings'] = db['settings']   # özel ayarlar (ör. harita anahtarı): yalnızca şifreli pakette
     # sistem adı özel veride (data/…json → meta.system_name); depoda düz hâliyle yer almaz
     body = json.dumps(out, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
     out['meta'] = dict(out['meta'], data_version=hashlib.sha1((body + '|v3').encode()).hexdigest()[:10], app_version=VERSION)
@@ -168,7 +170,8 @@ def main():
     os.makedirs(os.path.join(DIST, 'paket')); os.makedirs(PREV, exist_ok=True)
     open(os.path.join(DIST, 'index.html'), 'w', encoding='utf-8').write(assemble(False, data))
     json.dump(encrypt(data, k), open(os.path.join(DIST, 'paket', 'ozel.enc.json'), 'w'), separators=(',', ':'))
-    open(os.path.join(PREV, 'alyssa_onizleme.html'), 'w', encoding='utf-8').write(assemble(True, data))
+    pdata = dict(data); pdata.pop('settings', None)   # önizleme Claude içinde açılır: özel anahtarlar gömülmez
+    open(os.path.join(PREV, 'alyssa_onizleme.html'), 'w', encoding='utf-8').write(assemble(True, pdata))
     json.dump(dict(name=NAME, short_name=SHORT, id='./', start_url='./', scope='./', display='standalone',
                    background_color='#E6EEF0', theme_color=THEME, lang='tr',
                    icons=[dict(src='icon-192.png', sizes='192x192', type='image/png'),

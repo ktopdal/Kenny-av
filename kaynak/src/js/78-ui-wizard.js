@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------- 78 · Rig Atölyesi sihirbazı (sıfırdan rig sistemi kurulumu)
 let WZ = null;
-const WZ_STEPS = ['Yer', 'Teknik', 'Türler', 'Takım', 'Kur'];
+const WZ_STEPS = ['Yer', 'Teknik', 'Türler', 'Yem', 'Takım', 'Kur'];
 const LAY_DESC = {
   hirsizli: 'Üst, orta ve uzun hırsız köstek; 3 iğne', iki: 'Üst köstek ve uzun alt (hırsız) köstek', tek: 'Tek iğne, uzun köstek (80–120 cm)',
   kaydirmali: 'Gezer kurşun, tek iğne; temkinli balık için', slowjig: '100–250 g jig, assist iğne', tairubber: '60–150 g tai rubber', inchiku: '80–200 g inchiku',
@@ -8,11 +8,12 @@ const LAY_DESC = {
   paternoster: '2 iğne, piramit kurşun', egi: 'Kalamar ve mürekkep zokası', ahtapot: 'Ahtapot zokası',
 };
 function wzDefaults(){
-  return {mode: S.mode || 'tekne', region: regionOf(loc()), techs: [], species: [], lay: {}, klass: 'ikisi', time: 'ikisi', bottoms: [], size: 'dengeli', rodMax: '', name: ''};
+  return {mode: S.mode || 'tekne', region: regionOf(loc()), techs: [], species: [], baits: (S.profile.baits || []).slice(), lay: {}, klass: 'ikisi', time: 'ikisi', bottoms: [], size: 'dengeli', rodMax: '', name: ''};
 }
 function startWizard(editId){
   const sy = editId && S.systems[editId];
   WZ = {step: 0, ans: sy && sy.answers ? JSON.parse(JSON.stringify(sy.answers)) : wzDefaults(), editId: sy ? editId : null};
+  if (!Array.isArray(WZ.ans.baits)) WZ.ans.baits = (S.profile.baits || []).slice();
   ui.sheet = 'wizard'; renderWizard();
 }
 const wzTechs = () => Object.keys(KB.TECH).filter(id => WZ.ans.mode === 'ikisi' || KB.TECH[id].modes.includes(WZ.ans.mode));
@@ -29,14 +30,28 @@ function wzSummary(){
   const techs = a.techs.map(t => short(KB.TECH[t].name) + (a.lay[t] && a.lay[t].length && KB.TECH[t].lay.length > 1 && t !== 'eging' ? ': ' + a.lay[t].map(l => trLower(short(KB.LAY[l].name))).join(', ') : '')).join(' · ');
   const sps = a.species.map(id => (KB.SPECIES.find(s => s.id === id) || {}).name).filter(Boolean).join(', ');
   const kl = {porsiyon: 'porsiyonluk', trofe: 'trofe', ikisi: 'porsiyonluk ve trofe'}[a.klass], tm = {gunduz: 'gündüz', gece: 'gece', ikisi: 'gündüz ve gece'}[a.time];
-  return [mode + ' · ' + reg, techs, sps, kl + ' · ' + tm, a.bottoms.length ? 'Dip: ' + a.bottoms.map(b => BOTTOM_TXT[b]).join(', ') : 'Dip: bilinmiyor (keşif)'].filter(Boolean).join(' · ');
+  const yem = (a.baits || []).map(k => (STD_BAITS.find(b => b.key === k) || {}).name).filter(Boolean);
+  return [mode + ' · ' + reg, techs, sps, yem.length ? 'Yem: ' + yem.join(', ') : '', kl + ' · ' + tm, a.bottoms.length ? 'Dip: ' + a.bottoms.map(b => BOTTOM_TXT[b]).join(', ') : 'Dip: bilinmiyor (keşif)'].filter(Boolean).join(' · ');
 }
 function wzValid(){
   const a = WZ.ans, st = WZ.step;
   if (st === 1) return a.techs.length > 0;
   if (st === 2) return a.species.length > 0;
-  if (st === 4) return a.techs.length > 0 && a.species.length > 0 && genSystem(a).length > 0;
+  if (st === 5) return a.techs.length > 0 && a.species.length > 0 && genSystem(a).length > 0;
   return true;
+}
+// yem adımı: seçilen türlere uygun yemler önde; rigler yemden bağımsız, seçim yalnızca öneriyi sıralar
+function wzBaitStep(a){
+  const fit = new Set();
+  a.species.forEach(id => { const s = KB.SPECIES.find(x => x.id === id); if (!s) return;
+    [].concat(s.b.g || [], s.b.n || []).forEach(t => { const k = baitKey(t); if (k && k !== '*canli') fit.add(k); else if (k === '*canli') (FAM_BAITS[s.fam] || []).filter(x => x.indexOf('canli') === 0).forEach(x => fit.add(x)); });
+    (FAM_BAITS[s.fam] || []).forEach(k => fit.add(k)); });
+  const sel = a.baits || [];
+  const chip = b => '<button type="button" class="bchip" data-wzy="' + esc(b.key) + '" aria-pressed="' + sel.includes(b.key) + '">' + esc(b.name) + '</button>';
+  const fitL = STD_BAITS.filter(b => fit.has(b.key)), rest = STD_BAITS.filter(b => !fit.has(b.key));
+  return '<h3>Hangi yemlerle avlanıyorsun?</h3><p class="note">Rigler yemden bağımsız kurulur. Seçtiğin yemler rig kartlarında ve önerilerde öne çıkar; seçmediğin uygun yemler de alternatif olarak yazılır. Avdan önce aldığın yemi Envanter → Yem’de “var” yap, öneri onu kullanır. İstersen boş geç.</p>' +
+    (fitL.length ? '<div class="eyebrow">Seçtiğin türler için uygun</div><div class="bchips">' + fitL.map(chip).join('') + '</div>' : '') +
+    '<details class="wzmore"' + (fitL.length ? '' : ' open') + '><summary>' + (fitL.length ? 'Diğer yemler' : 'Yemler') + ' (' + rest.length + ')</summary><div class="bchips">' + rest.map(chip).join('') + '</div></details>';
 }
 function renderWizard(keep){
   const a = WZ.ans; const st = WZ.step; let body = '';
@@ -52,6 +67,8 @@ function renderWizard(keep){
       (Object.keys(by).map(f => '<div class="famgrp"><div class="row" style="justify-content:space-between"><span class="eyebrow">' + esc((KB.FAM[f] || {}).name || f) + '</span><button class="linkbtn" type="button" data-wzall="' + f + '">Hepsini seç</button></div><div class="opts sp">' +
         by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>');
   } else if (st === 3) {
+    body = wzBaitStep(a);
+  } else if (st === 4) {
     const multi = a.techs.filter(t => KB.TECH[t].lay.length > 1 && t !== 'eging');
     body = multi.map(t => '<h3>' + esc(KB.TECH[t].name) + ': takım düzeni</h3><p class="note">Birden çok seçebilirsin.</p><div class="opts">' + KB.TECH[t].lay.map(l => optBtn('data-wzl', t + '|' + l, (a.lay[t] || []).includes(l), KB.LAY[l].name, LAY_DESC[l] || '')).join('') + '</div>').join('') +
       '<h3>Balık boyu</h3>' + segWz('klass', [['porsiyon', 'Porsiyonluk'], ['trofe', 'Trofe (iri)'], ['ikisi', 'İkisi de']], a.klass) +
@@ -70,7 +87,7 @@ function renderWizard(keep){
     '<div class="wzsteps">' + WZ_STEPS.map((t, i) => '<span class="' + (i === st ? 'on' : i < st ? 'done' : '') + '">' + (i + 1) + ' ' + t + '</span>').join('') + '</div>' +
     '<div class="stack wz">' + body + '<p class="err" id="wzErr" hidden></p></div>' +
     '<div class="wznav">' + (st > 0 ? '<button class="btn" type="button" data-wz="back">Geri</button>' : '<span></span>') +
-    (st < 4 ? '<button class="btn primary" type="button" data-wz="next"' + (ok ? '' : ' disabled') + '>İleri</button>' : '<button class="btn primary" type="button" data-wz="done"' + (ok ? '' : ' disabled') + '>' + (WZ.editId ? 'Sistemi güncelle' : 'Sistemi kur') + '</button>') + '</div>', keep);
+    (st < 5 ? '<button class="btn primary" type="button" data-wz="next"' + (ok ? '' : ' disabled') + '>İleri</button>' : '<button class="btn primary" type="button" data-wz="done"' + (ok ? '' : ' disabled') + '>' + (WZ.editId ? 'Sistemi güncelle' : 'Sistemi kur') + '</button>') + '</div>', keep);
 }
 function wzToggle(arr, v){ const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
 function wzClick(d){
@@ -79,6 +96,7 @@ function wzClick(d){
   else if (d.wzr) { a.region = d.wzr; }
   else if (d.wzt) { wzToggle(a.techs, d.wzt); if (a.techs.includes(d.wzt) && !(a.lay[d.wzt] || []).length) a.lay[d.wzt] = [KB.TECH[d.wzt].lay[0]]; }
   else if (d.wzs) { wzToggle(a.species, d.wzs); }
+  else if (d.wzy) { if (!Array.isArray(a.baits)) a.baits = []; wzToggle(a.baits, d.wzy); }
   else if (d.wzall) { const ids = wzSpecies().filter(s => s.fam === d.wzall).map(s => s.id); const all = ids.every(i => a.species.includes(i)); ids.forEach(i => { const k = a.species.indexOf(i); if (all && k >= 0) a.species.splice(k, 1); if (!all && k < 0) a.species.push(i); }); }
   else if (d.wzl) { const [t, l] = d.wzl.split('|'); a.lay[t] = a.lay[t] || []; wzToggle(a.lay[t], l); }
   else if (d.wzset) { a[d.wzset] = d.val; }
@@ -88,7 +106,7 @@ function wzClick(d){
   else if (d.wz === 'next') {
     if (!wzValid()) return;
     if (WZ.step === 1) { const f = wzFams(); a.species = a.species.filter(id => { const s = KB.SPECIES.find(x => x.id === id); return s && f.has(s.fam); }); }
-    WZ.step = Math.min(4, WZ.step + 1); renderWizard(); return;
+    WZ.step = Math.min(5, WZ.step + 1); renderWizard(); return;
   }
   else if (d.wz === 'done') { wzFinish(); return; }
   renderWizard(true);
@@ -103,6 +121,7 @@ function wzFinish(){
   const old = S.systems[id] || {};
   S.systems[id] = Object.assign({}, old, {id, name, source: 'sihirbaz', active: old.active !== false, created: old.created || new Date().toISOString(), updated: new Date().toISOString(), answers: JSON.parse(JSON.stringify(a)), rigs});
   if (a.mode !== 'ikisi') S.mode = a.mode;
+  if (Array.isArray(a.baits)) S.profile.baits = a.baits.slice();
   S.onboarded = true; persist(); indexAll();
   const edit = !!WZ.editId; WZ = null; closeSheet();
   ui.sys = id; ui.rigSeg = 'all'; show('rigler'); renderAll();

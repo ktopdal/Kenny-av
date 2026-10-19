@@ -78,7 +78,7 @@ function checklist(){
       if (seenRig.has(rg.id)) return; seenRig.add(rg.id); out.rigs.push(rg);
       rg.slots.forEach(sl => { const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item]; const nm = (it ? it.name : e.name || sl.label) + (e.size ? ' ' + e.size : ''); gear[nm] = (gear[nm] || []).concat(rg.code || rg.name); });
       const ld = leadFor(rg, dd, x); if (ld && ld.kursun) { const k = 'Kurşun ' + ld.kursun + (ld.grip ? ' (çapalı)' : ''); gear[k] = (gear[k] || []).concat(rg.code || rg.name); }
-      String(rg.baitText || '').split('·').map(s => s.trim()).filter(Boolean).forEach(b => bait.add(b));
+      const bp = baitPick(rg); if (bp.use) bait.add(bp.use.t + (bp.use.st === 'var' ? ' (elinde)' : bp.use.st === 'yok' ? ' (gitmeden al)' : ''));
     });
     out.gear = Object.entries(gear).map(([k, v]) => ({k, v: [...new Set(v)]}));
     out.bait = [...bait];
