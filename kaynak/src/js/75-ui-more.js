@@ -10,6 +10,7 @@ const MORE = [
   ['paylas', 'Paylaş ve geri bildirim', () => 'Envanterini ya da rig sistemini bağlantıyla paylaş'],
   ['grup', 'Ortak av haritası', () => { const g = grpCfg(); return g ? g.group + ' · ' + (GROUP.members.length ? GROUP.members.length + ' üye' : 'grup açık') : 'Kapalı · arkadaşlarınla şifreli ortak harita'; }],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
+  ['turler', 'Türlerim ve takım planı', () => { const n = (S.targets || []).length; return n ? n + ' hedef tür · takım ve alınacaklar' : 'Tür ekle: hangi takım, ne almalısın'; }],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
   ['dosya', 'Dosya yedeği', () => 'Telefona indir ya da dosyadan yükle'],
@@ -18,7 +19,7 @@ const MORE = [
 ];
 function renderMore(){
   $('moreMenu').innerHTML = MORE.map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
-  $('about').textContent = APP_NAME + ' v' + APP_VERSION + (pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + ' · ' + RIG_LIST.length + ' rig, ' + Object.keys(ITEMS).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
+  $('about').textContent = APP_NAME + ' v' + APP_VERSION + (pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + ' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
 }
 function renderNewVersion(){
   const el = $('banners'); const out = [];
@@ -33,8 +34,9 @@ function renderNewVersion(){
 function openMore(name, keep){
   if (name === 'harita') { openMap(); return; }
   ui.sheet = name;
+  if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -171,10 +173,12 @@ function addLocation(name, lat, lon, bottom, depth, activate){
 function sheetShopping(){
   const G = {};
   shoppingList().forEach(n => { const it = n.item && ITEMS[n.item]; const store = (it && it.store) || n.store;
-    const g = store ? 'm:' + store : n.why.includes('bitti') || n.why.includes('alinacak') ? 'al' : 'rig'; (G[g] = G[g] || []).push(n); });
+    const tw = n.why.filter(w => w.indexOf('tur:') === 0).map(w => w.slice(4));
+    const g = store ? 'm:' + store : n.why.includes('bitti') || n.why.includes('alinacak') ? 'al' : tw.length ? 't:' + tw[0] : 'rig'; n.tw = tw; (G[g] = G[g] || []).push(n); });
   const SN = {al: 'Bitti ya da alınacak', rig: 'Rigleri tamamlamak için'};
+  Object.keys(G).filter(g => g.indexOf('t:') === 0).forEach(g => { SN[g] = g.slice(2) + ' için (tür planı)'; });
   if (pkgOn() && Array.isArray(D.stores)) D.stores.forEach(st => { SN['m:' + st.id] = st.name + ' (' + st.id + ')'; });
-  const order = Object.keys(G).filter(g => g.indexOf('m:') === 0).sort().concat(['al', 'rig'].filter(g => G[g]));
+  const order = Object.keys(G).filter(g => g.indexOf('m:') === 0).sort().concat(['al'].filter(g => G[g]), Object.keys(G).filter(g => g.indexOf('t:') === 0).sort(), ['rig'].filter(g => G[g]));
   const body = order.map(g => '<div class="eyebrow">' + esc(SN[g] || 'Mağaza ' + g.slice(2)) + ' (' + G[g].length + ')</div>' + G[g].map(n => {
     const it = n.item && ITEMS[n.item]; const k = n.item ? n.item + '|' + (n.size || '-') : null; const u = it ? unitOf(it) : 'durum';
     const tag = n.rigs.length ? '<span class="chip">' + n.rigs.length + ' rigde</span>' : '<span class="chip">' + esc(CAT_TXT[(it || {}).cat] || '') + '</span>';
@@ -182,7 +186,7 @@ function sheetShopping(){
         '<button class="btn small primary" type="button" data-bought="' + esc(k) + '">Aldım</button>') :
       (n.sp ? '<button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button>' : '');
     return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div>' + tag + '</div>' +
-      ((n.rigs.length || (it && it.note)) ? '<div class="sp">' + esc(n.rigs.join(', ')) + (it && it.note ? (n.rigs.length ? ' · ' : '') + esc(it.note) : '') + '</div>' : '') +
+      ((n.rigs.length || (it && it.note) || n.tw.length > 1) ? '<div class="sp">' + esc([n.rigs.join(', '), n.tw.length > 1 ? n.tw.join(', ') + ' için' : '', it && it.note ? it.note : ''].filter(Boolean).join(' · ')) + '</div>' : '') +
       (act ? '<div class="row">' + act + '</div>' : '') + '</div>';
   }).join('')).join('');
   return sheetBar('Alışveriş listesi') + '<div class="stack"><p class="note">Rigleri tamamlamak için gerekenler ve envanterde “bitti” ya da “alınacak” işaretlediklerin. Aldığında “Aldım” de; rig hemen tamamlanır. Yemler burada değil: Çıkış listesinde “gitmeden al” olarak yazar.</p>' + (body || '<div class="empty">Alınacak bir şey yok, tüm rigler tamam.</div>') + '</div>';

@@ -38,6 +38,7 @@ function resolveSlot(sp){
   let best = null, bestS = null;
   const take = (c, strict) => { if (!best || c.score < best.score) best = c; if (strict && (!bestS || c.score < bestS.score)) bestS = c; };
   Object.values(ITEMS).forEach(it => {
+    if (sp.kind === 'rod' || sp.kind === 'reel' || sp.kind === 'term') { resolveGear(sp, it, take); return; }   // 27-req.js
     if (sp.kind === 'hook') {
       if (it.cat !== 'hook') return; const p = patOf(it); if (!p) return;
       const pref = sp.p.indexOf(p);
@@ -69,9 +70,11 @@ function resolveSlot(sp){
         const g = sz !== '-' ? lureG({name: sz}) : null; const gi = g != null ? g : lureG(it);
         let inR = !sp.g || gi == null || (gi >= sp.g[0] * 0.8 && gi <= sp.g[1] * 1.2);
         if (sp.g && gi != null && (gi < sp.g[0] * 0.5 || gi > sp.g[1] * 2)) return;
-        if (hs && sz !== '-') { const h = hookIdx(sz); if (h && h.sc === 'w') { const lo = Math.min(hs[0], hs[1]), hi = Math.max(hs[0], hs[1]); if (h.v < lo - 1 || h.v > hi + 1) return; if (h.v < lo || h.v > hi) inR = false; } }
+        let dist = 0;
+        if (hs && sz !== '-') { const h = hookIdx(sz); if (h && h.sc === 'w') { const lo = Math.min(hs[0], hs[1]), hi = Math.max(hs[0], hs[1]); if (h.v < lo - 1 || h.v > hi + 1) return; if (h.v < lo || h.v > hi) inR = false; dist = Math.abs(h.v - (lo + hi) / 2) / Math.max(1, hi - lo); } }
+        else if (sp.g && g != null) dist = Math.abs(g - (sp.g[0] + sp.g[1]) / 2) / ((sp.g[0] + sp.g[1]) / 2);
         const ok = usable(stockOf(it.id, sz));
-        take({item: it.id, name: it.name, size: sz !== '-' ? sz : null, ok, score: pref * 2 + (inR ? 0 : 3) + (ok ? 0 : 20) + (it.std ? 0.5 : 0)}, ok && inR && pref === 0);
+        take({item: it.id, name: it.name, size: sz !== '-' ? sz : null, ok, score: pref * 2 + dist + (inR ? 0 : 3) + (ok ? 0 : 20) + (it.std ? 0.5 : 0)}, ok && inR && pref === 0);
       });
     }
   });
@@ -79,7 +82,8 @@ function resolveSlot(sp){
 }
 // sihirbaz rigini o anki envanterle çöz (envanter değişince rigler kendiliğinden güncellenir)
 function resolveRig(rg){
-  const slots = rg.slots.map(sl => {
+  const base = rg.slots.some(sl => sl.kind === 'rod') ? rg.slots : rg.slots.concat(reqSlots(rg));   // kamış, makine ve terminal yuvaları (27-req.js)
+  const slots = base.map(sl => {
     if (!sl.sp) return sl;
     const r = resolveSlot(sl.sp);
     const t = {dunya: sl.t.dunya, turkiye: r.strict ? {name: r.strict.name, size: r.strict.size, item: r.strict.item, inv: true} : sl.t.turkiye,

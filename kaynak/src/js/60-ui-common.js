@@ -43,8 +43,8 @@ function lengthsTxt(ld){
 }
 // yem satırı: rigin kendi yemleri (elinde mi), elinde başka uygun yem varsa o; hiçbiri yoksa "gitmeden al"
 function baitHtml(rg, tier){
-  const p = baitPick(rg, tier); const bi = p.list;
-  if (!bi.length) return esc(rg.baitText || '');
+  const p = baitPick(rg, tier); const bi = p.list.filter(x => x.st || !LURE_WORDS.test(trLower(x.t)));   // çapari, egi, sahte yem: yem değil
+  if (!bi.length) return p.list.length ? '<span class="note">Yem gerekmez (sahte yem / çapari)</span>' : esc(rg.baitText || '');
   const own = bi.filter(x => x.src === 'rig'); const show = own.length ? own.slice(0, 2) : bi.slice(0, 2);
   const mark = x => x.st ? ' <span class="dot ' + (x.st === 'var' ? 'var' : 'yok') + '" title="' + (x.st === 'var' ? 'elinde' : 'elinde yok') + '"></span>' : '';
   let h = show.map((x, i) => (i && own.length ? 'alt: ' : '') + esc(x.t) + mark(x)).join(' · ');

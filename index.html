@@ -510,6 +510,13 @@ details.wzmore summary{cursor:pointer;color:var(--brand);font-weight:500;margin:
 .sgrp .bchips{padding:8px 0}
 .szs .note{align-self:center}
 
+/* ---------- v0.12: Türlerim ve tür planı ---------- */
+.mlist{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.mlist .mrow .chip{flex:none}
+ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.tbl.info table{min-width:0}
+.tbl.info th{width:34%;text-transform:none;font:600 12.5px var(--body);color:var(--muted)}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -957,9 +964,16 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.11.0';
+const APP_VERSION = '0.12.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.12.0', notes: [
+    'Türlerim: hedeflediğin türü ekle (yerel adlar da: çinekop, torik, çupra…); ne zaman, kaç metrede, hangi dipte ve yemle tutulduğu yazar',
+    'Tür planı: tekne ya da kıyı moduna ve elindeki kamışa göre önerilen takım; neyin elinde olduğu, neyi alman gerektiği',
+    '“Alışveriş listesine aktar”: eksikler “İstavrit için” başlığıyla listeye düşer; “Rigi sistemime ekle”: rig Tür planlarım sisteminde, tamamlanınca önerilere girer',
+    'Rig Atölyesi rigleri artık kamış, makine ve terminale (fırdöndü, boncuk, kurşun gramı) de bakar; hayalindeki kamışı “alınacak” girersen rig eksik kalır',
+    'Rig Atölyesi’nde tür arama: listede olmayan türü seçince uygun teknik de eklenir. Yeni türler: kırma mercan, hani, kaya balığı, gelincik, trakonya, sarıkuyruk',
+  ]},
   {v: '0.11.0', notes: [
     'Envanter yeni düzen: makine, kamış, ip, terminal, kurşun ve yemde adet yok; yalnızca var, alınacak ya da yok',
     'İğnede adet ya da paket (Ayarlar → Envanter ya da kalemin üstünden); sayı 0 olunca “bitti · al” olur ve alışveriş listesine düşer. Sayısız işaretlemede boya dokun: var → bitti → yok',
@@ -1226,7 +1240,7 @@ function newState(){
     settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter', anchor: 'surukle', leeway: 'orta',
       model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum'},
     inv: {items: {}, qty: {}, status: {}, unit: {}, v: 2},
-    systems: {}, locations: {}, active: null, wx: null,
+    systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {},
     pkg: {unlocked: false, version: null, need: false, locs: []},
     backup: {repo: '', name: '', auto: true, photosOn: true, lastAt: null, sha: null, photos: {}, salt: null, err: null}};
 }
@@ -1435,6 +1449,13 @@ const KB = (() => {
     S('kalamar', 'Kalamar', 'Loligo vulgaris', 'kafadan', ['kayalik', 'karma', 'orta-su'], [2, 60], [10, 11, 12, 1, 2, 3], ['gece', 'safak'], {g: ['Egi'], n: ['Egi', 'Kalamar çaparisi']}, ALL, {porsiyon: '100–500 g', trofe: '1–2 kg'}),
     S('murekkep', 'Mürekkep balığı', 'Sepia officinalis', 'kafadan', ['kum', 'karma'], [2, 40], [2, 3, 4, 5], ['gunduz', 'safak'], {g: ['Egi']}, AEG, {porsiyon: '0,3–1,5 kg'}),
     S('ahtapot', 'Ahtapot', 'Octopus vulgaris', 'kafadan', ['kayalik', 'karma'], [2, 60], null, ['gunduz'], {g: ['Ahtapot zokası', 'Yengeç']}, AEG, {porsiyon: '0,5–2 kg', trofe: '3–8 kg'}, 'Boy ve dönem sınırı olabilir; güncel tebliği kontrol et.'),
+    // v0.12: tür planı için eklenenler
+    S('kirma', 'Kırma mercan', 'Pagellus acarne', 'so', ['kum', 'karma', 'camur'], [10, 100], null, ['gunduz'], {g: ['Mamun', 'Karides', 'Sülünez']}, AEG, {porsiyon: '100–300 g'}),
+    S('hani', 'Hani', 'Serranus cabrilla', 'kaya', ['kayalik', 'karma', 'kum-kayalik'], [5, 80], null, ['gunduz'], {g: ['Kalamar', 'Karides', 'Sardalya']}, AEG, {porsiyon: '50–300 g'}),
+    S('kaya-baligi', 'Kaya balığı', 'Gobius spp.', 'sk', ['kayalik', 'karma'], [0, 20], null, ['gunduz'], {g: ['Mamun parçası', 'Karides']}, ALL, {porsiyon: '30–150 g'}),
+    S('gelincik', 'Gelincik', 'Phycis phycis', 'kaya', ['kayalik', 'karma'], [30, 200], null, ['gece'], {n: ['Kalamar', 'Sardalya', 'Mamun']}, ['ege', 'akdeniz'], {porsiyon: '0,3–1,5 kg'}),
+    S('trakonya', 'Trakonya', 'Trachinus draco', 'kum', ['kum', 'camur'], [5, 100], null, ['gunduz', 'gece'], {g: ['Mamun', 'Karides'], n: ['Mamun']}, ALL, {porsiyon: '100–300 g'}, 'Sırt ve solungaç dikenleri zehirli; eldivenle tut, dikkatle sök.'),
+    S('sarikuyruk', 'Sarıkuyruk', 'Seriola dumerili', 'yirtici', ['kayalik', 'orta-su'], [10, 150], [5, 6, 7, 8, 9, 10], ['safak', 'gunduz'], {g: ['Canlı istavrit', 'Canlı kalamar', 'Sahte yem']}, ['ege', 'akdeniz'], {porsiyon: '3–8 kg', trofe: '10–40 kg'}),
   ];
   // takım aileleri: iğne deseni ve boy aralığı (jp: No, w: # ve /0), köstek/beden/ana ip çapı (mm)
   const FAM = {
@@ -1623,6 +1644,14 @@ function shoppingList(){
     const n = add(k, {item: it.id, size: sz !== '-' ? sz : null, name: null, store: null, kind: it.cat, sp: null});
     const w = st === 'bitti' ? 'bitti' : 'alinacak'; if (!n.why.includes(w)) n.why.push(w);
   }); });
+  // tür planından aktarılanlar ("İstavrit için"): alınınca (envanterde var olunca) kendiliğinden düşer
+  Object.values(S.shopX || {}).forEach(x => {
+    if (x.item) { if (!ITEMS[x.item] || usable(stockOf(x.item, x.size || '-'))) return; }
+    if (x.sp) { try { if (resolveSlot(x.sp).strict) return; } catch (e) {} }   // başka bir kalemle karşılandı (ör. kamışı formdan ekledin)
+    const n = add(x.k, {item: x.item || null, size: x.size || null, name: x.item ? null : x.name, store: x.store || null, kind: x.kind, sp: x.sp || null});
+    if (!n.sp && x.sp) n.sp = x.sp;
+    (x.for || []).forEach(f => { const w = 'tur:' + f; if (!n.why.includes(w)) n.why.push(w); });
+  });
   return Object.values(need);
 }
 
@@ -1871,6 +1900,7 @@ function resolveSlot(sp){
   let best = null, bestS = null;
   const take = (c, strict) => { if (!best || c.score < best.score) best = c; if (strict && (!bestS || c.score < bestS.score)) bestS = c; };
   Object.values(ITEMS).forEach(it => {
+    if (sp.kind === 'rod' || sp.kind === 'reel' || sp.kind === 'term') { resolveGear(sp, it, take); return; }   // 27-req.js
     if (sp.kind === 'hook') {
       if (it.cat !== 'hook') return; const p = patOf(it); if (!p) return;
       const pref = sp.p.indexOf(p);
@@ -1902,9 +1932,11 @@ function resolveSlot(sp){
         const g = sz !== '-' ? lureG({name: sz}) : null; const gi = g != null ? g : lureG(it);
         let inR = !sp.g || gi == null || (gi >= sp.g[0] * 0.8 && gi <= sp.g[1] * 1.2);
         if (sp.g && gi != null && (gi < sp.g[0] * 0.5 || gi > sp.g[1] * 2)) return;
-        if (hs && sz !== '-') { const h = hookIdx(sz); if (h && h.sc === 'w') { const lo = Math.min(hs[0], hs[1]), hi = Math.max(hs[0], hs[1]); if (h.v < lo - 1 || h.v > hi + 1) return; if (h.v < lo || h.v > hi) inR = false; } }
+        let dist = 0;
+        if (hs && sz !== '-') { const h = hookIdx(sz); if (h && h.sc === 'w') { const lo = Math.min(hs[0], hs[1]), hi = Math.max(hs[0], hs[1]); if (h.v < lo - 1 || h.v > hi + 1) return; if (h.v < lo || h.v > hi) inR = false; dist = Math.abs(h.v - (lo + hi) / 2) / Math.max(1, hi - lo); } }
+        else if (sp.g && g != null) dist = Math.abs(g - (sp.g[0] + sp.g[1]) / 2) / ((sp.g[0] + sp.g[1]) / 2);
         const ok = usable(stockOf(it.id, sz));
-        take({item: it.id, name: it.name, size: sz !== '-' ? sz : null, ok, score: pref * 2 + (inR ? 0 : 3) + (ok ? 0 : 20) + (it.std ? 0.5 : 0)}, ok && inR && pref === 0);
+        take({item: it.id, name: it.name, size: sz !== '-' ? sz : null, ok, score: pref * 2 + dist + (inR ? 0 : 3) + (ok ? 0 : 20) + (it.std ? 0.5 : 0)}, ok && inR && pref === 0);
       });
     }
   });
@@ -1912,7 +1944,8 @@ function resolveSlot(sp){
 }
 // sihirbaz rigini o anki envanterle çöz (envanter değişince rigler kendiliğinden güncellenir)
 function resolveRig(rg){
-  const slots = rg.slots.map(sl => {
+  const base = rg.slots.some(sl => sl.kind === 'rod') ? rg.slots : rg.slots.concat(reqSlots(rg));   // kamış, makine ve terminal yuvaları (27-req.js)
+  const slots = base.map(sl => {
     if (!sl.sp) return sl;
     const r = resolveSlot(sl.sp);
     const t = {dunya: sl.t.dunya, turkiye: r.strict ? {name: r.strict.name, size: r.strict.size, item: r.strict.item, inv: true} : sl.t.turkiye,
@@ -2089,6 +2122,135 @@ const CATALOG = [
   ['terminal', '', 'T-fırdöndü (3 yollu)'], ['terminal', '', 'Fırdöndü + klips'], ['terminal', '', 'Stop boncuk'], ['terminal', '', 'Fosforlu boncuk'],
   ['bait', '', 'Mamun'], ['bait', '', 'Sülünez'], ['bait', '', 'Çimçim'], ['bait', '', 'Karides'], ['bait', '', 'Kalamar'], ['bait', '', 'Sardalya'],
 ].map(([cat, brand, model, pat]) => ({cat, brand, model, pattern: pat ? KB.PAT[pat].name : '', name: [brand, model].filter(Boolean).join(' ')}));
+
+// ---------------------------------------------------------------- 27 · takım gereksinimi: kamış, makine ve terminal
+// Rig Atölyesi ve tür planı rigleri, iğne ve ipin yanında kamış, makine ve terminale de bakar: uygun kamış/makine, fırdöndü, boncuk
+// ve kurşun elde yoksa rig "tamamlanmadı" kalır, eksikler alışveriş listesine düşer. Hayaldeki kamışı "alınacak" girersen o tekniğin
+// rigleri kurulur ama kamışı alana kadar eksik kalır. Özel paketteki rigler bu kontrole girmez (kendi düzenleri vardır). Yem hiçbir rigde
+// hazır olmayı etkilemez.
+// kamış sınıfı: en fazla atış/kurşun gramından; makine sınıfı: boy numarasından
+const ROD_CLS = [['UL', 12], ['L', 35], ['M', 100], ['H', 250], ['XH', Infinity]];
+const rodCls = g => g == null ? null : ROD_CLS.find(x => g <= x[1])[0];
+const REEL_CLS = [['S', 2500], ['M', 5000], ['L', 10000], ['XL', Infinity]];
+const reelCls = n => n == null ? null : REEL_CLS.find(x => n <= x[1])[0];
+const CLS_REP = {rod: {UL: 7, L: 30, M: 80, H: 200, XH: 400}, reel: {S: 2500, M: 4000, L: 6000, XL: 14000}};
+// düzen → kamış ve makine (tip listesi, sınıflar, en kısa boy, ad, ölçü)
+const DIP_GEAR = {rod: {types: ['tekne', 'slowjig', 'jig'], cls: ['H', 'XH'], name: 'Tekne dip kamışı', spec: '1,8–2,4 m · 120–250 g'},
+  reel: {types: ['spin', 'cikrik'], cls: ['M', 'L', 'XL'], name: 'Makine', spec: 'spinning 4000–8000 ya da çıkrık'}};
+const GEAR = {
+  hirsizli: DIP_GEAR, iki: DIP_GEAR, tek: DIP_GEAR, kaydirmali: DIP_GEAR,
+  kaydirmaliKiyi: {rod: {types: ['surf', 'spin', 'samandira'], cls: ['M', 'H'], name: 'Kıyı kamışı', spec: '3–4,2 m · 50–150 g'}, reel: {types: ['spin'], cls: ['M', 'L'], name: 'Makine', spec: 'spinning 4000–6000'}},
+  canli: {rod: {types: ['tekne', 'jig', 'buyuk', 'slowjig'], cls: ['H', 'XH'], name: 'Güçlü tekne kamışı', spec: '1,8–2,4 m · 150–400 g'}, reel: {types: ['cikrik', 'spin'], cls: ['L', 'XL'], name: 'Makine', spec: 'çıkrık ya da spinning 6000–10000'}},
+  slowjig: {rod: {types: ['slowjig'], cls: ['M', 'H', 'XH'], name: 'Slow jig kamışı', spec: '1,9–2,1 m · 100–250 g · PE 1,5–3'}, reel: {types: ['cikrik', 'spin'], cls: ['M', 'L'], name: 'Makine', spec: 'çıkrık (tercih) ya da spinning 4000–6000'}},
+  tairubber: {rod: {types: ['slowjig', 'jig', 'tekne', 'spin'], cls: ['M', 'H'], name: 'Tai rubber / hafif jig kamışı', spec: '1,9–2,2 m · 60–150 g'}, reel: {types: ['cikrik', 'spin'], cls: ['S', 'M'], name: 'Makine', spec: 'küçük çıkrık ya da spinning 3000–4000'}},
+  inchiku: {rod: {types: ['slowjig', 'jig', 'tekne'], cls: ['H'], name: 'Jig kamışı', spec: '1,9–2,2 m · 80–200 g'}, reel: {types: ['cikrik', 'spin'], cls: ['M', 'L'], name: 'Makine', spec: 'çıkrık ya da spinning 4000–6000'}},
+  capari: {rod: {types: ['tekne', 'spin', 'surf', 'jig', 'slowjig', 'samandira'], cls: ['M', 'H'], name: 'Çapari kamışı', spec: '2,1–3,0 m · 30–100 g'}, reel: {types: ['spin', 'cikrik'], cls: ['M', 'L'], name: 'Makine', spec: 'spinning 3000–5000'}},
+  egi: {rod: {types: ['egi', 'spin'], cls: ['L', 'M'], name: 'Egi kamışı', spec: '2,4–2,7 m · egi 2,5–3,5'}, reel: {types: ['spin'], cls: ['S', 'M'], name: 'Makine', spec: 'spinning 2500–3000'}},
+  ahtapot: {rod: {types: ['tekne', 'spin', 'jig'], cls: ['M', 'H'], name: 'Ahtapot kamışı', spec: '1,8–2,4 m · 50–150 g'}, reel: {types: ['spin', 'cikrik'], cls: ['M', 'L'], name: 'Makine', spec: 'spinning 4000–6000'}},
+  sirti: {rod: {types: ['sirti', 'tekne', 'buyuk'], cls: ['H', 'XH'], name: 'Sırtı kamışı', spec: '1,8–2,1 m · 20–30 lb'}, reel: {types: ['cikrik', 'spin'], cls: ['L', 'XL'], name: 'Sırtı makinesi', spec: 'çıkrık'}},
+  chunking: {rod: {types: ['buyuk'], cls: ['XH'], name: 'Büyük oyun (stand-up) kamışı', spec: '30–80 lb'}, reel: {types: ['cikrik'], cls: ['XL', 'L'], name: 'Lever drag çıkrık', spec: '30–80 sınıfı'}},
+  agirsirti: {rod: {types: ['buyuk', 'sirti'], cls: ['XH'], name: 'Büyük oyun (stand-up) kamışı', spec: '50–80 lb'}, reel: {types: ['cikrik'], cls: ['XL', 'L'], name: 'Lever drag çıkrık', spec: '50–80 sınıfı'}},
+  popping: {rod: {types: ['buyuk', 'jig'], cls: ['XH'], name: 'Popping kamışı', spec: 'PE 5–8'}, reel: {types: ['spin'], cls: ['XL'], name: 'Makine', spec: 'spinning 14000–20000'}},
+  agirjig: {rod: {types: ['jig', 'buyuk'], cls: ['XH'], name: 'Ağır jig kamışı', spec: '200–400 g · PE 4–6'}, reel: {types: ['spin', 'cikrik'], cls: ['XL', 'L'], name: 'Makine', spec: 'spinning 10000–14000 ya da çıkrık'}},
+  paternoster: {rod: {types: ['surf'], cls: ['M', 'H'], minLen: 3.6, name: 'Surf kamışı', spec: '3,9–4,5 m · 100–200 g'}, reel: {types: ['spin'], cls: ['L', 'M'], name: 'Surf makinesi', spec: 'spinning 5000–8000'}},
+  lrf: {rod: {types: ['lrf'], cls: ['UL'], name: 'LRF kamışı', spec: '1,8–2,3 m · 1–7 g'}, reel: {types: ['spin'], cls: ['S'], name: 'Makine', spec: 'spinning 1000–2500'}},
+  spin: {rod: {types: ['spin', 'lrf', 'egi'], cls: ['L', 'M'], name: 'Spin kamışı', spec: '2,4–3,0 m · 10–40 g'}, reel: {types: ['spin'], cls: ['M', 'S'], name: 'Makine', spec: 'spinning 3000–4000'}},
+  samandira: {rod: {types: ['samandira', 'spin'], cls: ['L', 'M', 'UL'], minLen: 3, name: 'Bolonez / şamandıra kamışı', spec: '4–6 m · 5–25 g'}, reel: {types: ['spin'], cls: ['S', 'M'], name: 'Makine', spec: 'spinning 2500–4000'}},
+};
+// düzen → terminal: [etiket, kabul edilen terminal tipleri, kurşun gramı gerekir mi]
+const SW = ['firdondu', 'klipsfirdondu', 'rulmanli'];
+const TERM = {
+  hirsizli: [['T-fırdöndü', ['tfirdondu', 'tfirdondub']], ['Fırdöndü', SW], ['Stop boncuk', ['stop']], ['Kurşun', ['k-armut', 'k-damla'], 1]],
+  iki: [['T-fırdöndü', ['tfirdondu', 'tfirdondub']], ['Fırdöndü', SW], ['Stop boncuk', ['stop']], ['Kurşun', ['k-armut', 'k-damla'], 1]],
+  tek: [['Fırdöndü', SW], ['Kurşun', ['k-armut', 'k-damla'], 1]],
+  kaydirmali: [['Gezer kurşun', ['k-zeytin'], 1], ['Stop boncuk', ['stop', 'boncuk']], ['Fırdöndü', SW]],
+  kaydirmaliKiyi: [['Gezer kurşun', ['k-zeytin'], 1], ['Stop boncuk', ['stop', 'boncuk']], ['Fırdöndü', SW]],
+  canli: [['Fırdöndü', ['rulmanli', 'firdondu', 'klipsfirdondu']], ['Kurşun', ['k-armut', 'k-damla', 'k-zeytin'], 1]],
+  slowjig: [['Halka', ['splitring', 'solidring']]], agirjig: [['Halka', ['splitring', 'solidring']]],
+  capari: [['Klipsli fırdöndü', ['klipsfirdondu', 'klips', 'firdondu']], ['Kurşun', ['k-armut', 'k-damla'], 1]],
+  egi: [['Hızlı klips', ['klips', 'klipsfirdondu']]], ahtapot: [['Klipsli fırdöndü', ['klipsfirdondu', 'klips', 'firdondu']]],
+  sirti: [['Rulmanlı fırdöndü', ['rulmanli']], ['Hızlı klips', ['klips', 'klipsfirdondu']]],
+  chunking: [['Rulmanlı fırdöndü', ['rulmanli']], ['Sıkıştırma burcu', ['burc']], ['Burç pensesi', ['burcpense']]],
+  agirsirti: [['Rulmanlı fırdöndü', ['rulmanli']], ['Sıkıştırma burcu', ['burc']], ['Burç pensesi', ['burcpense']]],
+  popping: [['Halka', ['splitring', 'solidring']], ['Rulmanlı fırdöndü', ['rulmanli']]],
+  paternoster: [['T-fırdöndü ya da boom', ['tfirdondu', 'tfirdondub', 'boom']], ['Fırdöndü', ['firdondu', 'klipsfirdondu']], ['Boncuk', ['boncuk', 'stop']], ['Kurşun', ['k-piramit', 'k-capali'], 1]],
+  spin: [['Hızlı klips', ['klips', 'klipsfirdondu']]], samandira: [['Stop', ['stop']], ['Saçma kurşun', ['k-sacma']], ['Fırdöndü', ['firdondu']]],
+};
+const gearKey = (lay, mode) => lay === 'kaydirmali' && mode === 'kiyi' ? 'kaydirmaliKiyi' : lay;
+// kamış ve makine bilgisi: formda girildiyse oradan, yoksa adından ve özelliğinden çıkarılır
+function rodInfo(it){
+  if (it.rod) return it.rod;
+  const t = trLower([it.name, it.model, it.spec, it.type].join(' ')).replace(/(\d),(\d)/g, '$1.$2');
+  const mx = t.match(/max\.?\s*(\d+)\s*g/) || t.match(/(\d+)\s*[–-]\s*(\d+)\s*g/);
+  const ln = t.match(/(\d+(?:\.\d+)?)\s*m\b/);
+  const type = /slow/.test(t) ? 'slowjig' : /lrf|ultra ?light/.test(t) ? 'lrf' : /surf/.test(t) ? 'surf' : /\begi|eging/.test(t) ? 'egi' : /bolo|şamandıra|samandira/.test(t) ? 'samandira' :
+    /troll|sırtı/.test(t) ? 'sirti' : /stand.?up|big game|büyük oyun/.test(t) ? 'buyuk' : /boat|tekne|quiver|dip/.test(t) ? 'tekne' : /\bjig/.test(t) ? 'jig' : /spin/.test(t) ? 'spin' : null;
+  return {type, max: mx ? Number(mx[2] || mx[1]) : null, len: ln ? Number(ln[1]) : null, pe: null};
+}
+function reelInfo(it){
+  if (it.reel) return it.reel;
+  const t = trLower([it.name, it.model, it.spec, it.type].join(' '));
+  const type = /çıkrık|cikrik|lever|baitcast|casting|conventional|multiplier|avet|tiagra|talica|torium|trinidad/.test(t) ? 'cikrik' : /spin/.test(t) ? 'spin' : null;
+  const sz = t.match(/(?:^|\D)(\d{4,5})(?:\D|$)/);
+  return {type, size: sz ? Number(sz[1]) : null};
+}
+// "50–200 g" gibi gram aralığı (boy listesi olmayan kurşun kalemi için)
+function gRange(it){ const m = [it.name, it.model, it.spec].join(' ').match(/(\d+)\s*[–-]\s*(\d+)\s*g\b/i); return m ? [Number(m[1]), Number(m[2])] : null; }
+// rigin kamış, makine ve terminal yuvaları (Rig Atölyesi ve tür planı riglerinde; özel pakette yok)
+function reqSlots(rg){
+  if (!rg.lay || rg.sys === 'ozel') return [];
+  const key = gearKey(rg.lay, rg.mode); const G = GEAR[key]; if (!G) return [];
+  const tier = (o, size) => ({dunya: {name: o.name, size}, turkiye: {name: o.name, size}});
+  const out = [
+    {k: 'kamis', label: 'Kamış', kind: 'rod', sp: {kind: 'rod', types: G.rod.types, cls: G.rod.cls, minLen: G.rod.minLen || null}, t: tier(G.rod, G.rod.spec)},
+    {k: 'makine', label: 'Makine', kind: 'reel', sp: {kind: 'reel', types: G.reel.types, cls: G.reel.cls}, t: tier(G.reel, G.reel.spec)}];
+  (TERM[key] || []).forEach(([lbl, tts, needG], i) => {
+    const g = needG && rg.sinker && rg.sinker.g ? rg.sinker.g.slice() : null;
+    out.push({k: 'term' + i, label: lbl, kind: 'term', sp: {kind: 'term', tts, g, lbl}, t: tier({name: lbl}, g ? g[0] + '–' + g[1] + ' g' : null)});
+  });
+  return out;
+}
+// kamış/makine/terminal yuvası için envanterdeki en uygun kalem (resolveSlot'tan çağrılır)
+function resolveGear(sp, it, take){
+  if (sp.kind === 'rod' || sp.kind === 'reel') {
+    if (it.cat !== sp.kind) return;
+    const inf = sp.kind === 'rod' ? rodInfo(it) : reelInfo(it);
+    const typeOk = inf.type && inf.type !== 'diger' ? sp.types.includes(inf.type) : null;
+    const cls = sp.kind === 'rod' ? rodCls(inf.max) : reelCls(inf.size);
+    const clsOk = cls ? sp.cls.includes(cls) : null;
+    if (clsOk === false) return;                          // gücü bu işe uymuyor
+    if (typeOk === false) return;                         // tipi başka iş için (tipini "Diğer" seçersen yalnızca gücüne bakılır)
+    if (sp.minLen && inf.len && inf.len < sp.minLen - 0.2) return;
+    const ok = usable(stockOf(it.id, '-'));
+    // aynı uygunlukta: tekniğin asıl kamış tipi (listede önce gelen) ve işe en yakın güç öne
+    const ti = typeOk ? sp.types.indexOf(inf.type) * 0.1 : 1;
+    const ideal = CLS_REP[sp.kind][sp.cls[0]]; const pw = sp.kind === 'rod' ? inf.max : inf.size;
+    const near = pw && ideal ? Math.min(0.5, Math.abs(pw - ideal) / ideal * 0.3) : 0.2;
+    take({item: it.id, name: it.name, size: null, ok, score: ti + near + (clsOk ? 0 : 1) + (ok ? 0 : 20)}, ok);
+    return;
+  }
+  if (sp.kind === 'term') {
+    if (it.cat !== 'terminal' && it.cat !== 'sinker') return;
+    const tts = termTypes(it); const pref = sp.tts.findIndex(t => tts.includes(t)); if (pref < 0) return;
+    const mid = sp.g ? (sp.g[0] + sp.g[1]) / 2 : null;
+    sizesOf(it).forEach(sz => {
+      let inR = true, dist = 0;
+      if (sp.g) {
+        const g = sz !== '-' ? lureG({name: sz}) : null;
+        if (g != null) { inR = g >= sp.g[0] * 0.75 && g <= sp.g[1] * 1.35; if (!inR && (g < sp.g[0] * 0.5 || g > sp.g[1] * 2)) return; dist = Math.abs(g - mid) / mid; }
+        else { const rr = gRange(it); if (rr) inR = rr[1] >= sp.g[0] * 0.75 && rr[0] <= sp.g[1] * 1.35; }
+      }
+      const ok = usable(stockOf(it.id, sz));
+      take({item: it.id, name: it.name, size: sz !== '-' ? sz : null, ok, score: pref + dist + (inR ? 0 : 3) + (ok ? 0 : 20) + (it.std ? 0.3 : 0)}, ok && inR);
+    });
+  }
+}
+// eldeki kamış bu düzene uyuyor mu (tür planında tekniği öne almak için)
+function gearReady(lay, mode){
+  const G = GEAR[gearKey(lay, mode)]; if (!G) return false;
+  const r = resolveSlot({kind: 'rod', types: G.rod.types, cls: G.rod.cls, minLen: G.rod.minLen || null}), m = resolveSlot({kind: 'reel', types: G.reel.types, cls: G.reel.cls});
+  return !!(r.strict && m.strict);
+}
 
 // ---------------------------------------------------------------- 30 · hava ve deniz (Open-Meteo, telefondan)
 // Rüzgâr: ICON-EU 7 km (≈5 gün) → ECMWF IFS 0,25° → en iyi eşleşme. Hamle: GFS → en iyi eşleşme.
@@ -2823,8 +2985,8 @@ function lengthsTxt(ld){
 }
 // yem satırı: rigin kendi yemleri (elinde mi), elinde başka uygun yem varsa o; hiçbiri yoksa "gitmeden al"
 function baitHtml(rg, tier){
-  const p = baitPick(rg, tier); const bi = p.list;
-  if (!bi.length) return esc(rg.baitText || '');
+  const p = baitPick(rg, tier); const bi = p.list.filter(x => x.st || !LURE_WORDS.test(trLower(x.t)));   // çapari, egi, sahte yem: yem değil
+  if (!bi.length) return p.list.length ? '<span class="note">Yem gerekmez (sahte yem / çapari)</span>' : esc(rg.baitText || '');
   const own = bi.filter(x => x.src === 'rig'); const show = own.length ? own.slice(0, 2) : bi.slice(0, 2);
   const mark = x => x.st ? ' <span class="dot ' + (x.st === 'var' ? 'var' : 'yok') + '" title="' + (x.st === 'var' ? 'elinde' : 'elinde yok') + '"></span>' : '';
   let h = show.map((x, i) => (i && own.length ? 'alt: ' : '') + esc(x.t) + mark(x)).join(' · ');
@@ -3202,11 +3364,11 @@ function renderRigs(){
   $('rigSub').textContent = all.length ? n + ' rig tamam, ' + (all.length - n) + ' rig eksik kalem bekliyor. Tamamlanmayanlar soluk görünür ve öneriye girmez.' : '';
   $('sysBar').innerHTML = (sys.length > 1 ? '<button class="btn small" data-sys="all" aria-pressed="' + (ui.sys === 'all') + '">Tümü</button>' : '') +
     sys.map(sy => '<button class="btn small" data-sys="' + esc(sy.id) + '" aria-pressed="' + (ui.sys === sy.id || sys.length === 1) + '">' + esc(sy.name) + '</button>').join('') +
-    '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button>';
+    '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button><button class="btn small" type="button" data-open="turler">Türlerim</button>';
   const one = sys.length === 1 ? sys[0] : S.systems[ui.sys];
   const tier = S.settings.tier || 'envanter';
-  $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
-      (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
+  $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : one.source === 'tur' ? 'Tür planından' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
+      (one.source === 'sihirbaz' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
       '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
       (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
     (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
@@ -3311,8 +3473,9 @@ function renderInventory(){
     const one = i => sizesOf(i).length === 1 && sizesOf(i)[0] === '-';
     const grpHtml = list => { const ones = list.filter(one).sort((a, b) => trCmp(a.name, b.name)), multi = list.filter(i => !one(i)).sort((a, b) => trCmp(a.name, b.name));
       return (ones.length ? '<div class="bchips">' + ones.map(i => '<button type="button" class="bchip" data-stk="' + esc(i.id + '|-') + '" data-st="var">' + esc(i.name) + '</button>').join('') + '</div>' : '') + multi.map(stdRow).join(''); };
-    const dk = 'std-' + ui.inv;
-    stdHtml = '<details class="stdl" data-dk="' + dk + '"' + openAttr(dk) + (own.length ? '' : ' open') + '><summary>Hazır liste: elindekileri işaretle (' + std.length + ')</summary>' +
+    const dk = 'std-' + ui.inv; ui.open = ui.open || {};
+    if (ui.open[dk] == null && !own.length) ui.open[dk] = true;   // hiç kalem yokken hazır liste açık başlar ve açık kalır
+    stdHtml = '<details class="stdl" data-dk="' + dk + '"' + openAttr(dk) + '><summary>Hazır liste: elindekileri işaretle (' + std.length + ')</summary>' +
       '<p class="note">Varsayılan “yok”. ' + (ui.inv === 'hook' || ui.inv === 'jig' ? 'Boya dokun: var → bitti (alınacak) → yok; işaretlediğin kalem yukarı “Var” bölümüne çıkar.' : 'Dokununca “var” olur ve yukarı çıkar.') + '</p>' +
       Object.keys(g).map(k => '<div class="sgrp"><div class="gh">' + esc(k) + '</div>' + grpHtml(g[k]) + '</div>').join('') + '</details>';
   }
@@ -3418,12 +3581,17 @@ function buyAdd(key){
   const n = shoppingList().find(x => x.k === key); if (!n || !n.sp) return;
   const sp = n.sp; const nm = String(n.name || 'Kalem');
   const parts = nm.indexOf('/') >= 0 ? ['', nm] : [nm.split(' ')[0], nm.split(' ').slice(1).join(' ')];
-  let cat = 'hook', pattern = '', sizes = [], spec = '';
+  let cat = 'hook', pattern = '', sizes = [], spec = '', extra = {};
   if (sp.kind === 'hook') { pattern = KB.PAT[sp.p[0]] ? KB.PAT[sp.p[0]].name : ''; sizes = n.size ? [n.size] : []; }
   else if (sp.kind === 'line') { cat = sp.cats[0]; spec = n.size || ''; }
+  else if (sp.kind === 'rod') { cat = 'rod'; spec = n.size || ''; extra.rod = {type: sp.types[0], len: null, max: CLS_REP.rod[sp.cls[0]] || null, pe: null}; }
+  else if (sp.kind === 'reel') { cat = 'reel'; spec = n.size || ''; extra.reel = {type: sp.types[0], size: CLS_REP.reel[sp.cls[0]] || null}; }
+  else if (sp.kind === 'term') { const k = sp.tts[0]; cat = k.indexOf('k-') === 0 ? 'sinker' : 'terminal'; spec = n.size || ''; }
   else { cat = /jig|egi|inchiku|rubber|çapari|zoka/i.test(nm) ? 'jig' : 'lure'; spec = n.size || ''; }
+  if (['rod', 'reel', 'term'].includes(sp.kind)) { parts[0] = ''; parts[1] = nm; }
   const id = 'u-' + (slugTR(nm).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6);
-  S.inv.items[id] = {id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()};
+  S.inv.items[id] = Object.assign({id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()}, extra);
+  if (S.shopX) delete S.shopX[key];
   persist(); indexAll(); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
 }
 
@@ -3708,6 +3876,7 @@ const MORE = [
   ['paylas', 'Paylaş ve geri bildirim', () => 'Envanterini ya da rig sistemini bağlantıyla paylaş'],
   ['grup', 'Ortak av haritası', () => { const g = grpCfg(); return g ? g.group + ' · ' + (GROUP.members.length ? GROUP.members.length + ' üye' : 'grup açık') : 'Kapalı · arkadaşlarınla şifreli ortak harita'; }],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
+  ['turler', 'Türlerim ve takım planı', () => { const n = (S.targets || []).length; return n ? n + ' hedef tür · takım ve alınacaklar' : 'Tür ekle: hangi takım, ne almalısın'; }],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
   ['dosya', 'Dosya yedeği', () => 'Telefona indir ya da dosyadan yükle'],
@@ -3716,7 +3885,7 @@ const MORE = [
 ];
 function renderMore(){
   $('moreMenu').innerHTML = MORE.map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
-  $('about').textContent = APP_NAME + ' v' + APP_VERSION + (pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + ' · ' + RIG_LIST.length + ' rig, ' + Object.keys(ITEMS).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
+  $('about').textContent = APP_NAME + ' v' + APP_VERSION + (pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + ' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
 }
 function renderNewVersion(){
   const el = $('banners'); const out = [];
@@ -3731,8 +3900,9 @@ function renderNewVersion(){
 function openMore(name, keep){
   if (name === 'harita') { openMap(); return; }
   ui.sheet = name;
+  if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -3869,10 +4039,12 @@ function addLocation(name, lat, lon, bottom, depth, activate){
 function sheetShopping(){
   const G = {};
   shoppingList().forEach(n => { const it = n.item && ITEMS[n.item]; const store = (it && it.store) || n.store;
-    const g = store ? 'm:' + store : n.why.includes('bitti') || n.why.includes('alinacak') ? 'al' : 'rig'; (G[g] = G[g] || []).push(n); });
+    const tw = n.why.filter(w => w.indexOf('tur:') === 0).map(w => w.slice(4));
+    const g = store ? 'm:' + store : n.why.includes('bitti') || n.why.includes('alinacak') ? 'al' : tw.length ? 't:' + tw[0] : 'rig'; n.tw = tw; (G[g] = G[g] || []).push(n); });
   const SN = {al: 'Bitti ya da alınacak', rig: 'Rigleri tamamlamak için'};
+  Object.keys(G).filter(g => g.indexOf('t:') === 0).forEach(g => { SN[g] = g.slice(2) + ' için (tür planı)'; });
   if (pkgOn() && Array.isArray(D.stores)) D.stores.forEach(st => { SN['m:' + st.id] = st.name + ' (' + st.id + ')'; });
-  const order = Object.keys(G).filter(g => g.indexOf('m:') === 0).sort().concat(['al', 'rig'].filter(g => G[g]));
+  const order = Object.keys(G).filter(g => g.indexOf('m:') === 0).sort().concat(['al'].filter(g => G[g]), Object.keys(G).filter(g => g.indexOf('t:') === 0).sort(), ['rig'].filter(g => G[g]));
   const body = order.map(g => '<div class="eyebrow">' + esc(SN[g] || 'Mağaza ' + g.slice(2)) + ' (' + G[g].length + ')</div>' + G[g].map(n => {
     const it = n.item && ITEMS[n.item]; const k = n.item ? n.item + '|' + (n.size || '-') : null; const u = it ? unitOf(it) : 'durum';
     const tag = n.rigs.length ? '<span class="chip">' + n.rigs.length + ' rigde</span>' : '<span class="chip">' + esc(CAT_TXT[(it || {}).cat] || '') + '</span>';
@@ -3880,7 +4052,7 @@ function sheetShopping(){
         '<button class="btn small primary" type="button" data-bought="' + esc(k) + '">Aldım</button>') :
       (n.sp ? '<button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button>' : '');
     return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div>' + tag + '</div>' +
-      ((n.rigs.length || (it && it.note)) ? '<div class="sp">' + esc(n.rigs.join(', ')) + (it && it.note ? (n.rigs.length ? ' · ' : '') + esc(it.note) : '') + '</div>' : '') +
+      ((n.rigs.length || (it && it.note) || n.tw.length > 1) ? '<div class="sp">' + esc([n.rigs.join(', '), n.tw.length > 1 ? n.tw.join(', ') + ' için' : '', it && it.note ? it.note : ''].filter(Boolean).join(' · ')) + '</div>' : '') +
       (act ? '<div class="row">' + act + '</div>' : '') + '</div>';
   }).join('')).join('');
   return sheetBar('Alışveriş listesi') + '<div class="stack"><p class="note">Rigleri tamamlamak için gerekenler ve envanterde “bitti” ya da “alınacak” işaretlediklerin. Aldığında “Aldım” de; rig hemen tamamlanır. Yemler burada değil: Çıkış listesinde “gitmeden al” olarak yazar.</p>' + (body || '<div class="empty">Alınacak bir şey yok, tüm rigler tamam.</div>') + '</div>';
@@ -4270,7 +4442,9 @@ function renderWizard(keep){
     const by = {}; wzSpecies().forEach(s => { (by[s.fam] = by[s.fam] || []).push(s); });
     body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve bölgene uyan türler. Altlarındaki aylar genel bilgidir.</p>' +
       (Object.keys(by).map(f => '<div class="famgrp"><div class="row" style="justify-content:space-between"><span class="eyebrow">' + esc((KB.FAM[f] || {}).name || f) + '</span><button class="linkbtn" type="button" data-wzall="' + f + '">Hepsini seç</button></div><div class="opts sp">' +
-        by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>');
+        by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>') +
+      (a.species.filter(id => !wzSpecies().some(s => s.id === id)).length ? '<p class="note">Aramadan eklenenler: ' + esc(a.species.filter(id => !wzSpecies().some(s => s.id === id)).map(id => (spById(id) || {}).name).filter(Boolean).join(', ')) + '</p>' : '') +
+      '<section class="set"><h4>Aradığın tür listede yok mu?</h4><p class="note">Bütün türlerde ara; seçince ona uygun teknik de sisteme eklenir.</p><label class="f"><input id="wz-spq" type="search" placeholder="Ör. istavrit, çinekop" autocomplete="off" aria-label="Tür ara"></label><div class="catres" id="wzSpRes"></div></section>';
   } else if (st === 3) {
     body = wzBaitStep(a);
   } else if (st === 4) {
@@ -4301,6 +4475,13 @@ function wzClick(d){
   else if (d.wzr) { a.region = d.wzr; }
   else if (d.wzt) { wzToggle(a.techs, d.wzt); if (a.techs.includes(d.wzt) && !(a.lay[d.wzt] || []).length) a.lay[d.wzt] = [KB.TECH[d.wzt].lay[0]]; }
   else if (d.wzs) { wzToggle(a.species, d.wzs); }
+  else if (d.wzsadd) {   // aramadan tür: uygun tekniği de ekle
+    const sp = spById(d.wzsadd); if (!sp) return;
+    const tid = techsFor(sp).find(t => wzTechs().includes(t)) || null;
+    if (tid && !a.techs.includes(tid)) { a.techs.push(tid); if (!(a.lay[tid] || []).length) a.lay[tid] = [KB.TECH[tid].lay[0]]; }
+    if (!a.species.includes(sp.id)) a.species.push(sp.id);
+    toast(sp.name + (tid ? ' eklendi · teknik: ' + KB.TECH[tid].name.replace(/\s*\(.*?\)/g, '') : ' eklendi'));
+  }
   else if (d.wzy) { if (!Array.isArray(a.baits)) a.baits = []; wzToggle(a.baits, d.wzy); }
   else if (d.wzall) { const ids = wzSpecies().filter(s => s.fam === d.wzall).map(s => s.id); const all = ids.every(i => a.species.includes(i)); ids.forEach(i => { const k = a.species.indexOf(i); if (all && k >= 0) a.species.splice(k, 1); if (!all && k < 0) a.species.push(i); }); }
   else if (d.wzl) { const [t, l] = d.wzl.split('|'); a.lay[t] = a.lay[t] || []; wzToggle(a.lay[t], l); }
@@ -4331,6 +4512,176 @@ function wzFinish(){
   const edit = !!WZ.editId; WZ = null; closeSheet();
   ui.sys = id; ui.rigSeg = 'all'; show('rigler'); renderAll();
   toast(rigs.length + ' rig ' + (edit ? 'güncellendi' : 'kuruldu'));
+}
+
+function wzSpSearch(q){
+  const el = $('wzSpRes'); if (!el) return;
+  el.innerHTML = speciesSearch(q).map(r => '<button type="button" class="catpick" data-wzsadd="' + esc(r.s.id) + '"><b>' + esc(r.s.name) + (WZ.ans.species.includes(r.s.id) ? ' ✓' : '') + '</b><small>' + esc((KB.FAM[r.s.fam] || {}).name || '') + '</small></button>').join('') || (slugTR(q).length >= 2 ? '<p class="note">Bulunamadı. Türlerim ekranında “benzer tür” seçerek ekleyebilirsin.</p>' : '');
+}
+
+// ---------------------------------------------------------------- 79 · Türlerim: tür ekle → takım planı → alışveriş listesi ya da sistemine ekle
+// Kullanıcı hedeflediği türü (ör. istavrit) ekler; uygulama türün genel bilgisini, sistemindeki uygun rigleri ve tekne/kıyı moduna,
+// eldeki kamış ve makineye göre önerilen takımı gösterir. Eksikler tek dokunuşla alışveriş listesine ("İstavrit için") aktarılır,
+// istenirse rig "Tür planlarım" sistemine eklenir (eksik kaldıkça tamamlanmadı, tamamlanınca önerilere girer). Takım bilgisi geneldir.
+const SP_ALIAS = {lufer: ['çinekop', 'sarıkanat', 'kofana', 'defne'], palamut: ['torik', 'vonoz'], cipura: ['çupra'], lahos: ['lagos', 'lahoz'], kupes: ['kupez'],
+  eskina: ['işkine'], isparoz: ['ispari'], orkinos: ['ton balığı', 'tuna', 'bluefin', 'mavi yüzgeçli'], lambuka: ['mahi mahi', 'dorado'], murekkep: ['sübye'],
+  kefal: ['has kefal', 'topan', 'pulatarina', 'altınbaş'], levrek: ['lavrak'], sargoz: ['sargos'], zargana: ['zurna'], 'kaya-baligi': ['kaya balığı', 'gobi'],
+  sarikuyruk: ['akya sarıkuyruk', 'amberjack'], kirma: ['kırma'], iskorpit: ['iskorpit'], lipsoz: ['lipsos']};
+// türün takım ailesine göre teknik sırası (ilk uygun olan önerilir; eldeki kamış/makine uyan teknik öne alınır)
+const TECH_PREF = {pelajikk: ['capari', 'lrf', 'samandira'], sk: ['dip', 'surf', 'samandira', 'lrf'], so: ['dip', 'surf', 'jig'], sg: ['dip', 'canli', 'jig'], kaya: ['dip', 'jig', 'lrf'],
+  yirtici: ['canli', 'spin', 'sirti', 'surf', 'samandira', 'lrf'], kum: ['dip', 'surf'], buyukdip: ['canli', 'dip', 'jig'], kefal: ['samandira'], pelajikb: ['sirti', 'spin', 'canli'], buyuk: ['orkinos'], kafadan: ['eging']};
+const spById = id => KB.SPECIES.find(x => x.id === id) || null;
+function speciesSearch(q){
+  const n = slugTR(q); if (n.length < 2) return [];
+  return KB.SPECIES.map(s => { const names = [s.name, s.latin].concat(SP_ALIAS[s.id] || []).map(slugTR);
+    const hit = names.findIndex(x => x.indexOf(n) >= 0); return hit < 0 ? null : {s, rank: names[hit].indexOf(n) === 0 ? 0 : 1, via: hit > 1 ? (SP_ALIAS[s.id] || [])[hit - 2] : null}; })
+    .filter(Boolean).sort((a, b) => a.rank - b.rank || trCmp(a.s.name, b.s.name)).slice(0, 8);
+}
+const tgtSp = t => spById(t.like || t.id);
+// tür için teknikler: önce kendi modundakiler (eldeki kamış/makineye uyan öne), sonra diğer moddakiler
+function techsFor(s){
+  const mode = S.mode || 'tekne'; const ok = t => KB.TECH[t] && KB.TECH[t].fams.includes(s.fam); const inM = t => KB.TECH[t].modes.includes(mode);
+  const pref = (TECH_PREF[s.fam] || []).filter(ok), rest = Object.keys(KB.TECH).filter(t => ok(t) && !pref.includes(t));
+  const lay0 = t => t === 'eging' ? (s.id === 'ahtapot' ? 'ahtapot' : 'egi') : KB.TECH[t].lay[0];
+  // türün asıl teknikleri arasında elindeki kamış/makineye uyan öne geçer; türe uymayan teknik takım var diye öne çıkmaz
+  const pIn = pref.filter(inM); const fit = pIn.filter(t => gearReady(lay0(t), mode));
+  return fit.concat(pIn.filter(t => !fit.includes(t)), rest.filter(inM), pref.filter(t => !inM(t)), rest.filter(t => !inM(t)));
+}
+// planın rigi: Rig Atölyesi'nin aynı kurallarıyla, tek tür için
+function planFor(t){
+  const s = tgtSp(t); if (!s) return null;
+  if (!ui.plan || ui.plan.id !== t.id) ui.plan = {id: t.id};
+  const P = ui.plan; const mode = S.mode || 'tekne';
+  const techs = techsFor(s); const tech = P.tech && techs.includes(P.tech) ? P.tech : techs[0]; if (!tech) return {s, t, techs: []};
+  const T = KB.TECH[tech];
+  const lays = tech === 'eging' ? [s.id === 'ahtapot' ? 'ahtapot' : 'egi'] : T.lay;
+  const lay = P.lay && lays.includes(P.lay) ? P.lay : lays[0];
+  const F = KB.FAM[s.fam] || {}; const famK = F.hook ? Object.keys(F.hook) : ['porsiyon', 'trofe'];
+  const klasses = ['porsiyon', 'trofe'].filter(k => s.sz[k] && famK.includes(k));
+  const klass = P.klass && klasses.includes(P.klass) ? P.klass : (klasses[0] || 'porsiyon');
+  const times = [...new Set(s.t.map(x => x === 'gece' ? 'gece' : 'gunduz'))];
+  const time = P.time && times.includes(P.time) ? P.time : (times.includes('gunduz') ? 'gunduz' : times[0]);
+  const ans = {mode: T.modes.includes(mode) ? mode : T.modes[0], region: regionOf(loc()), techs: [tech], species: [s.id], baits: (S.profile.baits || []).slice(), lay: {[tech]: [lay]}, klass, time, bottoms: [], size: 'dengeli', rodMax: '', name: ''};
+  const raw = genSystem(ans).find(r => !r.own) || genSystem(ans)[0] || null;
+  if (raw && t.like) { raw.name = t.name + ' · ' + KB.LAY[lay].name; raw.target = t.name; }
+  const rg = raw ? resolveRig(Object.assign({sys: 'plan'}, raw, {id: 'plan:' + s.id})) : null;
+  return {s, t, techs, tech, lays, lay, klasses, klass, times, time, ans, raw, rg};
+}
+function targetStatus(t){
+  const sid = t.like || t.id; const rs = RIG_LIST.filter(r => (r.species || []).includes(sid));
+  return {rs, ok: rs.filter(ready)};
+}
+// ---- Türlerim listesi
+function sheetTurler(){
+  const tg = S.targets || [];
+  const chip = st => st.ok.length ? '<span class="chip A">Hazır · ' + st.ok.length + ' rig</span>' : st.rs.length ? '<span class="chip buy">Eksik · ' + st.rs.length + ' rig</span>' : '<span class="chip">Takım yok</span>';
+  const row = t => { const s = tgtSp(t); const st = targetStatus(t);
+    return '<button type="button" class="mrow" data-tur="' + esc(t.id) + '"><span><b>' + esc(t.name) + '</b><small>' + esc(s ? (t.like ? 'benzer: ' + s.name + ' · ' : '') + (KB.FAM[s.fam] || {}).name : '') + '</small></span>' + chip(st) + '</button>'; };
+  const mine = new Set(tg.map(t => t.like || t.id));
+  const sysSp = [...new Set(RIG_LIST.flatMap(r => r.species || []))].filter(id => !mine.has(id) && spById(id));
+  return sheetBar('Türlerim') + '<div class="stack"><p class="sub">Hedeflediğin türü ekle; uygulama hangi takımla gitmen gerektiğini, elinde ne olduğunu ve neyi alman gerektiğini çıkarır.</p>' +
+    '<label class="f">Tür ekle<input id="tr-q" type="search" placeholder="Ör. istavrit, çinekop, sinarit" autocomplete="off"></label><div class="catres" id="trRes"></div>' +
+    (ui.custom ? customPick() : '') +
+    (tg.length ? '<div class="eyebrow">Hedef türlerim (' + tg.length + ')</div><div class="mlist">' + tg.map(row).join('') + '</div>' : '<div class="empty">Henüz tür eklemedin. Yukarıya bir tür adı yaz.</div>') +
+    (sysSp.length ? '<div class="eyebrow">Rig sistemimdeki türler</div><div class="bchips">' + sysSp.map(id => '<button type="button" class="bchip" data-tur="' + esc(id) + '">' + esc(spById(id).name) + '</button>').join('') + '</div>' : '') + '</div>';
+}
+function trSearch(q){
+  const el = $('trRes'); if (!el) return;
+  const res = speciesSearch(q);
+  el.innerHTML = res.map(r => '<button type="button" class="catpick" data-tradd="' + esc(r.s.id) + '"><b>' + esc(r.s.name) + (r.via ? ' <small>(' + esc(r.via) + ')</small>' : '') + '</b><small>' + esc(r.s.latin + ' · ' + ((KB.FAM[r.s.fam] || {}).name || '')) + '</small></button>').join('') +
+    (slugTR(q).length >= 2 && !res.some(r => [r.s.name].concat(SP_ALIAS[r.s.id] || []).some(x => slugTR(x) === slugTR(q))) ? '<button type="button" class="catpick" data-trcustom="' + esc(q.trim()) + '"><b>“' + esc(q.trim()) + '” listede yok</b><small>Adıyla ekle ve hangi türe benzediğini seç</small></button>' : '');
+}
+function customPick(){
+  const by = {}; KB.SPECIES.forEach(s => { (by[s.fam] = by[s.fam] || []).push(s); });
+  return '<section class="set"><h4>“' + esc(ui.custom) + '” hangi türe benziyor?</h4><p class="note">Takım planı benzer türün kurallarıyla çıkar; adı senin yazdığın gibi kalır.</p>' +
+    Object.keys(by).map(f => '<div class="eyebrow">' + esc((KB.FAM[f] || {}).name || f) + '</div><div class="bchips">' + by[f].map(s => '<button type="button" class="bchip" data-trlike="' + esc(s.id) + '">' + esc(s.name) + '</button>').join('') + '</div>').join('') +
+    '<button class="btn small" type="button" data-trcustom="">Vazgeç</button></section>';
+}
+function addTarget(id, name, like){
+  S.targets = S.targets || [];
+  const tid = like ? 'c:' + slugTR(name) : id;
+  if (!S.targets.some(t => t.id === tid)) S.targets.push({id: tid, name: name || (spById(id) || {}).name || id, like: like || null, added: new Date().toISOString()});
+  ui.custom = null; persist(); return tid;
+}
+// ---- tür planı
+function sheetTur(id){
+  let t = (S.targets || []).find(x => x.id === id);
+  if (!t) { const s = spById(id); if (!s) return sheetBar('Tür') + '<div class="empty">Tür bulunamadı.</div>'; t = {id, name: s.name, like: null, temp: true}; }
+  const p = planFor(t); const s = p.s;
+  const mode = S.mode || 'tekne'; const reg = regionOf(loc()); const REG = Object.fromEntries(KB.REGIONS);
+  const month = new Date().getMonth() + 1;
+  const info = [
+    ['Takım ailesi', (KB.FAM[s.fam] || {}).name],
+    ['Ne zaman', s.m ? s.m.map(m => MON3[m - 1]).join(' ') + (s.m.includes(month) ? ' · şu an mevsimi' : ' · şu an mevsimi değil') : 'Yıl boyu'],
+    ['Saat', s.t.map(x => ({gunduz: 'gündüz', gece: 'gece', safak: 'şafak'}[x] || x)).join(', ')],
+    ['Derinlik', s.depth[0] + '–' + s.depth[1] + ' m'],
+    ['Dip', s.hab.map(b => BOTTOM_TXT[b] || b).join(', ')],
+    [[].concat(s.b.g || [], s.b.n || []).every(x => LURE_WORDS.test(trLower(x))) ? 'Sahte yem' : 'Yem', [].concat(s.b.g || [], s.b.n || []).filter((x, i, a) => a.indexOf(x) === i).join(', ')],
+    ['Boy', Object.entries(s.sz).map(([k, v]) => (k === 'trofe' ? 'trofe ' : 'porsiyon ') + v).join(' · ')],
+    ['Bölge', s.bol.map(r => REG[r]).join(', ')]];
+  const warn = [];
+  if (!s.bol.includes(reg)) warn.push('Bu tür ' + (REG[reg] || reg) + ' bölgesinde az görülür (genel bilgi).');
+  if (s.note) warn.push(s.note);
+  // grubundan bu türün avları
+  let grp = '';
+  try { const L = loc(); const gc = (typeof grpCatches === 'function' ? grpCatches() : []).filter(c => c.sp === s.id);
+    if (gc.length) { const near = L ? gc.map(c => distKm(L, c)).sort((a, b) => a - b)[0] : null;
+      grp = '<p class="note"><b>Grubunda ' + gc.length + ' av</b>' + (near != null ? ', en yakını ' + f1(near) + ' km' : '') + '. Yerini ortak av haritasında gör.</p>'; } } catch (e) {}
+  const st = targetStatus(t);
+  const ds = days(); const dd = ds.find(d => d.key === dateKey(new Date())) || ds[0];
+  const have = st.rs.length ? '<section class="set"><h4>Sistemindeki takım</h4>' + st.rs.slice(0, 4).map(r => '<div class="row" style="justify-content:space-between"><span>' + esc((r.code ? r.code + ' · ' : '') + r.name) + '</span>' + (ready(r) ? '<span class="chip A">Hazır</span>' : '<span class="chip buy">Eksik: ' + missingOf(r).length + '</span>') + '</div>').join('') + '</section>' : '';
+  let plan = '';
+  if (p.rg) {
+    const miss = missingOf(p.rg);
+    const techChips = p.techs.map(x => '<button class="btn small" type="button" data-trtech="' + x + '" aria-pressed="' + (x === p.tech) + '">' + esc(KB.TECH[x].name.replace(/\s*\(.*?\)/g, '')) + (KB.TECH[x].modes.includes(mode) ? '' : ' (' + (mode === 'tekne' ? 'kıyı' : 'tekne') + ')') + '</button>').join('');
+    const layChips = p.lays.length > 1 ? '<div class="seg wrapseg">' + p.lays.map(l => '<button class="btn small" type="button" data-trlay="' + l + '" aria-pressed="' + (l === p.lay) + '">' + esc(KB.LAY[l].name) + '</button>').join('') + '</div>' : '';
+    const kChips = p.klasses.length > 1 ? p.klasses.map(k => '<button class="btn small" type="button" data-trklass="' + k + '" aria-pressed="' + (k === p.klass) + '">' + (k === 'trofe' ? 'Trofe' : 'Porsiyon') + '</button>').join('') : '';
+    const tChips = p.times.length > 1 ? p.times.map(k => '<button class="btn small" type="button" data-trtime="' + k + '" aria-pressed="' + (k === p.time) + '">' + (k === 'gece' ? 'Gece' : 'Gündüz') + '</button>').join('') : '';
+    const sys = S.systems.tur; const added = sys && (sys.rigs || []).find(r => r.plan && r.plan.target === t.id && r.tech === p.tech && r.lay === p.lay && r.klass === p.klass && r.time === p.raw.time);
+    const bp = baitPick(p.rg);
+    plan = '<section class="set"><h4>Önerilen takım</h4><p class="note">' + esc(KB.TECH[p.tech].desc) + (gearReady(p.lay, p.ans.mode) ? ' Elindeki kamış ve makine bu işe uyuyor.' : '') + '</p>' +
+      '<div class="seg wrapseg">' + techChips + '</div>' + layChips + ((kChips || tChips) ? '<div class="seg wrapseg">' + kChips + tChips + '</div>' : '') + '</section>' +
+      rigCard(p.rg, dd, null, null, 'envanter') +
+      '<section class="set"><h4>' + (miss.length ? 'Alman gerekenler (' + miss.length + ')' : 'Takımın tam') + '</h4>' +
+      (miss.length ? '<ul class="buy">' + miss.map(sl => { const e = sl.t.envanter || {}; const tk = sl.t.turkiye || {}; const it = e.item && ITEMS[e.item];
+        const nm = it ? it.name : (tk.name || e.name || ''); const sz = e.size || tk.size;
+        return '<li><b>' + esc(sl.label) + ':</b> ' + (nm && nm !== sl.label ? esc(nm) + ' ' : '') + (sz ? '<span class="mono">' + esc(sz) + '</span>' : '') + '</li>'; }).join('') + '</ul>' : '<p class="note">Bu rig için gereken her şey envanterinde var.</p>') +
+      (bp.use && bp.use.st ? '<p class="note"><b>Yem:</b> ' + esc(bp.use.t) + (bp.use.st === 'var' ? ' (elinde)' : ' (gitmeden al; rigin hazır olmasını etkilemez)') + '</p>' : '') +
+      '<div class="row">' + (miss.length ? '<button class="btn primary" type="button" data-trshop="' + esc(t.id) + '">Alışveriş listesine aktar</button>' : '') +
+      (added ? '<button class="btn" type="button" data-trdelrig="' + esc(added.id) + '">Sistemimden çıkar</button>' : '<button class="btn" type="button" data-trrig="' + esc(t.id) + '">Rigi sistemime ekle</button>') + '</div>' +
+      (added ? '<p class="note">Bu rig “Tür planlarım” sisteminde' + (ready(RIGS[added.id] || p.rg) ? ' ve hazır; uygun günde önerilere girer.' : '; eksikler tamamlanınca önerilere girer.') + '</p>' : '') + '</section>';
+  } else plan = '<div class="empty">Bu tür için önerilecek takım bulunamadı.</div>';
+  return '<div class="bar"><button class="btn" type="button" data-open="turler">Geri</button><h3 id="sheetTitle">' + esc(t.name) + '</h3><span style="width:64px"></span></div><div class="stack">' +
+    '<p class="sub">' + esc(s.latin) + (t.like ? ' · “' + esc(s.name) + '” kurallarıyla' : '') + '</p>' +
+    '<div class="tbl panel info"><table><tbody>' + info.map(([k, v]) => '<tr><th>' + esc(k) + '</th><td>' + esc(v || '—') + '</td></tr>').join('') + '</tbody></table></div>' +
+    warn.map(w => '<p class="banner">' + esc(w) + '</p>').join('') + grp + have + plan +
+    '<p class="note">Takım bilgisi geneldir. Bölgende bu türün nerede ve ne zaman olduğunu arkadaşlarına sor; en azından hangi takımla gideceğini baştan bilirsin.</p>' +
+    (t.temp ? '<button class="btn" type="button" data-trkeep="' + esc(t.id) + '">Hedef türlerime ekle</button>' : '<button class="btn small" type="button" data-trdel="' + esc(t.id) + '" style="color:var(--D)">Listeden çıkar</button>') + '</div>';
+}
+// eksikleri alışveriş listesine aktar ("<tür> için")
+function planToShop(id){
+  const t = (S.targets || []).find(x => x.id === id) || {id, name: (spById(id) || {}).name || id};
+  const p = planFor(t); if (!p || !p.rg) return 0;
+  S.shopX = S.shopX || {}; let n = 0;
+  missingOf(p.rg).forEach(sl => {
+    const e = sl.t.envanter || {}; const tk = sl.t.turkiye || {};
+    const k = e.item ? e.item + '|' + (e.size || '-') : 'x|' + (tk.name || e.name || sl.label) + '|' + (tk.size || '');
+    const x = S.shopX[k] = S.shopX[k] || {k, item: e.item || null, size: e.item ? e.size : (tk.size || null), name: e.item ? null : (tk.name || e.name || sl.label), store: tk.store || null, kind: sl.kind, sp: sl.sp || null, for: [], added: new Date().toISOString()};
+    if (!x.for.includes(t.name)) { x.for.push(t.name); n++; }
+  });
+  persist(); return n;
+}
+// rigi "Tür planlarım" sistemine ekle (Rig Atölyesi rigi gibi saklanır; envanter değiştikçe kendiliğinden güncellenir)
+function planToSystem(id){
+  let t = (S.targets || []).find(x => x.id === id);
+  if (!t) { addTarget(id); t = S.targets.find(x => x.id === id); }
+  const p = planFor(t); if (!p || !p.raw) return null;
+  const sys = S.systems.tur = S.systems.tur || {id: 'tur', name: 'Tür planlarım', source: 'tur', active: true, created: new Date().toISOString(), rigs: []};
+  const raw = JSON.parse(JSON.stringify(p.raw));
+  let code = 'T-' + raw.code, c = code, n = 2; while (sys.rigs.some(r => r.code === c)) c = code + '·' + n++;
+  raw.code = c; raw.id = 'tur:' + c; raw.plan = {species: p.s.id, target: t.id};
+  sys.rigs.push(raw); sys.active = true; sys.updated = new Date().toISOString();
+  S.onboarded = true; persist(); indexAll(); return raw.id;
 }
 
 // ---------------------------------------------------------------- 80 · bulut yedek (GitHub, uçtan uca şifreli)
@@ -4708,7 +5059,7 @@ function checklist(){
       if (seenRig.has(rg.id)) return; seenRig.add(rg.id); out.rigs.push(rg);
       rg.slots.forEach(sl => { const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item]; const nm = (it ? it.name : e.name || sl.label) + (e.size ? ' ' + e.size : ''); gear[nm] = (gear[nm] || []).concat(rg.code || rg.name); });
       const ld = leadFor(rg, dd, x); if (ld && ld.kursun) { const k = 'Kurşun ' + ld.kursun + (ld.grip ? ' (çapalı)' : ''); gear[k] = (gear[k] || []).concat(rg.code || rg.name); }
-      const bp = baitPick(rg); if (bp.use) bait.add(bp.use.t + (bp.use.st === 'var' ? ' (elinde)' : bp.use.st === 'yok' ? ' (gitmeden al)' : ''));
+      const bp = baitPick(rg); if (bp.use && bp.use.st) bait.add(bp.use.t + (bp.use.st === 'var' ? ' (elinde)' : bp.use.st === 'yok' ? ' (gitmeden al)' : ''));
     });
     out.gear = Object.entries(gear).map(([k, v]) => ({k, v: [...new Set(v)]}));
     out.bait = [...bait];
@@ -4980,13 +5331,15 @@ function show(v){
   window.scrollTo({top: 0});
   try { history.replaceState(history.state, '', '#' + v); } catch (e) {}
 }
-function setQty(k, v){ setQtyVal(k, v); persist(); renderAll(); }
+// envanter değişince rigler yeniden çözülür (yuvaya en uygun kalem değişmiş olabilir)
+function invChanged(){ persist(); indexAll(); renderAll(); }
+function setQty(k, v){ setQtyVal(k, v); invChanged(); }
 // adet/paket satırındaki "Alınacak": işaretliyse kaldırır (0 sayısı da silinir), değilse alınacak listesine koyar
 function alkToggle(k){
   const st = stockOf(k.split('|')[0], k.split('|')[1]);
   if (toBuy(st) || S.inv.status[k] === 'alinacak') { if (qtyOf(k) === 0) delete S.inv.qty[k]; delete S.inv.status[k]; }
   else S.inv.status[k] = 'alinacak';
-  persist(); renderAll();
+  invChanged();
 }
 const reShop = () => { if (ui.sheet === 'alisveris') openMore('alisveris', true); };
 function armOnce(b, txt){ if (b.dataset.armed) return true; b.dataset.armed = '1'; b.dataset.orig = b.textContent; b.textContent = txt; setTimeout(() => { if (b.isConnected && b.dataset.armed) { delete b.dataset.armed; b.textContent = b.dataset.orig; } }, 5000); return false; }
@@ -5008,7 +5361,7 @@ function bindEvents(){
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
-    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
+    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzsadd || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
     if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
     if (d.systool) {
       const sy = S.systems[d.sid]; if (!sy) return;
@@ -5019,14 +5372,25 @@ function bindEvents(){
     if (d.catpick != null && d.catpick !== '') { catalogPick(Number(d.catpick)); return; }
     if (d.buyadd) { buyAdd(d.buyadd); return; }
     if (d.open) { openMore(d.open); return; }
+    // Türlerim ve tür planı
+    if (d.tur) { ui.sheetArg = d.tur; openMore('tur'); return; }
+    if (d.tradd) { addTarget(d.tradd); ui.sheetArg = d.tradd; renderAll(); openMore('tur'); return; }
+    if (d.trcustom != null) { ui.custom = d.trcustom || null; openMore('turler', true); return; }
+    if (d.trlike) { const id = addTarget(null, ui.custom, d.trlike); ui.sheetArg = id; renderAll(); openMore('tur'); return; }
+    if (d.trtech || d.trlay || d.trklass || d.trtime) { ui.plan = ui.plan || {}; if (d.trtech) { ui.plan.tech = d.trtech; ui.plan.lay = null; } if (d.trlay) ui.plan.lay = d.trlay; if (d.trklass) ui.plan.klass = d.trklass; if (d.trtime) ui.plan.time = d.trtime; openMore('tur', true); return; }
+    if (d.trshop) { const n = planToShop(d.trshop); renderAll(); openMore('tur', true); toast(n ? n + ' kalem alışveriş listesine aktarıldı' : 'Bu kalemler zaten listede'); return; }
+    if (d.trrig) { planToSystem(d.trrig); renderAll(); openMore('tur', true); toast('Rig “Tür planlarım” sistemine eklendi'); return; }
+    if (d.trdelrig) { const sy = S.systems.tur; if (sy) { sy.rigs = sy.rigs.filter(r => r.id !== d.trdelrig); if (!sy.rigs.length) delete S.systems.tur; } ui.sys = 'all'; persist(); indexAll(); renderAll(); openMore('tur', true); toast('Rig sistemden çıkarıldı'); return; }
+    if (d.trdel) { if (!armOnce(b, 'Çıkarmak için tekrar dokun')) return; S.targets = (S.targets || []).filter(t => t.id !== d.trdel); persist(); renderAll(); openMore('turler'); return; }
+    if (d.trkeep) { addTarget(d.trkeep); renderAll(); openMore('tur', true); toast('Hedef türlerine eklendi'); return; }
     if (d.step) { const k = d.k; const cur = Number(S.inv.qty[k] || 0); setQty(k, Math.max(0, cur + Number(d.step))); return; }
-    if (d.cyc) { cycleStatus(d.cyc); persist(); renderAll(); return; }
-    if (d.stk && d.st) { setStatus(d.stk, d.st); persist(); renderAll(); return; }
-    if (d.unit && d.u) { setUnit(d.unit, d.u); persist(); renderAll(); toast(UNIT_TXT[d.u] + ' ile sayılıyor'); return; }
+    if (d.cyc) { cycleStatus(d.cyc); invChanged(); return; }
+    if (d.stk && d.st) { setStatus(d.stk, d.st); invChanged(); return; }
+    if (d.unit && d.u) { setUnit(d.unit, d.u); invChanged(); toast(UNIT_TXT[d.u] + ' ile sayılıyor'); return; }
     if (d.alk) { alkToggle(d.alk); return; }
-    if (d.qadd) { setQtyVal(d.qadd, 1); persist(); renderAll(); return; }
+    if (d.qadd) { setQtyVal(d.qadd, 1); invChanged(); return; }
     if (d.bait) { const k = d.bait + '|-'; setStatus(k, usable(stockOf(d.bait, '-')) ? 'yok' : 'var'); persist(); renderAll(); return; }
-    if (d.bought) { setStatus(d.bought, 'var'); persist(); renderAll(); reShop(); toast('Envantere işlendi'); return; }
+    if (d.bought) { setStatus(d.bought, 'var'); invChanged(); reShop(); toast('Envantere işlendi'); return; }
     if (d.itst) { document.querySelectorAll('#it-st button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); return; }
     if (d.rseg) { ui.rigSeg = d.rseg; renderRigs(); return; }
     if (d.sys) { ui.sys = d.sys; renderRigs(); return; }
@@ -5093,6 +5457,8 @@ function bindEvents(){
     const el = e.target;
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; applyTheme(); return; }
     if (el.id === 'it-search') { catalogSearch(el.value); return; }
+    if (el.id === 'tr-q') { trSearch(el.value); return; }
+    if (el.id === 'wz-spq' && WZ) { wzSpSearch(el.value); return; }
     if (el.id === 'wz-rod' && WZ) { WZ.ans.rodMax = el.value.trim(); return; }
     if (el.id === 'wz-name' && WZ) { WZ.ans.name = el.value; return; }
     if (el.id === 'cf-t') { const v = el.value ? new Date(el.value) : null; if (v && !isNaN(v)) $('cf-tlbl').textContent = fmtDT(v); return; }
@@ -5108,7 +5474,7 @@ function bindEvents(){
       // sayı odaktan çıkarken de "change" olur: değişmediyse bir şey yapma; değiştiyse çizimi biraz geciktir ki aynı dokunuştaki −/+ kaybolmasın
       const k = el.dataset.qk, v = el.value.trim(); const cur = qtyOf(k);
       if ((cur == null ? '' : String(cur)) === v) return;
-      setQtyVal(k, v); persist(); setTimeout(() => { renderAll(); reShop(); }, 250); toast('Kaydedildi'); return;
+      setQtyVal(k, v); persist(); setTimeout(() => { indexAll(); renderAll(); reShop(); }, 250); toast('Kaydedildi'); return;
     }
     if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; if (!L) return; L[el.dataset.f] = el.value.trim() || (el.dataset.f === 'name' ? L.name : ''); persist(); renderAll(); toast('Kaydedildi'); return; }
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; persist(); applyTheme(); renderAll(); openMore('ayarlar', true); return; }
@@ -5152,7 +5518,8 @@ function bindEvents(){
 // test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
   state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc(),
-  items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD};
+  items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
+  rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig};
 (async () => {
   loadState();
   pkgLoadCached();

@@ -96,6 +96,13 @@ const KB = (() => {
     S('kalamar', 'Kalamar', 'Loligo vulgaris', 'kafadan', ['kayalik', 'karma', 'orta-su'], [2, 60], [10, 11, 12, 1, 2, 3], ['gece', 'safak'], {g: ['Egi'], n: ['Egi', 'Kalamar çaparisi']}, ALL, {porsiyon: '100–500 g', trofe: '1–2 kg'}),
     S('murekkep', 'Mürekkep balığı', 'Sepia officinalis', 'kafadan', ['kum', 'karma'], [2, 40], [2, 3, 4, 5], ['gunduz', 'safak'], {g: ['Egi']}, AEG, {porsiyon: '0,3–1,5 kg'}),
     S('ahtapot', 'Ahtapot', 'Octopus vulgaris', 'kafadan', ['kayalik', 'karma'], [2, 60], null, ['gunduz'], {g: ['Ahtapot zokası', 'Yengeç']}, AEG, {porsiyon: '0,5–2 kg', trofe: '3–8 kg'}, 'Boy ve dönem sınırı olabilir; güncel tebliği kontrol et.'),
+    // v0.12: tür planı için eklenenler
+    S('kirma', 'Kırma mercan', 'Pagellus acarne', 'so', ['kum', 'karma', 'camur'], [10, 100], null, ['gunduz'], {g: ['Mamun', 'Karides', 'Sülünez']}, AEG, {porsiyon: '100–300 g'}),
+    S('hani', 'Hani', 'Serranus cabrilla', 'kaya', ['kayalik', 'karma', 'kum-kayalik'], [5, 80], null, ['gunduz'], {g: ['Kalamar', 'Karides', 'Sardalya']}, AEG, {porsiyon: '50–300 g'}),
+    S('kaya-baligi', 'Kaya balığı', 'Gobius spp.', 'sk', ['kayalik', 'karma'], [0, 20], null, ['gunduz'], {g: ['Mamun parçası', 'Karides']}, ALL, {porsiyon: '30–150 g'}),
+    S('gelincik', 'Gelincik', 'Phycis phycis', 'kaya', ['kayalik', 'karma'], [30, 200], null, ['gece'], {n: ['Kalamar', 'Sardalya', 'Mamun']}, ['ege', 'akdeniz'], {porsiyon: '0,3–1,5 kg'}),
+    S('trakonya', 'Trakonya', 'Trachinus draco', 'kum', ['kum', 'camur'], [5, 100], null, ['gunduz', 'gece'], {g: ['Mamun', 'Karides'], n: ['Mamun']}, ALL, {porsiyon: '100–300 g'}, 'Sırt ve solungaç dikenleri zehirli; eldivenle tut, dikkatle sök.'),
+    S('sarikuyruk', 'Sarıkuyruk', 'Seriola dumerili', 'yirtici', ['kayalik', 'orta-su'], [10, 150], [5, 6, 7, 8, 9, 10], ['safak', 'gunduz'], {g: ['Canlı istavrit', 'Canlı kalamar', 'Sahte yem']}, ['ege', 'akdeniz'], {porsiyon: '3–8 kg', trofe: '10–40 kg'}),
   ];
   // takım aileleri: iğne deseni ve boy aralığı (jp: No, w: # ve /0), köstek/beden/ana ip çapı (mm)
   const FAM = {

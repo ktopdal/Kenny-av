@@ -93,5 +93,13 @@ function shoppingList(){
     const n = add(k, {item: it.id, size: sz !== '-' ? sz : null, name: null, store: null, kind: it.cat, sp: null});
     const w = st === 'bitti' ? 'bitti' : 'alinacak'; if (!n.why.includes(w)) n.why.push(w);
   }); });
+  // tür planından aktarılanlar ("İstavrit için"): alınınca (envanterde var olunca) kendiliğinden düşer
+  Object.values(S.shopX || {}).forEach(x => {
+    if (x.item) { if (!ITEMS[x.item] || usable(stockOf(x.item, x.size || '-'))) return; }
+    if (x.sp) { try { if (resolveSlot(x.sp).strict) return; } catch (e) {} }   // başka bir kalemle karşılandı (ör. kamışı formdan ekledin)
+    const n = add(x.k, {item: x.item || null, size: x.size || null, name: x.item ? null : x.name, store: x.store || null, kind: x.kind, sp: x.sp || null});
+    if (!n.sp && x.sp) n.sp = x.sp;
+    (x.for || []).forEach(f => { const w = 'tur:' + f; if (!n.why.includes(w)) n.why.push(w); });
+  });
   return Object.values(need);
 }

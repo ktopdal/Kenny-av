@@ -65,7 +65,9 @@ function renderWizard(keep){
     const by = {}; wzSpecies().forEach(s => { (by[s.fam] = by[s.fam] || []).push(s); });
     body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve bölgene uyan türler. Altlarındaki aylar genel bilgidir.</p>' +
       (Object.keys(by).map(f => '<div class="famgrp"><div class="row" style="justify-content:space-between"><span class="eyebrow">' + esc((KB.FAM[f] || {}).name || f) + '</span><button class="linkbtn" type="button" data-wzall="' + f + '">Hepsini seç</button></div><div class="opts sp">' +
-        by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>');
+        by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>') +
+      (a.species.filter(id => !wzSpecies().some(s => s.id === id)).length ? '<p class="note">Aramadan eklenenler: ' + esc(a.species.filter(id => !wzSpecies().some(s => s.id === id)).map(id => (spById(id) || {}).name).filter(Boolean).join(', ')) + '</p>' : '') +
+      '<section class="set"><h4>Aradığın tür listede yok mu?</h4><p class="note">Bütün türlerde ara; seçince ona uygun teknik de sisteme eklenir.</p><label class="f"><input id="wz-spq" type="search" placeholder="Ör. istavrit, çinekop" autocomplete="off" aria-label="Tür ara"></label><div class="catres" id="wzSpRes"></div></section>';
   } else if (st === 3) {
     body = wzBaitStep(a);
   } else if (st === 4) {
@@ -96,6 +98,13 @@ function wzClick(d){
   else if (d.wzr) { a.region = d.wzr; }
   else if (d.wzt) { wzToggle(a.techs, d.wzt); if (a.techs.includes(d.wzt) && !(a.lay[d.wzt] || []).length) a.lay[d.wzt] = [KB.TECH[d.wzt].lay[0]]; }
   else if (d.wzs) { wzToggle(a.species, d.wzs); }
+  else if (d.wzsadd) {   // aramadan tür: uygun tekniği de ekle
+    const sp = spById(d.wzsadd); if (!sp) return;
+    const tid = techsFor(sp).find(t => wzTechs().includes(t)) || null;
+    if (tid && !a.techs.includes(tid)) { a.techs.push(tid); if (!(a.lay[tid] || []).length) a.lay[tid] = [KB.TECH[tid].lay[0]]; }
+    if (!a.species.includes(sp.id)) a.species.push(sp.id);
+    toast(sp.name + (tid ? ' eklendi · teknik: ' + KB.TECH[tid].name.replace(/\s*\(.*?\)/g, '') : ' eklendi'));
+  }
   else if (d.wzy) { if (!Array.isArray(a.baits)) a.baits = []; wzToggle(a.baits, d.wzy); }
   else if (d.wzall) { const ids = wzSpecies().filter(s => s.fam === d.wzall).map(s => s.id); const all = ids.every(i => a.species.includes(i)); ids.forEach(i => { const k = a.species.indexOf(i); if (all && k >= 0) a.species.splice(k, 1); if (!all && k < 0) a.species.push(i); }); }
   else if (d.wzl) { const [t, l] = d.wzl.split('|'); a.lay[t] = a.lay[t] || []; wzToggle(a.lay[t], l); }
@@ -126,4 +135,9 @@ function wzFinish(){
   const edit = !!WZ.editId; WZ = null; closeSheet();
   ui.sys = id; ui.rigSeg = 'all'; show('rigler'); renderAll();
   toast(rigs.length + ' rig ' + (edit ? 'güncellendi' : 'kuruldu'));
+}
+
+function wzSpSearch(q){
+  const el = $('wzSpRes'); if (!el) return;
+  el.innerHTML = speciesSearch(q).map(r => '<button type="button" class="catpick" data-wzsadd="' + esc(r.s.id) + '"><b>' + esc(r.s.name) + (WZ.ans.species.includes(r.s.id) ? ' ✓' : '') + '</b><small>' + esc((KB.FAM[r.s.fam] || {}).name || '') + '</small></button>').join('') || (slugTR(q).length >= 2 ? '<p class="note">Bulunamadı. Türlerim ekranında “benzer tür” seçerek ekleyebilirsin.</p>' : '');
 }

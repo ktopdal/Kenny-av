@@ -257,3 +257,10 @@ details.wzmore summary{cursor:pointer;color:var(--brand);font-weight:500;margin:
 .sgrp .gh{font:600 13px var(--body);color:var(--ink-2);padding:6px 0 2px;border-bottom:1px solid var(--line-2)}
 .sgrp .bchips{padding:8px 0}
 .szs .note{align-self:center}
+
+/* ---------- v0.12: Türlerim ve tür planı ---------- */
+.mlist{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.mlist .mrow .chip{flex:none}
+ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.tbl.info table{min-width:0}
+.tbl.info th{width:34%;text-transform:none;font:600 12.5px var(--body);color:var(--muted)}

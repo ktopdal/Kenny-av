@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.12.0', notes: [
+    'Türlerim: hedeflediğin türü ekle (yerel adlar da: çinekop, torik, çupra…); ne zaman, kaç metrede, hangi dipte ve yemle tutulduğu yazar',
+    'Tür planı: tekne ya da kıyı moduna ve elindeki kamışa göre önerilen takım; neyin elinde olduğu, neyi alman gerektiği',
+    '“Alışveriş listesine aktar”: eksikler “İstavrit için” başlığıyla listeye düşer; “Rigi sistemime ekle”: rig Tür planlarım sisteminde, tamamlanınca önerilere girer',
+    'Rig Atölyesi rigleri artık kamış, makine ve terminale (fırdöndü, boncuk, kurşun gramı) de bakar; hayalindeki kamışı “alınacak” girersen rig eksik kalır',
+    'Rig Atölyesi’nde tür arama: listede olmayan türü seçince uygun teknik de eklenir. Yeni türler: kırma mercan, hani, kaya balığı, gelincik, trakonya, sarıkuyruk',
+  ]},
   {v: '0.11.0', notes: [
     'Envanter yeni düzen: makine, kamış, ip, terminal, kurşun ve yemde adet yok; yalnızca var, alınacak ya da yok',
     'İğnede adet ya da paket (Ayarlar → Envanter ya da kalemin üstünden); sayı 0 olunca “bitti · al” olur ve alışveriş listesine düşer. Sayısız işaretlemede boya dokun: var → bitti → yok',

@@ -1,18 +1,18 @@
-"""Alyssa v0.3–v0.11 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v11_check.py
+"""Alyssa v0.3–v0.12 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v12_check.py
 """
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v11'
+SHOTS = ROOT + '/qa/v12'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8776
+PORT = 8777
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -214,7 +214,7 @@ async def main():
         for v in ['takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(200); await overflow(pg, v)
         await pg.screenshot(path=SHOTS + '/a_daha.png')
-        check(await pg.locator('#moreMenu .mrow').count() == 15, 'Daha menüsü 15 satır')
+        check(await pg.locator('#moreMenu .mrow').count() == 16, 'Daha menüsü 16 satır')
         # alışveriş: aynı rig iki kez yok
         await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
         lines = await pg.locator('#sheet .item .sp').all_inner_texts()
@@ -807,8 +807,19 @@ async def main():
             await pg.click('#itSave'); await pg.wait_for_timeout(250)
         await pg.screenshot(path=SHOTS + '/f_envanter.png')
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#rigList article.rig:not(.off)').count() == 0, 'F: iğne ve ip var ama kamış, makine ve terminal yokken rig hazır değil')
+        t1 = await pg.locator('#rigList article.rig').first.inner_text(); check(U('Kamış') in U(t1) and U('Makine') in U(t1) and U('T-fırdöndü') in U(t1), 'F: rig kartında kamış, makine ve terminal satırları')
+        # kamış, makine ve terminal
+        await pg.click('.tabbar button[data-v="envanter"]'); await pg.click('button[data-iseg="gear"]'); await pg.wait_for_timeout(150)
+        await pg.click('#addItem'); await pg.wait_for_timeout(200); await pg.fill('#it-brand', 'Shimano'); await pg.fill('#it-model', 'Alivio Boat'); await pg.select_option('#it-rodt', 'tekne'); await pg.fill('#it-rodm', '200'); await pg.click('#itSave'); await pg.wait_for_timeout(250)
+        await pg.click('#addItem'); await pg.wait_for_timeout(200); await pg.select_option('#it-cat', 'reel'); await pg.fill('#it-brand', 'Shimano'); await pg.fill('#it-model', 'Socorro 5000'); await pg.fill('#it-reels', '5000'); await pg.click('#itSave'); await pg.wait_for_timeout(250)
+        await pg.click('button[data-iseg="terminal"]'); await pg.wait_for_timeout(150)
+        for k in ['std:t:tfirdondu|-', 'std:t:firdondu|-', 'std:t:stop|-']:
+            await pg.click(f'#invList button[data-stk="{k}"][data-st="var"]'); await pg.wait_for_timeout(150)
+        await pg.click('#invList button[data-cyc="std:t:k-armut|120 g"]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
         ready_n = await pg.locator('#rigList article.rig:not(.off)').count()
-        check(ready_n >= 2, 'F: envanter eklenince porsiyon dip rigleri hazır (%d)' % ready_n)
+        check(ready_n >= 2, 'F: kamış, makine ve terminal eklenince porsiyon dip rigleri hazır (%d)' % ready_n)
         await pg.screenshot(path=SHOTS + '/f_rigler_hazir.png')
         # alışveriş: orkinos için eksikler, "Aldım, envantere ekle"
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
@@ -994,6 +1005,114 @@ async def main():
         await ctx.close()
         check(GKEY and GKEY not in open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read(), 'N: önizlemede harita anahtarı yok')
         check(GKEY and GKEY not in open(ROOT + '/app/dist/index.html', encoding='utf-8').read() and GKEY not in open(ROOT + '/app/dist/paket/ozel.enc.json', encoding='utf-8').read(), 'N: yayın dosyalarında anahtar düz yazılı değil')
+
+        # ================================================== P) v0.12: Türlerim, tür planı, kamış/makine/terminal gereksinimi
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="bos"]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="turler"]'); await pg.wait_for_timeout(300)
+        check('Türlerim' in await pg.inner_text('#sheet') and await pg.is_visible('#tr-q'), 'P: Türlerim ekranı')
+        await pg.fill('#tr-q', 'çinekop'); await pg.wait_for_timeout(200)
+        res = await pg.inner_text('#trRes'); check('Lüfer' in res and 'listede yok' not in res, 'P: yerel ad (çinekop → Lüfer): ' + res.replace('\n', ' ')[:80])
+        await pg.fill('#tr-q', 'istavrit'); await pg.wait_for_timeout(200)
+        await pg.click('#trRes button[data-tradd="istavrit"]'); await pg.wait_for_timeout(400)
+        sh = await pg.inner_text('#sheet')
+        check('Trachurus' in sh and 'Önerilen takım' in sh and 'Alman gerekenler' in sh, 'P: istavrit planı açıldı')
+        pl = await pg.evaluate('() => { const p = ALYSSA_QA.planFor({id: "istavrit", name: "İstavrit"}); return {techs: p.techs, tech: p.tech, kinds: p.rg.slots.map(s => s.kind), miss: ALYSSA_QA.missingOf(p.rg).map(s => s.label)}; }')
+        check(pl['tech'] == 'capari' and 'rod' in pl['kinds'] and 'reel' in pl['kinds'] and 'term' in pl['kinds'], 'P: tekneden istavrit → çapari; kamış, makine, terminal yuvaları: ' + json.dumps(pl, ensure_ascii=False)[:160])
+        check(len(pl['miss']) >= 5 and 'Kamış' in pl['miss'] and 'Makine' in pl['miss'], 'P: boş envanterde alınacaklar %d' % len(pl['miss']))
+        await pg.screenshot(path=SHOTS + '/p_istavrit.png', full_page=True)
+        await pg.click('#sheet button[data-trshop="istavrit"]'); await pg.wait_for_timeout(300)
+        st = await state(pg); check(len(st['shopX']) == len(pl['miss']) and all('İstavrit' in x['for'] for x in st['shopX'].values()), 'P: eksikler alışveriş listesine aktarıldı (%d)' % len(st['shopX']))
+        await pg.click('#sheet button[data-trrig="istavrit"]'); await pg.wait_for_timeout(300)
+        st = await state(pg); tr = st['systems'].get('tur')
+        check(tr and len(tr['rigs']) == 1 and tr['rigs'][0]['code'] == 'T-Ç1', 'P: rig Tür planlarım sistemine eklendi')
+        check('Sistemimden çıkar' in await pg.inner_text('#sheet'), 'P: eklenince “Sistemimden çıkar” görünüyor')
+        await pg.click('#sheet button[data-open="turler"]'); await pg.wait_for_timeout(250)
+        check('İstavrit' in await pg.inner_text('#sheet') and 'Eksik' in await pg.inner_text('#sheet'), 'P: hedef türlerim listesinde istavrit (eksik)')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        await pg.click('#moreMenu button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
+        sh = await pg.inner_text('#sheet'); check(U('İstavrit için') in U(sh) and 'Çapari takımı' in sh, 'P: alışveriş listesinde “İstavrit için” grubu')
+        await pg.screenshot(path=SHOTS + '/p_alisveris.png', full_page=True); await pg.click('#sheet [data-close]')
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check('Tür planlarım' in await pg.inner_text('#sysBar') and await pg.locator('#rigList article.rig.off').count() == 1, 'P: Rigler’de Tür planlarım, rig tamamlanmadı')
+        # envanteri tamamla: kamış, makine, çapari, klipsli fırdöndü, kurşun, örgü ip
+        await pg.click('.tabbar button[data-v="envanter"]'); await pg.click('button[data-iseg="gear"]'); await pg.wait_for_timeout(150)
+        await pg.click('#addItem'); await pg.wait_for_timeout(200); await pg.fill('#it-brand', 'Okuma'); await pg.fill('#it-model', 'Tekne 270'); await pg.select_option('#it-rodt', 'tekne'); await pg.fill('#it-rodl', '2,70'); await pg.fill('#it-rodm', '100'); await pg.click('#itSave'); await pg.wait_for_timeout(250)
+        await pg.click('#addItem'); await pg.wait_for_timeout(200); await pg.select_option('#it-cat', 'reel'); await pg.fill('#it-brand', 'Daiwa'); await pg.fill('#it-model', 'BG 4000'); await pg.fill('#it-reels', '4000'); await pg.click('#itSave'); await pg.wait_for_timeout(250)
+        await pg.click('#addItem'); await pg.wait_for_timeout(200); await pg.select_option('#it-cat', 'braid'); await pg.fill('#it-brand', 'Daiwa'); await pg.fill('#it-model', 'J-Braid x8'); await pg.fill('#it-spec', '0,20 mm'); await pg.click('#itSave'); await pg.wait_for_timeout(250)
+        await pg.click('button[data-iseg="jig"]'); await pg.wait_for_timeout(150); await pg.click('#invList button[data-cyc="std:j:capari-takimi|#10"]'); await pg.wait_for_timeout(200)
+        await pg.click('button[data-iseg="terminal"]'); await pg.wait_for_timeout(150)
+        await pg.click('#invList button[data-stk="std:t:klipsfirdondu|-"][data-st="var"]'); await pg.wait_for_timeout(150); await pg.click('#invList button[data-cyc="std:t:k-armut|50 g"]'); await pg.wait_for_timeout(250)
+        rd = await pg.evaluate('() => { const p = ALYSSA_QA.planFor({id: "istavrit", name: "İstavrit"}); return {miss: ALYSSA_QA.missingOf(p.rg).map(s => s.label), ready: ALYSSA_QA.ready(p.rg)}; }')
+        check(rd['ready'] and not rd['miss'], 'P: envanter tamamlanınca istavrit takımı tam: ' + json.dumps(rd, ensure_ascii=False))
+        sl = await pg.evaluate('ALYSSA_QA.shoppingList().filter(n => n.why.some(w => w.indexOf("tur:") === 0)).length'); check(sl == 0, 'P: “İstavrit için” kalemleri alınınca listeden düştü')
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#rigList article.rig.off').count() == 0, 'P: tür planı rigi hazır')
+        # 2,70 m 100 g kamış: çapariye uyar, dip hırsızlıya (H) uymaz
+        gr = await pg.evaluate('() => { const P = ALYSSA_QA.planFor; const a = P({id: "karagoz", name: "Karagöz"}); return ALYSSA_QA.missingOf(a.rg).map(s => s.label); }')
+        check('Kamış' in gr, 'P: 100 g kamış dip rigine yetmiyor (karagöz planında kamış eksik)')
+        # listede olmayan tür: benzerini seç
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="turler"]'); await pg.wait_for_timeout(250)
+        await pg.fill('#tr-q', 'Gümüşbalığı'); await pg.wait_for_timeout(200)
+        await pg.click('#trRes button[data-trcustom]'); await pg.wait_for_timeout(250)
+        check('hangi türe benziyor' in await pg.inner_text('#sheet'), 'P: listede olmayan tür için benzer tür sorusu')
+        await pg.click('#sheet button[data-trlike="istavrit"]'); await pg.wait_for_timeout(350)
+        st = await state(pg); cu = [t for t in st['targets'] if t['id'].startswith('c:')]
+        check(cu and cu[0]['like'] == 'istavrit' and cu[0]['name'] == 'Gümüşbalığı' and 'Gümüşbalığı' in await pg.inner_text('#sheetTitle'), 'P: özel tür benzerinin kurallarıyla eklendi')
+        await pg.screenshot(path=SHOTS + '/p_ozel_tur.png')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'P %d px tür planı' % w)
+            await pg.click('#sheet button[data-open="turler"]'); await pg.wait_for_timeout(200); await overflow(pg, 'P %d px Türlerim' % w)
+            await pg.click('#sheet button[data-tur="istavrit"]'); await pg.wait_for_timeout(250)
+        await pg.screenshot(path=SHOTS + '/p_plan_320.png'); await pg.set_viewport_size({'width': 390, 'height': 860})
+        # kıyı modu ve LRF takımı: elindeki takıma uyan teknik öne çıkar
+        await pg.click('#sheet button[data-open="turler"]'); await pg.wait_for_timeout(200); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(150)
+        await pg.click('.tabbar button[data-v="envanter"]'); await pg.click('button[data-iseg="gear"]'); await pg.wait_for_timeout(200)
+        await pg.click('#addItem'); await pg.wait_for_timeout(200); await pg.fill('#it-brand', 'Major Craft'); await pg.fill('#it-model', 'LRF 7'); await pg.select_option('#it-rodt', 'lrf'); await pg.fill('#it-rodm', '7'); await pg.click('#itSave'); await pg.wait_for_timeout(250)
+        await pg.click('#addItem'); await pg.wait_for_timeout(200); await pg.select_option('#it-cat', 'reel'); await pg.fill('#it-brand', 'Shimano'); await pg.fill('#it-model', 'Sahara 2000'); await pg.fill('#it-reels', '2000'); await pg.click('#itSave'); await pg.wait_for_timeout(250)
+        await pg.evaluate("() => { ALYSSA_QA.state().mode = 'kiyi'; }")
+        tf = await pg.evaluate('() => ALYSSA_QA.techsFor(ALYSSA_QA.planFor({id: "istavrit", name: "İstavrit"}).s)')
+        check(tf[:2] == ['capari', 'lrf'], 'P: kıyıda çapari ve LRF takımı varken sıra türün tercihine göre: ' + json.dumps(tf))
+        tf = await pg.evaluate('() => { const S = ALYSSA_QA.state(); const ok = Object.values(ALYSSA_QA.items()).find(i => i.name === "Okuma Tekne 270"); S.inv.status[ok.id + "|-"] = "yok"; const r = ALYSSA_QA.techsFor(ALYSSA_QA.planFor({id: "istavrit", name: "İstavrit"}).s); S.inv.status[ok.id + "|-"] = "var"; return r; }')
+        check(tf[0] == 'lrf', 'P: çapari kamışı yokken elindeki LRF takımı öne çıktı: ' + json.dumps(tf))
+        await pg.evaluate("() => { ALYSSA_QA.state().mode = 'tekne'; }")
+        # hayaldeki slow jig kamışı: sistem kurulur ama rig eksik kalır
+        await pg.click('#addItem'); await pg.wait_for_timeout(200)
+        await pg.fill('#it-brand', 'Shimano'); await pg.fill('#it-model', 'Ocea Jigger Slow'); await pg.select_option('#it-rodt', 'slowjig'); await pg.fill('#it-rodm', '250'); await pg.click('#it-st button[data-itst="alinacak"]'); await pg.click('#itSave'); await pg.wait_for_timeout(300)
+        ans = {'mode': 'tekne', 'region': 'ege', 'techs': ['jig'], 'species': ['fangri'], 'baits': [], 'lay': {'jig': ['slowjig']}, 'klass': 'porsiyon', 'time': 'gunduz', 'bottoms': [], 'size': 'sade', 'rodMax': '', 'name': 'Hayal'}
+        dr = await pg.evaluate('(a) => { const r = ALYSSA_QA.resolveRig(Object.assign({sys: "x"}, ALYSSA_QA.genSystem(a)[0])); const k = r.slots.find(s => s.kind === "rod"); return {item: k.t.envanter.item && ALYSSA_QA.items()[k.t.envanter.item].name, st: k.t.envanter.item && ALYSSA_QA.stockOf(k.t.envanter.item, "-"), ready: ALYSSA_QA.ready(r)}; }', ans)
+        check(dr['item'] == 'Shimano Ocea Jigger Slow' and dr['st'] == 'alinacak' and not dr['ready'], 'P: hayaldeki slow jig kamışı rige bağlandı, rig eksik: ' + json.dumps(dr, ensure_ascii=False))
+        check(any('Ocea Jigger' in (ALN or '') for ALN in await pg.evaluate('ALYSSA_QA.shoppingList().map(n => n.item ? ALYSSA_QA.items()[n.item].name : n.name)')), 'P: hayaldeki kamış alışveriş listesinde')
+        # Rig Atölyesi: tür arama tekniği de ekler
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('#sysBar button[data-act="wizard"]'); await pg.wait_for_timeout(250)
+        await pg.click('button[data-wzm="tekne"]'); await pg.click('button[data-wz="next"]'); await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(200)
+        await pg.fill('#wz-spq', 'istavrit'); await pg.wait_for_timeout(200); await pg.click('#wzSpRes button[data-wzsadd="istavrit"]'); await pg.wait_for_timeout(250)
+        st = await pg.evaluate('() => null')
+        wz = await pg.evaluate("() => { const t = [...document.querySelectorAll('#sheet button[data-wzs]')].filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.dataset.wzs); return t; }")
+        check('istavrit' in wz, 'P: sihirbazda aramadan istavrit seçildi')
+        await pg.click('button[data-wz="back"]'); await pg.wait_for_timeout(150)
+        check(await pg.get_attribute('button[data-wzt="capari"]', 'aria-pressed') == 'true', 'P: istavrit için çapari tekniği eklendi')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        print('P1 errors:', errs); check(not errs, 'P: sayfa hatası yok (yeni kullanıcı)')
+        await ctx.close()
+        # Kenny: paketteki kamış ve makine tür planında kullanılıyor; sistemindeki türler listede
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#rigList article.rig').count() == 32, 'P: Kenny 32 rig (özel paket gereksinim kontrolüne girmiyor)')
+        n_ready = await pg.locator('#rigList article.rig:not(.off)').count(); check(n_ready >= 1, 'P: paket riglerinin hazır olanları değişmedi (%d)' % n_ready)
+        await pg.click('#sysBar button[data-open="turler"]'); await pg.wait_for_timeout(300)
+        sh = await pg.inner_text('#sheet'); check('Karagöz' in sh and 'Mercan' in sh, 'P: rig sistemindeki türler listede')
+        await pg.click('#sheet button[data-tur="karagoz"]'); await pg.wait_for_timeout(350)
+        RIG_KG = [r['name'] for r in json.load(open(ROOT + '/data/kenny_av_db.json', encoding='utf-8'))['rigs'] if 'karagoz' in (r.get('species') or [])][:1]   # özel veriden okunur, depoda düz yazılmaz
+        sh = await pg.inner_text('#sheet'); check('Sistemindeki takım' in sh and RIG_KG and RIG_KG[0] in sh, 'P: karagöz planında Kenny’nin rigleri')
+        kp = await pg.evaluate('() => { const p = ALYSSA_QA.planFor({id: "istavrit", name: "İstavrit"}); const g = k => { const s = p.rg.slots.find(x => x.kind === k); const it = s.t.envanter.item && ALYSSA_QA.items()[s.t.envanter.item]; return it ? [it.name, ALYSSA_QA.stockOf(it.id, "-")] : null; }; return {tech: p.tech, rod: g("rod"), reel: g("reel"), info: ALYSSA_QA.rodInfo(ALYSSA_QA.items()["%s"] || {name: ""})}; }' % 'x')
+        check(kp['tech'] == 'capari' and kp['rod'] and kp['rod'][1] == 'var' and kp['reel'] and kp['reel'][1] == 'var', 'P: Kenny’nin kamış ve makinesi istavrit planında: ' + json.dumps(kp, ensure_ascii=False)[:200])
+        await pg.screenshot(path=SHOTS + '/p_kenny_karagoz.png', full_page=True)
+        print('P2 errors:', errs); check(not errs, 'P: sayfa hatası yok (Kenny)')
+        await ctx.close()
 
         # ================================================== E) önizleme
         ctx = await b.new_context(viewport={'width': 390, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2)

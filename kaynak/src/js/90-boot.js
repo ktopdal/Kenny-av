@@ -25,13 +25,15 @@ function show(v){
   window.scrollTo({top: 0});
   try { history.replaceState(history.state, '', '#' + v); } catch (e) {}
 }
-function setQty(k, v){ setQtyVal(k, v); persist(); renderAll(); }
+// envanter değişince rigler yeniden çözülür (yuvaya en uygun kalem değişmiş olabilir)
+function invChanged(){ persist(); indexAll(); renderAll(); }
+function setQty(k, v){ setQtyVal(k, v); invChanged(); }
 // adet/paket satırındaki "Alınacak": işaretliyse kaldırır (0 sayısı da silinir), değilse alınacak listesine koyar
 function alkToggle(k){
   const st = stockOf(k.split('|')[0], k.split('|')[1]);
   if (toBuy(st) || S.inv.status[k] === 'alinacak') { if (qtyOf(k) === 0) delete S.inv.qty[k]; delete S.inv.status[k]; }
   else S.inv.status[k] = 'alinacak';
-  persist(); renderAll();
+  invChanged();
 }
 const reShop = () => { if (ui.sheet === 'alisveris') openMore('alisveris', true); };
 function armOnce(b, txt){ if (b.dataset.armed) return true; b.dataset.armed = '1'; b.dataset.orig = b.textContent; b.textContent = txt; setTimeout(() => { if (b.isConnected && b.dataset.armed) { delete b.dataset.armed; b.textContent = b.dataset.orig; } }, 5000); return false; }
@@ -53,7 +55,7 @@ function bindEvents(){
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
-    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
+    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzsadd || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
     if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
     if (d.systool) {
       const sy = S.systems[d.sid]; if (!sy) return;
@@ -64,14 +66,25 @@ function bindEvents(){
     if (d.catpick != null && d.catpick !== '') { catalogPick(Number(d.catpick)); return; }
     if (d.buyadd) { buyAdd(d.buyadd); return; }
     if (d.open) { openMore(d.open); return; }
+    // Türlerim ve tür planı
+    if (d.tur) { ui.sheetArg = d.tur; openMore('tur'); return; }
+    if (d.tradd) { addTarget(d.tradd); ui.sheetArg = d.tradd; renderAll(); openMore('tur'); return; }
+    if (d.trcustom != null) { ui.custom = d.trcustom || null; openMore('turler', true); return; }
+    if (d.trlike) { const id = addTarget(null, ui.custom, d.trlike); ui.sheetArg = id; renderAll(); openMore('tur'); return; }
+    if (d.trtech || d.trlay || d.trklass || d.trtime) { ui.plan = ui.plan || {}; if (d.trtech) { ui.plan.tech = d.trtech; ui.plan.lay = null; } if (d.trlay) ui.plan.lay = d.trlay; if (d.trklass) ui.plan.klass = d.trklass; if (d.trtime) ui.plan.time = d.trtime; openMore('tur', true); return; }
+    if (d.trshop) { const n = planToShop(d.trshop); renderAll(); openMore('tur', true); toast(n ? n + ' kalem alışveriş listesine aktarıldı' : 'Bu kalemler zaten listede'); return; }
+    if (d.trrig) { planToSystem(d.trrig); renderAll(); openMore('tur', true); toast('Rig “Tür planlarım” sistemine eklendi'); return; }
+    if (d.trdelrig) { const sy = S.systems.tur; if (sy) { sy.rigs = sy.rigs.filter(r => r.id !== d.trdelrig); if (!sy.rigs.length) delete S.systems.tur; } ui.sys = 'all'; persist(); indexAll(); renderAll(); openMore('tur', true); toast('Rig sistemden çıkarıldı'); return; }
+    if (d.trdel) { if (!armOnce(b, 'Çıkarmak için tekrar dokun')) return; S.targets = (S.targets || []).filter(t => t.id !== d.trdel); persist(); renderAll(); openMore('turler'); return; }
+    if (d.trkeep) { addTarget(d.trkeep); renderAll(); openMore('tur', true); toast('Hedef türlerine eklendi'); return; }
     if (d.step) { const k = d.k; const cur = Number(S.inv.qty[k] || 0); setQty(k, Math.max(0, cur + Number(d.step))); return; }
-    if (d.cyc) { cycleStatus(d.cyc); persist(); renderAll(); return; }
-    if (d.stk && d.st) { setStatus(d.stk, d.st); persist(); renderAll(); return; }
-    if (d.unit && d.u) { setUnit(d.unit, d.u); persist(); renderAll(); toast(UNIT_TXT[d.u] + ' ile sayılıyor'); return; }
+    if (d.cyc) { cycleStatus(d.cyc); invChanged(); return; }
+    if (d.stk && d.st) { setStatus(d.stk, d.st); invChanged(); return; }
+    if (d.unit && d.u) { setUnit(d.unit, d.u); invChanged(); toast(UNIT_TXT[d.u] + ' ile sayılıyor'); return; }
     if (d.alk) { alkToggle(d.alk); return; }
-    if (d.qadd) { setQtyVal(d.qadd, 1); persist(); renderAll(); return; }
+    if (d.qadd) { setQtyVal(d.qadd, 1); invChanged(); return; }
     if (d.bait) { const k = d.bait + '|-'; setStatus(k, usable(stockOf(d.bait, '-')) ? 'yok' : 'var'); persist(); renderAll(); return; }
-    if (d.bought) { setStatus(d.bought, 'var'); persist(); renderAll(); reShop(); toast('Envantere işlendi'); return; }
+    if (d.bought) { setStatus(d.bought, 'var'); invChanged(); reShop(); toast('Envantere işlendi'); return; }
     if (d.itst) { document.querySelectorAll('#it-st button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); return; }
     if (d.rseg) { ui.rigSeg = d.rseg; renderRigs(); return; }
     if (d.sys) { ui.sys = d.sys; renderRigs(); return; }
@@ -138,6 +151,8 @@ function bindEvents(){
     const el = e.target;
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; applyTheme(); return; }
     if (el.id === 'it-search') { catalogSearch(el.value); return; }
+    if (el.id === 'tr-q') { trSearch(el.value); return; }
+    if (el.id === 'wz-spq' && WZ) { wzSpSearch(el.value); return; }
     if (el.id === 'wz-rod' && WZ) { WZ.ans.rodMax = el.value.trim(); return; }
     if (el.id === 'wz-name' && WZ) { WZ.ans.name = el.value; return; }
     if (el.id === 'cf-t') { const v = el.value ? new Date(el.value) : null; if (v && !isNaN(v)) $('cf-tlbl').textContent = fmtDT(v); return; }
@@ -153,7 +168,7 @@ function bindEvents(){
       // sayı odaktan çıkarken de "change" olur: değişmediyse bir şey yapma; değiştiyse çizimi biraz geciktir ki aynı dokunuştaki −/+ kaybolmasın
       const k = el.dataset.qk, v = el.value.trim(); const cur = qtyOf(k);
       if ((cur == null ? '' : String(cur)) === v) return;
-      setQtyVal(k, v); persist(); setTimeout(() => { renderAll(); reShop(); }, 250); toast('Kaydedildi'); return;
+      setQtyVal(k, v); persist(); setTimeout(() => { indexAll(); renderAll(); reShop(); }, 250); toast('Kaydedildi'); return;
     }
     if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; if (!L) return; L[el.dataset.f] = el.value.trim() || (el.dataset.f === 'name' ? L.name : ''); persist(); renderAll(); toast('Kaydedildi'); return; }
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; persist(); applyTheme(); renderAll(); openMore('ayarlar', true); return; }
@@ -197,7 +212,8 @@ function bindEvents(){
 // test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
   state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc(),
-  items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD};
+  items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
+  rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig};
 (async () => {
   loadState();
   pkgLoadCached();

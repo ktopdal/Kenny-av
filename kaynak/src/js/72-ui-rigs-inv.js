@@ -6,11 +6,11 @@ function renderRigs(){
   $('rigSub').textContent = all.length ? n + ' rig tamam, ' + (all.length - n) + ' rig eksik kalem bekliyor. Tamamlanmayanlar soluk görünür ve öneriye girmez.' : '';
   $('sysBar').innerHTML = (sys.length > 1 ? '<button class="btn small" data-sys="all" aria-pressed="' + (ui.sys === 'all') + '">Tümü</button>' : '') +
     sys.map(sy => '<button class="btn small" data-sys="' + esc(sy.id) + '" aria-pressed="' + (ui.sys === sy.id || sys.length === 1) + '">' + esc(sy.name) + '</button>').join('') +
-    '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button>';
+    '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button><button class="btn small" type="button" data-open="turler">Türlerim</button>';
   const one = sys.length === 1 ? sys[0] : S.systems[ui.sys];
   const tier = S.settings.tier || 'envanter';
-  $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
-      (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
+  $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : one.source === 'tur' ? 'Tür planından' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
+      (one.source === 'sihirbaz' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
       '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
       (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
     (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
@@ -115,8 +115,9 @@ function renderInventory(){
     const one = i => sizesOf(i).length === 1 && sizesOf(i)[0] === '-';
     const grpHtml = list => { const ones = list.filter(one).sort((a, b) => trCmp(a.name, b.name)), multi = list.filter(i => !one(i)).sort((a, b) => trCmp(a.name, b.name));
       return (ones.length ? '<div class="bchips">' + ones.map(i => '<button type="button" class="bchip" data-stk="' + esc(i.id + '|-') + '" data-st="var">' + esc(i.name) + '</button>').join('') + '</div>' : '') + multi.map(stdRow).join(''); };
-    const dk = 'std-' + ui.inv;
-    stdHtml = '<details class="stdl" data-dk="' + dk + '"' + openAttr(dk) + (own.length ? '' : ' open') + '><summary>Hazır liste: elindekileri işaretle (' + std.length + ')</summary>' +
+    const dk = 'std-' + ui.inv; ui.open = ui.open || {};
+    if (ui.open[dk] == null && !own.length) ui.open[dk] = true;   // hiç kalem yokken hazır liste açık başlar ve açık kalır
+    stdHtml = '<details class="stdl" data-dk="' + dk + '"' + openAttr(dk) + '><summary>Hazır liste: elindekileri işaretle (' + std.length + ')</summary>' +
       '<p class="note">Varsayılan “yok”. ' + (ui.inv === 'hook' || ui.inv === 'jig' ? 'Boya dokun: var → bitti (alınacak) → yok; işaretlediğin kalem yukarı “Var” bölümüne çıkar.' : 'Dokununca “var” olur ve yukarı çıkar.') + '</p>' +
       Object.keys(g).map(k => '<div class="sgrp"><div class="gh">' + esc(k) + '</div>' + grpHtml(g[k]) + '</div>').join('') + '</details>';
   }
@@ -222,11 +223,16 @@ function buyAdd(key){
   const n = shoppingList().find(x => x.k === key); if (!n || !n.sp) return;
   const sp = n.sp; const nm = String(n.name || 'Kalem');
   const parts = nm.indexOf('/') >= 0 ? ['', nm] : [nm.split(' ')[0], nm.split(' ').slice(1).join(' ')];
-  let cat = 'hook', pattern = '', sizes = [], spec = '';
+  let cat = 'hook', pattern = '', sizes = [], spec = '', extra = {};
   if (sp.kind === 'hook') { pattern = KB.PAT[sp.p[0]] ? KB.PAT[sp.p[0]].name : ''; sizes = n.size ? [n.size] : []; }
   else if (sp.kind === 'line') { cat = sp.cats[0]; spec = n.size || ''; }
+  else if (sp.kind === 'rod') { cat = 'rod'; spec = n.size || ''; extra.rod = {type: sp.types[0], len: null, max: CLS_REP.rod[sp.cls[0]] || null, pe: null}; }
+  else if (sp.kind === 'reel') { cat = 'reel'; spec = n.size || ''; extra.reel = {type: sp.types[0], size: CLS_REP.reel[sp.cls[0]] || null}; }
+  else if (sp.kind === 'term') { const k = sp.tts[0]; cat = k.indexOf('k-') === 0 ? 'sinker' : 'terminal'; spec = n.size || ''; }
   else { cat = /jig|egi|inchiku|rubber|çapari|zoka/i.test(nm) ? 'jig' : 'lure'; spec = n.size || ''; }
+  if (['rod', 'reel', 'term'].includes(sp.kind)) { parts[0] = ''; parts[1] = nm; }
   const id = 'u-' + (slugTR(nm).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6);
-  S.inv.items[id] = {id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()};
+  S.inv.items[id] = Object.assign({id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()}, extra);
+  if (S.shopX) delete S.shopX[key];
   persist(); indexAll(); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
 }
