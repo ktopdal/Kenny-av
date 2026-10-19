@@ -4190,7 +4190,7 @@ function sheetAlert(){
     (!ok ? '<div class="empty">Hava verisi yok; önce bir konum seç.</div>' : list.length ?
       '<div class="eyebrow">' + list.length + ' pencere uyuyor · ' + esc(loc() ? loc().name : '') + '</div>' + list.map(m => '<div class="item"><div class="row" style="justify-content:space-between"><b>' + m.dd.date.getDate() + ' ' + MON3[m.dd.date.getMonth()] + ' ' + DOW[m.dd.date.getDay()] + ' · ' + winTxt(m.w) + '</b>' + fishHtml(m.w.fish) + '</div>' +
         '<div class="sp">balık %' + m.w.pct + ' · rüzgâr en çok ' + m.bft + ' Bft · dalga ' + f1(m.wave) + ' m · ' + esc(m.w.evs.map(e => e.k).join(' + ')) + ' · <a href="' + gcalUrl(m) + '" target="_blank" rel="noopener">Google Takvim</a></div></div>').join('') +
-      '<button class="btn primary" type="button" data-act="icsAll">Hepsini takvime ekle</button><p class="note">iPhone’da açılan pencerede “Tümünü Ekle”ye dokun. Tahmin değişirse uyarıyı yeniden kur; eski etkinlikler aynı kimlikle güncellenir.</p>' :
+      (PREVIEW ? '<p class="note">Takvim dosyası telefona kurulan uygulamada iner; önizlemede yalnızca liste görünür.</p>' : '<button class="btn primary" type="button" data-act="icsAll">Hepsini takvime ekle</button><p class="note">iPhone’da açılan pencerede “Tümünü Ekle”ye dokun. Tahmin değişirse uyarıyı yeniden kur; eski etkinlikler aynı kimlikle güncellenir.</p>') :
       '<div class="empty">Önümüzdeki ' + cfg.days + ' günde bu kurala uyan pencere yok. Rüzgâr ya da dalga sınırını gevşet, balık sınırını düşür.</div>') + '</div>';
 }
 // ---- çıkış listesi ve güvenlik mesajı
