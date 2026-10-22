@@ -61,7 +61,7 @@ function bindEvents(){
     if (d.systool) {
       const sy = S.systems[d.sid]; if (!sy) return;
       if (d.systool === 'edit') { startWizard(sy.id); return; }
-      if (d.systool === 'toggle') { sy.active = sy.active === false; persist(); indexAll(); renderAll(); toast(sy.name + (sy.active ? ' açıldı' : ' kapatıldı')); return; }
+      if (d.systool === 'toggle') { sy.active = sy.active === false; persist(); indexAll(); renderAll(); if (ui.sheet === 'paket') openMore('paket', true); toast(sy.name + (sy.active ? ' açıldı' : ' kapatıldı')); return; }
       if (d.systool === 'del') { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.systems[sy.id]; ui.sys = 'all'; persist(); indexAll(); renderAll(); toast('Sistem silindi'); return; }
     }
     if (d.catpick != null && d.catpick !== '') { catalogPick(Number(d.catpick)); return; }
@@ -203,6 +203,9 @@ function bindEvents(){
     if (f.id === 'accForm') { accAct('login', f.querySelector('button[type="submit"]')); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
+  // saatlik tablo: kaydırınca satır adları kısalır; ada dokununca tam açılır / kapanır
+  $('hScroll').addEventListener('scroll', () => { if (ui.hFull && !ui.hHold) { ui.hFull = false; $('hScroll').classList.add('compact'); } }, {passive: true});
+  $('hTable').addEventListener('click', e => { if (!e.target.closest('th.lbl')) return; ui.hFull = !ui.hFull; ui.hHold = true; setTimeout(() => { ui.hHold = false; }, 400); $('hScroll').classList.toggle('compact', !ui.hFull); });
   // açılır bölümlerin (hazır liste) açık/kapalı hâli yeniden çizimde korunur
   document.addEventListener('toggle', e => { const el = e.target; if (el && el.dataset && el.dataset.dk) { ui.open = ui.open || {}; ui.open[el.dataset.dk] = el.open; } }, true);
   window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); });

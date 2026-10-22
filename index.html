@@ -517,6 +517,14 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
 .tbl.info table{min-width:0}
 .tbl.info th{width:34%;text-transform:none;font:600 12.5px var(--body);color:var(--muted)}
 
+/* ---------- v0.14: saatlik tabloda küçülen satır adları ---------- */
+.htab .lbl .sh{display:none}
+.hscroll.compact .htab .lbl{min-width:48px;max-width:48px;width:48px;padding:4px 3px 4px 8px;cursor:pointer}
+.hscroll.compact .htab .lbl b,.hscroll.compact .htab .lbl small{display:none}
+.hscroll.compact .htab .lbl .sh{display:block;font:600 11px/1.15 var(--body);font-style:normal;color:var(--ink);overflow-wrap:normal;word-break:keep-all}
+.hscroll.compact .htab .lbl .sh em{display:block;font:500 9.5px/1.1 var(--mono);font-style:normal;color:var(--muted)}
+.htab .lbl{cursor:pointer}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -964,9 +972,13 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.13.0';
+const APP_VERSION = '0.14.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.14.0', notes: [
+    'Saatlik tablo: satır adları dar sütuna küçülür (Windy gibi), tablo neredeyse tüm ekranı kullanır; ada dokununca tam açılır, kaydırınca yine küçülür',
+    'Kapalı rig sistemi artık gözden kaçmaz: Bugün ekranında ve Özel paket sayfasında “kapalı · Aç” uyarısı',
+  ]},
   {v: '0.13.0', notes: [
     'Hesap: Google ya da e-postayla giriş (isteğe bağlı). Rigler, envanter, konumlar, ayarlar ve avlar hesabına yazılır; başka telefonda aynı hesapla girince gelir',
     'İlk girişte telefondaki verin hesaba taşınır, hiçbir şey silinmez. Fotoğraflar telefonda kalır; özel paketin şifresi buluta gitmez',
@@ -3314,16 +3326,19 @@ function renderDrift(dd, cur){
 }
 function renderRecs(dd){
   const L = loc();
+  // kapalı sistem uyarısı: kapatılan sistemin rigleri önerilere girmez
+  const offSys = Object.values(S.systems).filter(sy => sy.active === false && (sy.source !== 'paket' || pkgOn()));
+  const offNote = offSys.length ? '<div class="banner">' + offSys.map(sy => esc(sy.name) + ' kapalı ' + '<button class="btn small" type="button" data-systool="toggle" data-sid="' + esc(sy.id) + '">Aç</button>').join(' · ') + '</div>' : '';
   if (!RIG_LIST.length) {
     $('recNote').textContent = '';
-    $('recList').innerHTML = '<div class="panel stack"><h3>Henüz rig sistemin yok</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
+    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
       '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
     $('recBlockedW').hidden = true; return;
   }
   $('recBlockedW').hidden = false;
   if (!RIG_LIST.some(r => !r.mode || r.mode === (S.mode || 'tekne'))) {
     $('recNote').textContent = '';
-    $('recList').innerHTML = '<div class="panel stack"><h3>' + (shoreMode() ? 'Kıyı rigin yok' : 'Tekne rigin yok') + '</h3><p class="sub">' + (shoreMode() ? 'Sistemlerindeki rigler tekne için. Rig Atölyesi’nde “Kıyıdan” seçip surf, LRF, spin ya da şamandıra sistemini kur.' : 'Sistemlerindeki rigler kıyı için. Rig Atölyesi’nde “Tekneden” seçip sistem kur.') + '</p>' +
+    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (shoreMode() ? 'Kıyı rigin yok' : 'Tekne rigin yok') + '</h3><p class="sub">' + (shoreMode() ? 'Sistemlerindeki rigler tekne için. Rig Atölyesi’nde “Kıyıdan” seçip surf, LRF, spin ya da şamandıra sistemini kur.' : 'Sistemlerindeki rigler kıyı için. Rig Atölyesi’nde “Tekneden” seçip sistem kur.') + '</p>' +
       '<div class="row"><button class="btn primary" type="button" data-act="wizard">' + (shoreMode() ? 'Kıyı sistemimi kur' : 'Tekne sistemimi kur') + '</button><button class="btn" type="button" data-set="mode" data-val="' + (shoreMode() ? 'tekne' : 'kiyi') + '">' + (shoreMode() ? 'Tekne moduna dön' : 'Kıyı moduna geç') + '</button></div></div>';
     $('recBlocked').innerHTML = ''; $('recBlockedW').hidden = true; return;
   }
@@ -3455,6 +3470,8 @@ function bftLegend(){
 }
 const mBadge = t => t ? '<span class="mb">' + esc(t) + '</span>' : '';
 function spreadKn(x){ const v = ['icon', 'ecmwf', 'gfs'].map(k => x.m && x.m[k] ? x.m[k].w : null).filter(v => v != null); return v.length >= 2 ? (Math.max(...v) - Math.min(...v)) * KN : null; }
+const H_SHORT = {'Saat': 'Saat', 'Güneş · Ay': '☀ ☾', 'Hava': 'Hava', 'Balık': 'Balık', 'Balık eğrisi': 'Eğri', 'Solunar': 'Sol.', 'Yağış': 'Yağ.', 'Sıcaklık': '°C', 'Rüzgâr': 'Rüz.',
+  'Model uyumu': 'Uyum', 'Yön': 'Yön', 'Hamle': 'Hml.', 'Dalga': 'Dlg.', 'Periyot': 'Per.', 'Akıntı': 'Akın.', 'Sürüklenme': 'Sürk.', 'İpe akış': 'İpe', 'Kıyıya göre': 'Kıyı', 'Su': 'Su', 'Basınç': 'hPa', 'Bulut': 'Bulut'};
 function renderHourly(){
   const ds = days(); const tbl = $('hTable');
   $('hLegend').innerHTML = bftLegend();
@@ -3470,7 +3487,10 @@ function renderHourly(){
   const sol = dd.sol, sr = sol.sunrise.getTime(), ss = sol.sunset.getTime();
   const nightH = x => x.t.getTime() < sr - 20 * 60000 || x.t.getTime() > ss + 20 * 60000;
   const cls = (x, extra) => 'c' + (nightH(x) ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (extra ? ' ' + extra : '');
-  const row = (label, sub, cells, trc) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b><small>' + sub + '</small></th>' + cells + '</tr>';
+  // dar sütunda kısa ad (Windy gibi): kaydırınca satır adları küçülür, ada dokununca tam açılır
+  const short = (label, sub) => { const m = /ICON|ECMWF|GFS/.exec(sub);
+    return (H_SHORT[label] || label.slice(0, 4)) + (m && label === 'Rüzgâr' ? '<em>' + m[0].slice(0, 2) + '</em>' : label === 'Yağış' ? '<em>' + (sub === 'mm' ? 'mm' : '%') + '</em>' : ''); };
+  const row = (label, sub, cells, trc) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b><small>' + sub + '</small><i class="sh" aria-hidden="true">' + short(label, sub) + '</i></th>' + cells + '</tr>';
   const acts = hs.map(activity);
   const u = windU();
   const wcell = (x, v, small) => { const b = bft(v); if (b == null) return '<td class="' + cls(x) + '">–</td>';
@@ -3536,6 +3556,7 @@ function renderHourly(){
     (mx == null ? '' : mx <= 6 ? ' · modeller uyumlu' : ' · modeller ayrışıyor (' + Math.round(mx) + ' kn fark)');
   $('seaNote').hidden = !sea;
   if (sea) $('seaNote').textContent = 'Bu nokta karada ya da kıyıya çok yakın: dalga, akıntı ve su sıcaklığı ' + f1(sea.km) + ' km ' + dir8(sea.dir) + ' yönündeki en yakın deniz noktasından.';
+  $('hScroll').classList.toggle('compact', !ui.hFull);
   if (isToday) { const sc = $('hScroll'); const i = hs.findIndex(x => x.h === nowH); if (i > 1) requestAnimationFrame(() => { sc.scrollLeft = (i - 1) * COL_W; }); }
   else $('hScroll').scrollLeft = 0;
 }
@@ -4192,7 +4213,8 @@ function sheetPackage(){
   return sheetBar('Özel paket') + '<div class="stack">' +
     '<p class="sub">Özel paket, sahibinin şifresiyle açılan şifreli bir rig sistemidir (rigler, envanter kalemleri, kayıtlı konumlar). Şifre yalnızca bir kez girilir; telefon hatırlar.</p>' +
     (on ? '<div class="panel stack"><b>Açık · ' + esc(S.systems.ozel.name) + '</b><span class="note">' + D.rigs.length + ' rig · ' + D.items.length + ' kalem · veri sürümü ' + esc(D.meta.data_version || '') + '</span>' +
-      '<div class="row"><button class="btn" type="button" data-act="pkgCheck">Güncellemeyi denetle</button></div></div>' : '') +
+      (S.systems.ozel.active === false ? '<div class="banner">Sistem kapalı: rigler Rigler listesinde ve Bugün önerilerinde görünmüyor.</div>' : '') +
+      '<div class="row">' + (S.systems.ozel.active === false ? '<button class="btn primary" type="button" data-systool="toggle" data-sid="ozel">Sistemi aç</button>' : '') + '<button class="btn" type="button" data-act="pkgCheck">Güncellemeyi denetle</button></div></div>' : '') +
     (S.pkg.need ? '<div class="banner">Paket güncellendi ama bu telefondaki anahtar eski şifreye ait. Yeni şifreyi bir kez gir.</div>' : '') +
     (!on || S.pkg.need ? '<form class="panel stack" id="pkgForm" novalidate><label class="f">Şifre<input id="pk-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
       '<p class="err" id="pkErr" hidden></p><div class="row"><button class="btn primary" type="submit" id="pkBtn">Aç</button></div></form>' : '') +
@@ -5568,7 +5590,7 @@ function bindEvents(){
     if (d.systool) {
       const sy = S.systems[d.sid]; if (!sy) return;
       if (d.systool === 'edit') { startWizard(sy.id); return; }
-      if (d.systool === 'toggle') { sy.active = sy.active === false; persist(); indexAll(); renderAll(); toast(sy.name + (sy.active ? ' açıldı' : ' kapatıldı')); return; }
+      if (d.systool === 'toggle') { sy.active = sy.active === false; persist(); indexAll(); renderAll(); if (ui.sheet === 'paket') openMore('paket', true); toast(sy.name + (sy.active ? ' açıldı' : ' kapatıldı')); return; }
       if (d.systool === 'del') { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.systems[sy.id]; ui.sys = 'all'; persist(); indexAll(); renderAll(); toast('Sistem silindi'); return; }
     }
     if (d.catpick != null && d.catpick !== '') { catalogPick(Number(d.catpick)); return; }
@@ -5710,6 +5732,9 @@ function bindEvents(){
     if (f.id === 'accForm') { accAct('login', f.querySelector('button[type="submit"]')); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
+  // saatlik tablo: kaydırınca satır adları kısalır; ada dokununca tam açılır / kapanır
+  $('hScroll').addEventListener('scroll', () => { if (ui.hFull && !ui.hHold) { ui.hFull = false; $('hScroll').classList.add('compact'); } }, {passive: true});
+  $('hTable').addEventListener('click', e => { if (!e.target.closest('th.lbl')) return; ui.hFull = !ui.hFull; ui.hHold = true; setTimeout(() => { ui.hHold = false; }, 400); $('hScroll').classList.toggle('compact', !ui.hFull); });
   // açılır bölümlerin (hazır liste) açık/kapalı hâli yeniden çizimde korunur
   document.addEventListener('toggle', e => { const el = e.target; if (el && el.dataset && el.dataset.dk) { ui.open = ui.open || {}; ui.open[el.dataset.dk] = el.open; } }, true);
   window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); });

@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.13 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v13_check.py
+"""Alyssa v0.3–v0.14 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v14_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v13'
+SHOTS = ROOT + '/qa/v14'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8778
+PORT = 8779
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -400,10 +400,10 @@ async def main():
         dtxt = await pg.inner_text('#driftPanel')
         check('sürüklenir' in dtxt and 'Noktanın üstünden' in dtxt and 'kurşun' in dtxt, 'G: sürüklenme paneli: ' + dtxt.replace('\n', ' ')[:160])
         await pg.locator('#driftPanel').screenshot(path=SHOTS + '/g_surukle.png')
-        lbls = await pg.locator('#hTable th.lbl b').all_inner_texts(); check('Sürüklenme' in lbls, 'G: tabloda sürüklenme satırı')
+        lbls = await pg.locator('#hTable th.lbl b').all_text_contents(); check('Sürüklenme' in lbls, 'G: tabloda sürüklenme satırı')
         await pg.click('#driftPanel button[data-set="anchor"][data-val="demir"]'); await pg.wait_for_timeout(300)
         st = await state(pg); check(st['settings']['anchor'] == 'demir', 'G: demirli seçimi kaydedildi')
-        lbls = await pg.locator('#hTable th.lbl b').all_inner_texts(); dtxt2 = await pg.inner_text('#driftPanel')
+        lbls = await pg.locator('#hTable th.lbl b').all_text_contents(); dtxt2 = await pg.inner_text('#driftPanel')
         check('İpe akış' in lbls and 'Demirli' in dtxt2 and 'Noktanın üstünden' not in dtxt2, 'G: demirliyken ipe akış, başlangıç önerisi yok')
         await pg.click('#driftPanel button[data-set="anchor"][data-val="surukle"]'); await pg.wait_for_timeout(300)
         sogs = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const S = Q.state(); const x = Q.days()[0].hs[9]; const r = {}; for (const k of ['az', 'orta', 'cok']) { S.settings.leeway = k; r[k] = Q.driftAt(x).sog; } S.settings.leeway = 'orta'; return r; }""")
@@ -583,7 +583,7 @@ async def main():
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
         check('Tekne' in await pg.evaluate("document.getElementById('modeBtn').textContent"), 'K: üst çubukta mod düğmesi (Tekne)')
         await pg.click('#modeBtn'); await pg.wait_for_timeout(500)
-        st = await state(pg); lbls = await pg.locator('#hTable th.lbl b').all_inner_texts()
+        st = await state(pg); lbls = await pg.locator('#hTable th.lbl b').all_text_contents()
         check(st['mode'] == 'kiyi' and await pg.inner_text('#todayTitle') == 'Bugün kıyıda' and 'Kıyı' in await pg.evaluate("document.getElementById('modeBtn').textContent"), 'K: kıyı moduna geçildi')
         check('Kıyıya göre' in lbls and 'Sürüklenme' not in lbls, 'K: tabloda kıyıya göre satırı, sürüklenme yok')
         check('Kıyı rigin yok' in await pg.inner_text('#recList'), 'K: kıyı rigi yokken kurulum önerisi')
@@ -630,7 +630,7 @@ async def main():
             for v in ['bugun', 'takvim']:
                 await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(150); await overflow(pg, 'K %d px %s' % (w, v))
         await pg.click('#modeBtn'); await pg.wait_for_timeout(400)
-        lbls = await pg.locator('#hTable th.lbl b').all_inner_texts(); st = await state(pg)
+        lbls = await pg.locator('#hTable th.lbl b').all_text_contents(); st = await state(pg)
         check(st['mode'] == 'tekne' and 'Sürüklenme' in lbls and 'Kıyıya göre' not in lbls, 'K: tekne moduna dönüldü')
         print('K errors:', errs); check(not errs, 'K: sayfa hatası yok')
         await ctx.close()
@@ -841,16 +841,16 @@ async def main():
         check(await pg.locator('#recList article.rig').count() >= 1, 'F: Bugün bağla sihirbaz rigini öneriyor')
         await pg.screenshot(path=SHOTS + '/f_bugun.png')
         # sistemi düzenle: sade → daha az rig
-        await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('button[data-systool="edit"]'); await pg.wait_for_timeout(300)
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('#sysTools button[data-systool="edit"]'); await pg.wait_for_timeout(300)
         for _ in range(5): await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(120)
         await pg.click('button[data-wzz="sade"]'); await pg.wait_for_timeout(150)
         await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(500)
         st = await state(pg); sy = [v for v in st['systems'].values() if v['source'] == 'sihirbaz']
         check(len(sy) == 1 and len(sy[0]['rigs']) == 3, 'F: sade sistemde rig sayısı %d' % len(sy[0]['rigs']))
-        await pg.click('button[data-systool="toggle"]'); await pg.wait_for_timeout(200)
+        await pg.click('#sysTools button[data-systool="toggle"]'); await pg.wait_for_timeout(200)
         check(await pg.locator('#rigList article.rig').count() == 0, 'F: kapatılan sistem listeden çıktı')
-        await pg.click('button[data-systool="toggle"]'); await pg.wait_for_timeout(200)
-        await pg.click('button[data-systool="del"]'); await pg.click('button[data-systool="del"]'); await pg.wait_for_timeout(200)
+        await pg.click('#sysTools button[data-systool="toggle"]'); await pg.wait_for_timeout(200)
+        await pg.click('#sysTools button[data-systool="del"]'); await pg.click('#sysTools button[data-systool="del"]'); await pg.wait_for_timeout(200)
         st = await state(pg); check(not [v for v in st['systems'].values() if v['source'] == 'sihirbaz'], 'F: sistem silindi')
         for v in ['bugun', 'takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(120); await overflow(pg, 'F ' + v)
@@ -1201,6 +1201,38 @@ async def main():
         for w in [390, 320]:
             await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'R %d px hesap' % w)
         print('R2 errors:', errs); check(not errs, 'R: sayfa hatası yok (yeni cihaz)')
+        await ctx.close()
+
+        # ================================================== S) v0.14: küçülen satır adları, kapalı sistem uyarısı
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        cls = await pg.get_attribute('#hScroll', 'class'); w0 = await pg.evaluate('document.querySelector("#hTable th.lbl").getBoundingClientRect().width')
+        check('compact' in cls and w0 < 60, 'S: satır adları dar sütunda (%d px)' % w0)
+        sh = await pg.evaluate('[...document.querySelectorAll("#hTable th.lbl .sh")].map(e => e.textContent)')
+        check('Rüz.IC' in sh and 'Hml.' in sh and 'Dlg.' in sh, 'S: kısa adlar: ' + ', '.join(sh[:12]))
+        await pg.screenshot(path=SHOTS + '/s_kisa.png')
+        await pg.click('#hTable tr:nth-child(5) th.lbl'); await pg.wait_for_timeout(200)
+        w1 = await pg.evaluate('document.querySelector("#hTable th.lbl").getBoundingClientRect().width')
+        check('compact' not in await pg.get_attribute('#hScroll', 'class') and w1 > 90, 'S: ada dokununca tam açıldı (%d px)' % w1)
+        await pg.screenshot(path=SHOTS + '/s_tam.png')
+        await pg.wait_for_timeout(500); await pg.evaluate('document.getElementById("hScroll").scrollLeft += 200'); await pg.wait_for_timeout(300)
+        check('compact' in await pg.get_attribute('#hScroll', 'class'), 'S: kaydırınca yeniden küçüldü')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'S %d px bugün' % w)
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        # kapalı sistem uyarısı
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('#sysTools button[data-systool="toggle"]'); await pg.wait_for_timeout(300)
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
+        rl = await pg.inner_text('#recList'); check('kapalı' in rl and 'Açık rig sistemin yok' in rl, 'S: Bugün ekranında kapalı sistem uyarısı')
+        await pg.click('#recList button[data-systool="toggle"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#recList article.rig').count() >= 1, 'S: “Aç” ile öneriler geri geldi')
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('#sysTools button[data-systool="toggle"]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="paket"]'); await pg.wait_for_timeout(300)
+        check('Sistem kapalı' in await pg.inner_text('#sheet'), 'S: Özel paket sayfasında kapalı uyarısı')
+        await pg.click('#sheet button[data-systool="toggle"]'); await pg.wait_for_timeout(300)
+        check('Sistem kapalı' not in await pg.inner_text('#sheet') and len([1 for _ in range(1)]) and await pg.evaluate('ALYSSA_QA.rigs().length') == 32, 'S: “Sistemi aç” ile 32 rig')
+        print('S errors:', errs); check(not errs, 'S: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== E) önizleme

@@ -3,6 +3,10 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.14.0', notes: [
+    'Saatlik tablo: satır adları dar sütuna küçülür (Windy gibi), tablo neredeyse tüm ekranı kullanır; ada dokununca tam açılır, kaydırınca yine küçülür',
+    'Kapalı rig sistemi artık gözden kaçmaz: Bugün ekranında ve Özel paket sayfasında “kapalı · Aç” uyarısı',
+  ]},
   {v: '0.13.0', notes: [
     'Hesap: Google ya da e-postayla giriş (isteğe bağlı). Rigler, envanter, konumlar, ayarlar ve avlar hesabına yazılır; başka telefonda aynı hesapla girince gelir',
     'İlk girişte telefondaki verin hesaba taşınır, hiçbir şey silinmez. Fotoğraflar telefonda kalır; özel paketin şifresi buluta gitmez',

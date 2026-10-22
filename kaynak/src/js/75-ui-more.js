@@ -129,7 +129,8 @@ function sheetPackage(){
   return sheetBar('Özel paket') + '<div class="stack">' +
     '<p class="sub">Özel paket, sahibinin şifresiyle açılan şifreli bir rig sistemidir (rigler, envanter kalemleri, kayıtlı konumlar). Şifre yalnızca bir kez girilir; telefon hatırlar.</p>' +
     (on ? '<div class="panel stack"><b>Açık · ' + esc(S.systems.ozel.name) + '</b><span class="note">' + D.rigs.length + ' rig · ' + D.items.length + ' kalem · veri sürümü ' + esc(D.meta.data_version || '') + '</span>' +
-      '<div class="row"><button class="btn" type="button" data-act="pkgCheck">Güncellemeyi denetle</button></div></div>' : '') +
+      (S.systems.ozel.active === false ? '<div class="banner">Sistem kapalı: rigler Rigler listesinde ve Bugün önerilerinde görünmüyor.</div>' : '') +
+      '<div class="row">' + (S.systems.ozel.active === false ? '<button class="btn primary" type="button" data-systool="toggle" data-sid="ozel">Sistemi aç</button>' : '') + '<button class="btn" type="button" data-act="pkgCheck">Güncellemeyi denetle</button></div></div>' : '') +
     (S.pkg.need ? '<div class="banner">Paket güncellendi ama bu telefondaki anahtar eski şifreye ait. Yeni şifreyi bir kez gir.</div>' : '') +
     (!on || S.pkg.need ? '<form class="panel stack" id="pkgForm" novalidate><label class="f">Şifre<input id="pk-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
       '<p class="err" id="pkErr" hidden></p><div class="row"><button class="btn primary" type="submit" id="pkBtn">Aç</button></div></form>' : '') +

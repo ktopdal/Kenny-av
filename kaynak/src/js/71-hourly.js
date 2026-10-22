@@ -80,6 +80,8 @@ function bftLegend(){
 }
 const mBadge = t => t ? '<span class="mb">' + esc(t) + '</span>' : '';
 function spreadKn(x){ const v = ['icon', 'ecmwf', 'gfs'].map(k => x.m && x.m[k] ? x.m[k].w : null).filter(v => v != null); return v.length >= 2 ? (Math.max(...v) - Math.min(...v)) * KN : null; }
+const H_SHORT = {'Saat': 'Saat', 'Güneş · Ay': '☀ ☾', 'Hava': 'Hava', 'Balık': 'Balık', 'Balık eğrisi': 'Eğri', 'Solunar': 'Sol.', 'Yağış': 'Yağ.', 'Sıcaklık': '°C', 'Rüzgâr': 'Rüz.',
+  'Model uyumu': 'Uyum', 'Yön': 'Yön', 'Hamle': 'Hml.', 'Dalga': 'Dlg.', 'Periyot': 'Per.', 'Akıntı': 'Akın.', 'Sürüklenme': 'Sürk.', 'İpe akış': 'İpe', 'Kıyıya göre': 'Kıyı', 'Su': 'Su', 'Basınç': 'hPa', 'Bulut': 'Bulut'};
 function renderHourly(){
   const ds = days(); const tbl = $('hTable');
   $('hLegend').innerHTML = bftLegend();
@@ -95,7 +97,10 @@ function renderHourly(){
   const sol = dd.sol, sr = sol.sunrise.getTime(), ss = sol.sunset.getTime();
   const nightH = x => x.t.getTime() < sr - 20 * 60000 || x.t.getTime() > ss + 20 * 60000;
   const cls = (x, extra) => 'c' + (nightH(x) ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (extra ? ' ' + extra : '');
-  const row = (label, sub, cells, trc) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b><small>' + sub + '</small></th>' + cells + '</tr>';
+  // dar sütunda kısa ad (Windy gibi): kaydırınca satır adları küçülür, ada dokununca tam açılır
+  const short = (label, sub) => { const m = /ICON|ECMWF|GFS/.exec(sub);
+    return (H_SHORT[label] || label.slice(0, 4)) + (m && label === 'Rüzgâr' ? '<em>' + m[0].slice(0, 2) + '</em>' : label === 'Yağış' ? '<em>' + (sub === 'mm' ? 'mm' : '%') + '</em>' : ''); };
+  const row = (label, sub, cells, trc) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b><small>' + sub + '</small><i class="sh" aria-hidden="true">' + short(label, sub) + '</i></th>' + cells + '</tr>';
   const acts = hs.map(activity);
   const u = windU();
   const wcell = (x, v, small) => { const b = bft(v); if (b == null) return '<td class="' + cls(x) + '">–</td>';
@@ -161,6 +166,7 @@ function renderHourly(){
     (mx == null ? '' : mx <= 6 ? ' · modeller uyumlu' : ' · modeller ayrışıyor (' + Math.round(mx) + ' kn fark)');
   $('seaNote').hidden = !sea;
   if (sea) $('seaNote').textContent = 'Bu nokta karada ya da kıyıya çok yakın: dalga, akıntı ve su sıcaklığı ' + f1(sea.km) + ' km ' + dir8(sea.dir) + ' yönündeki en yakın deniz noktasından.';
+  $('hScroll').classList.toggle('compact', !ui.hFull);
   if (isToday) { const sc = $('hScroll'); const i = hs.findIndex(x => x.h === nowH); if (i > 1) requestAnimationFrame(() => { sc.scrollLeft = (i - 1) * COL_W; }); }
   else $('hScroll').scrollLeft = 0;
 }
