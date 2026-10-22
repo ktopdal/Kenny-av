@@ -255,7 +255,7 @@ async function catchDetail(id){
     K('Konum', c.loc ? (c.loc.name ? c.loc.name + ' · ' : '') + fmtCoord(c.loc.lat, c.loc.lon) : '') + K('Not', c.note) + '</div>' +
     (cd ? '<h3 style="margin-top:6px">O saatteki koşullar</h3><div class="kv">' + K('Rüzgâr', cd.wind_bft != null ? cd.wind_bft + ' Bft · ' + cd.wind_kn + ' kn ' + (cd.wdir || '') : '') + K('Hamle', cd.gust_bft != null ? cd.gust_bft + ' Bft' : '') +
       K('Dalga', cd.wave_m != null ? fmtNum(cd.wave_m, 1) + ' m' + (cd.per_s != null ? ' · ' + Math.round(cd.per_s) + ' sn' : '') : '') + K('Akıntı', cd.cur_kn != null ? fmtNum(cd.cur_kn, 1) + ' kn' : '') +
-      K('Su', cd.sst != null ? fmtNum(cd.sst, 1) + ' °C' : '') + K('Basınç', cd.press != null ? Math.round(cd.press) + ' hPa' + (cd.dp3 != null ? ' (3 sa ' + (cd.dp3 > 0 ? '+' : '') + fmtNum(cd.dp3, 1) + ')' : '') : '') +
+      K('Su', cd.sst != null ? tempTxt(cd.sst, true) : '') + K('Hava', cd.temp != null ? tempTxt(cd.temp) : '') + K('Basınç', cd.press != null ? Math.round(cd.press) + ' hPa' + (cd.dp3 != null ? ' (3 sa ' + (cd.dp3 > 0 ? '+' : '') + fmtNum(cd.dp3, 1) + ')' : '') : '') +
       K('Sürüklenme', cd.drift_kn != null ? (cd.anchored ? 'demirli · ipe akış ' + fmtNum(cd.line_kn, 1) + ' kn' : fmtNum(cd.drift_kn, 1) + ' kn ' + (cd.drift_dir || '') + ' yönüne') : '') +
       K('Ay', cd.moon + ' · %' + cd.illum) + K('Balık aktivitesi', '%' + cd.act + (cd.v === 5 ? '' : ' (eski ölçek)') + (cd.sol ? ' · ' + cd.sol : '')) + '</div>' : '<p class="note">Bu av için deniz koşulu kaydı yok (o saatin verisi telefonda değildi).</p>') +
     catchShareBox(c) +

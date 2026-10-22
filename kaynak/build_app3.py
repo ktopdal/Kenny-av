@@ -19,7 +19,7 @@ DIST = os.path.join(APP, 'dist')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.14.0'
+VERSION = '0.15.0'
 NAME, SHORT = 'Alyssa by Barbossa App', 'Alyssa'
 THEME = '#0B6B7C'
 
@@ -82,10 +82,12 @@ def sample():
     fv = lambda every, until: dict(time=ts, temperature_2m=ser('temp', every, until), pressure_msl=ser('press', every, until),
                                    wind_speed_10m=ser('wind', every, until), wind_direction_10m=ser('wdir', every, until, 0),
                                    cloud_cover=ser('cloud', every, until, 0), precipitation=[0.0 if v is not None else None for v in ser('wind', every, until)])
-    icon = dict(hourly=fv(1, icon_until), hourly_units={'wind_speed_10m': 'm/s'})
-    ecm = dict(hourly=fv(3, None), hourly_units={'wind_speed_10m': 'm/s'})
-    gw = ser('wind')
-    gfs = dict(hourly=dict(time=ts, wind_gusts_10m=[None if v is None else round(v * 1.35, 1) for v in gw]), hourly_units={'wind_gusts_10m': 'm/s'})
+    gust = lambda h, k: [None if v is None else round(v * k, 1) for v in h['wind_speed_10m']]
+    icon = dict(hourly=fv(1, icon_until), hourly_units={'wind_speed_10m': 'm/s', 'wind_gusts_10m': 'm/s'}); icon['hourly']['wind_gusts_10m'] = gust(icon['hourly'], 1.3)
+    ecm = dict(hourly=fv(3, None), hourly_units={'wind_speed_10m': 'm/s', 'wind_gusts_10m': 'm/s'}); ecm['hourly']['wind_gusts_10m'] = gust(ecm['hourly'], 1.25)
+    gw = ser('wind'); gd = ser('wdir', 1, None, 0)
+    gfs = dict(hourly=dict(time=ts, wind_speed_10m=[None if v is None else round(v * 1.12, 1) for v in gw], wind_direction_10m=gd,
+                           wind_gusts_10m=[None if v is None else round(v * 1.35, 1) for v in gw]), hourly_units={'wind_speed_10m': 'm/s', 'wind_gusts_10m': 'm/s'})
     cl = ser('cloud', rnd=0)
     best = dict(hourly=dict(time=ts, precipitation_probability=[None if c is None else (25 if c > 85 else 10 if c > 50 else 3) for c in cl]), hourly_units={})
     tf = {}

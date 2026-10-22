@@ -272,3 +272,19 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
 .hscroll.compact .htab .lbl .sh{display:block;font:600 11px/1.15 var(--body);font-style:normal;color:var(--ink);overflow-wrap:normal;word-break:keep-all}
 .hscroll.compact .htab .lbl .sh em{display:block;font:500 9.5px/1.1 var(--mono);font-style:normal;color:var(--muted)}
 .htab .lbl{cursor:pointer}
+
+/* ---------- v0.15: bilgi alanı sabit yükseklik, birimli rüzgâr hücresi, derece işareti ---------- */
+/* açık bilgi alanı satırı uzatmaz: ad ve alt satır tek satırda kalır, sığmazsa … ile kesilir */
+.htab .lbl{white-space:nowrap;overflow:hidden;overflow-wrap:normal;line-height:1.2}
+.htab .lbl b,.htab .lbl small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.htab .lbl small .mb{margin-top:0;line-height:1.25}
+.hscroll.compact .htab .lbl{min-width:58px;max-width:58px;width:58px;padding:4px 2px 4px 7px}
+.hscroll.compact .htab .lbl .sh{white-space:nowrap;overflow:hidden;text-overflow:clip}
+.hscroll.compact .htab .lbl .sh em{font:600 8.5px/1.15 var(--mono);letter-spacing:0;white-space:nowrap;overflow:hidden}
+.htab td.c u.wu{text-decoration:none;font:600 8px/1 var(--mono);margin-left:1px;opacity:.85;letter-spacing:0}
+.htab td.bf small{font-size:9.5px;letter-spacing:-.01em}
+.htab td.c sup.dg{font-size:.8em;line-height:0;vertical-align:baseline;position:relative;top:-.42em;margin-left:.5px}
+.htab tr.krow td.c{border-bottom-width:2px}
+.now{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:460px){.now{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.metric .k .mb{font-size:9px;vertical-align:1px;margin-left:2px;text-transform:none}

@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.14 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v14_check.py
+"""Alyssa v0.3–v0.15 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v15_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v14'
+SHOTS = ROOT + '/qa/v15'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8779
+PORT = 8780
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -200,7 +200,7 @@ async def main():
         cell = pg.locator('#hTable tr').nth(await row_idx(pg, 'Rüzgâr')).locator('td').nth(3)
         bg = await cell.evaluate('e => getComputedStyle(e).backgroundColor'); txt = (await cell.inner_text()).split('\n')[0]
         pal = ['#86D9A6', '#2DB46C', '#93C83E', '#E8D61E', '#F6B40C', '#F18A1B', '#E5531D', '#D0231F', '#9E1530', '#681E74', '#1F4EB4', '#173A87', '#0D2256']
-        exp = pal[int(txt)]; r, g, bb = int(exp[1:3], 16), int(exp[3:5], 16), int(exp[5:7], 16)
+        exp = pal[int(re.match(r'\d+', txt).group(0))]; r, g, bb = int(exp[1:3], 16), int(exp[3:5], 16), int(exp[5:7], 16)
         check(bg == 'rgb(%d, %d, %d)' % (r, g, bb), 'rüzgâr hücresi Bft %s rengi %s (beklenen %s)' % (txt, bg, exp))
         check(await pg.locator('.bftscale span').count() == 13, 'Bft renk ölçeği 13 kutu')
         recs = await pg.locator('#recList article.rig').count(); check(recs >= 1, 'Bugün bağla önerisi ' + str(recs))
@@ -467,7 +467,7 @@ async def main():
         ctx, pg, errs = await new_ctx(b)
         await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
-        lbl = lambda: pg.evaluate("""() => [...document.querySelectorAll('#hTable th.lbl')].map(th => th.querySelector('b').textContent + '|' + th.querySelector('small').textContent)""")
+        lbl = lambda: pg.evaluate("""() => [...document.querySelectorAll('#hTable th.lbl')].map(th => th.querySelector('b').textContent + '|' + (th.querySelector('small') ? th.querySelector('small').textContent : ''))""")
         L0 = await lbl(); print('   satırlar:', [x.split('|')[0] for x in L0])
         check(any(x.startswith('Güneş · Ay') for x in L0) and any(x.startswith('Balık eğrisi') for x in L0) and any(x.startswith('Model uyumu') for x in L0), 'I: yeni satırlar (güneş/ay, balık eğrisi, model uyumu)')
         check(any(x.startswith('Rüzgâr|') and 'ECMWF' in x for x in L0), 'I: ECMWF karşılaştırma satırı')
@@ -483,7 +483,7 @@ async def main():
         # model seçici
         await pg.click('#hBar button[data-set="model"][data-val="gfs"]'); await pg.wait_for_timeout(400)
         st = await state(pg); L1 = await lbl()
-        check(st['settings']['model'] == 'gfs' and any(x.startswith('Rüzgâr|') and 'GFS' in x and 'ICON' not in x for x in L1[:12]), 'I: GFS modeli seçildi: ' + str([x for x in L1 if x.startswith('Rüzgâr')][:1]))
+        check(st['settings']['model'] == 'gfs' and any(x.startswith('Rüzgâr · Seçili|') and 'GFS' in x and 'ICON' not in x for x in L1[:12]), 'I: GFS modeli seçildi: ' + str([x for x in L1 if x.startswith('Rüzgâr')][:1]))
         await pg.click('#hBar button[data-set="model"][data-val="karma"]'); await pg.wait_for_timeout(400)
         # görünüm: satır kapat, taşı, birimler, adlar, kartlar, takvim
         await pg.click('#hEdit'); await pg.wait_for_timeout(300)
@@ -497,7 +497,7 @@ async def main():
         L3 = await lbl(); check(idx(L3, 'Dalga|') == d0 - 1, 'I: dalga satırı bir üste taşındı')
         await pg.click('#sheet button[data-set="windUnit"][data-val="kn"]'); await pg.wait_for_timeout(250)
         wcell = await pg.evaluate("""() => { const r = [...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === 'Rüzgâr'); return r.querySelectorAll('td')[9].innerText; }""")
-        check('Bft' in wcell and int(wcell.split()[0]) > 12, 'I: rüzgâr kn biriminde: ' + wcell.replace('\n', ' '))
+        check('Bft' in wcell and 'kn' in wcell.split('\n')[0] and int(re.match(r'\d+', wcell).group(0)) > 12, 'I: rüzgâr kn biriminde: ' + wcell.replace('\n', ' '))
         await pg.click('#sheet button[data-set="pressUnit"][data-val="mmhg"]'); await pg.wait_for_timeout(250)
         pv = await pg.evaluate("""() => { const r = [...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === 'Basınç' && tr.querySelectorAll('td').length > 2); return r.querySelectorAll('td')[9].innerText.split('\\n')[0]; }""")
         check(740 < int(pv) < 780, 'I: basınç mmHg: ' + pv)
@@ -1210,14 +1210,22 @@ async def main():
         cls = await pg.get_attribute('#hScroll', 'class'); w0 = await pg.evaluate('document.querySelector("#hTable th.lbl").getBoundingClientRect().width')
         check('compact' in cls and w0 < 60, 'S: satır adları dar sütunda (%d px)' % w0)
         sh = await pg.evaluate('[...document.querySelectorAll("#hTable th.lbl .sh")].map(e => e.textContent)')
-        check('Rüz.IC' in sh and 'Hml.' in sh and 'Dlg.' in sh, 'S: kısa adlar: ' + ', '.join(sh[:12]))
+        check('Rüz.BFT KRM' in sh and 'Rüz.BFT ICON' in sh and 'Rüz.BFT ECM' in sh and 'Hml.BFT GFS' in sh and 'Dlg.' in sh and 'SaatSaat' not in sh, 'S: kısa adlar: ' + ', '.join(sh[:16]))
+        hts0 = await pg.evaluate('[...document.querySelectorAll("#hTable tr")].map(r => Math.round(r.getBoundingClientRect().height))')
         await pg.screenshot(path=SHOTS + '/s_kisa.png')
         await pg.click('#hTable tr:nth-child(5) th.lbl'); await pg.wait_for_timeout(200)
         w1 = await pg.evaluate('document.querySelector("#hTable th.lbl").getBoundingClientRect().width')
         check('compact' not in await pg.get_attribute('#hScroll', 'class') and w1 > 90, 'S: ada dokununca tam açıldı (%d px)' % w1)
         await pg.screenshot(path=SHOTS + '/s_tam.png')
-        await pg.wait_for_timeout(500); await pg.evaluate('document.getElementById("hScroll").scrollLeft += 200'); await pg.wait_for_timeout(300)
-        check('compact' in await pg.get_attribute('#hScroll', 'class'), 'S: kaydırınca yeniden küçüldü')
+        hts1 = await pg.evaluate('[...document.querySelectorAll("#hTable tr")].map(r => Math.round(r.getBoundingClientRect().height))')
+        check(hts0 == hts1, 'S: bilgi alanı açılınca satır yükseklikleri değişmedi (zıplama yok)' + ('' if hts0 == hts1 else ' %s → %s' % (hts0, hts1)))
+        await pg.wait_for_timeout(500); await pg.evaluate('document.getElementById("hScroll").scrollLeft += 200'); await pg.wait_for_timeout(1500)
+        check('compact' not in await pg.get_attribute('#hScroll', 'class'), 'S: kaydırma ve bekleme bilgi alanını kapatmadı')
+        await pg.click('#hBar button[data-val="ecmwf"]'); await pg.wait_for_timeout(400)
+        check('compact' not in await pg.get_attribute('#hScroll', 'class'), 'S: model seçimi bilgi alanını kapatmadı')
+        await pg.click('#hBar button[data-val="karma"]'); await pg.wait_for_timeout(400)
+        await pg.click('#hTable tr:nth-child(3) th.lbl'); await pg.wait_for_timeout(200)
+        check('compact' in await pg.get_attribute('#hScroll', 'class'), 'S: dokununca yeniden kapandı')
         for w in [390, 320]:
             await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'S %d px bugün' % w)
         await pg.set_viewport_size({'width': 390, 'height': 860})
@@ -1233,6 +1241,76 @@ async def main():
         await pg.click('#sheet button[data-systool="toggle"]'); await pg.wait_for_timeout(300)
         check('Sistem kapalı' not in await pg.inner_text('#sheet') and len([1 for _ in range(1)]) and await pg.evaluate('ALYSSA_QA.rigs().length') == 32, 'S: “Sistemi aç” ile 32 rig')
         print('S errors:', errs); check(not errs, 'S: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== T) v0.15: model satırları, birimler, °C/°F, Karma yedeksiz, kartlar
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        LB = """() => [...document.querySelectorAll('#hTable th.lbl')].map(th => th.querySelector('b').textContent + '|' + (th.querySelector('small') ? th.querySelector('small').textContent : ''))"""
+        L = await pg.evaluate(LB); W = [x for x in L if x.startswith('Rüzgâr') or x.startswith('Hamle')]
+        print('   rüzgâr satırları:', W)
+        check(W == ['Rüzgâr · Karma|Bft ICON-EU', 'Rüzgâr|Bft ICON-EU', 'Rüzgâr|Bft ECMWF', 'Rüzgâr|Bft GFS', 'Hamle|Bft ICON-EU', 'Hamle|Bft ECMWF', 'Hamle|Bft GFS'], 'T: 7 rüzgâr/hamle satırı doğru sırada')
+        check('Saat|' in L and 'Güneş · Ay|Doğuş · Batış' in L and 'Hava sıcaklığı|°C' in L and 'Su sıcaklığı|°C' in L, 'T: Saat, Güneş · Ay, sıcaklık alt yazıları')
+        check('Yön|ok · ad' in L and 'Akıntı|kn · ok' in L and 'Periyot|sn · ok' in L and 'Sürüklenme|kn' in L and 'Basınç|hPa · 3 sa' in L and any(x.startswith('Basınç|gün içi ') and len(x) <= len('Basınç|gün içi ↓') for x in L), 'T: kısa alt yazılar')
+        mbs = await pg.evaluate("[...document.querySelectorAll('#hTable .mb, #nowGrid .mb')].map(e => e.textContent)")
+        check('ICON' not in mbs and 'ICON-EU' in mbs, 'T: model adı her yerde ICON-EU')
+        cells = await pg.evaluate("[...document.querySelectorAll('#hTable td.bf')].map(td => [td.querySelector('u.wu') ? td.querySelector('u.wu').textContent : '', td.querySelector('small') ? td.querySelector('small').textContent : ''])")
+        check(len(cells) > 100 and all(c[0] == 'Bft' and c[1].endswith(' kn') for c in cells), 'T: her rüzgâr/hamle hücresinde birim ve ikinci satır (%d hücre)' % len(cells))
+        degs = await pg.evaluate("[...document.querySelectorAll('#hTable td.tc')].map(td => td.querySelector('sup.dg') ? 1 : 0)")
+        check(len(degs) > 20 and all(degs), 'T: sıcaklık değerlerinde ° işareti')
+        bas = await pg.evaluate("[...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === 'Basınç' && tr.querySelectorAll('td').length > 2).querySelectorAll('td')[8].innerText")
+        check(re.search(r'[↑↓→]', bas) is not None, 'T: basınç hücresinde eğilim oku: ' + bas.replace('\n', ' '))
+        # Bugün kartları
+        ks = await pg.evaluate("[...document.querySelectorAll('#nowGrid .metric')].map(m => m.querySelector('.k').textContent + '|' + m.querySelector('.s').textContent)")
+        print('   kartlar:', ks)
+        check(len(ks) == 6 and ks[0].startswith('Rüzgâr ICON-EU|') and ' kn ' in ks[0] and ks[1].startswith('Hamle GFS|') and ' kn ' in ks[1] and 'hamle' not in ks[0], 'T: Rüzgâr (ICON-EU) ve Hamle (GFS) ayrı kartlar')
+        await pg.screenshot(path=SHOTS + '/t_bugun.png')
+        # Karma yedeksiz: ICON'un bittiği gün Karma satırı boş, ECMWF dolu, gün özeti ECMWF ile sürer
+        chips = await pg.locator('#dayChips .dchip').count(); found = False
+        for i in range(chips):
+            await pg.locator('#dayChips .dchip').nth(i).click(); await pg.wait_for_timeout(150)
+            r = await pg.evaluate("""() => { const rows = [...document.querySelectorAll('#hTable tr')]; const g = n => rows.find(tr => tr.querySelector('th b').textContent === n && (tr.querySelector('th small') || {}).textContent.includes(arguments[0] || '')); 
+              const k = rows.find(tr => tr.querySelector('th b').textContent === 'Rüzgâr · Karma'); const e = rows.find(tr => tr.querySelector('th b').textContent === 'Rüzgâr' && tr.querySelector('th small').textContent.includes('ECMWF'));
+              return [[...k.querySelectorAll('td')].filter(td => td.textContent !== '–').length, [...e.querySelectorAll('td')].filter(td => td.textContent !== '–').length]; }""")
+            if r[0] == 0 and r[1] > 0: found = True; break
+        check(found, 'T: ICON bitince Karma satırı – (ECMWF\'ye geçmiyor), ECMWF satırı dolu (gün %d)' % i)
+        if found:
+            await pg.locator('#hourly').screenshot(path=SHOTS + '/t_karma_bos.png')
+            dl = await pg.inner_text('#dayList'); check('ECMWF' in dl, 'T: gün özetleri ICON sonrası ECMWF ile sürüyor')
+        await pg.locator('#dayChips .dchip').first.click(); await pg.wait_for_timeout(150)
+        # birimler: ikinci satır ve °F
+        await pg.click('#hEdit'); await pg.wait_for_timeout(300)
+        sh = await pg.inner_text('#sheet'); check('hücrenin alt satırı' in sh and '°F' in sh, 'T: Birimler: alt satır ve °C/°F seçimi')
+        check(await pg.locator('#sheet button[data-set="windUnit2"][data-val="bft"]').count() == 0, 'T: alt satır seçiminde ana birim yok')
+        await pg.click('#sheet button[data-set="windUnit2"][data-val="ms"]'); await pg.wait_for_timeout(250)
+        await pg.click('#sheet button[data-set="tempUnit"][data-val="f"]'); await pg.wait_for_timeout(250)
+        st = await state(pg); check(st['settings']['windUnit2'] == 'ms' and st['settings']['tempUnit'] == 'f', 'T: birim ayarları kaydedildi')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(300)
+        sm = await pg.evaluate("[...document.querySelectorAll('#hTable td.bf small')].map(e => e.textContent)")
+        check(sm and all(x.endswith(' m/s') for x in sm), 'T: ikinci satır m/s')
+        L = await pg.evaluate(LB); tv = await pg.evaluate("[...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === 'Hava sıcaklığı').querySelectorAll('td')[10].innerText")
+        check('Hava sıcaklığı|°F' in L and 'Su sıcaklığı|°F' in L and 45 < int(re.match(r'\d+', tv).group(0)) < 100, 'T: °F: ' + tv)
+        nk = await pg.inner_text('#nowGrid'); check('°F' in nk and '°C' not in nk, 'T: Bugün kartlarında °F')
+        # geri al
+        await pg.click('#hEdit'); await pg.wait_for_timeout(300)
+        await pg.click('#sheet button[data-set="windUnit2"][data-val="kn"]'); await pg.click('#sheet button[data-set="tempUnit"][data-val="c"]'); await pg.wait_for_timeout(250)
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(300)
+        st = await state(pg)
+        # eski satır düzeninden göç: r_icon kapalı, hamle açık → yeni düzen
+        st['settings']['hrows'] = [['saat', True], ['sicaklik', True], ['ruzgar', True], ['r_icon', False], ['r_ecmwf', True], ['uyum', True], ['yon', True], ['hamle', True], ['dalga', True]]
+        st['settings'].pop('hrv', None)
+        await pg.evaluate('(s) => localStorage.setItem("alyssa-v1", JSON.stringify(s))', st)
+        await pg.reload(); await pg.wait_for_timeout(2500)
+        L = await pg.evaluate(LB); W = [x.split('|')[0] + ' ' + x.split('|')[1].split(' ')[-1] for x in L if x.startswith('Rüzgâr') or x.startswith('Hamle')]
+        check(len(W) == 7 and 'Rüzgâr ICON-EU' in W and not any(x.startswith('Hamle|Bft GFS / ') for x in L), 'T: eski düzenden göç: ' + str(W))
+        await pg.click('#hBar button[data-val="karma"]'); await pg.wait_for_timeout(300)
+        st = await state(pg); check(st['settings'].get('hrv') == 15 and not any(e[0] == 'hamle' and e[1] for e in st['settings']['hrows'] or []), 'T: göç kaydedildi (hrv 15)')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'T %d px' % w)
+            await pg.screenshot(path=SHOTS + '/t_%d.png' % w)
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        print('T errors:', errs); check(not errs, 'T: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== E) önizleme

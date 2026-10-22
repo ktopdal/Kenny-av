@@ -3,6 +3,16 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.15.0', notes: [
+    'Saatlik tablo, rüzgâr: “Rüzgâr · Karma” satırı üstteki model seçimini izler; Karma\'da ICON-EU, ICON bitince ECMWF\'ye geçmez, – gösterir',
+    'Rüzgâr ve hamle her model için ayrı satır: ICON-EU, ECMWF, GFS (rüzgâr) ve ICON-EU, ECMWF, GFS (hamle); adlar her yerde ICON-EU',
+    'Her rüzgâr/hamle hücresinde ana değerin yanında birimi, altında ikinci birim (Görünüm → Birimler\'den seçilir; varsayılan Bft üstte, kn altta)',
+    'Sıcaklık birimi °C / °F (Görünüm → Birimler); hava ve su sıcaklığı ayrı satır, değerlerin sağ üstünde ° işareti',
+    'Bilgi alanı (satır adları) yalnız dokununca açılır/kapanır; kaydırma ya da model seçimi kapatmaz. Açılınca satırlar uzamaz, tablo zıplamaz',
+    'Kısa alt yazılar (Saat, Güneş · Ay: Doğuş · Batış, Yön/Akıntı/Periyot: ok, Sürüklenme: kn, Basınç: hPa · 3 sa ve ↑↓ ok)',
+    'Bugün ekranı: Rüzgâr (ICON-EU) ve Hamle (GFS) ayrı kartlarda, altlarında kn ve yön; Su sıcaklığı ve Hava ayrı kart',
+    'Veri kaynakları: her modelin bu nokta için kullandığı ızgara noktası ve yüksekliği görünür',
+  ]},
   {v: '0.14.0', notes: [
     'Saatlik tablo: satır adları dar sütuna küçülür (Windy gibi), tablo neredeyse tüm ekranı kullanır; ada dokununca tam açılır, kaydırınca yine küçülür',
     'Kapalı rig sistemi artık gözden kaçmaz: Bugün ekranında ve Özel paket sayfasında “kapalı · Aç” uyarısı',

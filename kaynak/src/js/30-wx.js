@@ -6,9 +6,9 @@ const API_F = 'https://api.open-meteo.com/v1/forecast', API_M = 'https://marine-
 const FV = 'temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,precipitation';
 const MV = 'wave_height,wave_direction,wave_period,ocean_current_velocity,ocean_current_direction,sea_surface_temperature';
 const SRC = {
-  icon: {label: 'ICON-EU 7 km', short: 'ICON', what: 'rüzgâr, sıcaklık, yağış'},
-  ecmwf: {label: 'ECMWF IFS', short: 'ECMWF', what: 'rüzgâr (ICON sonrası), karşılaştırma'},
-  gfs: {label: 'GFS', short: 'GFS', what: 'hamle, karşılaştırma'},
+  icon: {label: 'ICON-EU 7 km', short: 'ICON-EU', ab: 'ICON', what: 'rüzgâr ve hamle (Karma), sıcaklık, yağış'},
+  ecmwf: {label: 'ECMWF IFS', short: 'ECMWF', ab: 'ECM', what: 'rüzgâr ve hamle satırları, gün özetinde ICON sonrası'},
+  gfs: {label: 'GFS', short: 'GFS', ab: 'GFS', what: 'rüzgâr ve hamle satırları, Bugün ekranında hamle'},
   best: {label: 'Open-Meteo en iyi', short: 'En iyi', what: 'yağış olasılığı, yedek'},
   mf: {label: 'MFWAM', what: 'dalga'},
   mbest: {label: 'Deniz (en iyi)', what: 'akıntı, su sıcaklığı, yedek dalga'},
@@ -149,7 +149,9 @@ function buildWx(){
   const cur = col('mbest', 'ocean_current_velocity', 6), curd = col('mbest', 'ocean_current_direction', 6, true), sst = col('mbest', 'sea_surface_temperature', 12);
   const cu = unit('mbest', 'ocean_current_velocity');
   // model seçimi: karma = rüzgâr ICON-EU → ECMWF → en iyi, hamle GFS → en iyi; tek model seçilince her şey o modelden (yoksa boş)
+  // tablodaki "Rüzgâr · Karma" satırı (wk) yedeğe geçmez: Karma'da yalnız ICON-EU, ICON bitince boş (–)
   const mSel = (S.settings && S.settings.model) || 'karma';
+  const kSel = mSel === 'karma' ? 'icon' : mSel;
   const order = mSel === 'karma' ? ['icon', 'ecmwf', 'best'] : [mSel];
   const gOrder = mSel === 'karma' ? ['gfs', 'best'] : [mSel];
   const hours = T.map((t, i) => {
@@ -163,12 +165,15 @@ function buildWx(){
     return {t: d, key: t.slice(0, 10), h: Number(t.slice(11, 13)),
       wind: w ? windToMs(w.wind[i], w.u) : null, wdir: w && w.wdir ? w.wdir[i] : null, wm: pickW ? SRC[pickW].label : null, wid: pickW || null,
       temp: val('temp'), press: val('press'), cloud: val('cloud'), rain: val('rain'),
-      gust: pickG ? windToMs(g[pickG].gust[i], g[pickG].ug) : null, gm: pickG ? (pickG === 'best' ? 'En iyi' : SRC[pickG].short) : null, pop: pop ? pop[i] : null,
+      wk: g[kSel] && g[kSel].wind && g[kSel].wind[i] != null ? windToMs(g[kSel].wind[i], g[kSel].u) : null, wkg: g[kSel] && g[kSel].gust && g[kSel].gust[i] != null ? windToMs(g[kSel].gust[i], g[kSel].ug) : null,
+      wkd: g[kSel] && g[kSel].wdir ? g[kSel].wdir[i] : null, wkid: kSel,
+      gust: pickG ? windToMs(g[pickG].gust[i], g[pickG].ug) : null, gm: pickG ? (pickG === 'best' ? 'En iyi' : SRC[pickG].short) : null, gid: pickG || null, pop: pop ? pop[i] : null,
       wave: wv ? wv.h : null, waveDir: wv ? wv.d : null, per: wv ? wv.p : null, wvm: wv ? wv.m : null,
       cur: cur ? curToKn(cur[i], cu) : null, curDir: curd ? curd[i] : null, sst: sst ? sst[i] : null, m};
   });
   hours.forEach((x, i) => { const p3 = hours[i - 3]; x.dp3 = (p3 && x.press != null && p3.press != null) ? x.press - p3.press : null; });
-  return {hours, at: S.wx.at, status: S.wx.status || {}, sea: S.wx.sea || null};
+  const grid = {}; ['icon', 'ecmwf', 'gfs'].forEach(id => { const r = R[id]; if (r && r.latitude != null) grid[id] = {lat: r.latitude, lon: r.longitude, el: r.elevation}; });
+  return {hours, at: S.wx.at, status: S.wx.status || {}, sea: S.wx.sea || null, grid};
 }
 const maxOf = (arr, k) => { let v = null; arr.forEach(x => { if (x[k] != null && (v == null || x[k] > v)) v = x[k]; }); return v; };
 const minOf = (arr, k) => { let v = null; arr.forEach(x => { if (x[k] != null && (v == null || x[k] < v)) v = x[k]; }); return v; };
