@@ -41,6 +41,7 @@ function bkPayload(){
   return {app: 'alyssa', v: 1, at: new Date().toISOString(), version: APP_VERSION, state: st, catches: CATCHES, pkgKey: lsGet(LS.pkgKey) || null};
 }
 function markDirty(){
+  if (typeof cloudDirty === 'function') cloudDirty();   // 15-cloud.js: hesap açıksa buluta da yazılır
   BK.dirty = true;
   if (PREVIEW || !S.backup.auto || !bkReady()) return;
   clearTimeout(BK.timer); BK.timer = setTimeout(() => backupNow(false), 60000);

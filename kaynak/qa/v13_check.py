@@ -1,18 +1,20 @@
-"""Alyssa v0.3–v0.12 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v12_check.py
+"""Alyssa v0.3–v0.13 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v13_check.py
 """
+import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
 from playwright.async_api import async_playwright
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   # sahte Firebase
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v12'
+SHOTS = ROOT + '/qa/v13'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8777
+PORT = 8778
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -139,6 +141,7 @@ async def new_ctx(b, storage=None, w=390):
         await ctx.add_init_script('if(!sessionStorage.getItem("seeded")){' + ''.join('localStorage.setItem(%s,%s);' % (json.dumps(k), json.dumps(v)) for k, v in storage.items()) + 'sessionStorage.setItem("seeded","1");}')
     await ctx.route('https://api.open-meteo.com/**', mock_meteo); await ctx.route('https://marine-api.open-meteo.com/**', mock_meteo)
     await ctx.route('https://api.github.com/**', mock_gh)
+    await fbmock.install(ctx)
     for pat in ['https://tile.openstreetmap.org/**', 'https://server.arcgisonline.com/**', 'https://tiles.openseamap.org/**', 'https://ows.emodnet-bathymetry.eu/**', 'https://drive.emodnet-geology.eu/**']:
         await ctx.route(pat, mock_tiles)
     for pat in ['https://nominatim.openstreetmap.org/**', 'https://overpass-api.de/**', 'https://rest.emodnet-bathymetry.eu/**']:
@@ -214,7 +217,7 @@ async def main():
         for v in ['takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(200); await overflow(pg, v)
         await pg.screenshot(path=SHOTS + '/a_daha.png')
-        check(await pg.locator('#moreMenu .mrow').count() == 16, 'Daha menüsü 16 satır')
+        check(await pg.locator('#moreMenu .mrow').count() == 17, 'Daha menüsü 17 satır (Hesap dahil)')
         # alışveriş: aynı rig iki kez yok
         await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
         lines = await pg.locator('#sheet .item .sp').all_inner_texts()
@@ -1114,6 +1117,92 @@ async def main():
         print('P2 errors:', errs); check(not errs, 'P: sayfa hatası yok (Kenny)')
         await ctx.close()
 
+        # ================================================== R) v0.13: hesap (e-posta), buluta taşıma, deneme hesabı, yeni cihaz, çakışma
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        check('Hesabımla giriş yap' in await pg.inner_text('#welcome'), 'R: karşılamada hesapla giriş')
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.wait_for_timeout(200)
+        check('Giriş yapılmadı' in await pg.inner_text('#moreMenu'), 'R: Daha menüsünde Hesap: giriş yapılmadı')
+        await pg.click('#moreMenu button[data-open="hesap"]'); await pg.wait_for_timeout(300)
+        await pg.screenshot(path=SHOTS + '/r_giris.png')
+        await pg.fill('#ac-mail', 'kenny@test.com'); await pg.fill('#ac-pass', 'gizli1'); await pg.click('button[data-acc="login"]'); await pg.wait_for_timeout(1500)
+        check('E-posta ya da şifre hatalı' in await pg.inner_text('#acErr'), 'R: kayıtsız e-postayla giriş hatası Türkçe')
+        await pg.fill('#ac-pass', 'gizli'); await pg.click('button[data-acc="signup"]'); await pg.wait_for_timeout(1500)
+        check('en az 6' in await pg.inner_text('#acErr'), 'R: kısa şifre uyarısı')
+        await pg.fill('#ac-pass', 'gizli123'); await pg.click('button[data-acc="signup"]'); await pg.wait_for_timeout(3500)
+        u1 = fbmock.FB['users']['kenny@test.com']['uid']; d1 = fbmock.doc_json(u1)
+        check(d1 and d1['systems'].get('ozel') and d1['pkg']['unlocked'] and not d1.get('wx'), 'R: ilk girişte telefondaki veri hesaba yüklendi (özel sistem dahil)')
+        allfs = json.dumps(fbmock.FB['docs'])
+        check(KEY['pass_'] not in allfs and 'alyssa-pk' not in allfs and '"rigs":[{"code"' not in allfs, 'R: buluta paket şifresi, anahtarı ve paket rigleri gitmedi')
+        check(await pg.evaluate('localStorage.getItem("alyssa-cu")') == u1 and 'kenny@test.com' in await pg.inner_text('#sheet'), 'R: hesap sayfasında e-posta, veri hesaba bağlı')
+        await pg.screenshot(path=SHOTS + '/r_hesap.png')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        # değişiklik 3 sn içinde buluta
+        await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(200)
+        await pg.fill('#nl-name', 'Bulut noktası'); await pg.fill('#nl-lat', '38.20'); await pg.fill('#nl-lon', '26.70'); await pg.click('#locForm button[type="submit"]'); await pg.wait_for_timeout(4500)
+        d1 = fbmock.doc_json(u1); check(any(l['name'] == 'Bulut noktası' for l in d1['locations'].values()), 'R: yeni konum otomatik buluta yazıldı')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        # deneme hesabı: kopyayla başla
+        await pg.click('#moreMenu button[data-open="hesap"]'); await pg.wait_for_timeout(200)
+        await pg.click('button[data-acc="logout"]'); await pg.click('button[data-acc="logout"]'); await pg.wait_for_timeout(1200)
+        check(await pg.is_visible('#ac-mail'), 'R: çıkış yapıldı')
+        nloc = len((await state(pg))['locations']); check(nloc >= 2, 'R: çıkıştan sonra veri telefonda duruyor')
+        await pg.fill('#ac-mail', 'kenny+deneme@test.com'); await pg.fill('#ac-pass', 'deneme123'); await pg.click('button[data-acc="signup"]'); await pg.wait_for_timeout(2500)
+        sh = await pg.inner_text('#sheet'); check('Yeni hesap' in sh and 'kopyasıyla' in sh, 'R: yeni hesap için kopya ya da boş sorusu')
+        await pg.screenshot(path=SHOTS + '/r_yeni_hesap.png')
+        await pg.click('button[data-acc="copy"]'); await pg.wait_for_timeout(2500)
+        u2 = fbmock.FB['users']['kenny+deneme@test.com']['uid']; d2 = fbmock.doc_json(u2)
+        check(d2 and d2['systems'].get('ozel') and len(d2['locations']) == nloc, 'R: deneme hesabı verinin kopyasıyla başladı')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#rigList article.rig').count() == 32, 'R: deneme hesabında 32 rig')
+        # denemede dağıt: konumları sil, envanteri değiştir
+        await pg.evaluate("() => { const S = ALYSSA_QA.state(); S.locations = {}; S.active = null; S.inv.status['std:t:tfirdondu|-'] = 'var'; }")
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="ayarlar"]'); await pg.click('button[data-set="scheme"][data-val="dark"]'); await pg.wait_for_timeout(4500)
+        d2 = fbmock.doc_json(u2); check(d2 and not d2['locations'], 'R: denemedeki silme deneme hesabına yazıldı')
+        check(len(fbmock.doc_json(u1)['locations']) == nloc, 'R: asıl hesap denemeden etkilenmedi')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        # asıl hesaba dön
+        await pg.click('#moreMenu button[data-open="hesap"]'); await pg.wait_for_timeout(200)
+        await pg.click('button[data-acc="logout"]'); await pg.click('button[data-acc="logout"]'); await pg.wait_for_timeout(1200)
+        await pg.fill('#ac-mail', 'kenny@test.com'); await pg.fill('#ac-pass', 'gizli123'); await pg.click('button[data-acc="login"]'); await pg.wait_for_timeout(3000)
+        st = await state(pg); check(len(st['locations']) == nloc and st['inv']['status'].get('std:t:tfirdondu|-') != 'var', 'R: asıl hesaba dönünce kendi verisi geri geldi')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#rigList article.rig').count() == 32, 'R: asıl hesapta 32 rig')
+        print('R1 errors:', errs); check(not errs, 'R: sayfa hatası yok (hesaplar)')
+        await ctx.close()
+        # yeni cihaz: hesapla gir → veri gelir, paket şifresi bir kez sorulur
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="hesap"]'); await pg.wait_for_timeout(300)
+        await pg.fill('#ac-mail', 'kenny@test.com'); await pg.fill('#ac-pass', 'gizli123'); await pg.click('button[data-acc="login"]'); await pg.wait_for_timeout(3500)
+        st = await state(pg); check(len(st['locations']) == nloc and st['systems'].get('ozel'), 'R: yeni cihazda konumlar ve sistem geldi')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(300)
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
+        check('şifre' in (await pg.inner_text('#banners')).lower(), 'R: yeni cihazda paket şifresi isteniyor')
+        await pg.click('#banners button[data-open="paket"]'); await pg.wait_for_timeout(300)
+        await pg.fill('#pk-pass', KEY['pass_']); await pg.click('#pkBtn'); await pg.wait_for_timeout(5000)
+        await pg.click('#sheet [data-close]') if await pg.is_visible('#sheet') else None
+        await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#rigList article.rig').count() == 32, 'R: şifreyle yeni cihazda 32 rig')
+        # çakışma: bulutta başka cihazdan değişiklik + burada değişiklik
+        await pg.evaluate("() => { const C = ALYSSA_QA.cloud(); C.user && (C.dirty = false); }")
+        d = fbmock.FB['docs']['users/' + u1]; o = json.loads(d['fields']['s']['stringValue']); o['profile']['name'] = 'Diğer cihaz'
+        d['fields']['s']['stringValue'] = json.dumps(o); d['fields']['at'] = {'integerValue': str(int(time.time() * 1000) + 60000)}
+        await pg.evaluate("() => { const S = ALYSSA_QA.state(); S.modAt = Date.now() + 30000; localStorage.setItem('alyssa-v1', JSON.stringify(S)); }")
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="hesap"]'); await pg.wait_for_timeout(200)
+        await pg.click('button[data-acc="sync"]'); await pg.wait_for_timeout(1500)
+        sh = await pg.inner_text('#sheet'); check('Hangi veri kalsın' in sh, 'R: iki tarafta değişiklik → kullanıcıya soruldu')
+        await pg.screenshot(path=SHOTS + '/r_cakisma.png')
+        await pg.click('button[data-acc="remote"]'); await pg.wait_for_timeout(1500)
+        st = await state(pg); check(st['profile']['name'] == 'Diğer cihaz', 'R: “Hesaptakini yükle” diğer cihazın verisini getirdi')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'R %d px hesap' % w)
+        print('R2 errors:', errs); check(not errs, 'R: sayfa hatası yok (yeni cihaz)')
+        await ctx.close()
+
         # ================================================== E) önizleme
         ctx = await b.new_context(viewport={'width': 390, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2)
         await ctx.add_init_script(FAKE_NOW)
@@ -1124,6 +1213,8 @@ async def main():
         check(await pg.locator('#hTable tr').count() >= 15, 'önizleme: saatlik tablo')
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
         check(await pg.locator('#rigList article.rig').count() == 32, 'önizleme: 32 rig')
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.wait_for_timeout(200)
+        check(await pg.locator('#moreMenu button[data-open="hesap"]').count() == 0, 'önizleme: Hesap satırı yok (giriş yalnızca yayında)')
         await pg.screenshot(path=SHOTS + '/e_preview.png')
         print('E errors:', errs); check(not errs, 'E: sayfa hatası yok')
         await ctx.close(); await b.close()

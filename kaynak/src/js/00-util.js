@@ -3,6 +3,12 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.13.0', notes: [
+    'Hesap: Google ya da e-postayla giriş (isteğe bağlı). Rigler, envanter, konumlar, ayarlar ve avlar hesabına yazılır; başka telefonda aynı hesapla girince gelir',
+    'İlk girişte telefondaki verin hesaba taşınır, hiçbir şey silinmez. Fotoğraflar telefonda kalır; özel paketin şifresi buluta gitmez',
+    'Deneme hesabı: ikinci bir e-postayla kayıt ol, “kopyasıyla başla”; denemede yaptıkların asıl hesabına dokunmaz',
+    'İki cihazda birden değişiklik olursa hangisinin kalacağını sorar',
+  ]},
   {v: '0.12.0', notes: [
     'Türlerim: hedeflediğin türü ekle (yerel adlar da: çinekop, torik, çupra…); ne zaman, kaç metrede, hangi dipte ve yemle tutulduğu yazar',
     'Tür planı: tekne ya da kıyı moduna ve elindeki kamışa göre önerilen takım; neyin elinde olduğu, neyi alman gerektiği',

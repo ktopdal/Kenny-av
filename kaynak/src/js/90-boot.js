@@ -55,6 +55,7 @@ function bindEvents(){
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
+    if (d.acc) { e.preventDefault(); accAct(d.acc, b); return; }
     if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzsadd || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
     if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
     if (d.systool) {
@@ -199,21 +200,22 @@ function bindEvents(){
     if (f.id === 'pkgForm') { submitPkg(); return; }
     if (f.id === 'welPkg') { welcomePkg(); return; }
     if (f.id === 'grpForm') { grpCreate(); return; }
+    if (f.id === 'accForm') { accAct('login', f.querySelector('button[type="submit"]')); return; }
   });
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
   // açılır bölümlerin (hazır liste) açık/kapalı hâli yeniden çizimde korunur
   document.addEventListener('toggle', e => { const el = e.target; if (el && el.dataset && el.dataset.dk) { ui.open = ui.open || {}; ui.open[el.dataset.dk] = el.open; } }, true);
   window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); return; }
-    loadWeather(); pkgCheck(false);
+    if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); if (CLOUD.user && CLOUD.dirty) pushNow(); return; }
+    loadWeather(); pkgCheck(false); if (CLOUD.user && !CLOUD.busy && !CLOUD.ask) cloudSync(false);
   });
 }
 // test kancası: yalnızca adres ?qa=1 ile açılınca hesap fonksiyonlarını dışarı verir (veri değiştirmez)
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
   state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc(),
   items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
-  rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig};
+  cloud: () => CLOUD, cloudSync, pushNow, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig};
 (async () => {
   loadState();
   pkgLoadCached();
@@ -233,5 +235,6 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   if (CATCHES.length) { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }
   loadWeather();
   if (!EMBED && S.pkg.unlocked) pkgCheck(false);
+  cloudInit();
 })();
 /*__SW__*/

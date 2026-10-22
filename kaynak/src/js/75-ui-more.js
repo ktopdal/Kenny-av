@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------- 75 · Daha: menü ve sayfalar (ayarlar, bulut yedek, özel paket, konumlar, alışveriş…)
 const MORE = [
+  ['hesap', 'Hesap', () => cloudSub()],
   ['ayarlar', 'Ayarlar', () => 'Tema, renkler, rüzgâr renkleri, yazı boyutu, tekne'],
   ['gorunum', 'Görünüm', () => 'Tablo satırları, Bugün kartları, birimler, hava modeli'],
   ['yedek', 'Bulut yedek', () => bkReady() ? (S.backup.err ? '⚠ ' + S.backup.err : S.backup.lastAt ? 'Son yedek ' + fmtDT(new Date(S.backup.lastAt)) : 'Bağlı, henüz yedek yok') : 'Kapalı · GitHub deponda şifreli yedek'],
@@ -18,7 +19,7 @@ const MORE = [
   ['surum', 'Sürüm notları', () => 'v' + APP_VERSION],
 ];
 function renderMore(){
-  $('moreMenu').innerHTML = MORE.map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
+  $('moreMenu').innerHTML = MORE.filter(r => r[0] !== 'hesap' || cloudOn()).map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
   $('about').textContent = APP_NAME + ' v' + APP_VERSION + (pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + ' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
 }
 function renderNewVersion(){
@@ -36,7 +37,7 @@ function openMore(name, keep){
   ui.sheet = name;
   if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar

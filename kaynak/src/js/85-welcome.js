@@ -6,7 +6,8 @@ function showWelcome(){
     '<span class="wlogo">' + LOGO + '</span>' +
     '<h2>' + esc(APP_NAME) + '</h2>' +
     '<p class="sub">Hava, deniz, solunar, rig sistemin, envanterin ve avların tek yerde. Nasıl başlamak istersin?</p>' +
-    '<button class="btn primary bigbtn" type="button" data-wel="kur">Rig sistemimi kur</button>' +
+    (cloudOn() ? '<button class="btn primary bigbtn" type="button" data-wel="hesap">Hesabımla giriş yap</button>' : '') +
+    '<button class="btn ' + (cloudOn() ? '' : 'primary ') + 'bigbtn" type="button" data-wel="kur">Rig sistemimi kur</button>' +
     '<p class="note" id="welKurNote" hidden>Rig Atölyesi bir sonraki sürümde geliyor: nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel sistemi kuracak. Şimdilik boş başlayabilir, konum ve envanter ekleyebilirsin.</p>' +
     '<button class="btn bigbtn" type="button" data-wel="paket">Özel paketimi aç</button>' +
     '<form id="welPkg" class="stack" hidden novalidate><label class="f">Paket şifresi<input id="wel-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
@@ -21,6 +22,7 @@ async function welcomeAction(a){
   if (a === 'kur') { if (typeof startWizard === 'function') { hideWelcome(true); startWizard(); WZ.fromWel = true; } else $('welKurNote').hidden = false; return; }
   if (a === 'paket') { $('welPkg').hidden = false; setTimeout(() => { try { $('wel-pass').focus(); } catch (e) {} }, 50); return; }
   if (a === 'bulut') { hideWelcome(); openMore('yedek'); return; }
+  if (a === 'hesap') { hideWelcome(true); openMore('hesap'); return; }
   if (a === 'bos') { hideWelcome(); renderAll(); return; }
 }
 async function welcomePkg(){
