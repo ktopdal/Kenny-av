@@ -29,12 +29,14 @@ function techRule(rg, c){
   }
   return out;
 }
-function recommend(dd, night, from){
+// at: {x} verilirse o saatin koşullarıyla (saat saat plan için); yoksa bölümün en iyi penceresiyle
+function recommend(dd, night, from, at){
   const L = loc(); const month = dd.date.getMonth() + 1;
-  const w = bestWindows(dd, night ? 'gece' : 'gun', 1, from)[0] || null;
-  const x = (w && w.x) || refHour(dd);
+  const w = at ? (at.w || null) : bestWindows(dd, night ? 'gece' : 'gun', 1, from)[0] || null;
+  const x = at ? at.x : (w && w.x) || refHour(dd);
   const dr = x ? driftAt(x) : null;
-  const cls = (w && w.cls) || (night ? dd.clsN : dd.clsD);
+  const cls = at ? (x && seaClsAt(x)) || (night ? dd.clsN : dd.clsD) : (w && w.cls) || (night ? dd.clsN : dd.clsD);
+  const sm = spotMemory(L), depth = locDepth();
   const ctx = {night, cur: x ? x.cur : null, illum: Math.round(dd.sol.illum * 100), month, L};
   const sst = x && x.sst != null ? x.sst : dd.sst != null ? dd.sst : null, tgt = S.settings.ftarget || '';
   const out = [];
@@ -67,9 +69,16 @@ function recommend(dd, night, from){
     const tr = techRule(rg, {dr, x, w, night, cls}); sc += tr.d; why.push(...tr.why);
     const lr = learnRig(rg, ctx); if (lr) { sc += lr.bonus; why.push(...lr.why); }
     const ls = learnSpecies(rg, ctx); if (ls) { sc += ls.bonus; why.push(ls.why); }
-    out.push({rg, sc, why, ok: ready(rg), learned: !!(lr || ls)});
+    // R1 nokta hafızası: bu noktada en çok tutan 3 rig
+    const si = spotIdx(sm, rg); if (si >= 0) { sc += [1.5, 1, 0.7][si]; why.push('bu noktada ' + (si + 1) + '. (' + spotRigTxt(sm.top[si]).replace(/^[^(]*\(/, '').replace(/\)$/, '') + ')'); }
+    // R6 mevsime göre derinlik
+    const rd = rigDepth(rg, month, depth); if (rd) { sc += rd.d; why.push(rd.why); }
+    // R3 eksik iğne/ip envanterden yedekle tamamlanabiliyorsa öneriye girer
+    const okR = ready(rg), sub = okR ? null : subFor(rg);
+    if (sub) { sc -= 0.5; why.push('yedekle hazır (' + sub.list.length + ' parça)'); }
+    out.push({rg, sc, why, ok: okR || !!sub, sub, learned: !!(lr || ls)});
   });
   out.sort((a, b) => b.sc - a.sc);
-  out.win = w; out.x = x; out.dr = dr; out.cls = cls; out.sst = sst; out.month = month;
+  out.win = w; out.x = x; out.dr = dr; out.cls = cls; out.sst = sst; out.month = month; out.spot = sm;
   return out;
 }

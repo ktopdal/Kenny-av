@@ -211,18 +211,19 @@ function setLocKind(id, kind){
 function sheetShopping(){
   const G = {};
   shoppingList().forEach(n => { const it = n.item && ITEMS[n.item]; const store = (it && it.store) || n.store;
-    const tw = n.why.filter(w => w.indexOf('tur:') === 0).map(w => w.slice(4));
-    const g = store ? 'm:' + store : n.why.includes('bitti') || n.why.includes('alinacak') ? 'al' : tw.length ? 't:' + tw[0] : 'rig'; n.tw = tw; (G[g] = G[g] || []).push(n); });
+    const tw = n.why.filter(w => w.indexOf('tur:') === 0).map(w => w.slice(4)), yw = n.why.filter(w => w.indexOf('yem:') === 0).map(w => w.slice(4));
+    const g = store ? 'm:' + store : n.why.includes('bitti') || n.why.includes('alinacak') ? 'al' : yw.length ? 'y:' + yw[0] : tw.length ? 't:' + tw[0] : 'rig'; n.tw = tw; (G[g] = G[g] || []).push(n); });
   const SN = {al: 'Bitti ya da alınacak', rig: 'Rigleri tamamlamak için'};
   Object.keys(G).filter(g => g.indexOf('t:') === 0).forEach(g => { SN[g] = g.slice(2) + ' için (tür planı)'; });
+  Object.keys(G).filter(g => g.indexOf('y:') === 0).forEach(g => { SN[g] = 'Yem · ' + g.slice(2) + ' çıkışı'; });
   if (pkgOn() && Array.isArray(D.stores)) D.stores.forEach(st => { SN['m:' + st.id] = st.name + ' (' + st.id + ')'; });
-  const order = Object.keys(G).filter(g => g.indexOf('m:') === 0).sort().concat(['al'].filter(g => G[g]), Object.keys(G).filter(g => g.indexOf('t:') === 0).sort(), ['rig'].filter(g => G[g]));
+  const order = Object.keys(G).filter(g => g.indexOf('y:') === 0).sort().concat(Object.keys(G).filter(g => g.indexOf('m:') === 0).sort(), ['al'].filter(g => G[g]), Object.keys(G).filter(g => g.indexOf('t:') === 0).sort(), ['rig'].filter(g => G[g]));
   const body = order.map(g => '<div class="eyebrow">' + esc(SN[g] || 'Mağaza ' + g.slice(2)) + ' (' + G[g].length + ')</div>' + G[g].map(n => {
     const it = n.item && ITEMS[n.item]; const k = n.item ? n.item + '|' + (n.size || '-') : null; const u = it ? unitOf(it) : 'durum';
     const tag = n.rigs.length ? '<span class="chip">' + n.rigs.length + ' rigde</span>' : '<span class="chip">' + esc(CAT_TXT[(it || {}).cat] || '') + '</span>';
     const act = k ? (u !== 'durum' ? '<label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (' + (u === 'paket' ? 'paket' : 'adet') + ')<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label>' :
         '<button class="btn small primary" type="button" data-bought="' + esc(k) + '">Aldım</button>') :
-      (n.sp ? '<button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button>' : '');
+      (n.sp ? '<button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button>' : n.kind === 'bait' ? '<button class="btn small primary" type="button" data-shopdel="' + esc(n.k) + '">Aldım</button>' : '');
     return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div>' + tag + '</div>' +
       ((n.rigs.length || (it && it.note) || n.tw.length > 1) ? '<div class="sp">' + esc([n.rigs.join(', '), n.tw.length > 1 ? n.tw.join(', ') + ' için' : '', it && it.note ? it.note : ''].filter(Boolean).join(' · ')) + '</div>' : '') +
       (act ? '<div class="row">' + act + '</div>' : '') + '</div>';

@@ -35,7 +35,7 @@ function renderFishing(){
     '<div class="row"><button class="btn primary" type="button" data-act="gpsloc">Bulunduğum yer</button><button class="btn" type="button" data-open="konumlar">Koordinat gir</button></div></div>' :
     !ds.length ? '<div class="empty">Hava ve deniz verisi henüz yok. İnternete bağlanınca av planı hazırlanır.</div>' : '';
   ['fPick', 'solPanel'].forEach(id => { $(id).hidden = empty; });
-  if (empty) { $('fDays').innerHTML = ''; $('fParts').innerHTML = ''; $('fSum').innerHTML = ''; fRecs(null); fDrift(null); return; }
+  if (empty) { $('fDays').innerHTML = ''; $('fParts').innerHTML = ''; $('fSum').innerHTML = ''; fRecs(null); fPlan(null); fBait(null); fDrift(null); return; }
   const dd = fState(ds), part = ui.fpart, now = new Date(), tk = dateKey(now), isToday = dd.key === tk;
   const [A, B] = partRange(dd, part);
   const past = isToday && now.getTime() > B;
@@ -61,7 +61,8 @@ function renderFishing(){
   const from = isToday ? now : null;
   const ws = past ? [] : bestWindows(dd, part, 2, from).slice().sort((p, q) => p.a - q.a);
   $('solWins').innerHTML = ws.length ? ws.map(w => winRow(winLabel(w), w)).join('') : '<p class="note">' + (past ? 'Bu bölüm geçti.' : 'Bu bölümde belirgin bir pencere yok.') + '</p>';
-  fRecs(dd, part, from, past);
+  const R = fRecs(dd, part, from, past);
+  fPlan(dd, part, past); fBait(dd, part, R, past);
   fDrift(dd, part);
 }
 // ---- bu ay ve bu suda mevsiminde olan türler (tür takvimi, 52-tune.js)
@@ -77,7 +78,7 @@ function fRecs(dd, part, from, past){
   const offSys = Object.values(S.systems).filter(sy => sy.active === false && (sy.source !== 'paket' || pkgOn()));
   const offNote = offSys.length ? '<div class="banner">' + offSys.map(sy => esc(sy.name) + ' kapalı ' + '<button class="btn small" type="button" data-systool="toggle" data-sid="' + esc(sy.id) + '">Aç</button>').join(' · ') + '</div>' : '';
   $('recHead').textContent = 'Bunu bağla' + (dd ? ' · ' + PART_TXT[part] : '');
-  $('recMoreW').hidden = true; $('recMore').innerHTML = ''; $('fTarget').innerHTML = '';
+  $('recMoreW').hidden = true; $('recMore').innerHTML = ''; $('fTarget').innerHTML = ''; $('fSpot').hidden = true;
   if (!RIG_LIST.length) {
     $('recNote').textContent = '';
     $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
@@ -95,6 +96,7 @@ function fRecs(dd, part, from, past){
   const night = part === 'gece';
   $('fTarget').innerHTML = '<span class="note">Hedef boy</span>' + segBtns('ftarget', [['', 'Hepsi'], ['porsiyon', 'Porsiyon'], ['trofe', 'Trofe']], S.settings.ftarget || '');
   const R = recommend(dd, night, past ? null : from);
+  const spl = L ? spotLine(L) : ''; $('fSpot').hidden = !spl; $('fSpot').textContent = spl;   // R1 nokta hafızası
   const ok = R.filter(x => x.ok), top = ok.slice(0, F_TOP), more = ok.slice(F_TOP, F_TOP + 6);
   const lb = learnBase();
   $('recNote').textContent = (L && L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : L && L.bottomEst ? 'Taban tahmini: ' + (L.bottomEstTxt || BOTTOM_TXT[L.bottomEst]) + ' (EUSeaMap); keşif rigleri de önde' : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · en uygun ' + F_TOP + ' rig · yalnızca tamamlanmış rigler' +
@@ -106,7 +108,7 @@ function fRecs(dd, part, from, past){
   const flow = R.dr && R.dr.known && R.dr.line >= 0.7 ? '<div class="banner">' + (R.dr.anchored ? 'Akıntı güçlü: ağır kurşun.' : 'Sürüklenme hızlı: paraşüt çapa ya da demir.') + '</div>' : '';
   const wTxt = R.win ? '<div class="meta why">En iyi pencere ' + winTxt(R.win) + ' · balık %' + R.win.pct + (R.win.cls ? ' · deniz ' + R.win.cls : '') + '</div>' : '';
   $('recList').innerHTML = offNote + warn + flow + (top.length ? top.map((x, i) => '<div class="rank">' + (i + 1) + '</div>' +
-    rigCard(x.rg, dd, x.why, wTxt, null, R.x, {tune: tuneRig(x.rg, dd, R.x, R.win, night, R.month), foot: past ? '' : fbRow(x.rg)})).join('') :
+    rigCard(x.rg, dd, x.why, wTxt, null, R.x, {tune: tuneRig(x.rg, dd, R.x, R.win, night, R.month), foot: past ? '' : fbRow(x.rg), sub: x.sub})).join('') :
     '<div class="empty">' + PART_TXT[part] + ' için uygun ve tamamlanmış rig yok.</div>');
   $('recMoreW').hidden = !more.length;
   $('recMoreS').textContent = 'Diğer uygun rigler (' + more.length + ')';
@@ -114,6 +116,27 @@ function fRecs(dd, part, from, past){
   const blocked = R.filter(x => !x.ok).slice(0, 3);
   $('recBlocked').innerHTML = blocked.map(x => '<div class="rec"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + esc(x.rg.code || '') + '</span></div><div class="why">Eksik: ' +
     esc(missingOf(x.rg).map(sl => { const e = sl.t.envanter || {}; return (e.item && ITEMS[e.item] ? ITEMS[e.item].name : (e.name || sl.label)) + ' ' + (e.size || ''); }).join(', ')) + '</div></div>').join('') || '<p class="note">Yok.</p>';
+  return R;
+}
+// ---- R2 · saat saat plan (54-trip.js)
+function fPlan(dd, part, past){
+  const el = $('fPlan'); if (!el) return;
+  const ev = dd && !past && RIG_LIST.length ? rigTimeline(dd, part) : [];
+  el.hidden = !ev.length;
+  el.innerHTML = ev.length ? '<h3>Saat saat plan · ' + PART_TXT[part] + '</h3><div class="tline">' + ev.map(e => '<div class="tlr ' + e.kind + '"><b class="mono">' + hhmm(e.t) + '</b><span>' + esc(e.txt) + (e.why ? '<small>' + esc(e.why) + '</small>' : '') + '</span></div>').join('') + '</div>' +
+    '<p class="note">Rig ve kurşun 3 saatlik dilimlerin ortasındaki koşula göre; değişmeyen dilim yazılmaz.</p>' : '';
+}
+// ---- R5 · yem planı (54-trip.js)
+function fBait(dd, part, R, past){
+  const el = $('fBait'); if (!el) return;
+  const p = dd && R && !past ? baitPlan(dd, part, R) : null;
+  el.hidden = !p;
+  if (!p) { el.innerHTML = ''; return; }
+  const ctl = '<div class="bctl"><span class="note">Kamış</span>' + segBtns('rods', [[1, '1'], [2, '2'], [3, '3'], [4, '4']], String(p.rods)) + '<span class="note">Süre</span>' + segBtns('tripH', [[3, '3 sa'], [4, '4 sa'], [6, '6 sa'], [8, '8 sa']], String(+S.settings.tripH || 4)) + '</div>';
+  el.innerHTML = '<h3>Yem planı</h3>' + ctl + (p.none ? '<p class="note">' + esc((p.main.code || p.main.name)) + ' sahte yemle avlanır; yem gerekmez.</p>' :
+    '<p class="note">' + p.hours + ' saat, ' + p.rods + ' kamış, ' + p.hooks + ' iğneli rig: ≈ ' + p.changes + ' yem takma (saatte iğne başı ' + p.rate + (p.warm ? '; su ılık, küçük balık yemi çalar' : '') + ').</p>' +
+    '<ul class="bplan">' + p.items.map(it => '<li><b>' + esc(it.name) + '</b> · ' + it.qty + ' ' + esc(it.unit) + (it.st === 'var' ? ' <span class="note">(elinde var; yeter mi bak)</span>' : it.st === 'yok' ? ' <span class="warnt">(elinde yok)</span>' : '') + '</li>').join('') + '</ul>' +
+    '<div class="row"><button class="btn small" type="button" data-act="baitShop">Alışveriş listesine ekle</button></div><p class="note">Tahminidir; kendi tüketimine göre kamış ve süreyi değiştir.</p>');
 }
 // ---- 3 saatlik dilimler (son dilim 1,5 saatten kısaysa öncekine katılır)
 function fBlocks(dd, part){
@@ -169,6 +192,7 @@ function fDrift(dd, part){
       '; en hızlı ' + hhmm(fast.a) + '–' + hhmm(fast.b) + '. Kurşun en çok ' + (ex ? '+' + ex + ' g' : 'artmaz') + '.</p>';
   }
   el.innerHTML = '<div class="row" style="justify-content:space-between;align-items:center"><h3>Sürüklenme ve kurşun</h3>' + segBtns('anchor', [['surukle', 'Sürüklenerek'], ['demir', 'Demirli']], anch ? 'demir' : 'surukle') + '</div>' +
+    (kn.length ? '<div class="row"><button class="btn small" type="button" data-act="driftmap">Haritada göster</button><span class="note">Başlama yeri ve sürüklenme yönü</span></div>' : '') +
     sum + rows.join('') +
     '<p class="note">' + (depth ? 'Derinlik ' + depth + ' m.' : 'Derinlik bilinmiyor, ' + DEPTH_REF + ' m varsayıldı; Konumlar’dan yazabilirsin.') + ' Rig kartlarındaki kurşun en iyi penceredeki koşula göredir. Tekne rüzgâr payı Ayarlar’dan.</p>';
 }

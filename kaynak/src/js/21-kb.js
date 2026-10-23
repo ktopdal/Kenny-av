@@ -123,6 +123,25 @@ const KB = (() => {
     kirma: ['222222223332', [13, 15, 22, 26]], hani: ['112233333221', [13, 17, 24, 27]], 'kaya-baligi': ['222233333222', [11, 14, 25, 28]],
     gelincik: ['332211111223', [11, 13, 18, 22]], trakonya: ['111123332211', [14, 17, 25, 28]], sarikuyruk: ['000123333210', [17, 20, 27, 29]],
   };
+  // v0.22 · mevsime göre derinlik (Ege, oltada en çok tutulduğu dip derinliği, m): [kış Ara–Şub, ilkbahar Mar–May, yaz Haz–Ağu, sonbahar Eyl–Kas]
+  // Genel bilgidir; noktanın derinliği bu aralıktaysa rig öne çıkar, değilse "daha derin / daha sığ dene" denir.
+  const SDEP = {
+    karagoz: [[20, 60], [5, 40], [10, 40], [5, 40]], isparoz: [[10, 40], [2, 25], [3, 25], [2, 30]], izmarit: [[30, 80], [15, 60], [20, 60], [15, 60]],
+    kupes: [[5, 60], [0, 40], [0, 40], [0, 50]], melanurya: [[2, 20], [0, 15], [0, 15], [0, 15]], mirmir: [[5, 30], [0, 15], [0, 10], [0, 15]],
+    sargoz: [[3, 30], [3, 25], [10, 40], [2, 25]], mercan: [[40, 120], [20, 80], [25, 80], [20, 80]], cipura: [[15, 50], [3, 25], [3, 20], [3, 30]],
+    minakop: [[5, 40], [2, 20], [0, 15], [0, 20]], fangri: [[50, 150], [25, 80], [35, 100], [25, 90]], sinarit: [[40, 120], [15, 60], [30, 100], [20, 80]],
+    sinagrit: [[50, 150], [30, 100], [40, 120], [30, 100]], tranca: [[30, 100], [20, 80], [20, 70], [20, 80]], eskina: [[5, 50], [2, 30], [2, 25], [2, 30]],
+    iskorpit: [[5, 60], [2, 40], [5, 50], [2, 40]], lipsoz: [[30, 150], [20, 120], [30, 150], [20, 120]], akya: [[5, 40], [2, 30], [0, 25], [0, 30]],
+    levrek: [[0, 15], [0, 15], [2, 20], [0, 15]], lufer: [[5, 40], [0, 30], [0, 30], [0, 30]], palamut: [[10, 60], [0, 40], [0, 40], [0, 40]],
+    lambuka: [[0, 20], [0, 20], [0, 15], [0, 15]], orkinos: [[0, 200], [0, 150], [0, 100], [0, 150]], zargana: [[0, 10], [0, 5], [0, 5], [0, 5]],
+    istavrit: [[20, 100], [10, 60], [10, 60], [5, 50]], kolyoz: [[20, 100], [10, 60], [5, 50], [5, 50]], uskumru: [[20, 100], [10, 60], [20, 80], [10, 60]],
+    kefal: [[0, 10], [0, 5], [0, 5], [0, 5]], barbunya: [[40, 150], [20, 80], [20, 80], [15, 60]], tekir: [[20, 60], [5, 40], [5, 30], [5, 40]],
+    kirlangic: [[30, 150], [20, 100], [30, 120], [20, 100]], mezgit: [[20, 80], [30, 100], [50, 150], [30, 100]], dil: [[10, 60], [2, 40], [5, 40], [2, 40]],
+    kalkan: [[30, 80], [20, 60], [30, 80], [20, 60]], lahos: [[20, 80], [10, 60], [10, 50], [10, 60]], orfoz: [[20, 100], [10, 60], [10, 50], [10, 60]],
+    kalamar: [[10, 60], [10, 50], [30, 100], [10, 50]], murekkep: [[30, 100], [2, 20], [10, 40], [10, 50]], ahtapot: [[10, 60], [2, 40], [2, 40], [2, 40]],
+    kirma: [[30, 100], [10, 60], [20, 80], [10, 60]], hani: [[20, 80], [5, 60], [10, 60], [5, 60]], 'kaya-baligi': [[2, 20], [0, 15], [0, 15], [0, 15]],
+    gelincik: [[50, 200], [30, 150], [50, 200], [30, 150]], trakonya: [[20, 100], [5, 60], [5, 40], [5, 60]], sarikuyruk: [[30, 150], [20, 100], [10, 80], [10, 100]],
+  };
   // dişli türler köstek keser: lüferde çelik tel (ya da 0,50+ mm florokarbon), palamutta kalın florokarbon
   const TEETH = {lufer: 'steel', palamut: 'fc'};
   // takım aileleri: iğne deseni ve boy aralığı (jp: No, w: # ve /0), köstek/beden/ana ip çapı (mm)
@@ -206,7 +225,7 @@ const KB = (() => {
     samandira: {mono: [0.20, 0.26], kostek: [0.16, 0.22], g: [2, 8], hook: {p: ['aberdeen', 'chinu', 'maruseigo'], jp: [1, 3], w: ['12', '6']}, len: {kostek: 50}},
   };
   const REGIONS = [['ege', 'Ege'], ['marmara', 'Marmara'], ['karadeniz', 'Karadeniz'], ['akdeniz', 'Akdeniz']];
-  return {PAT, COMPAT, HOOK, LINE, LURE, SPECIES, FAM, TECH, STD, LAY, FIX, REGIONS, CAL, TEETH};
+  return {PAT, COMPAT, HOOK, LINE, LURE, SPECIES, FAM, TECH, STD, LAY, FIX, REGIONS, CAL, TEETH, SDEP};
 })();
 // konumdan kaba bölge tahmini (kullanıcı değiştirebilir)
 function regionOf(L){

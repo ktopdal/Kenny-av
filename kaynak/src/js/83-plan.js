@@ -322,11 +322,11 @@ function checklist(){
   const out = {rigs: [], gear: [], bait: [], kit: shoreMode() ? SHORE_KIT : BOAT_KIT, dd, part: ui.fpart || null};
   if (dd && RIG_LIST.length) {
     const parts = ui.fpart ? [ui.fpart === 'gece'] : [false, true];
-    const recs = parts.flatMap(n => { const R = recommend(dd, n); return R.filter(x => x.ok).slice(0, ui.fpart ? F_TOP : 2).map(x => ({rg: x.rg, x: R.x})); });
+    const recs = parts.flatMap(n => { const R = recommend(dd, n); return R.filter(x => x.ok).slice(0, ui.fpart ? F_TOP : 2).map(x => ({rg: x.rg, x: R.x, sub: x.sub})); });
     const seenRig = new Set(), gear = {}, bait = new Set();
-    recs.forEach(({rg, x}) => {
+    recs.forEach(({rg, x, sub}) => {
       if (seenRig.has(rg.id)) return; seenRig.add(rg.id); out.rigs.push(rg);
-      rg.slots.forEach(sl => { const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item]; const nm = (it ? it.name : e.name || sl.label) + (e.size ? ' ' + e.size : ''); gear[nm] = (gear[nm] || []).concat(rg.code || rg.name); });
+      rg.slots.forEach(sl => { const c = sub && sub.list.find(z => z.sl === sl); const e = c ? {item: c.to.item, size: c.to.size} : sl.t.envanter || {}; const it = e.item && ITEMS[e.item]; const nm = (it ? it.name : e.name || sl.label) + (e.size ? ' ' + e.size : '') + (c ? ' (yedek)' : ''); gear[nm] = (gear[nm] || []).concat(rg.code || rg.name); });
       const ld = leadFor(rg, dd, x); if (ld && ld.kursun) { const k = 'Kurşun ' + ld.kursun + (ld.grip ? ' (çapalı)' : ''); gear[k] = (gear[k] || []).concat(rg.code || rg.name); }
       const bp = baitPick(rg); if (bp.use && bp.use.st) bait.add(bp.use.t + (bp.use.st === 'var' ? ' (elinde)' : bp.use.st === 'yok' ? ' (gitmeden al)' : ''));
     });

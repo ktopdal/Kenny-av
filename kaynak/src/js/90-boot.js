@@ -106,6 +106,7 @@ function bindEvents(){
     if (d.usta) { ustaAct(d.usta, d); return; }
     if (d.ustam) { lsSet(LSU.model, d.ustam); ustaRedraw(); return; }
     if (d.alloc) { toggleAlertLoc(d.alloc); return; }
+    if (d.shopdel) { const x = (S.shopX || {})[d.shopdel]; if (x) { delete S.shopX[d.shopdel]; const id = x.bait && Object.keys(ITEMS).find(i => ITEMS[i].cat === 'bait' && (ITEMS[i].key === x.bait || baitKey(ITEMS[i].name) === x.bait)); if (id) setStatus(id + '|-', 'var'); invChanged(); openMore('alisveris', true); toast('İşaretlendi'); } return; }
     if (d.avgo) { openAvLink(d.avgo); return; }
     if (d.tcal) { ui.calAll = d.tcal === 'all'; openMore('turtakvim', true); return; }
     if (d.goto) { show(d.goto); return; }
@@ -124,6 +125,10 @@ function bindEvents(){
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
       if (a === 'gpsloc') { gpsToLocation(); return; }
       if (a === 'icsAll') { await alertExport(); return; }
+      if (a === 'driftmap') { ui.mapDrift = true; const c = mapCfg(); if (!c.drift) { c.drift = true; S.settings.map = c; persistQuiet(); } openMore('harita'); return; }
+      if (a === 'baitShop') { const ds = days(), dd = ds.find(x => x.key === ui.fday) || ds[0], part = ui.fpart || 'gun', now = new Date(); if (!dd) return;
+        const R = recommend(dd, part === 'gece', dd.key === dateKey(now) ? now : null), p = baitPlan(dd, part, R); if (!p || p.none || !p.items.length) { toast('Yem gerekmiyor'); return; }
+        const n = baitToShop(dd, part, p); renderAll(); toast(n + ' yem alışveriş listesine eklendi'); return; }
       if (a === 'safety') { saveSafety(); const tel = (S.settings.safety || {}).tel; window.open('https://wa.me/' + (tel || '') + '?text=' + encodeURIComponent(safetyText()), '_blank', 'noopener'); return; }
       if (a === 'safetyShare') { saveSafety(); try { await navigator.share({text: safetyText()}); } catch (e) {} return; }
       if (a === 'ckReset') { S.check = {date: dateKey(new Date()), done: {}}; persist(); openMore('liste', true); return; }
@@ -243,7 +248,8 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
-  alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats};
+  alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
+  spotMemory, subFor, subSlot, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
   loadState();
   pkgLoadCached();

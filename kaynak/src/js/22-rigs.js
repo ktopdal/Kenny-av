@@ -48,6 +48,7 @@ function indexAll(){
   RIG_LIST = allRigs(); RIGS = {};
   RIG_LIST.forEach(r => { RIGS[r.id] = r; });
   RIG_LIST.forEach(r => { if (r.code && !RIGS[r.code]) RIGS[r.code] = r; });   // eski av kayıtları rig koduyla bağlı
+  SUB_C = {};   // envanter değişti: yedek aramaları yeniden (53-spot.js)
 }
 // açılan özel paketi profile bağla (paket kalemleri ve rigleri paketten okunur; burada yalnızca sistem, durum tohumları ve konumlar)
 function importPackage(d){
@@ -94,12 +95,14 @@ function shoppingList(){
     const w = st === 'bitti' ? 'bitti' : 'alinacak'; if (!n.why.includes(w)) n.why.push(w);
   }); });
   // tür planından aktarılanlar ("İstavrit için"): alınınca (envanterde var olunca) kendiliğinden düşer
+  const today = dateKey(new Date());
   Object.values(S.shopX || {}).forEach(x => {
+    if (x.until && x.until < today) return;   // çıkışı geçmiş yem planı (54-trip.js)
     if (x.item) { if (!ITEMS[x.item] || usable(stockOf(x.item, x.size || '-'))) return; }
     if (x.sp) { try { if (resolveSlot(x.sp).strict) return; } catch (e) {} }   // başka bir kalemle karşılandı (ör. kamışı formdan ekledin)
     const n = add(x.k, {item: x.item || null, size: x.size || null, name: x.item ? null : x.name, store: x.store || null, kind: x.kind, sp: x.sp || null});
     if (!n.sp && x.sp) n.sp = x.sp;
-    (x.for || []).forEach(f => { const w = 'tur:' + f; if (!n.why.includes(w)) n.why.push(w); });
+    (x.for || []).forEach(f => { const w = (x.kind === 'bait' ? 'yem:' : 'tur:') + f; if (!n.why.includes(w)) n.why.push(w); });
   });
   return Object.values(need);
 }

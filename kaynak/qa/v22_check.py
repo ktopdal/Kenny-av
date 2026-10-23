@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.21 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v21_check.py
+"""Alyssa v0.3–v0.22 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v22_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v21'
+SHOTS = ROOT + '/qa/v22'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8787
+PORT = 8789
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -2064,6 +2064,116 @@ async def main():
         check('Seçili noktalar karada' in await pg.inner_text('#sheet'), 'AB: yalnız kara noktası → av penceresi hesaplanmaz')
         await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
         print('AB errors:', errs); check(not errs, 'AB: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== AC) v0.22: nokta hafızası, saat saat plan, envanterden yedek, sürüklenme haritada, yem planı, mevsime göre derinlik
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        # 1) R6 mevsime göre derinlik (birim)
+        dp = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const rg = {species: ['sargoz'], tech: 'dip'};
+          return {sp7: Q.spDepth('sargoz', 7), sp1: Q.spDepth('sargoz', 1), deep: Q.rigDepth(rg, 7, 54), fit: Q.rigDepth(rg, 7, 25), shallow: Q.rigDepth(rg, 7, 5), spin: Q.rigDepth({species: ['levrek'], tech: 'spin'}, 7, 5), none: Q.rigDepth(rg, 7, null)}; }""")
+        print('   derinlik:', json.dumps(dp, ensure_ascii=False)[:500])
+        check(dp['sp7'] == [10, 40] and dp['sp1'] == [3, 30], 'AC: sargoz yazın 10–40 m, kışın 3–30 m')
+        check(not dp['deep']['fit'] and 'daha sığ' in dp['deep']['why'] and dp['deep']['d'] < 0 and dp['fit']['fit'] and dp['fit']['d'] > 0 and 'daha derin' in dp['shallow']['why'], 'AC: 54 m → daha sığ; 25 m → uygun; 5 m → daha derin')
+        check(dp['spin'] is None and dp['none'] is None, 'AC: spin (orta su) ve derinliği bilinmeyen noktada derinlik payı yok')
+        # Konum 1'e derinlik yaz → öneride ve bugünkü ayarda derinlik
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(250)
+        await pg.fill('#sheet input[data-lk="1"][data-f="depth"]', '54'); await pg.locator('#sheet input[data-lk="1"][data-f="depth"]').dispatch_event('change'); await pg.wait_for_timeout(300)
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.click('#fParts button[data-fpart="gun"]'); await pg.wait_for_timeout(500)
+        why = ' '.join(await pg.locator('#recList .rig .meta.why').all_text_contents()); tn = ' '.join(await pg.locator('#recList .rig .tune').all_text_contents())
+        check(('derinlik uygun' in why or 'dene' in why) and 'Burası 54 m' in tn, 'AC: öneride ve bugünkü ayarda mevsime göre derinlik')
+        # 2) R1 nokta hafızası: bu noktada iki av kaydı (aynı rig) → o rig öne çıkar
+        R0 = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const dd = Q.days()[0]; const R = Q.recommend(dd, false, null); return R.filter(x => x.ok).map(x => ({id: x.rg.id, sc: x.sc})); }""")
+        rid = R0[3]['id'] if len(R0) > 3 else R0[-1]['id']; sc0 = [r['sc'] for r in R0 if r['id'] == rid][0]
+        for _ in range(2):
+            await pg.click('.tabbar button[data-v="avlar"]'); await pg.click('#addCatch'); await pg.wait_for_timeout(250)
+            await pg.select_option('#cf-sp', 'sargoz'); await pg.fill('#cf-n', '3'); await pg.select_option('#cf-rig', rid); await pg.click('#cfSave'); await pg.wait_for_timeout(800)
+        sm = await pg.evaluate("""(rid) => { const Q = window.ALYSSA_QA; const L = Q.loc(); const m = Q.spotMemory(L); const dd = Q.days()[0]; const R = Q.recommend(dd, false, null); const x = R.find(r => r.rg.id === rid);
+          return {n: m.n, fish: m.fish, top: m.top.map(r => r.id), sp: m.sp, sc: x.sc, why: x.why}; }""", rid)
+        print('   hafıza:', json.dumps(sm, ensure_ascii=False)[:400])
+        check(sm['n'] == 2 and sm['fish'] == 6 and sm['top'][0] == rid and sm['sp'][0] == ['sargoz', 6], 'AC: nokta hafızası: 2 av, 6 balık, en iyi rig ve tür')
+        check(sm['sc'] > sc0 + 1 and any('bu noktada 1.' in w for w in sm['why']), 'AC: bu noktanın en iyi rigi öneride öne geçti (%.1f → %.1f)' % (sc0, sm['sc']))
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(400)
+        spl = await pg.inner_text('#fSpot') if await pg.is_visible('#fSpot') else ''
+        check('Bu noktada 2 av kaydı, 6 balık' in spl and 'Sargoz 6' in spl, 'AC: Fishing’de “Bu noktada …” satırı: ' + spl[:120])
+        # 3) R2 saat saat plan
+        tl = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const ds = Q.days(); return {g: Q.rigTimeline(ds[0], 'gun').map(e => e.kind + '|' + e.txt), n: Q.rigTimeline(ds[0], 'gece').map(e => e.kind + '|' + e.txt)}; }""")
+        print('   plan:', json.dumps(tl, ensure_ascii=False)[:600])
+        check(tl['g'] and tl['g'][0].startswith('start|') and any(e.startswith('switch|Alacakaranlık') for e in tl['g']) and any(e.startswith('win|') for e in tl['g']), 'AC: gündüz planı: başlangıç, pencere, alacakaranlıkta gece rigine geçiş')
+        check(any(e.startswith('switch|Şafak') for e in tl['n']), 'AC: gece planı: şafakta gündüz rigine geçiş')
+        check(await pg.is_visible('#fPlan') and await pg.locator('#fPlan .tlr').count() >= 3, 'AC: Fishing’de “Saat saat plan”')
+        # 4) R5 yem planı
+        check(await pg.is_visible('#fBait') and 'Yem planı' in await pg.inner_text('#fBait'), 'AC: Fishing’de “Yem planı”')
+        b2 = await pg.inner_text('#fBait'); q2 = [int(x) for x in re.findall(r'· (\d+) ', b2)]
+        await pg.click('#fBait button[data-set="rods"][data-val="4"]'); await pg.wait_for_timeout(400)
+        b4 = await pg.inner_text('#fBait'); q4 = [int(x) for x in re.findall(r'· (\d+) ', b4)]
+        print('   yem:', b2.replace('\n', ' | ')[:200], '→', q4)
+        check(q2 and q4 and sum(q4) > sum(q2) and '4 kamış' in b4, 'AC: kamış 2 → 4: yem miktarı arttı (%s → %s)' % (q2, q4))
+        await pg.click('#fBait button[data-act="baitShop"]'); await pg.wait_for_timeout(400)
+        st = await state(pg); ys = [x for x in (st.get('shopX') or {}).values() if x['k'].startswith('yem:')]
+        check(ys and all(x['until'] == '2026-10-17' and x['kind'] == 'bait' for x in ys), 'AC: yemler alışveriş listesine (çıkış gününe kadar)')
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="alisveris"]'); await pg.wait_for_timeout(400)
+        sh = await pg.text_content('#sheet')
+        check('Yem · 17 Eki gündüz çıkışı' in sh and await pg.locator('#sheet button[data-shopdel]').count() == len(ys), 'AC: alışveriş listesinde “Yem · 17 Eki gündüz çıkışı” ve Aldım')
+        k0 = await pg.get_attribute('#sheet button[data-shopdel]', 'data-shopdel')
+        await pg.click('#sheet button[data-shopdel="%s"]' % k0); await pg.wait_for_timeout(400)
+        st = await state(pg)
+        check(k0 not in st['shopX'] and await pg.locator('#sheet button[data-shopdel]').count() == len(ys) - 1, 'AC: Aldım → yem listeden düştü')
+        await pg.evaluate("() => { const S = window.ALYSSA_QA.state(); Object.values(S.shopX).forEach(x => { if (x.k.indexOf('yem:') === 0) x.until = '2026-10-16'; }); }")
+        sl = await pg.evaluate("() => window.ALYSSA_QA.shoppingList().filter(n => n.kind === 'bait').length")
+        check(sl == 0, 'AC: çıkış günü geçen yem planı listeden düşer')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        # 5) R3 envanterden yedek (birim + motor)
+        sb = await pg.evaluate("""() => { const Q = window.ALYSSA_QA, I = Q.items2(), S = Q.state();
+          // elde olan bir iğne: komşu boyu ölçü olarak ver → yedek o olmalı
+          let hk = null; Object.values(I).some(it => it.cat === 'hook' && Q.patOf(it) && Q.sizesOf(it).some(sz => { const h = Q.hookIdx(sz); if (h && Q.usable(Q.stockOf(it.id, sz))) { hk = {it, sz, h}; return true; } return false; }));
+          let hs = null;
+          if (hk) { const nb = hk.h.sc === 'jp' ? 'No:' + (hk.h.v + 1) : (hk.h.v + 1 >= 0 ? (hk.h.v + 2) + '/0' : '#' + (-(hk.h.v + 1)));
+            const r = Q.subSlot({k: 'ust', label: 'Üst', kind: 'hook', t: {envanter: {item: 'x-yok', name: 'Olmayan', size: nb}}, sp: {kind: 'hook', p: [Q.patOf(hk.it)], sc: hk.h.sc, lo: hk.h.v + 1, hi: hk.h.v + 1}});
+            hs = {want: nb, got: r && r.to, txt: r && r.txt, have: hk.it.id + '|' + hk.sz}; }
+          let ln = null; Object.values(I).some(it => (it.cat === 'fc' || it.cat === 'mono') && Q.lineMm(it) && Q.usable(Q.stockOf(it.id, '-')) && (ln = it));
+          let ls = null; if (ln) { const mm = Q.lineMm(ln); const r = Q.subSlot({k: 'kostek', label: 'Köstek', kind: 'line', t: {envanter: {item: null, name: '', size: (mm * 1.05).toFixed(3) + ' mm'}}}); ls = {mm, got: r && r.to, txt: r && r.txt}; }
+          return {hs, ls}; }""")
+        print('   yedek:', json.dumps(sb, ensure_ascii=False)[:500])
+        check(sb['hs'] and sb['hs']['got'] and abs(sb['hs']['got']['dv']) <= 1, 'AC: eksik iğneye elde olan uyumlu iğne (en çok bir boy fark) yedek bulundu: ' + str((sb['hs'] or {}).get('txt')))
+        check(sb['ls'] and sb['ls']['got'] and abs(sb['ls']['got']['d']) <= 0.12, 'AC: eksik köstek ipine elde olan yakın çaplı ip (±%12) yedek bulundu: ' + str((sb['ls'] or {}).get('txt')))
+        ms = await pg.evaluate("""() => { const Q = window.ALYSSA_QA, S = Q.state(); const dd = Q.days()[0];
+          for (const rg of Q.rigs()) { if (!Q.ready(rg)) continue;
+            for (const sl of rg.slots) { const e = sl.t.envanter || {}; if (sl.kind !== 'hook' || !e.item) continue; const k = e.item + '|' + (e.size || '-'); const old = S.inv.status[k], oq = S.inv.qty[k];
+              Q.setStatus(k, 'yok'); Q.invChanged(); const sub = Q.subFor(Q.rigs().find(r => r.id === rg.id));
+              if (sub && sub.complete) { const x = Q.recommend(dd, rg.time === 'gece', null).find(r => r.rg.id === rg.id); return {id: rg.id, ok: x ? x.ok : null, sub: sub.list.map(c => c.txt), why: x ? x.why : [], ready: Q.ready(Q.rigs().find(r => r.id === rg.id))}; }
+              if (old == null) delete S.inv.status[k]; else S.inv.status[k] = old; if (oq != null) S.inv.qty[k] = oq; Q.invChanged(); } }
+          return null; }""")
+        print('   motor yedek:', json.dumps(ms, ensure_ascii=False)[:400])
+        check(ms and ms['ready'] is False and ms['ok'] is True and any('yedekle hazır' in w for w in ms['why']), 'AC: iğnesi biten rig yedekle önerilere girdi (Yedekle hazır)')
+        # 6) R4 sürüklenme haritada
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
+        dn = await pg.evaluate("() => { const z = window.ALYSSA_QA.driftNow(); return z ? {m: z.off && z.off.m, from: z.off && z.off.from, sog: z.dr.sog} : null; }")
+        print('   sürüklenme:', dn)
+        check(dn and dn['m'] and dn['m'] > 0, 'AC: sürüklenme: başlama mesafesi ve yönü hesaplandı')
+        await pg.click('#driftPanel button[data-act="driftmap"]'); await pg.wait_for_timeout(2500)
+        check(await pg.locator('.mdstart').count() == 1 and await pg.locator('.mdarrow').count() == 1 and await pg.locator('path.leaflet-interactive, #map svg path').count() >= 1, 'AC: haritada “Başla” işareti, ok ve çizgi')
+        z = await pg.evaluate('() => window.ALYSSA_QA.map().getZoom()'); check(z == 14, 'AC: harita noktaya yakınlaştı (zoom %s)' % z)
+        g = await pg.evaluate("""() => { const Q = window.ALYSSA_QA, L = Q.loc(), z = Q.driftNow(); const s = Q.geoDest(L.lat, L.lon, z.off.from, z.off.m);
+          const R = 6371000, toR = Math.PI / 180, dlat = (s[0] - L.lat) * toR, dlon = (s[1] - L.lon) * toR; const a = Math.sin(dlat / 2) ** 2 + Math.cos(L.lat * toR) * Math.cos(s[0] * toR) * Math.sin(dlon / 2) ** 2;
+          return {d: 2 * R * Math.asin(Math.sqrt(a)), m: z.off.m}; }""")
+        check(abs(g['d'] - g['m']) < 2, 'AC: başlama noktası doğru uzaklıkta (%.0f m / %s m)' % (g['d'], g['m']))
+        await pg.screenshot(path=SHOTS + '/ac_harita.png')
+        await pg.click('button[data-mapact="layers"]'); await pg.wait_for_timeout(200)
+        check('Sürüklenme çizgisi' in await pg.inner_text('#mapLayers'), 'AC: Katmanlar’da “Sürüklenme çizgisi”')
+        await pg.click('#mapLayers input[data-maplayer="drift"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('.mdstart').count() == 0, 'AC: katman kapanınca çizgi kalktı')
+        await pg.click('#mapLayers input[data-maplayer="drift"]'); await pg.wait_for_timeout(300)
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(300)
+        # 7) görünüm ve taşma
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
+        await pg.screenshot(path=SHOTS + '/ac_fishing.png', full_page=True)
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 800}); await pg.wait_for_timeout(150); await overflow(pg, 'AC %d px Fishing' % w)
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        print('AC errors:', errs); check(not errs, 'AC: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== E) önizleme

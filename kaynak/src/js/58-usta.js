@@ -48,6 +48,7 @@ function ustaContext(){
   ok.slice(0, 3).forEach((x, i) => { const rg = x.rg, ld = leadFor(rg, dd, R.x);
     out.push((i + 1) + ') ' + (rg.code ? rg.code + ' · ' : '') + rg.name + ' — ' + (rg.groupName || '') + '; hedef: ' + (rg.target || '-') + '; neden: ' + x.why.join(', '));
     out.push('   malzeme: ' + rg.slots.map(sl => { const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item]; return sl.label + ': ' + (it ? it.name : e.name || '-') + (e.size ? ' ' + e.size : ''); }).join('; '));
+    if (x.sub) out.push('   envanterden yedek: ' + x.sub.list.map(c => c.txt).join('; '));
     const bt = stripTags(baitHtml(rg, 'envanter')); if (bt) out.push('   yem: ' + bt);
     if (ld && lengthsTxt(ld)) out.push('   takım: ' + stripTags(lengthsTxt(ld)));
     const tn = tuneRig(rg, dd, R.x, R.win, night, month); if (tn.length) out.push('   bugünkü ayar: ' + tn.map(t => t.k + ': ' + t.t).join(' | '));

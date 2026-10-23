@@ -2,7 +2,7 @@
 // Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
 // Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
 // Yer adı: OpenStreetMap Nominatim (karada) ve Overpass (denizde en yakın yer, koy, kıyıya uzaklık) · Derinlik: EMODnet Bathymetry
-const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, habitat: false, substrate: false, locs: true, catches: true, grup: true};
+const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, habitat: false, substrate: false, locs: true, catches: true, grup: true, drift: true};
 const mapCfg = () => Object.assign({}, MAP_DEF, S.settings.map || {});
 const NOMI = 'https://nominatim.openstreetmap.org/reverse';
 // Overpass: ana sunucu sık sık yoğun; iki sunucuya birden sorulur, ilk yanıt alınır
@@ -296,10 +296,11 @@ function initMap(){
   MAP = LL.map('map', {zoomControl: false, attributionControl: true}).setView(center, cur ? 11 : v ? v.z : 8);
   LL.control.zoom({position: 'topright'}).addTo(MAP);
   MAP.attributionControl.setPrefix(false);
-  MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), grup: LL.layerGroup(), pick: null};
+  MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), grup: LL.layerGroup(), drift: LL.layerGroup(), pick: null};
   const cfg = mapCfg(); setBase(cfg.base); ['seamark', 'depth', 'contours', 'habitat', 'substrate'].forEach(k => setOver(k, cfg[k]));
-  drawLocs(); drawCatches();
-  if (cfg.locs) MAPL.locs.addTo(MAP); if (cfg.catches) MAPL.catches.addTo(MAP);
+  drawLocs(); drawCatches(); drawDrift();
+  if (cfg.locs) MAPL.locs.addTo(MAP); if (cfg.catches) MAPL.catches.addTo(MAP); if (cfg.drift) MAPL.drift.addTo(MAP);
+  if (ui.mapDrift) { ui.mapDrift = false; const Lc = loc(); if (Lc) MAP.setView([Lc.lat, Lc.lon], 14); }
   if (cfg.grup && grpOn()) { MAPL.grup.addTo(MAP); drawGroup(); grpFetch().then(drawGroup); }
   MAP.on('click', e => pickPoint(e.latlng.lat, e.latlng.lng));
   MAP.on('moveend', () => { const c = MAP.getCenter(); S.settings.mapView = {lat: +c.lat.toFixed(5), lon: +c.lng.toFixed(5), z: MAP.getZoom()}; persistQuiet(); });
@@ -318,7 +319,7 @@ const OVERS = {
   habitat: () => LF().tileLayer.wms(HAB_WMS, {layers: HAB_LAYER, format: 'image/png', transparent: true, opacity: 0.55, attribution: 'Deniz tabanı © EMODnet Seabed Habitats (EUSeaMap)'}),
   substrate: () => LF().tileLayer.wms('https://drive.emodnet-geology.eu/geoserver/wms', {layers: 'cp_wp3_seabed_substrate_folk_7', format: 'image/png', transparent: true, opacity: 0.6, attribution: 'Dip türü © EMODnet Geology'}),
 };
-const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', habitat: 'Deniz tabanı (EUSeaMap: kaya, kum, çamur, çayır; bütün Akdeniz, tahmini)', substrate: 'Dip türü ölçümü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
+const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', habitat: 'Deniz tabanı (EUSeaMap: kaya, kum, çamur, çayır; bütün Akdeniz, tahmini)', drift: 'Sürüklenme çizgisi (seçili nokta; Fishing’de seçilen gün ve bölüm)', substrate: 'Dip türü ölçümü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
 function setBase(k){
   if (!MAP) return; if (MAPL.base) { MAP.removeLayer(MAPL.base); MAPL.base = null; }
   if (G_TYPES[k] && S.settings.gkey) { setGoogleBase(k); return; }
@@ -352,7 +353,7 @@ async function setGoogleBase(k){
 }
 function setOver(k, on){
   if (!MAP) return;
-  if (k === 'locs' || k === 'catches' || k === 'grup') { const g = MAPL[k]; if (on) { g.addTo(MAP); if (k === 'grup') grpFetch().then(drawGroup); } else MAP.removeLayer(g); return; }
+  if (k === 'locs' || k === 'catches' || k === 'grup' || k === 'drift') { const g = MAPL[k]; if (on) { g.addTo(MAP); if (k === 'grup') grpFetch().then(drawGroup); if (k === 'drift') drawDrift(); } else MAP.removeLayer(g); return; }
   if (on && !MAPL.over[k]) MAPL.over[k] = OVERS[k]().addTo(MAP);
   if (!on && MAPL.over[k]) { MAP.removeLayer(MAPL.over[k]); delete MAPL.over[k]; }
 }
@@ -482,3 +483,41 @@ async function mapAct(a, b){
 }
 // konumun taban tahmini (EUSeaMap): dip seçilmemişse öneride yarım ağırlıkla kullanılır
 function setBedEst(L, bed){ L.bottomEst = bed.bottom; L.bottomEstTxt = bed.label + (bed.zone ? ', ' + bed.zone : ''); L.bottomEstAt = Date.now(); }
+// ---- R4 · sürüklenme çizgisi (v0.22): noktanın üstünden geçmek için başlama yeri ve sürüklenme yönü
+function geoDest(lat, lon, brg, m){
+  const R = 6371000, d = m / R, t = brg * Math.PI / 180, p1 = lat * Math.PI / 180, l1 = lon * Math.PI / 180;
+  const p2 = Math.asin(Math.sin(p1) * Math.cos(d) + Math.cos(p1) * Math.sin(d) * Math.cos(t));
+  const l2 = l1 + Math.atan2(Math.sin(t) * Math.sin(d) * Math.cos(p1), Math.cos(d) - Math.sin(p1) * Math.sin(p2));
+  return [p2 * 180 / Math.PI, l2 * 180 / Math.PI];
+}
+// Fishing'de seçili gün ve bölüm: bölüm şu an sürüyorsa şimdiki saat, değilse bölümün en iyi penceresi
+function driftNow(){
+  const L = loc(); if (!L || !WX || locKind(L) === 'kara' || shoreMode()) return null;
+  const ds = days(); const dd = ds.find(d => d.key === ui.fday) || ds[0]; if (!dd) return null;
+  const part = ui.fpart || 'gun', [A, B] = partRange(dd, part), now = Date.now();
+  let x = null, lbl = '';
+  if (now >= A && now <= B) { x = hourRec(new Date()); lbl = 'şimdi'; }
+  if (!x) { const w = bestWindows(dd, part, 1)[0]; x = w ? w.x : refHour(dd); lbl = w ? winTxt(w) + ' en iyi pencere' : ''; }
+  const dr = x ? driftAt(x) : null; if (!dr || !dr.known) return null;
+  return {L, dr, off: startOffset(dr, locDepth()), lbl};
+}
+const arrowIcon = deg => LF().divIcon({className: 'mdarrow', html: '<svg viewBox="0 0 24 24" width="26" height="26" style="transform:rotate(' + Math.round(deg) + 'deg)" aria-hidden="true"><path d="M12 2l7 14h-5v6h-4v-6H5z" fill="#DC143C" stroke="#fff" stroke-width="1.2"/></svg>', iconSize: [26, 26], iconAnchor: [13, 13]});
+function drawDrift(){
+  if (!MAPL || !MAPL.drift) return; MAPL.drift.clearLayers();
+  const z = driftNow(); if (!z) return;
+  const LL = LF(), L = z.L, dr = z.dr, P = [L.lat, L.lon];
+  if (dr.anchored || !z.off) {
+    if (dr.cur == null || dr.curDir == null) return;
+    const E = geoDest(L.lat, L.lon, dr.curDir, 300);
+    MAPL.drift.addLayer(LL.polyline([P, E], {color: '#DC143C', weight: 3, dashArray: '6 6', interactive: false}));
+    MAPL.drift.addLayer(LL.marker(E, {icon: arrowIcon(dr.curDir), keyboard: false, interactive: false, title: 'Akıntı ' + f1(dr.cur) + ' kn ' + dir8(dr.curDir) + ' yönüne'}));
+    return;
+  }
+  const S0 = geoDest(L.lat, L.lon, z.off.from, z.off.m), E = geoDest(L.lat, L.lon, dr.dir, Math.max(150, z.off.m * 0.6));
+  MAPL.drift.addLayer(LL.polyline([S0, P, E], {color: '#DC143C', weight: 3, dashArray: '8 6', interactive: false}));
+  MAPL.drift.addLayer(LL.marker(E, {icon: arrowIcon(dr.dir), keyboard: false, interactive: false}));
+  const st = LL.marker(S0, {icon: LL.divIcon({className: 'mdstart', html: '<span>Başla</span>', iconSize: [52, 24], iconAnchor: [26, 12]}), keyboard: false, title: 'Buradan başla'});
+  st.bindPopup('<b>Buradan başla</b><br>Noktanın ~' + z.off.m + ' m ' + dir8(z.off.from) + ' tarafı. Tekne ' + f1(dr.sog) + ' kn ile ' + dir8(dr.dir) + ' yönüne sürüklenir; ' +
+    'kurşun ~' + z.off.sinkS + ' sn’de dibe iner.' + (z.lbl ? '<br><small>' + esc(z.lbl) + '</small>' : ''));
+  MAPL.drift.addLayer(st);
+}

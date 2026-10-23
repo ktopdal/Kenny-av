@@ -102,6 +102,8 @@ function tuneRig(rg, dd, x, w, night, month){
   const tg = S.settings.ftarget;
   if (tg && rg.klass && rg.klass !== tg && (rg.slots || []).some(s => s.kind === 'hook'))
     out.push({k: 'İğne', t: tg === 'trofe' ? 'Hedef trofe, bu rig porsiyon: iğneleri bir boy büyük, köstek bir boy kalın bağla.' : 'Hedef porsiyon, bu rig trofe: iğneleri bir boy küçült; küçük ağızlı balık iğneyi alamaz.'});
+  // mevsime göre derinlik (R6)
+  const rd = rigDepth(rg, month, locDepth()); if (rd) out.push({k: 'Derinlik', t: rd.line});
   // akış: köstek boyu (leadFor zaten kısaltır; burada nedeni yazılır)
   const dr = x ? driftAt(x) : null;
   if (dr && dr.known && !rg.own && (rg.lengths || {}).hirsiz) {
@@ -110,4 +112,21 @@ function tuneRig(rg, dd, x, w, night, month){
     else if (dr.line < 0.15) out.push({k: 'Köstek boyu', t: 'akış yok denecek kadar az: köstekler tam boy, yem doğal dursun.'});
   }
   return out;
+}
+// ---- R6 · mevsime göre derinlik (v0.22): türün bu mevsim tutulduğu derinlik ile noktanın derinliği (Konumlar’da yazılan ya da haritadan EMODnet)
+const SEASON_IX = m => m === 12 || m <= 2 ? 0 : m <= 5 ? 1 : m <= 8 ? 2 : 3;
+const SEASON_TXT = ['kışın', 'ilkbaharda', 'yazın', 'sonbaharda'];
+const spDepth = (id, month) => { const d = KB.SDEP[id]; return d ? d[SEASON_IX(month)] : null; };
+const NO_DEPTH_TECH = ['sirti', 'spin', 'orkinos', 'capari', 'samandira', 'lrf'];   // orta su ve kıyı teknikleri: dip derinliği belirleyici değil
+function rigDepth(rg, month, depth){
+  if (!depth || NO_DEPTH_TECH.includes(rg.tech)) return null;
+  const list = (rg.species || []).map(id => { const r = spDepth(id, month); if (!r) return null;
+    const off = depth < r[0] ? r[0] - depth : depth > r[1] ? depth - r[1] : 0;
+    return {id, r, off, rel: off ? off / Math.max(10, depth < r[0] ? r[0] : r[1]) : 0, deeper: depth < r[0]}; }).filter(Boolean);
+  if (!list.length) return null;
+  list.sort((a, b) => a.rel - b.rel);
+  const b = list[0], rt = b.r[0] + '–' + b.r[1] + ' m', head = SEASON_TXT[SEASON_IX(month)] + ' ' + spName(b.id) + ' ' + rt;
+  if (!b.off) return {d: 0.6, fit: true, b, why: 'derinlik uygun (' + head + ')', line: 'Burası ' + depth + ' m: ' + head + ' aralığında.'};
+  return {d: -Math.round((0.4 + Math.min(1.2, b.rel)) * 10) / 10, fit: false, b, why: head + ': ' + (b.deeper ? 'daha derin' : 'daha sığ') + ' dene',
+    line: 'Burası ' + depth + ' m; ' + head + '. ' + (b.deeper ? 'Daha derine in (≥ ' + b.r[0] + ' m).' : 'Daha sığa çık (≤ ' + b.r[1] + ' m).')};
 }

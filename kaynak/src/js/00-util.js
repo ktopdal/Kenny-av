@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.22.0', notes: [
+    'Nokta hafızası: her noktada hangi rigin ve türün tuttuğunu öğrenir; o noktanın en iyi 3 rigi öne çıkar ve Fishing’de yazar',
+    'Saat saat plan: bölüm içinde ne zaman rig ya da kurşun değiştireceğin, en iyi pencereler ve alacakaranlık/şafak geçişi',
+    'Envanterden yedek: eksik iğne ya da ip yüzünden önerilemeyen iyi rig, elindeki uyumlu parçayla “yedekle hazır” olur',
+    'Sürüklenme haritada: Fishing → Sürüklenme → “Haritada göster”; başlama yeri ve sürüklenme yönü ok olarak',
+    'Yem planı: kamış, süre ve iğne sayısına göre hangi yemden ne kadar alacağın; tek dokunuşla alışveriş listesine',
+    'Mevsime göre derinlik: türün bu mevsim tutulduğu derinlik; nokta uymuyorsa “daha derin / daha sığ dene”']},
   {v: '0.21.0', notes: [
     'Takvim uyarısı en çok 3 noktaya bakar; aynı saatte birden çok noktada pencere varsa en iyisini yazar',
     'Kurala hedef tür (mevsiminde ve suyu uygun), su sıcaklığı aralığı, solunar yıldızı ve akıntı aralığı eklendi',

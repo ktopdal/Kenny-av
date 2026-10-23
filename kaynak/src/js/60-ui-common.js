@@ -58,7 +58,7 @@ function baitHtml(rg, tier){
 function rigCard(rg, dd, why, extra, tier, x, opt){
   tier = tier || 'envanter'; opt = opt || {};
   if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız 32'lik özel sistemde
-  const ok = ready(rg); const ld = leadFor(rg, dd, x);
+  const ok = ready(rg), sub = !ok && opt.sub && opt.sub.complete ? opt.sub : null; const ld = leadFor(rg, dd, x);
   const chips = [];
   (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
   if (rg.core) chips.push('<span class="chip gold">12 ay</span>');
@@ -72,13 +72,14 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
   const bait = baitHtml(rg, tier);
   const succ = rg.success && rg.success[tier] ? 'başarı %' + rg.success[tier] : '';
-  return '<article class="rig' + (ok ? '' : ' off') + '"><div class="rig-h"><div><div class="code">' + esc(head) + '</div><h3>' + esc(rg.name) + '</h3>' +
+  return '<article class="rig' + (ok || sub ? '' : ' off') + '"><div class="rig-h"><div><div class="code">' + esc(head) + '</div><h3>' + esc(rg.name) + '</h3>' +
     '<div class="tg">' + esc(rg.target || '') + (rg.baitText ? ' · ' + esc(rg.baitText) : '') + '</div></div>' +
-    (ok ? '<span class="chip A">Hazır</span>' : '<span class="chip buy">Tamamlanmadı</span>') + '</div>' +
+    (ok ? '<span class="chip A">Hazır</span>' : sub ? '<span class="chip B">Yedekle hazır</span>' : '<span class="chip buy">Tamamlanmadı</span>') + '</div>' +
     (why && why.length ? '<div class="meta why">' + esc(why.join(' · ')) + '</div>' : '') + (extra || '') +
     (chips.length ? '<div class="meta chips">' + chips.join('') + '</div>' : '') +
     (tier !== 'envanter' ? '<div class="tierline">' + esc(TIER_TXT[tier]) + '</div>' : '') +
     rg.slots.map(sl => compRow(rg, sl, tier)).join('') +
+    (sub ? '<div class="crow subrow"><span class="k">Yedek</span><span class="v">' + sub.list.map(c => esc(c.txt)).join('<br>') + '</span><span class="s"><span class="dot var"></span>elinde</span></div>' : '') +
     (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
     (ld && lengthsTxt(ld) ? '<div class="crow"><span class="k">Takım</span><span class="v">' + lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') + '</span><span class="s"></span></div>' : '') +
     (opt.tune && opt.tune.length ? '<div class="tune"><b class="tuneh">Bugünkü ayar</b>' + opt.tune.map(t => '<div class="tl' + (t.warn ? ' warn' : '') + '"><span class="k">' + esc(t.k) + '</span><span class="v">' + esc(t.t) + '</span></div>').join('') + '</div>' : '') +

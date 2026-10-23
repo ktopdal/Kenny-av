@@ -449,3 +449,18 @@ button.tcal-r:hover{background:var(--surface-2)}
 .aslot details{margin-top:4px}
 .aslot .chip{font-size:11px;padding:1px 7px}
 .asum{background:var(--surface-2);border-radius:10px;padding:10px 12px}
+/* v0.22 · nokta hafızası, saat saat plan, yem planı, yedek parça, sürüklenme çizgisi */
+.fspot{margin-top:4px;padding:6px 10px;border-radius:8px;background:var(--surface-2);color:var(--ink-2)}
+.tline{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.tlr{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;padding:6px 0;border-top:1px solid var(--line-2);font-size:14px;line-height:1.4}
+.tlr:first-child{border-top:0}
+.tlr b{font-size:13px;padding-top:1px}
+.tlr small{display:block;font-size:12px;color:var(--muted)}
+.tlr.win b{color:var(--fish-ink)}
+.tlr.switch span{font-weight:600}
+.bctl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:6px 0}
+.bctl .seg{margin:0}
+.bplan{margin:6px 0;padding-left:20px;font-size:14px;line-height:1.5}
+.subrow .v{color:var(--B)}
+.mdstart span{display:inline-block;background:#DC143C;color:#fff;font:700 12px/22px var(--body);padding:0 8px;border-radius:12px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap}
+.mdarrow{background:none;border:0}

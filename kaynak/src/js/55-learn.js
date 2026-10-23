@@ -50,7 +50,7 @@ function learnRigCatch(rg, ctx){
   });
   if (!all) return null;
   const bonus = Math.min(4, 0.7 * Math.log2(1 + all) + 1.2 * Math.log2(1 + sim));
-  const why = ['seninle ' + all + ' balık' + (here ? ' (bu noktada ' + here + ')' : '')];
+  const why = ['seninle ' + all + ' balık'];   // noktaya özel sayı nokta hafızasında (53-spot.js)
   if (simN) why.push('benzer koşulda ' + simN + ' (' + [ctx.night ? 'gece' : 'gündüz', cb0 != null ? CUR_B_TXT[cb0] : '', mb0 != null ? MOON_B_TXT[mb0] : ''].filter(Boolean).join(', ') + ')');
   return {bonus, why, all, simN};
 }
