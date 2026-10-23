@@ -84,17 +84,19 @@ async function loadWeather(force){
   if (!L) { WX = null; setNet('idle', 'Konum yok'); renderAll(); return; }
   const key = wxKey(L);
   if (PREVIEW) { if (!S.wx || S.wx.key !== key) { const smp = SAMPLE_WX(); if (smp) S.wx = {key, at: Date.now(), raw: smp.raw, status: smp.status}; } WX = buildWx(); setNet('ok', 'Örnek veri'); renderAll(); return; }
-  if (S.wx && S.wx.key === key && !force && Date.now() - S.wx.at < 45 * 60 * 1000) { WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date(S.wx.at))); renderAll(); return; }
+  if (S.wx && S.wx.key === key && !force && Date.now() - S.wx.at < 45 * 60 * 1000 && (S.wx.kind || 'deniz') === locKind(L)) { WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date(S.wx.at))); renderAll(); return; }
   const my = ++LOAD_ID;
   setNet('load', 'Yükleniyor');
   try {
     const ids = ['icon', 'ecmwf', 'gfs', 'best'];
-    const [fr, mr] = await Promise.all([Promise.all(ids.map(id => fetchFirst(reqUrls(id, L)))), loadMarine(L)]);
+    // kara noktasında deniz verisi istenmez (dalga, akıntı, su sıcaklığı yok; en yakın deniz noktası da aranmaz)
+    const land = locKind(L) === 'kara';
+    const [fr, mr] = await Promise.all([Promise.all(ids.map(id => fetchFirst(reqUrls(id, L)))), land ? Promise.resolve({raw: {}, status: {mf: 'kara', mbest: 'kara'}, sea: null}) : loadMarine(L)]);
     if (my !== LOAD_ID) return;
     const raw = Object.assign({}, mr.raw), status = Object.assign({}, mr.status);
     ids.forEach((id, i) => { status[id] = fr[i].ok ? 'ok' : (fr[i].err || 'hata'); if (fr[i].ok) raw[id] = fr[i].data; });
     if (Object.keys(raw).length) {
-      S.wx = {key, at: Date.now(), raw, status, sea: mr.sea}; persistQuiet();
+      S.wx = {key, at: Date.now(), raw, status, sea: mr.sea, kind: locKind(L)}; persistQuiet();
       WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date()));
     } else {
       WX = S.wx && S.wx.key === key ? buildWx() : null;

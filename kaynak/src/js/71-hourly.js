@@ -42,12 +42,12 @@ const HROWS = [
   {id: 'saat', t: 'Saat', fixed: true},
   {id: 'gunes', t: 'Güneş ve ay'},
   {id: 'sicaklik', t: 'Hava sıcaklığı'},
-  {id: 'su', t: 'Su sıcaklığı'},
+  {id: 'su', t: 'Su sıcaklığı', sea: true},
   {id: 'hava', t: 'Hava (bulut %, yağış simgesi)'},
   {id: 'yagis', t: 'Yağış olasılığı'},
   {id: 'yagismm', t: 'Yağış miktarı'},
-  {id: 'balik', t: 'Balık (5 balık, % ve solunar)'},
-  {id: 'balikgrafik', t: 'Balık çubukları ve günün eğrisi'},
+  {id: 'balik', t: 'Balık (5 balık, % ve solunar)', sea: true},
+  {id: 'balikgrafik', t: 'Balık çubukları ve günün eğrisi', sea: true},
   {id: 'ruzgar', t: 'Rüzgâr · Karma (üstte seçili model)'},
   {id: 'r_icon', t: 'Rüzgâr · ICON-EU', on: false},
   {id: 'r_ecmwf', t: 'Rüzgâr · ECMWF', on: false},
@@ -58,11 +58,11 @@ const HROWS = [
   {id: 'h_gfs', t: 'Hamle · GFS', on: false},
   {id: 'yon', t: 'Rüzgâr yönü'},
   {id: 'uyum', t: 'Model uyumu', on: false},
-  {id: 'dalga', t: 'Dalga'},
-  {id: 'periyot', t: 'Dalga periyodu ve yönü'},
-  {id: 'akinti', t: 'Akıntı'},
-  {id: 'suruklenme', t: 'Sürüklenme (tekne)', mode: 'tekne'},
-  {id: 'kiyiya', t: 'Rüzgâr kıyıya göre (kıyı)', mode: 'kiyi'},
+  {id: 'dalga', t: 'Dalga', sea: true},
+  {id: 'periyot', t: 'Dalga periyodu ve yönü', sea: true},
+  {id: 'akinti', t: 'Akıntı', sea: true},
+  {id: 'suruklenme', t: 'Sürüklenme (tekne)', mode: 'tekne', sea: true},
+  {id: 'kiyiya', t: 'Rüzgâr kıyıya göre (kıyı)', mode: 'kiyi', sea: true},
   {id: 'basinc', t: 'Basınç'},
   {id: 'basincgrafik', t: 'Basınç grafiği'},
 ];
@@ -84,11 +84,11 @@ function dayStrip(dd){
   const seg = []; for (let h = 0; h < 24; h += 3) { const xs = dd.hs.filter(x => x.h >= h && x.h < h + 3 && x.wind != null); const w = xs.length ? Math.max(...xs.map(x => x.wind)) : null; seg.push(w == null ? '<i></i>' : '<i style="background:' + bftColor(bft(w)) + '"></i>'); }
   return '<span class="dstrip" aria-hidden="true">' + seg.join('') + '</span>';
 }
-function bftLegend(){
+function bftLegend(land){
   const p = bftPal();
-  return '<div class="bftscale" role="img" aria-label="Rüzgâr renkleri, 0 ile 12 Bft arası">' + p.map((c, i) => '<span style="background:' + c + ';color:' + textOn(c) + '">' + i + '</span>').join('') + '</div>' +
+  return '<div class="bftscale" role="img" aria-label="Rüzgâr renkleri, 0 ile 12 Bft arası">' + p.map((c, i) => '<span style="background:' + c + ';color:' + textOn(c) + '">' + i + '</span>').join('') + '</div>' + (land ? '' :
     '<div class="legend"><span><i style="background:var(--A-bg);border:1px solid var(--A)"></i>dalga &lt;0,5 m</span><span><i style="background:var(--B-bg);border:1px solid var(--B)"></i>0,5–1 m</span>' +
-    '<span><i style="background:var(--C-bg);border:1px solid var(--C)"></i>1–1,5 m</span><span><i style="background:var(--D-bg);border:1px solid var(--D)"></i>1,5 m+</span></div>';
+    '<span><i style="background:var(--C-bg);border:1px solid var(--C)"></i>1–1,5 m</span><span><i style="background:var(--D-bg);border:1px solid var(--D)"></i>1,5 m+</span></div>');
 }
 const mBadge = t => t ? '<span class="mb">' + esc(t) + '</span>' : '';
 function spreadKn(x){ const v = ['icon', 'ecmwf', 'gfs'].map(k => x.m && x.m[k] ? x.m[k].w : null).filter(v => v != null); return v.length >= 2 ? (Math.max(...v) - Math.min(...v)) * KN : null; }
@@ -97,7 +97,8 @@ const H_SHORT = {'Saat': 'Saat', 'Güneş · Ay': '☀ ☾', 'Hava': 'Hava', 'Ba
   'Dalga': 'Dlg.', 'Periyot': 'Per.', 'Akıntı': 'Akın.', 'Sürüklenme': 'Sürk.', 'İpe akış': 'İpe', 'Kıyıya göre': 'Kıyı'};
 function renderHourly(){
   const ds = days(); const tbl = $('hTable');
-  $('hLegend').innerHTML = bftLegend();
+  $('hLegend').innerHTML = bftLegend(landMode());
+  if ($('fishExplain')) $('fishExplain').hidden = landMode();
   $('hourly').hidden = !loc();
   $('hBar').innerHTML = '<div class="seg msel" role="group" aria-label="Hava modeli">' + MODEL_OPTS.map(([v, t]) => '<button class="btn small" type="button" data-set="model" data-val="' + v + '" aria-pressed="' + ((S.settings.model || 'karma') === v) + '">' + t + '</button>').join('') + '</div>';
   if (!ds.length) { $('dayChips').innerHTML = ''; tbl.innerHTML = ''; $('hEmpty').hidden = false; $('hourlyNote').textContent = ''; $('seaNote').hidden = true; return; }
@@ -180,7 +181,9 @@ function renderHourly(){
         '<text x="4" y="11" class="gt">' + Math.round(pressNum(Math.max(...ok))) + '</text><text x="4" y="' + (H - 2) + '" class="gt">' + Math.round(pressNum(Math.min(...ok))) + '</text></svg>'), '', ['Bas.', 'gün ' + (d > 1 ? '↑' : d < -1 ? '↓' : '→')]);
     },
   };
-  const rows = orderedRows(HROWS, S.settings.hrows).filter(r => r.on && R[r.id] && (!r.mode || r.mode === (S.mode || 'tekne'))).map(r => R[r.id]());
+  // kara noktasında balık ve deniz satırları (sea) yok; mod satırları geçerli moda göre (kıyı türünde kıyı)
+  const md = modeNow(), land = md === 'kara';
+  const rows = orderedRows(HROWS, S.settings.hrows).filter(r => r.on && R[r.id] && !(land && r.sea) && (!r.mode || r.mode === md)).map(r => R[r.id]());
   tbl.innerHTML = '<tbody>' + rows.join('') + '</tbody>';
   const sea = WX && WX.sea;
   const sp = hs.map(spreadKn).filter(v => v != null); const mx = sp.length ? Math.max(...sp) : null;
@@ -203,5 +206,6 @@ function compassHtml(x){
 }
 function compassTxt(x){
   if (!x) return '';
+  if (landMode()) return 'Rüzgâr ' + (x.wind == null ? '–' : windName(x.wdir) + ' ' + kn(x.wind) + ' kn') + (x.gust != null ? ' · hamle ' + kn(x.gust) + ' kn' : '');
   return 'Rüzgâr ' + (x.wind == null ? '–' : windName(x.wdir) + ' ' + kn(x.wind) + ' kn') + ' · dalga ' + (x.wave == null ? '–' : f1(x.wave) + ' m, ' + windName(x.waveDir) + ' yönünden') + ' · akıntı ' + (x.cur == null ? '–' : f1(x.cur) + ' kn ' + dir8(x.curDir) + ' yönüne');
 }

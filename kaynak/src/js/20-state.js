@@ -62,6 +62,14 @@ function persistQuiet(){ if (!lsSet(LS.state, JSON.stringify(S))) { S.wx = null;
 function persist(){ persistQuiet(); if (typeof markDirty === 'function') markDirty(); }
 const loc = () => (S && S.active && S.locations[S.active]) || (S ? Object.values(S.locations)[0] : null) || null;
 const nextLocId = () => String(Math.max(0, ...Object.keys(S.locations).map(Number).filter(isFinite)) + 1);
+// konum türü: deniz (tekne ya da kıyı), kıyı (kıyıdan av: kıyı modu), kara (yalnız hava durumu; balık, rig, su verisi yok)
+// tür bilinmiyorsa deniz gibi davranılır; özel paketin konumları Kenny'nin deniz noktalarıdır
+const KIND_TXT = {deniz: 'Deniz', kiyi: 'Kıyı', kara: 'Kara'};
+const kmTxt = km => km == null ? '' : km < 1 ? Math.max(10, Math.round(km * 100) * 10) + ' m' : f1(km) + ' km';   // 1 km altı metre
+const locKind = L => !L ? null : L.kind && KIND_TXT[L.kind] ? L.kind : 'deniz';
+const landMode = () => locKind(loc()) === 'kara';
+// geçerli av modu: karada 'kara', kıyı türünde her zaman 'kiyi', denizde kullanıcının seçimi (Tekne/Kıyı)
+const modeNow = () => { const k = locKind(loc()); return k === 'kara' ? 'kara' : k === 'kiyi' ? 'kiyi' : (S.mode === 'kiyi' ? 'kiyi' : 'tekne'); };
 const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + L.name;
 
 // ---------------------------------------------------------------- stok

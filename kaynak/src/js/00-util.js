@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.17.0', notes: [
+    'Konum türü: Deniz, Kıyı (kıyıya 300 m’den yakın kara, kıyıdan av) ya da Kara; kendiliğinden bulunur, Konumlar’dan değiştirilebilir',
+    'Karada yalnız hava durumu: balık tahmini, rig önerisi, su sıcaklığı, dalga, akıntı, sürüklenme ve Tekne/Kıyı düğmesi yok; takvim “Hava takvimi” olur, deniz verisi hiç istenmez',
+    'Daha sağlam deniz/kara kararı: kıyı çizgisinin hangi tarafı, yükselti (Copernicus 90 m) ve adres; derinlik servisi artık tek başına “deniz” demez',
+    'Karadaki noktaya “… açıkları” adı verilmez; eski sürümde yanlış adlanan kara noktaları bir kez düzeltilir',
+    'Kıyı noktasında kıyının bakışı kıyı çizgisinden bulunur, kıyı modu kendiliğinden açılır',
+  ]},
   {v: '0.16.1', notes: [
     '“Dünyanın en iyisi” seviyesi yalnız 32’lik özel sistemde ve yalnız Rigler ekranındaki seçicide; Rig Atölyesi ve Türlerim rigleri yalnız Envanterimden / Türkiye’de en iyi',
     '“Notlar ve diğer seviyeler” kısmında dünyanın en iyisi artık yok',

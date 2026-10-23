@@ -38,7 +38,7 @@
       <div class="hscroll" id="hScroll"><table class="htab" id="hTable"></table></div>
       <p class="note seanote" id="seaNote" hidden></p>
       <div id="hLegend"></div>
-      <details><summary>Balık aktivitesi nasıl hesaplanıyor?</summary>
+      <details id="fishExplain"><summary>Balık aktivitesi nasıl hesaplanıyor?</summary>
         <div class="explain">
           <span>Her saat için 0–100 arası tahmini bir değerdir ve o saatin ±30 dakikasını kapsar. Temeli solunar: ayın üst ve alt geçişi (major, ±60 dk), ay doğuşu ve batışı (minor, ±30 dk), şafak ve alacakaranlık (±50 dk). Olay yokken taban %24'tür; olaylar üst üste binince değer yükselir.</span>
           <span>Ay evresi: yeniay ve dolunaya yakın günlerde ×1,1, dördünlerde ×0,9. Hava payı: son 3 saatte basıncın yavaş düşmesi artırır, hızlı düşüş ya da yükseliş azaltır; orta akıntı biraz artırır, hiç akıntı olmaması biraz azaltır.</span>
@@ -50,7 +50,8 @@
     <div class="tcard" data-card="anlik">
     <div class="now" id="nowGrid" style="margin-top:12px"></div>
     <div class="classrow" id="classRow"></div>
-    <button class="fcta" type="button" data-goto="fishing"><b>Fishing</b><span>Solunar, bağlanacak 3 rig, sürüklenme ve kurşun</span><i aria-hidden="true">→</i></button>
+    <div id="landNote" hidden></div>
+    <button class="fcta" id="fcta" type="button" data-goto="fishing"><b>Fishing</b><span>Solunar, bağlanacak 3 rig, sürüklenme ve kurşun</span><i aria-hidden="true">→</i></button>
     </div>
     </div>
   </section>
@@ -79,9 +80,9 @@
 
   <!-- TAKVİM -->
   <section class="view" id="v-takvim" hidden>
-    <div class="sec-head"><span class="eyebrow">15 gün</span><h2>Av takvimi</h2>
+    <div class="sec-head"><span class="eyebrow">15 gün</span><h2 id="calTitle">Av takvimi</h2>
       <p class="sub" id="calSub">Sınıf: A çok uygun, B uygun, C dikkat, D uygun değil. Bir güne dokun, saatlik tablosu açılır.</p>
-      <div class="row" style="margin-top:8px"><button class="btn small" type="button" data-open="uyari">Takvim uyarısı kur</button></div></div>
+      <div class="row" style="margin-top:8px" id="calAlertRow"><button class="btn small" type="button" data-open="uyari">Takvim uyarısı kur</button></div></div>
     <div class="days" id="dayList"></div>
   </section>
 

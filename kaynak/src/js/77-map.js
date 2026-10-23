@@ -142,14 +142,37 @@ function coastSide(p, ways){
 }
 const PLACE_W = {city: 0.5, town: 0.6, village: 0.8, suburb: 0.9, island: 0.8, islet: 1, hamlet: 1.2, neighbourhood: 1.3, locality: 1.4};
 // Yer bilgisi: dört kaynak aynı anda sorulur, her yanıt geldikçe kart güncellenir (onPart). En çok ~10 sn.
-async function placeInfo(lat, lon, onPart){
-  const p = {lat, lon}, R = {rv: undefined, op: undefined, dep: undefined, g: S.settings.gkey ? undefined : null};
+// yükselti (Open-Meteo Elevation, Copernicus 90 m): denizde 0, karada yükseklik; 3 m üstü kesin kara
+async function elevAt(lat, lon){
+  const j = await fetchJ(API_F.replace('/forecast', '/elevation') + '?latitude=' + lat.toFixed(5) + '&longitude=' + lon.toFixed(5), null, 7000);
+  const v = j && Array.isArray(j.elevation) ? j.elevation[0] : null;
+  return v == null || !isFinite(v) ? null : Number(v);
+}
+// deniz mi kara mı (sıra önemli; derinlik servisi karada da değer döndürebildiği için tek başına karar vermez):
+// 1) OSM kıyı çizgisinin hangi tarafı (6 km içinde, en güvenilir) 2) yükselti 3 m üstü → kara
+// 3) kıyı 6 km içinde yok: yakında adres varsa kara, yoksa açık deniz 4) yükselti + adres 5) yalnız adres
+function seaDecide(s){
+  const near = km => s.rv && !s.rv.error && s.rvKm != null && s.rvKm <= km;
+  if (s.cs) return {sea: s.cs.sea, strong: true, by: 'kıyı çizgisi'};
+  if (s.elev != null && s.elev >= 3) return {sea: false, strong: true, by: 'yükselti'};
+  if (s.op && s.rv !== undefined) return {sea: !near(1.5), strong: s.elev != null && (s.elev <= 1) === !near(1.5), by: 'kıyıya uzaklık'};
+  if (s.elev != null && s.rv !== undefined) return {sea: !near(0.35) && s.elev <= 1, strong: false, by: 'yükselti ve adres'};
+  if (s.done && s.rv) return {sea: s.rv.error ? true : near(0.35) ? false : null, strong: false, by: 'adres'};
+  return {sea: null, strong: false, by: ''};
+}
+const kindOf = (sea, coastKm) => sea === true ? 'deniz' : sea === false ? (coastKm != null && coastKm <= 0.3 ? 'kiyi' : 'kara') : null;
+// Yer bilgisi: kaynaklar aynı anda sorulur, her yanıt geldikçe kart güncellenir (onPart). En çok ~10 sn.
+// opt.lite: yalnız tür ve ad için (derinlik ve Google sorulmaz) — kayıtlı konumların türünü bulmakta kullanılır
+async function placeInfo(lat, lon, onPart, opt){
+  opt = opt || {};
+  const p = {lat, lon}, useG = !opt.lite && !!S.settings.gkey;
+  const R = {rv: undefined, op: undefined, el: undefined, dep: opt.lite ? null : undefined, g: useG ? undefined : null};
   const build = done => {
-    const rv = R.rv, op = R.op, dep = R.dep, gname = R.g;
-    let land = null, rvKm = null;
+    const rv = R.rv, op = R.op, dep = R.dep, gname = R.g, elev = R.el;
+    let land = null, local = null, rvKm = null;
     if (rv && !rv.error && rv.lat != null) {
       rvKm = distKm(p, {lat: +rv.lat, lon: +rv.lon}); const a = rv.address || {};
-      const local = a.village || a.town || a.suburb || a.neighbourhood || a.quarter || a.hamlet || a.city_district || a.municipality || a.district || a.city;
+      local = a.village || a.town || a.suburb || a.neighbourhood || a.quarter || a.hamlet || a.city_district || a.municipality || a.district || a.city || null;
       const region = a.province || a.city || a.state;
       land = [local, region && region !== local ? region : null].filter(Boolean).join(', ') || rv.name || null;
     }
@@ -161,29 +184,59 @@ async function placeInfo(lat, lon, onPart){
       (t.place ? places : feats).push({name: t['name:tr'] || t.name, kind: t.place || t.natural, d: distKm(p, c)});
     });
     const cs = ways.length ? coastSide(p, ways) : null;
-    // deniz mi kara mı: 1) kıyı çizgisinin hangi tarafı (en güvenilir) 2) derinlik 3) kıyı 6 km'de yoksa: yakında adres varsa kara, yoksa açık deniz 4) yalnız Nominatim
-    let sea = null;
-    if (cs) sea = cs.sea;
-    else if (dep != null && dep > 0.5) sea = true;
-    else if (op && (rv !== undefined || done)) sea = !(rv && !rv.error && rvKm != null && rvKm < 1.5);
-    else if (done && rv !== undefined && rv !== null) sea = rv.error ? true : rvKm > 0.35;
+    const dec = seaDecide({cs, elev, rv, rvKm, op, done});
+    const sea = dec.sea, coastKm = cs ? cs.km : null, kind = kindOf(sea, coastKm);
     let name = null;
     const pl = places.slice().sort((a, b) => a.d * (PLACE_W[a.kind] || 1) - b.d * (PLACE_W[b.kind] || 1))[0];
-    if (sea === false) name = gname || land || (places.slice().sort((a, b) => a.d - b.d)[0] || {}).name || null;
+    const landName = gname || land || (places.slice().sort((a, b) => a.d - b.d)[0] || {}).name || null;
+    if (sea === false) name = landName;       // karada ve kıyıda "açıkları" eki yok
     else if (sea === true) {
       const bay = feats.filter(f => f.kind === 'bay' && f.d <= 4).sort((a, b) => a.d - b.d)[0];
       const gl = gname ? gname.split(',')[0] : null;
       name = bay ? bay.name : gl ? gl + ' açıkları' : pl ? pl.name + ' açıkları' : land ? land.split(',')[0] + ' açıkları' : done ? 'Açık deniz' : null;
-    } else name = gname || land || (pl ? pl.name : null);
-    const coastKm = cs ? cs.km : null;
-    return {name, sea, coastKm, facing: cs && cs.km <= 0.8 ? cs.facing : null, depth: dep != null && dep > 0.5 ? Math.round(dep) : null, land,
-      src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || dep != null || gname), coastChecked: !!op, done,
-      wait: ['rv', 'op', 'dep', 'g'].filter(k => R[k] === undefined).length};
+    } else name = landName || (pl ? pl.name : null);
+    return {name, sea, kind, strong: dec.strong, by: dec.by, coastKm, facing: cs && cs.km <= 0.8 ? cs.facing : null,
+      depth: sea === true && dep != null && dep > 0.5 ? Math.round(dep) : null, elev: elev != null ? Math.round(elev) : null, land, landName,
+      src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || elev != null || dep != null || gname), coastChecked: !!op, done,
+      wait: ['rv', 'op', 'el', 'dep', 'g'].filter(k => R[k] === undefined).length};
   };
   const step = (k, pr) => pr.then(v => v, () => null).then(v => { R[k] = v; if (onPart) try { onPart(build(false)); } catch (e) {} });
-  await Promise.all([step('rv', nominatim(lat, lon)), step('op', overpassNear(lat, lon)), step('dep', depthAt(lat, lon)),
-    S.settings.gkey ? step('g', googleName(lat, lon)) : Promise.resolve()]);
+  await Promise.all([step('rv', nominatim(lat, lon)), step('op', overpassNear(lat, lon)), step('el', elevAt(lat, lon)),
+    opt.lite ? Promise.resolve() : step('dep', depthAt(lat, lon)), useG ? step('g', googleName(lat, lon)) : Promise.resolve()]);
   return build(true);
+}
+// ---- kayıtlı konumların türü: bir kez bulunur (özel paketin konumları ve elle seçilenler hariç)
+// kara ya da kıyı çıkarsa ve karar güçlüyse haritadan gelmiş "… açıkları" adı düzeltilir
+function applyKind(L, r){
+  L.kind = r.kind; L.kindAuto = true; L.kindBy = r.by; L.kindAt = Date.now();
+  if (r.coastKm != null) L.coastKm = Math.round(r.coastKm * 100) / 100;
+  if (r.elev != null) L.elev = r.elev;
+  if (r.kind === 'kiyi' && r.facing != null && (L.facing == null || L.facing === '')) L.facing = String(r.facing);
+  if (r.kind !== 'deniz' && r.strong) {
+    if (/ açıkları$/.test(L.name || '')) L.name = L.name.replace(/ açıkları$/, '');
+    else if ((L.name === 'Açık deniz' || L.name === 'Harita noktası') && r.landName) L.name = r.landName;
+  }
+}
+// tek seferde bir tarama; tarama sürerken çağrılırsa (yeni konum eklendi) bittikten sonra bir kez daha geçer
+const KR = {p: null, again: false};
+function ensureKinds(){
+  if (PREVIEW || !S) return Promise.resolve();
+  if (KR.p) { KR.again = true; return KR.p; }
+  KR.p = (async () => { do { KR.again = false; await kindPass(); } while (KR.again); })().finally(() => { KR.p = null; });
+  return KR.p;
+}
+async function kindPass(){
+  for (const L of Object.values(S.locations)) {
+    if (!S.locations[L.id] || L.kind || L.pkg || L.kindTried) continue;
+    const r = await placeInfo(L.lat, L.lon, null, {lite: true}).catch(() => null);
+    if (!S.locations[L.id] || L.kind) continue;           // bu arada silindi ya da elle seçildi
+    if (r && r.ok) L.kindTried = Date.now();               // ağ yoksa sonraki açılışta yeniden denenir
+    if (!r || !r.kind) { persistQuiet(); continue; }
+    const wasActive = S.active === L.id, before = locKind(L);
+    applyKind(L, r); persist();
+    if (wasActive && (before === 'kara') !== (L.kind === 'kara')) loadWeather(true);   // yalnız karaya geçiş/çıkış veri çekimini değiştirir
+    renderAll(); if (ui.sheet === 'konumlar') openMore('konumlar', true);
+  }
 }
 // ---- harita sayfası
 function sheetMap(){
@@ -323,13 +376,16 @@ function coordBlock(lat, lon){
 const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lon.toFixed(6);
 function renderPick(){
   const p = MPICK, el = $('mapCard'); if (!el || !p) return;
-  const facts = [p.sea === true ? 'Deniz' : p.sea === false ? 'Kara' : '', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + f1(p.coastKm) + ' km') : p.sea && p.coastChecked ? 'kıyı 6 km’den uzak' : '',
-    p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean);
+  const facts = [p.kind ? KIND_TXT[p.kind] : '', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + kmTxt(p.coastKm)) : p.sea && p.coastChecked ? 'kıyı 6 km’den uzak' : '',
+    p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.sea === false && p.elev != null && p.elev >= 1 ? 'yükselti ≈ ' + p.elev + ' m' : '',
+    p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean);
+  const kNote = !p.busy && p.kind === 'kara' ? '<div class="mc-k">Kara noktası: yalnız hava durumu (balık, rig ve deniz verisi yok).</div>' :
+    !p.busy && p.kind === 'kiyi' ? '<div class="mc-k">Kıyı noktası: kıyıdan av; deniz verisi en yakın deniz noktasından.</div>' : '';
   const info = p.busy ? (facts.length ? facts.join(' · ') + ' · ' : '') + 'aranıyor…' : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servisler yanıt vermedi). Koordinatlar doğru; yine kaydedebilirsin.' : facts.join(' · ');
   const gNote = !p.busy && S.settings.gkey && GERR ? '<div class="mc-g">Google kullanılamadı: ' + esc(GERR) + '</div>' : '';
   el.innerHTML = '<div class="mc-h"><b>' + esc(p.name || 'Seçilen nokta') + (p.busy && p.name ? ' …' : '') + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
-    coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' + gNote +
-    '<div class="row"><button class="btn primary" type="button" data-mapact="forecast">Bu noktanın tahmini</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
+    coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' + kNote + gNote +
+    '<div class="row"><button class="btn primary" type="button" data-mapact="forecast">' + (p.kind === 'kara' ? 'Bu noktanın hava durumu' : 'Bu noktanın tahmini') + '</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
     '<a class="btn" href="' + gmapsUrl(p.lat, p.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
   el.hidden = false;
 }
@@ -337,16 +393,17 @@ async function locCard(id){
   const Lc = S.locations[id], el = $('mapCard'); if (!Lc || !el) return;
   MPICK = {lat: Lc.lat, lon: Lc.lon, id, name: Lc.name};
   if (MAPL && MAPL.pick) { MAP.removeLayer(MAPL.pick); MAPL.pick = null; }
+  const k = locKind(Lc);
   const draw = dep => {
     el.innerHTML = '<div class="mc-h"><b>' + esc(locLabel(Lc)) + '</b>' + (S.active === id ? '<span class="chip A">Seçili</span>' : '') + '<button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
-      coordBlock(Lc.lat, Lc.lon) + '<div class="mc-i">dip: ' + esc(BOTTOM_TXT[Lc.bottom || ''] || 'bilinmiyor') + ' · derinlik: ' + (Lc.depth ? esc(Lc.depth) + ' m' : 'yazılmamış') +
-      (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') + '</div>' +
-      '<div class="row">' + (S.active === id ? '<button class="btn primary" type="button" data-mapact="today">Tahmine dön</button>' : '<button class="btn primary" type="button" data-mapact="use">Seç ve tahmin</button>') +
+      coordBlock(Lc.lat, Lc.lon) + (k === 'kara' ? '<div class="mc-i">Kara · yalnız hava durumu' + (Lc.elev != null ? ' · yükselti ≈ ' + Lc.elev + ' m' : '') + '</div>' : '<div class="mc-i">' + KIND_TXT[k] + ' · dip: ' + esc(BOTTOM_TXT[Lc.bottom || ''] || 'bilinmiyor') + ' · derinlik: ' + (Lc.depth ? esc(Lc.depth) + ' m' : 'yazılmamış') +
+      (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') + '</div>') +
+      '<div class="row">' + (S.active === id ? '<button class="btn primary" type="button" data-mapact="today">Tahmine dön</button>' : '<button class="btn primary" type="button" data-mapact="use">' + (k === 'kara' ? 'Seç · hava durumu' : 'Seç ve tahmin') + '</button>') +
       '<a class="btn" href="' + gmapsUrl(Lc.lat, Lc.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
     el.hidden = false;
   };
   draw(null);
-  if (!Lc.depth) { const d = await depthAt(Lc.lat, Lc.lon).catch(() => null); if (MPICK && MPICK.id === id && d != null && d > 0.5) draw(Math.round(d)); }
+  if (!Lc.depth && k !== 'kara') { const d = await depthAt(Lc.lat, Lc.lon).catch(() => null); if (MPICK && MPICK.id === id && d != null && d > 0.5) draw(Math.round(d)); }
 }
 async function mapAct(a, b){
   const p = MPICK;
@@ -370,7 +427,13 @@ async function mapAct(a, b){
   if (a === 'today') { closeSheet(); show('bugun'); return; }
   if (a === 'save' || a === 'forecast') {
     const n = nearestLoc(p); let id = n && n.d <= 0.2 ? n.L.id : null;
-    if (!id) { id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', a === 'forecast'); if (p.facing != null) S.locations[id].facing = String(p.facing); }
+    if (!id) {
+      id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', a === 'forecast', true);
+      const NL = S.locations[id];
+      if (p.kind && !p.busy) applyKind(NL, p); else NL.kindTried = null;   // tür biliniyorsa hemen; yoksa arka planda bulunur
+      if (p.facing != null && (NL.facing == null || NL.facing === '')) NL.facing = String(p.facing);
+      if (!NL.kind) setTimeout(ensureKinds, 50);
+    }
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
     persist(); drawLocs(); renderAll(); toast('Konumlarına kaydedildi: ' + S.locations[id].name);
     locCard(id);

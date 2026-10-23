@@ -2,7 +2,7 @@
 // Kıyının bakışı (facing): kıyıdan denize doğru yön, ° (ör. 225 = güneybatıya bakan kıyı).
 // Rüzgâr kıyıya göre: geldiği yön kıyının bakışına yakınsa "kıyıya vuran" (denizden), tersineyse "kıyıdan esen" (karadan), değilse "yandan".
 // Bakış: telefonun pusulasıyla, haritada kıyı çizgisinden (OSM kıyı çizgisinde kara solda, deniz sağda) ya da elle seçilir.
-const shoreMode = () => S.mode === 'kiyi';
+const shoreMode = () => modeNow() === 'kiyi';
 const facingOf = Lc => Lc && Lc.facing !== '' && Lc.facing != null && isFinite(Lc.facing) ? ((Number(Lc.facing) % 360) + 360) % 360 : null;
 const angDiff = (a, b) => Math.abs((((a - b) % 360) + 540) % 360 - 180);
 function shoreRel(wdir, facing){ if (wdir == null || facing == null) return null; const d = angDiff(wdir, facing); return d <= 50 ? 'vuran' : d >= 130 ? 'esen' : 'yandan'; }

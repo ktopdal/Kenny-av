@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.16 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v16_check.py
+"""Alyssa v0.3–v0.17 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v17_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v16'
+SHOTS = ROOT + '/qa/v17'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8781
+PORT = 8782
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -29,6 +29,8 @@ def check(cond, msg):
     if not cond: FAIL.append(msg)
 
 LAND = lambda lat, lon: 38.40 < lat < 38.50 and 27.15 < lon < 27.25   # sahte kara kutusu (test noktası 38.45, 27.20)
+KIYI = lambda lat, lon: 38.60 < lat < 38.62 and 26.90 < lon < 26.92   # karada ama kıyı çizgisine 150 m (kıyıdan av)
+LAND2 = lambda lat, lon: 38.36 < lat < 38.37 and 26.87 < lon < 26.88  # Kenny'nin ekran görüntüsü: karada, Overpass yanıt vermiyor, EMODnet 13 m diyor
 TRAP = lambda lat, lon: 38.30 < lat < 38.32 and 26.70 < lon < 26.72   # denizde ama Nominatim yakın bir adres veriyor, derinlik servisi hata veriyor (eski sürüm "Kara" derdi)
 HANG = {'gfs': False}
 CORS = {'Access-Control-Allow-Origin': '*'}
@@ -38,9 +40,12 @@ async def mock_meteo(route):
     calls.append(u)
     lat, lon = float(q['latitude'][0]), float(q['longitude'][0])
     model = (q.get('models') or [''])[0]
+    if '/v1/elevation' in u:   # Copernicus 90 m yükselti: denizde 0
+        el = 45 if LAND(lat, lon) else 38 if LAND2(lat, lon) else 4 if KIYI(lat, lon) else 0
+        return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'elevation': [el]}))
     if 'marine' in u:
         hv = q.get('hourly', [''])[0].split(',')
-        if LAND(lat, lon):
+        if LAND(lat, lon) or KIYI(lat, lon) or LAND2(lat, lon):
             if model:
                 return await route.fulfill(status=400, content_type='application/json', headers=CORS, body=json.dumps({'error': True, 'reason': 'No data is available for this location'}))
             h = {'time': SMP['mbest']['hourly']['time']}
@@ -122,12 +127,17 @@ async def mock_geo(route):
             return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'lat': str(lat), 'lon': str(lon), 'name': '', 'address': {'village': 'Test Köyü', 'province': 'İzmir'}}))
         if TRAP(lat, lon):
             return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'lat': str(lat + 0.001), 'lon': str(lon), 'name': '', 'address': {'suburb': 'Tuzak Mahallesi', 'province': 'İzmir'}}))
+        if KIYI(lat, lon):
+            return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'lat': str(lat), 'lon': str(lon), 'name': '', 'address': {'village': 'Kıyıköy', 'province': 'İzmir'}}))
+        if LAND2(lat, lon):
+            return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'lat': str(lat + 0.0003), 'lon': str(lon), 'name': '', 'address': {'suburb': 'Çelebi', 'province': 'İzmir'}}))
         return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'error': 'Unable to geocode'}))
     if 'overpass' in u:
         body = urllib.parse.unquote_plus(route.request.post_data or '')
         mm = re.search(r'around:6000,([-\d.]+),([-\d.]+)', body); lat, lon = float(mm.group(1)), float(mm.group(2))
         if TRAP(lat, lon): await asyncio.sleep(2.5)   # yavaş Overpass: ad ve diğer bilgiler önce gelmeli
-        cy = lat - 0.02 if LAND(lat, lon) else lat + 0.02   # OSM kıyı çizgisi batıdan doğuya: kara solda (kuzey), deniz sağda (güney)
+        if LAND2(lat, lon): return await route.fulfill(status=504, headers=CORS, body='{}')   # Overpass yanıt vermedi
+        cy = lat - 0.02 if LAND(lat, lon) else lat - 0.00135 if KIYI(lat, lon) else lat + 0.02   # OSM kıyı çizgisi batıdan doğuya: kara solda (kuzey), deniz sağda (güney)
         els = [{'type': 'way', 'id': 1, 'tags': {'natural': 'coastline'}, 'geometry': [{'lat': cy, 'lon': lon - 0.05}, {'lat': cy, 'lon': lon + 0.05}]},
                {'type': 'node', 'id': 2, 'lat': lat + 0.03, 'lon': lon, 'tags': {'place': 'village', 'name': 'Deneme'}},
                {'type': 'node', 'id': 3, 'lat': lat + 0.09, 'lon': lon, 'tags': {'place': 'town', 'name': 'Uzakkasaba'}}]
@@ -137,11 +147,13 @@ async def mock_geo(route):
         lon, lat = float(mm.group(1)), float(mm.group(2))
         if LAND(lat, lon): return await route.fulfill(status=404, headers=CORS, body='{}')
         if TRAP(lat, lon): return await route.fulfill(status=503, headers=CORS, body='{}')
+        if KIYI(lat, lon): return await route.fulfill(status=404, headers=CORS, body='{}')
+        if LAND2(lat, lon): return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'min': 12.1, 'max': 14.0, 'avg': 13.1, 'smoothed': 13.0}))   # karada yanlış derinlik
         return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'min': 53.1, 'max': 55.2, 'avg': 54.3, 'smoothed': 54.0}))
     return await route.fulfill(status=404, headers=CORS, body='{}')
 
 async def new_ctx(b, storage=None, w=390):
-    ctx = await b.new_context(viewport={'width': w, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2, permissions=['geolocation'], geolocation={'latitude': 38.45, 'longitude': 27.20})
+    ctx = await b.new_context(viewport={'width': w, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2, permissions=['geolocation'], geolocation={'latitude': 38.30, 'longitude': 26.80})
     await ctx.add_init_script(FAKE_NOW)
     if storage:
         await ctx.add_init_script('if(!sessionStorage.getItem("seeded")){' + ''.join('localStorage.setItem(%s,%s);' % (json.dumps(k), json.dumps(v)) for k, v in storage.items()) + 'sessionStorage.setItem("seeded","1");}')
@@ -162,7 +174,7 @@ def fake_now(iso):
     return FAKE_NOW.replace("2026-10-17T09:30:00+03:00", iso)
 
 async def new_ctx_at(b, iso, w=390):
-    ctx = await b.new_context(viewport={'width': w, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2, permissions=['geolocation'], geolocation={'latitude': 38.45, 'longitude': 27.20})
+    ctx = await b.new_context(viewport={'width': w, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2, permissions=['geolocation'], geolocation={'latitude': 38.30, 'longitude': 26.80})
     await ctx.add_init_script(fake_now(iso))
     await ctx.route('https://api.open-meteo.com/**', mock_meteo); await ctx.route('https://marine-api.open-meteo.com/**', mock_meteo)
     pg = await ctx.new_page(); errs = []
@@ -255,20 +267,21 @@ async def main():
         await pg.click('button[data-open="ayarlar"]'); await pg.wait_for_timeout(200)
         await pg.click('button[data-set="zoom"][data-val="0"]'); await pg.click('button[data-set="scheme"][data-val="auto"]'); await pg.click('button[data-act="resetBft"]'); await pg.wait_for_timeout(150)
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(150)
-        # konum: karadaki nokta → en yakın deniz noktası
+        # konum: kıyıdaki nokta (kara, kıyıya 150 m) → en yakın deniz noktasının verisi, kıyı modu
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(200)
-        await pg.fill('#nl-name', 'Kara noktası'); await pg.fill('#nl-lat', '38.45'); await pg.fill('#nl-lon', '27.20')
+        await pg.fill('#nl-name', 'Kıyı noktası'); await pg.fill('#nl-lat', '38.61'); await pg.fill('#nl-lon', '26.91')
         await pg.click('#locForm button[type="submit"]'); await pg.wait_for_timeout(300)
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(4000)
         await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
         sea = await pg.inner_text('#seaNote') if await pg.is_visible('#seaNote') else ''
-        check('km' in sea, 'karadaki nokta: ' + sea)
+        check('km' in sea, 'kıyıdaki nokta: ' + sea)
         wave = (await pg.locator('#hTable tr').nth(await row_idx(pg, 'Dalga')).locator('td').nth(2).inner_text()).strip()
-        check(wave not in ('–', ''), 'karadaki noktada dalga değeri geldi: ' + wave)
+        check(wave not in ('–', ''), 'kıyıdaki noktada dalga değeri geldi: ' + wave)
         st = await state(pg); L = st['locations'][st['active']]
-        check(L.get('sea') and abs(L['sea']['lat'] - 38.513) < 0.01, 'deniz noktası kaydedildi: ' + json.dumps(L.get('sea')))
-        net = await pg.inner_text('#net'); check(net.startswith('Güncel'), 'durum karadaki noktada da Güncel: ' + net)
-        await pg.screenshot(path=SHOTS + '/a_kara_nokta.png')
+        check(L.get('sea') and abs(L['sea']['lat'] - 38.628) < 0.01, 'deniz noktası kaydedildi: ' + json.dumps(L.get('sea')))
+        check(L.get('kind') == 'kiyi' and L.get('facing') == '180' and 'Kıyı' in await pg.evaluate("document.getElementById('modeBtn').textContent"), 'kıyı türü bulundu, kıyının bakışı G, kıyı modu: ' + json.dumps({k: L.get(k) for k in ('kind', 'kindBy', 'coastKm', 'facing')}))
+        net = await pg.inner_text('#net'); check(net.startswith('Güncel'), 'durum kıyıdaki noktada da Güncel: ' + net)
+        await pg.screenshot(path=SHOTS + '/a_kiyi_nokta.png')
         # Konum 1'e dön ve av ekle (fotoğraf + dip)
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(200)
         await pg.click('#sheet button[data-use="1"]'); await pg.wait_for_timeout(300); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(1500)
@@ -1471,6 +1484,89 @@ async def main():
             print('V %s errors:' % mode, errs); check(not errs, 'V %s: sayfa hatası yok' % mode)
             await ctx.close()
         check(len(GLOG) >= 2, 'V: Google betiği istendi (%d)' % len(GLOG))
+
+        # ================================================== W) v0.17: kara / kıyı / deniz — karada yalnız hava durumu
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        st = await state(pg); check(not st['locations']['1'].get('kind') and await pg.evaluate('ALYSSA_QA.modeNow()') == 'tekne', 'W: özel paketin Konum 1’i deniz (türü sorulmadı)')
+        # Kenny'nin ekranı: karada nokta, Overpass yanıt vermiyor, EMODnet 13 m diyor → yine Kara, adında "açıkları" yok
+        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(400)
+        await pg.evaluate('window.ALYSSA_QA.pickPoint(38.36476, 26.87316)'); await pg.wait_for_timeout(400)
+        card = await pg.inner_text('#mapCard'); print('   kara kartı:', card.replace('\n', ' | ')[:240])
+        check('Kara' in card and 'Deniz' not in card and 'açıkları' not in card and 'derinlik' not in card and 'yükselti ≈ 38 m' in card and 'Çelebi, İzmir' in card, 'W: kara noktası Kara, adı “açıkları”sız, derinlik yok, yükselti var')
+        check('Bu noktanın hava durumu' in card and 'yalnız hava durumu' in card, 'W: kara kartında “hava durumu” düğmesi ve notu')
+        await pg.screenshot(path=SHOTS + '/w_kara_kart.png')
+        n0 = len(calls)
+        await pg.click('#mapCard button[data-mapact="forecast"]'); await pg.wait_for_timeout(2500)
+        st = await state(pg); L = st['locations'][st['active']]; lid = L['id']
+        check(L.get('kind') == 'kara' and L['name'] == 'Çelebi, İzmir' and L.get('kindBy') == 'yükselti', 'W: kaydedilen konum Kara: ' + json.dumps({k: L.get(k) for k in ('name', 'kind', 'kindBy', 'elev')}, ensure_ascii=False))
+        mar = [c for c in calls[n0:] if 'marine' in c]
+        check(not mar, 'W: kara noktası için deniz verisi istenmedi (%d istek)' % len(mar))
+        check(await pg.inner_text('#todayTitle') == 'Hava durumu' and not await pg.is_visible('#modeBtn'), 'W: Bugün “Hava durumu”, Tekne/Kıyı düğmesi yok')
+        lb = await pg.locator('#hTable th.lbl b').all_text_contents()
+        check(not any(x in lb for x in ('Balık', 'Balık eğrisi', 'Su sıcaklığı', 'Dalga', 'Periyot', 'Akıntı', 'Sürüklenme', 'Kıyıya göre')) and all(x in lb for x in ('Hava sıcaklığı', 'Rüzgâr · Karma', 'Yağış %', 'Basınç')), 'W: tabloda yalnız hava satırları: ' + str(lb))
+        ks = await pg.evaluate("[...document.querySelectorAll('#nowGrid .metric .k')].map(e => e.textContent)")
+        check(ks and not any(k.startswith(('Su', 'Dalga', 'Akıntı')) for k in ks) and any(k.startswith('Yağış') for k in ks) and any(k.startswith('Bulut') for k in ks), 'W: anlık kartlar hava durumu: ' + str(ks))
+        check(await pg.inner_text('#classRow') == '' and await pg.is_visible('#landNote') and not await pg.is_visible('#fcta') and not await pg.is_visible('#fishExplain'), 'W: deniz sınıfı, Fishing kısayolu ve balık açıklaması yok; kara notu var')
+        check('dalga' not in (await pg.inner_text('#hLegend')).lower(), 'W: dalga renk açıklaması yok')
+        await pg.screenshot(path=SHOTS + '/w_kara_bugun.png', full_page=True)
+        await pg.click('#compass'); await pg.wait_for_timeout(200); ct = await pg.inner_text('#toast')
+        check('dalga' not in ct and 'akıntı' not in ct and 'Rüzgâr' in ct, 'W: pusula özeti yalnız rüzgâr: ' + ct)
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
+        check('Kara noktası' in await pg.inner_text('#fNoLoc') and not await pg.is_visible('#fPick') and not await pg.is_visible('#recList') and not await pg.is_visible('#driftPanel') and not await pg.is_visible('#solPanel'), 'W: Fishing’de balık, rig ve sürüklenme yok; deniz noktası seçtiriyor')
+        check(await pg.locator('#fNoLoc button[data-use="1"]').count() == 1, 'W: kayıtlı deniz noktasına tek dokunuşla geçiş')
+        await pg.screenshot(path=SHOTS + '/w_kara_fishing.png')
+        await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(300)
+        dl = await pg.inner_text('#dayList')
+        check(await pg.inner_text('#calTitle') == 'Hava takvimi' and 'pencere' not in dl and 'dalga' not in dl and not re.search(r'Gündüz [ABCD]', dl) and not await pg.is_visible('#calAlertRow'), 'W: takvim yalnız hava (sınıf, balık penceresi, dalga ve uyarı yok)')
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.wait_for_timeout(200)
+        check(await pg.locator('#moreMenu button[data-open="uyari"], #moreMenu button[data-open="liste"]').count() == 0, 'W: Daha’da takvim uyarısı ve çıkış listesi yok')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150)
+            for v in ['bugun', 'fishing', 'takvim']:
+                await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(150); await overflow(pg, 'W %d px %s (kara)' % (w, v))
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        # türü elle Deniz yap → balık ve deniz verisi geri gelir; sonra yine Kara
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(300)
+        check('otomatik bulundu (yükselti)' in await pg.inner_text('#sheet'), 'W: Konumlar’da tür ve nasıl bulunduğu yazıyor')
+        n1 = len(calls)
+        await pg.click('#sheet button[data-lkind="%s|deniz"]' % lid); await pg.wait_for_timeout(3000)
+        st = await state(pg); L = st['locations'][lid]; lb = await pg.locator('#hTable th.lbl b').all_text_contents()
+        check(L.get('kind') == 'deniz' and L.get('kindAuto') is False and 'Balık' in lb and any('marine' in c for c in calls[n1:]), 'W: elle Deniz: balık satırları ve deniz verisi geldi')
+        await pg.click('#sheet button[data-lkind="%s|kara"]' % lid); await pg.wait_for_timeout(1500)
+        lb = await pg.locator('#hTable th.lbl b').all_text_contents(); check('Balık' not in lb and 'Dalga' not in lb, 'W: elle Kara: yine yalnız hava')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        # eski sürümde haritadan kaydedilmiş kara noktası "Güzelbahçe açıkları": açılışta Kara bulunur, adı düzeltilir; elle seçilen türe dokunulmaz
+        await pg.evaluate("""async () => { const Q = window.ALYSSA_QA, S = Q.state();
+          S.locations['77'] = {id: '77', name: 'Güzelbahçe açıkları', lat: 38.3649, lon: 26.8735, bottom: '', depth: '13'};
+          S.locations['78'] = {id: '78', name: 'Elle deniz', lat: 38.3651, lon: 26.8739, bottom: '', depth: '', kind: 'deniz', kindAuto: false};
+          await Q.ensureKinds(); }""")
+        st = await state(pg); L77 = st['locations']['77']; L78 = st['locations']['78']
+        check(L77.get('kind') == 'kara' and L77['name'] == 'Güzelbahçe', 'W: eski “Güzelbahçe açıkları” → Kara, adı “Güzelbahçe”: ' + json.dumps({k: L77.get(k) for k in ('name', 'kind')}, ensure_ascii=False))
+        check(L78.get('kind') == 'deniz' and L78['name'] == 'Elle deniz', 'W: elle seçilmiş türe dokunulmadı')
+        # haritadan kıyı noktası: kıyı türü, kıyı modu sabit, Fishing'de kıyı ve kurşun
+        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(400)
+        await pg.evaluate('window.ALYSSA_QA.pickPoint(38.61, 26.91)'); await pg.wait_for_timeout(400)
+        card = await pg.inner_text('#mapCard'); print('   kıyı kartı:', card.replace('\n', ' | ')[:200])
+        check('Kıyı' in card and 'kıyıya' in card and 'açıkları' not in card and 'Kıyı noktası: kıyıdan av' in card, 'W: kıyı noktası kartı')
+        await pg.click('#mapCard button[data-mapact="forecast"]'); await pg.wait_for_timeout(3500)
+        st = await state(pg); L = st['locations'][st['active']]
+        check(L.get('kind') == 'kiyi' and await pg.evaluate('ALYSSA_QA.modeNow()') == 'kiyi' and st['mode'] != 'kiyi', 'W: kıyı türü, kıyı modu (kullanıcının Tekne/Kıyı seçimi değişmeden)')
+        await pg.click('#modeBtn'); await pg.wait_for_timeout(200)
+        check('Bu konum kıyıda' in await pg.inner_text('#toast') and (await state(pg))['mode'] == st['mode'], 'W: kıyı noktasında mod düğmesi değiştirmiyor, nedenini söylüyor')
+        lb = await pg.locator('#hTable th.lbl b').all_text_contents(); check('Kıyıya göre' in lb and 'Balık' in lb, 'W: kıyıda balık ve kıyıya göre satırları')
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
+        check('Kıyı ve kurşun' in await pg.inner_text('#driftPanel'), 'W: Fishing’de kıyı ve kurşun')
+        await pg.screenshot(path=SHOTS + '/w_kiyi_fishing.png', full_page=True)
+        # Konum 1'e dönünce her şey deniz gibi
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(300)
+        await pg.click('#sheet button[data-use="1"]'); await pg.wait_for_timeout(1500); await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(300)
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
+        lb = await pg.locator('#hTable th.lbl b').all_text_contents()
+        check(await pg.inner_text('#todayTitle') == 'Bugün denizde' and 'Balık' in lb and await pg.is_visible('#modeBtn') and await pg.is_visible('#fcta'), 'W: Konum 1’e dönünce deniz ekranı')
+        print('W errors:', errs); check(not errs, 'W: sayfa hatası yok')
+        await ctx.close()
 
         # ================================================== E) önizleme
         ctx = await b.new_context(viewport={'width': 390, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2)

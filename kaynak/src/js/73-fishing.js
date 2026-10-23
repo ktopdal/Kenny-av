@@ -24,6 +24,10 @@ function renderFishing(){
   if (!$('v-fishing')) return;
   const L = loc(); const ds = L ? days() : [];
   $('fLoc').textContent = L ? locLabel(L) : 'Fishing';
+  // kara noktası: balık, rig ve sürüklenme yok; deniz ya da kıyı noktası seçtirilir
+  const land = !!L && locKind(L) === 'kara';
+  $('v-fishing').classList.toggle('isLand', land);
+  if (land) { $('fNoLoc').hidden = false; $('fNoLoc').innerHTML = landPanel(); return; }
   const empty = !L || !ds.length;
   $('fNoLoc').hidden = !empty;
   $('fNoLoc').innerHTML = !L ? '<div class="panel stack"><h3>Önce bir konum ekle</h3><p class="sub">Av planı seçtiğin noktanın hava, deniz ve solunar bilgisine göre hazırlanır.</p>' +
@@ -71,7 +75,7 @@ function fRecs(dd, part, from, past){
       '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
     $('recBlockedW').hidden = true; return;
   }
-  if (!RIG_LIST.some(r => !r.mode || r.mode === (S.mode || 'tekne'))) {
+  if (!RIG_LIST.some(r => !r.mode || r.mode === modeNow())) {
     $('recNote').textContent = '';
     $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (shoreMode() ? 'Kıyı rigin yok' : 'Tekne rigin yok') + '</h3><p class="sub">' + (shoreMode() ? 'Sistemlerindeki rigler tekne için. Rig Atölyesi’nde “Kıyıdan” seçip surf, LRF, spin ya da şamandıra sistemini kur.' : 'Sistemlerindeki rigler kıyı için. Rig Atölyesi’nde “Tekneden” seçip sistem kur.') + '</p>' +
       '<div class="row"><button class="btn primary" type="button" data-act="wizard">' + (shoreMode() ? 'Kıyı sistemimi kur' : 'Tekne sistemimi kur') + '</button><button class="btn" type="button" data-set="mode" data-val="' + (shoreMode() ? 'tekne' : 'kiyi') + '">' + (shoreMode() ? 'Tekne moduna dön' : 'Kıyı moduna geç') + '</button></div></div>';

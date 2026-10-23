@@ -37,7 +37,7 @@ function recommend(dd, night, from){
   const ctx = {night, cur: x ? x.cur : null, illum: Math.round(dd.sol.illum * 100), month, L};
   const out = [];
   RIG_LIST.forEach(rg => {
-    if (rg.mode && rg.mode !== (S.mode || 'tekne')) return;
+    if (rg.mode && rg.mode !== modeNow()) return;
     if (rg.time && rg.time !== 'her' && (rg.time === 'gece') !== night) return;
     if (rg.season && rg.season.length && !rg.season.includes(month)) return;
     if (rg.klass === 'trofe' && cls === 'D') return;

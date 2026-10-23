@@ -5,6 +5,7 @@ const ALERT_DEF = {bft: 3, wave: 0.5, fish: 4, part: 'ikisi', lead: 120, days: 7
 const alertCfg = () => Object.assign({}, ALERT_DEF, S.settings.alert || {});
 function alertMatches(){
   const cfg = alertCfg(), now = new Date(), out = [];
+  if (landMode()) return out;   // kara noktasında av penceresi yok
   days().slice(0, cfg.days).forEach(dd => {
     const parts = cfg.part === 'ikisi' ? ['gun', 'gece'] : [cfg.part];
     const seen = [];
@@ -59,7 +60,7 @@ function sheetAlert(){
     '<label class="f">Ne zaman' + sel('part', [['ikisi', 'Gündüz ve gece'], ['gun', 'Gündüz'], ['gece', 'Gece']]) + '</label>' +
     '<label class="f">Alarm' + sel('lead', [[30, '30 dk önce'], [60, '1 saat önce'], [120, '2 saat önce'], [720, '12 saat önce']]) + '</label>' +
     '<label class="f">Kaç gün' + sel('days', [[3, '3 gün'], [7, '7 gün'], [10, '10 gün'], [15, '15 gün']]) + '</label></div>' +
-    (!ok ? '<div class="empty">Hava verisi yok; önce bir konum seç.</div>' : list.length ?
+    (landMode() ? '<div class="empty">Seçili konum karada: av penceresi hesaplanmaz. Deniz ya da kıyı noktası seç.</div>' : !ok ? '<div class="empty">Hava verisi yok; önce bir konum seç.</div>' : list.length ?
       '<div class="eyebrow">' + list.length + ' pencere uyuyor · ' + esc(loc() ? loc().name : '') + '</div>' + list.map(m => '<div class="item"><div class="row" style="justify-content:space-between"><b>' + m.dd.date.getDate() + ' ' + MON3[m.dd.date.getMonth()] + ' ' + DOW[m.dd.date.getDay()] + ' · ' + winTxt(m.w) + '</b>' + fishHtml(m.w.fish) + '</div>' +
         '<div class="sp">balık %' + m.w.pct + ' · rüzgâr en çok ' + m.bft + ' Bft · dalga ' + f1(m.wave) + ' m · ' + esc(m.w.evs.map(e => e.k).join(' + ')) + ' · <a href="' + gcalUrl(m) + '" target="_blank" rel="noopener">Google Takvim</a></div></div>').join('') +
       (PREVIEW ? '<p class="note">Takvim dosyası telefona kurulan uygulamada iner; önizlemede yalnızca liste görünür.</p>' : '<button class="btn primary" type="button" data-act="icsAll">Hepsini takvime ekle</button><p class="note">iPhone’da açılan pencerede “Tümünü Ekle”ye dokun. Tahmin değişirse uyarıyı yeniden kur; eski etkinlikler aynı kimlikle güncellenir.</p>') :

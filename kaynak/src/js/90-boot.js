@@ -3,11 +3,14 @@ function nowHour(){ const ds = days(); const dd = ds.find(d => d.key === dateKey
 function renderTop(){
   const L = loc();
   $('locName').textContent = L ? locLabel(L) : APP_SHORT;
-  $('locSub').textContent = L ? fmtCoord(L.lat, L.lon) + ' · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') : 'Konum seçilmedi';
-  const mb = $('modeBtn'); const sh = S.mode === 'kiyi';
+  const kind = locKind(L);
+  $('locSub').textContent = L ? fmtCoord(L.lat, L.lon) + ' · ' + (kind === 'kara' ? 'kara · yalnız hava durumu' : kind === 'kiyi' ? 'kıyı' + (facingOf(L) != null ? ' · bakış ' + dir8(facingOf(L)) : '') : 'dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor')) : 'Konum seçilmedi';
+  // Tekne/Kıyı düğmesi: karada yok; kıyı türündeki konumda hep Kıyı (değiştirmek için konumun türü değişir)
+  const mb = $('modeBtn'); const sh = modeNow() === 'kiyi';
+  mb.hidden = kind === 'kara'; mb.classList.toggle('fixed', kind === 'kiyi');
   mb.innerHTML = sh ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18" stroke-width="1.8"/><path d="M6 20l3-9 3 1" stroke-width="1.6"/><path d="M12 12l7-9" stroke-width="1.4"/><path d="M19 3c.5 4 .4 7-1 10" stroke-width="1" stroke-dasharray="1.5 1.5"/><circle cx="9" cy="8" r="1.6"/></svg><span>Kıyı</span>'
     : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15h18l-3 5H6z" stroke-width="1.6"/><path d="M12 3v12M12 4l6 9h-6" stroke-width="1.6"/><path d="M2 21c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1" stroke-width="1"/></svg><span>Tekne</span>';
-  mb.setAttribute('aria-label', (sh ? 'Kıyı' : 'Tekne') + ' modu; değiştirmek için dokun');
+  mb.setAttribute('aria-label', kind === 'kiyi' ? 'Kıyı noktası; türü Konumlar’dan değiştirilir' : (sh ? 'Kıyı' : 'Tekne') + ' modu; değiştirmek için dokun');
   const x = L ? nowHour() : null; const c = $('compass');
   c.hidden = !x; c.innerHTML = x ? compassHtml(x) : '';
 }
@@ -48,7 +51,9 @@ function bindEvents(){
   $('locBtn').addEventListener('click', () => openMap());
   $('net').addEventListener('click', () => loadWeather(true));
   $('compass').addEventListener('click', () => { const x = nowHour(); if (x) toast(compassTxt(x)); });
-  $('modeBtn').addEventListener('click', () => { const m = S.mode === 'kiyi' ? 'tekne' : 'kiyi'; setSetting('mode', m); toast(m === 'kiyi' ? 'Kıyı modu: kıyı rigleri, kıyıya göre rüzgâr' : 'Tekne modu: tekne rigleri, sürüklenme ve kurşun'); });
+  $('modeBtn').addEventListener('click', () => { const k = locKind(loc()); if (k === 'kara') return;
+    if (k === 'kiyi') { toast('Bu konum kıyıda: kıyıdan av. Tekne için Konumlar’dan türünü Deniz yap.'); return; }
+    const m = S.mode === 'kiyi' ? 'tekne' : 'kiyi'; setSetting('mode', m); toast(m === 'kiyi' ? 'Kıyı modu: kıyı rigleri, kıyıya göre rüzgâr' : 'Tekne modu: tekne rigleri, sürüklenme ve kurşun'); });
   $('addCatch').addEventListener('click', () => catchForm(null));
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
@@ -91,6 +96,7 @@ function bindEvents(){
     if (d.sys) { ui.sys = d.sys; renderRigs(); return; }
     if (d.iseg) { ui.inv = d.iseg; renderInventory(); return; }
     if (d.hday) { ui.hday = d.hday; renderHourly(); return; }
+    if (d.lkind) { const [id, k] = d.lkind.split('|'); setLocKind(id, k); return; }
     if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
     if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
     if (d.goto) { show(d.goto); return; }
@@ -225,7 +231,7 @@ function bindEvents(){
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
   state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc(),
   items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
-  cloud: () => CLOUD, cloudSync, pushNow, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig};
+  cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig};
 (async () => {
   loadState();
   pkgLoadCached();
@@ -244,6 +250,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   else if (!S.onboarded) { S.onboarded = true; persistQuiet(); }
   if (CATCHES.length) { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }
   loadWeather();
+  setTimeout(ensureKinds, 1500);
   if (!EMBED && S.pkg.unlocked) pkgCheck(false);
   cloudInit();
 })();

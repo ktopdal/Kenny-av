@@ -19,7 +19,8 @@ const MORE = [
   ['surum', 'Sürüm notları', () => 'v' + APP_VERSION],
 ];
 function renderMore(){
-  $('moreMenu').innerHTML = MORE.filter(r => r[0] !== 'hesap' || cloudOn()).map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
+  const land = landMode();
+  $('moreMenu').innerHTML = MORE.filter(r => (r[0] !== 'hesap' || cloudOn()) && !(land && (r[0] === 'uyari' || r[0] === 'liste'))).map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
   $('about').textContent = APP_NAME + ' v' + APP_VERSION + (pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + ' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
 }
 function renderNewVersion(){
@@ -161,9 +162,9 @@ function sheetLocations(){
     (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +
       '<div class="sp mono">' + fmtCoord(L.lat, L.lon, true) + (ccount(L.id) ? ' · ' + ccount(L.id) + ' av' : '') + '</div>' +
       (L.sea && L.sea.lat != null ? '<div class="sp">Deniz verisi ' + f1(L.sea.km) + ' km ' + dir8(L.sea.dir) + ' yönündeki noktadan</div>' : '') + '</div>' +
-      (S.active === L.id ? '<span class="chip A">Seçili</span>' : '<button class="btn small" type="button" data-use="' + esc(L.id) + '">Seç</button>') + '</div>' +
-      '<div class="fields"><label class="f">Dip<select data-lk="' + esc(L.id) + '" data-f="bottom">' + BOTTOM.map(([k, t]) => '<option value="' + k + '"' + (k === (L.bottom || '') ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>' +
-      '<label class="f">Derinlik (m)<input data-lk="' + esc(L.id) + '" data-f="depth" inputmode="decimal" value="' + esc(L.depth || '') + '" placeholder="—"></label></div>' +
+      (S.active === L.id ? '<span class="chip A">Seçili</span>' : '<button class="btn small" type="button" data-use="' + esc(L.id) + '">Seç</button>') + '</div>' + kindBtns(L) +
+      (locKind(L) === 'kara' ? '' : '<div class="fields"><label class="f">Dip<select data-lk="' + esc(L.id) + '" data-f="bottom">' + BOTTOM.map(([k, t]) => '<option value="' + k + '"' + (k === (L.bottom || '') ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>' +
+      '<label class="f">Derinlik (m)<input data-lk="' + esc(L.id) + '" data-f="depth" inputmode="decimal" value="' + esc(L.depth || '') + '" placeholder="—"></label></div>') +
       (list.length > 1 ? '<div><button class="btn small" type="button" data-del="' + esc(L.id) + '">Sil</button></div>' : '') + '</div>').join('') : '<div class="empty">Henüz konum yok.</div>') +
     '<form class="panel" id="locForm" novalidate><h4 style="font-size:16px">Yeni konum</h4><div class="fields" style="margin-top:8px">' +
     '<label class="f wide">Ad<input id="nl-name" placeholder="Ör. Sığacık açığı"></label>' +
@@ -172,13 +173,32 @@ function sheetLocations(){
     '<label class="f">Dip (biliyorsan)<select id="nl-bottom">' + BOTTOM.map(([k, t]) => '<option value="' + k + '">' + t + '</option>').join('') + '</select></label>' +
     '<label class="f">Derinlik (m)<input id="nl-depth" inputmode="decimal" placeholder="—"></label></div>' +
     '<p class="err" id="locErr" hidden></p><div class="row" style="margin-top:10px"><button class="btn primary" type="submit">Kaydet</button><button class="btn" type="button" data-act="gpsfill">Bulunduğum yer</button></div>' +
-    '<p class="note" style="margin-top:8px">Nokta karadaysa ya da kıyıya çok yakınsa dalga ve akıntı en yakın deniz noktasından alınır.</p></form></div>';
+    '<p class="note" style="margin-top:8px">Noktanın türü kendiliğinden bulunur: <b>Deniz</b> (tekne ya da kıyı), <b>Kıyı</b> (kıyıya 300 m’den yakın kara; kıyıdan av, deniz verisi en yakın deniz noktasından), <b>Kara</b> (yalnız hava durumu; balık, rig ve deniz verisi yok). Yanlışsa yukarıdan değiştir.</p></form></div>';
 }
-function addLocation(name, lat, lon, bottom, depth, activate){
+function addLocation(name, lat, lon, bottom, depth, activate, noDetect){
   const id = nextLocId();
   S.locations[id] = {id, name: name || 'Konum ' + id, lat, lon, bottom: bottom || '', depth: depth || ''};
   if (activate !== false || !S.active) { S.active = id; WX = null; }
-  S.onboarded = true; persist(); return id;
+  S.onboarded = true; persist();
+  if (!noDetect) setTimeout(ensureKinds, 50);   // deniz / kıyı / kara arka planda bulunur
+  return id;
+}
+// konum türü düğmeleri (Konumlar sayfası)
+function kindBtns(L){
+  const k = locKind(L);
+  const how = L.kind ? (L.kindAuto ? 'otomatik bulundu' + (L.kindBy ? ' (' + L.kindBy + ')' : '') : 'elle seçildi') : L.pkg ? 'özel paketin deniz noktası' : L.kindTried ? 'belirlenemedi, deniz sayılıyor' : 'belirleniyor…';
+  return '<div class="kindrow"><span class="k">Tür</span><div class="seg">' + ['deniz', 'kiyi', 'kara'].map(v => '<button class="btn small" type="button" data-lkind="' + esc(L.id) + '|' + v + '" aria-pressed="' + (k === v) + '">' + KIND_TXT[v] + '</button>').join('') + '</div>' +
+    '<span class="note">' + esc(how) + (L.coastKm != null ? ' · kıyıya ' + (L.coastKm < 0.05 ? '<50 m' : kmTxt(L.coastKm)) : '') + '</span></div>';
+}
+// türü elle değiştir: seçili konumsa veri yeniden çekilir (karada deniz verisi istenmez)
+function setLocKind(id, kind){
+  const L = S.locations[id]; if (!L || !KIND_TXT[kind]) return;
+  const before = locKind(L);
+  L.kind = kind; L.kindAuto = false; L.kindBy = '';
+  persist();
+  if (S.active === id && (before === 'kara') !== (kind === 'kara')) loadWeather(true);   // kara ↔ deniz/kıyı: deniz verisi istenir ya da bırakılır
+  renderAll(); if (ui.sheet === 'konumlar') openMore('konumlar', true);
+  toast(locLabel(L) + ': ' + KIND_TXT[kind] + (kind === 'kara' ? ' · yalnız hava durumu' : kind === 'kiyi' ? ' · kıyıdan av' : ''));
 }
 // ---- Alışveriş: mağazaya göre (paketteki mağaza işaretleri), sonra bitti, alınacak (istek) ve rigleri tamamlamak için
 function sheetShopping(){
@@ -216,7 +236,7 @@ function sheetFile(){
 function sheetSources(){
   const stt = (S.wx && S.wx.status) || {};
   const sea = WX && WX.sea;
-  return sheetBar('Veri kaynakları') + '<div class="stack"><div class="panel"><div class="srcs">' + Object.keys(SRC).map(id => { const s = stt[id]; return '<span class="' + (s === 'ok' ? 'ok' : s ? 'no' : '') + '">' + (s === 'ok' ? '✓' : s ? '✗' : '·') + ' ' + esc(SRC[id].label) + ' — ' + esc(SRC[id].what) + (s && s !== 'ok' ? ' (' + esc(s) + ')' : '') + '</span>'; }).join('') +
+  return sheetBar('Veri kaynakları') + '<div class="stack"><div class="panel"><div class="srcs">' + Object.keys(SRC).map(id => { const s = stt[id]; return '<span class="' + (s === 'ok' ? 'ok' : s && s !== 'kara' ? 'no' : '') + '">' + (s === 'ok' ? '✓' : s && s !== 'kara' ? '✗' : '·') + ' ' + esc(SRC[id].label) + ' — ' + esc(SRC[id].what) + (s === 'kara' ? ' (kara noktası: istenmedi)' : s && s !== 'ok' ? ' (' + esc(s) + ')' : '') + '</span>'; }).join('') +
     (WX && WX.grid ? ['icon', 'ecmwf', 'gfs'].filter(id => WX.grid[id]).map(id => '<span>' + esc(SRC[id].short) + ' ızgara noktası: ' + WX.grid[id].lat.toFixed(3) + ', ' + WX.grid[id].lon.toFixed(3) + (WX.grid[id].el != null ? ' · yükseklik ' + Math.round(WX.grid[id].el) + ' m' : '') + '</span>').join('') : '') +
     (S.wx && S.wx.at ? '<span>Son güncelleme: ' + hm(new Date(S.wx.at)) + '</span>' : '') + (sea ? '<span>Deniz verisi ' + f1(sea.km) + ' km ' + dir8(sea.dir) + ' yönündeki en yakın deniz noktasından</span>' : '') + '</div>' +
     '<p class="note" style="margin-top:8px">Rüzgâr: ICON-EU 7 km (yaklaşık 5 gün); Karma satırı ICON bitince boş kalır, gün özetleri ECMWF ile sürer. Hamle (Bugün ekranı): GFS. Her modelin rüzgârı ve hamlesi tabloda ayrı satırda. Ayrıca rüzgâr, modelin bu noktaya en yakın ızgara hücresinden gelir: kıyıda hücre karadaysa rüzgâr düşük, denizdeyse yüksek çıkabilir (yukarıdaki ızgara noktasına bak). Yağış olasılığı: topluluk (ensemble) modelleri. Dalga: MFWAM (Météo-France, 10 gün), sonrası en iyi deniz modeli. Akıntı ve su sıcaklığı: Météo-France (10 gün). Hepsi Open-Meteo üzerinden, telefonun kendisi çeker. Bir kaynak 15 saniyede yanıt vermezse atlanır.</p></div>' +
