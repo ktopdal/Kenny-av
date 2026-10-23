@@ -30,6 +30,9 @@ function renderNewVersion(){
     out.push('<div class="newver"><b>' + APP_SHORT + ' güncellendi · v' + APP_VERSION + '</b><ul>' + notes.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul><div><button class="btn small" type="button" id="seenVer">Tamam</button></div></div>');
   }
   const br = backupReminder(); if (br) out.push(br);
+  // iki cihaz için: hesap varken girilmemişse bir kez hatırlat (kapatılabilir)
+  if (cloudOn() && CLOUD.resolved && !CLOUD.user && hasProfileData() && !S.settings.syncHintOff)
+    out.push('<div class="newver"><b>Tablet ve telefonda aynı veri</b><span class="note">İki cihazda da aynı hesapla giriş yaparsan rigler, envanter, konumlar ve avlar kendiliğinden eşitlenir.</span><div class="row"><button class="btn small primary" type="button" data-open="hesap">Giriş yap</button><button class="btn small" type="button" data-act="syncHintOff">Gerek yok</button></div></div>');
   if (S.pkg.need) out.push('<div class="newver warn"><b>Rig sistemin güncellendi</b><span class="note">Özel paketin yeni şifreyle şifrelendi. Bir kez yeni şifreyi gir; telefon hatırlar.</span><div><button class="btn small primary" type="button" data-open="paket">Şifreyi gir</button></div></div>');
   el.innerHTML = out.join('');
 }

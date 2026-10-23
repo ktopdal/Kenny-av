@@ -356,3 +356,24 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
 .kindrow .note{flex-basis:100%;margin:0}
 .mc-k{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border-radius:8px;padding:6px 8px}
 .modebtn.fixed{opacity:.85}
+
+/* ---------- v0.18: çoklu nokta takvimi, eşitleme ---------- */
+.calpick{margin:4px 0 12px}
+.calpick .eyebrow{margin-bottom:6px}
+.calpick .btn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kd{font-style:normal;font:600 10px var(--mono);padding:1px 5px;border-radius:5px;margin-left:4px;background:var(--surface-2);color:var(--muted)}
+.kd.kara{background:color-mix(in srgb,#8A7A5A 22%,transparent);color:var(--ink-2)}
+.kd.kiyi{background:var(--B-bg);color:var(--B)}
+.day.cmp{cursor:default}
+.day.cmp .body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.crow2{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;border:1px solid var(--line-2);border-radius:10px;padding:7px 9px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-width:0}
+.crow2 .nm{font:600 13.5px var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crow2 .chips{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.crow2 .chips em{font-style:normal;color:var(--muted)}
+.crow2 .cw{display:inline-flex;align-items:center;gap:4px}
+.crow2 .cw .fi svg{width:11px;height:11px}
+.crow2.best{border-color:var(--fish);box-shadow:inset 3px 0 0 var(--fish)}
+.besttag{font-style:normal;font:700 10.5px var(--body);color:#fff;background:var(--fish);border-radius:999px;padding:1px 7px;margin-left:4px}
+.syncinfo{margin:6px 0 8px;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.syncinfo span{color:var(--ink-2)}
+.syncinfo b{font-weight:600;color:var(--ink);margin-right:4px}

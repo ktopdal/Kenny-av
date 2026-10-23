@@ -3,6 +3,12 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.18.0', notes: [
+    'Tablet ve telefon aynı hesapla: bir cihazdaki değişiklik diğerine kendiliğinden geçer (açıksa en geç 30 sn, kapalıysa açılınca)',
+    'İki cihazda aynı anda değişiklik olursa birleştirilir (rig sistemleri, konumlar, envanter, ayarlar, avlar ayrı ayrı); aynı şey iki yerde değiştiyse son değiştiren kalır',
+    'Hesap: bu cihazın adı, son gelen değişiklik ve “Önceki hâline dön”; yazı boyutu, harita görünümü ve bilgi alanı her cihazda ayrı',
+    'Takvim: en çok 3 noktayı yan yana karşılaştır; her gün en iyi nokta işaretli, kara noktası hava satırıyla; satıra dokununca o nokta ve o gün açılır',
+  ]},
   {v: '0.17.0', notes: [
     'Konum türü: Deniz, Kıyı (kıyıya 300 m’den yakın kara, kıyıdan av) ya da Kara; kendiliğinden bulunur, Konumlar’dan değiştirilebilir',
     'Karada yalnız hava durumu: balık tahmini, rig önerisi, su sıcaklığı, dalga, akıntı, sürüklenme ve Tekne/Kıyı düğmesi yok; takvim “Hava takvimi” olur, deniz verisi hiç istenmez',

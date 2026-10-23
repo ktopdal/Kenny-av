@@ -43,6 +43,14 @@ async def firestore(route):
     if req.method == 'OPTIONS': return await route.fulfill(status=204, headers=CORS)
     u = urllib.parse.unquote(req.url); body = json.loads(req.post_data or '{}') if req.post_data else {}
     FB['log'].append(('fs', req.method, u.split('/documents')[-1][:60]))
+    if req.method == 'GET' and '/documents/users/' in u:   # tek belge, alan maskesiyle (uygulamanın hafif kontrolü)
+        name = u.split('?')[0]; FB['log'].append(('get', name.split('/documents')[-1]))
+        if not path_ok(req, name): return await ok(route, {'error': {'code': 403, 'message': 'PERMISSION_DENIED', 'status': 'PERMISSION_DENIED'}}, 403)
+        k = name.split('/documents/')[1]; d = FB['docs'].get(k)
+        if not d: return await ok(route, {'error': {'code': 404, 'message': 'NOT_FOUND', 'status': 'NOT_FOUND'}}, 404)
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(req.url).query); mask = q.get('mask.fieldPaths')
+        f = {kk: v for kk, v in d['fields'].items() if not mask or kk in mask}
+        return await ok(route, {'name': name, 'fields': f, 'createTime': d['t'], 'updateTime': d['t']})
     if u.split('?')[0].endswith(':batchGet'):
         out = []
         for name in body.get('documents', []):

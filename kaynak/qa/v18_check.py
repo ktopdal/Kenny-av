@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.17 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v17_check.py
+"""Alyssa v0.3–v0.18 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v18_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v17'
+SHOTS = ROOT + '/qa/v18'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8782
+PORT = 8783
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -1221,11 +1221,12 @@ async def main():
         d['fields']['s']['stringValue'] = json.dumps(o); d['fields']['at'] = {'integerValue': str(int(time.time() * 1000) + 60000)}
         await pg.evaluate("() => { const S = ALYSSA_QA.state(); S.modAt = Date.now() + 30000; localStorage.setItem('alyssa-v1', JSON.stringify(S)); }")
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="hesap"]'); await pg.wait_for_timeout(200)
-        await pg.click('button[data-acc="sync"]'); await pg.wait_for_timeout(1500)
-        sh = await pg.inner_text('#sheet'); check('Hangi veri kalsın' in sh, 'R: iki tarafta değişiklik → kullanıcıya soruldu')
-        await pg.screenshot(path=SHOTS + '/r_cakisma.png')
-        await pg.click('button[data-acc="remote"]'); await pg.wait_for_timeout(1500)
-        st = await state(pg); check(st['profile']['name'] == 'Diğer cihaz', 'R: “Hesaptakini yükle” diğer cihazın verisini getirdi')
+        await pg.click('button[data-acc="sync"]'); await pg.wait_for_timeout(2000)
+        sh = await pg.inner_text('#sheet'); st = await state(pg)
+        check('Hangi veri kalsın' not in sh and st['profile']['name'] == 'Diğer cihaz', 'R: burada yalnız tarih değişti → soru sorulmadan hesaptaki değişiklik geldi')
+        print('   hesap sayfası:', sh.replace('\n', ' | ')[:400], '· önceki hâl:', await pg.evaluate('!!localStorage.getItem("alyssa-cprev")'))
+        check('Önceki hâline dön' in sh and 'Bu cihaz' in sh, 'R: Hesap sayfasında cihaz adı ve “Önceki hâline dön”')
+        await pg.screenshot(path=SHOTS + '/r_esitleme.png')
         for w in [390, 320]:
             await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'R %d px hesap' % w)
         print('R2 errors:', errs); check(not errs, 'R: sayfa hatası yok (yeni cihaz)')
@@ -1566,6 +1567,130 @@ async def main():
         lb = await pg.locator('#hTable th.lbl b').all_text_contents()
         check(await pg.inner_text('#todayTitle') == 'Bugün denizde' and 'Balık' in lb and await pg.is_visible('#modeBtn') and await pg.is_visible('#fcta'), 'W: Konum 1’e dönünce deniz ekranı')
         print('W errors:', errs); check(not errs, 'W: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== X) v0.18: iki cihaz (tablet ve telefon) aynı hesapla: canlı eşitleme ve birleştirme
+        async def dev_ctx():
+            c = await b.new_context(viewport={'width': 390, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2)
+            await c.add_init_script(FAKE_NOW)
+            await c.route('https://api.open-meteo.com/**', mock_meteo); await c.route('https://marine-api.open-meteo.com/**', mock_meteo)
+            await fbmock.install(c)
+            for pat in ['https://nominatim.openstreetmap.org/**', 'https://overpass-api.de/**', 'https://overpass.kumi.systems/**', 'https://rest.emodnet-bathymetry.eu/**']: await c.route(pat, mock_geo)
+            p = await c.new_page(); e = []
+            p.on('pageerror', lambda x: e.append('pageerror: ' + str(x)))
+            p.on('console', lambda m: e.append('console: ' + m.text) if m.type == 'error' and 'fonts' not in m.text and 'ERR_' not in m.text and 'Failed to load resource' not in m.text else None)
+            return c, p, e
+        cA, A, eA = await dev_ctx()   # "tablet": özel paketli, ilk giriş
+        await A.goto(BASE + '/dist/?qa=1'); await A.wait_for_timeout(1000)
+        await A.click('button[data-wel="paket"]'); await A.fill('#wel-pass', KEY['pass_']); await A.click('#welBtn'); await A.wait_for_timeout(6000)
+        await A.click('.tabbar button[data-v="daha"]'); await A.click('#moreMenu button[data-open="hesap"]'); await A.wait_for_timeout(1500)
+        await A.fill('#ac-mail', 'sync@test.com'); await A.fill('#ac-pass', 'esitle123'); await A.click('button[data-acc="signup"]'); await A.wait_for_timeout(3500)
+        ux = fbmock.FB['users']['sync@test.com']['uid']; dA = fbmock.FB['docs'].get('users/' + ux)
+        check(dA and dA['fields'].get('dev', {}).get('stringValue', '').startswith('d'), 'X: tablet ilk girişte hesaba yazdı (cihaz kimliğiyle)')
+        await A.locator('#sheet [data-close]').first.click(); await A.wait_for_timeout(200)
+        cB, B, eB = await dev_ctx()   # "telefon": boş açılır, aynı hesapla girer
+        await B.goto(BASE + '/dist/?qa=1'); await B.wait_for_timeout(1000)
+        await B.click('button[data-wel="hesap"]'); await B.wait_for_timeout(300)
+        await B.fill('#ac-mail', 'sync@test.com'); await B.fill('#ac-pass', 'esitle123'); await B.click('button[data-acc="login"]'); await B.wait_for_timeout(3500)
+        sB = await B.evaluate('JSON.parse(localStorage.getItem("alyssa-v1"))')
+        check(sB['systems'].get('ozel') and len(sB['locations']) >= 1, 'X: telefon girişte tabletin verisini aldı')
+        await B.locator('#sheet [data-close]').first.click(); await B.wait_for_timeout(200)
+        # 1) tablette değişiklik (yeni rig sistemi gibi; burada konum türü ve bir ayar) → açık duran telefona birkaç saniyede gelir
+        await A.click('.tabbar button[data-v="daha"]'); await A.click('#moreMenu button[data-open="gorunum"]'); await A.wait_for_timeout(250)
+        await A.click('#sheet button[data-set="tempUnit"][data-val="f"]'); await A.wait_for_timeout(300)
+        await A.locator('#sheet [data-close]').first.click(); await A.wait_for_timeout(200)
+        ok = False
+        for _ in range(16):
+            await B.wait_for_timeout(700)
+            sB = await B.evaluate('JSON.parse(localStorage.getItem("alyssa-v1"))')
+            if sB['settings'].get('tempUnit') == 'f': ok = True; break
+        check(ok, 'X: tabletteki değişiklik açık telefona kendiliğinden geldi')
+        tB = await B.inner_text('#toast') if await B.is_visible('#toast') else ''
+        print('   telefon bildirimi:', tB)
+        # 2) aynı anda iki cihazda farklı değişiklik: tablette yeni konum, telefonda profil adı → ikisi de kalır
+        await A.click('.tabbar button[data-v="daha"]'); await A.click('#moreMenu button[data-open="konumlar"]'); await A.wait_for_timeout(250)
+        await A.fill('#nl-name', 'Tablet noktası'); await A.fill('#nl-lat', '38.21'); await A.fill('#nl-lon', '26.61'); await A.click('#locForm button[type="submit"]'); await A.wait_for_timeout(150)
+        await B.click('.tabbar button[data-v="daha"]'); await B.click('#moreMenu button[data-open="ayarlar"]'); await B.wait_for_timeout(250)
+        await B.fill('#pf-name', 'Telefon'); await B.locator('#pf-name').dispatch_event('change'); await B.wait_for_timeout(150)
+        await A.wait_for_timeout(12000)
+        sA = await A.evaluate('JSON.parse(localStorage.getItem("alyssa-v1"))'); sB = await B.evaluate('JSON.parse(localStorage.getItem("alyssa-v1"))')
+        doc = fbmock.doc_json(ux)
+        has = lambda st_: any(l['name'] == 'Tablet noktası' for l in st_['locations'].values()) and st_['profile']['name'] == 'Telefon'
+        print('   A:', [l['name'] for l in sA['locations'].values()], sA['profile']['name'], '· B:', [l['name'] for l in sB['locations'].values()], sB['profile']['name'])
+        check(has(doc), 'X: hesapta iki değişiklik birlikte (yeni konum + profil adı)')
+        check(has(sA) and has(sB), 'X: iki cihazda da iki değişiklik var (birleştirildi, kayıp yok)')
+        # 3) aynı alan iki yerde: son değiştiren kazanır
+        await A.locator('#sheet [data-close]').first.click(); await B.locator('#sheet [data-close]').first.click()
+        await A.click('.tabbar button[data-v="daha"]'); await A.click('#moreMenu button[data-open="ayarlar"]'); await A.wait_for_timeout(200)
+        await A.fill('#pf-name', 'Önce tablet'); await A.locator('#pf-name').dispatch_event('change'); await A.wait_for_timeout(1200)
+        await B.click('.tabbar button[data-v="daha"]'); await B.click('#moreMenu button[data-open="ayarlar"]'); await B.wait_for_timeout(200)
+        await B.fill('#pf-name', 'Sonra telefon'); await B.locator('#pf-name').dispatch_event('change'); await B.wait_for_timeout(12000)
+        sA = await A.evaluate('JSON.parse(localStorage.getItem("alyssa-v1"))'); sB = await B.evaluate('JSON.parse(localStorage.getItem("alyssa-v1"))')
+        check(sA['profile']['name'] == 'Sonra telefon' and sB['profile']['name'] == 'Sonra telefon' and fbmock.doc_json(ux)['profile']['name'] == 'Sonra telefon', 'X: aynı alan iki yerde değişince son değiştiren kaldı: %s / %s' % (sA['profile']['name'], sB['profile']['name']))
+        # 4) cihaza özgü ayarlar eşitlenmez (yazı boyutu)
+        await A.locator('#sheet [data-close]').first.click(); await A.wait_for_timeout(200)
+        await A.click('.tabbar button[data-v="daha"]'); await A.click('#moreMenu button[data-open="ayarlar"]'); await A.wait_for_timeout(200)
+        await A.click('#sheet button[data-set="zoom"][data-val="2"]'); await A.wait_for_timeout(8000)
+        sB = await B.evaluate('JSON.parse(localStorage.getItem("alyssa-v1"))')
+        check(sB['settings'].get('zoom', 0) == 0, 'X: tabletteki yazı boyutu telefona geçmedi (cihaza özgü)')
+        await A.click('#sheet button[data-set="zoom"][data-val="0"]'); await A.wait_for_timeout(300)
+        # 5) Hesap sayfası: cihaz adı, son gelen, önceki hâl
+        await B.locator('#sheet [data-close]').first.click(); await B.wait_for_timeout(200)
+        await B.click('.tabbar button[data-v="daha"]'); await B.click('#moreMenu button[data-open="hesap"]'); await B.wait_for_timeout(500)
+        hb = await B.inner_text('#sheet'); print('   telefon hesap:', hb.replace('\n', ' | ')[:300])
+        check('Bu cihaz' in hb and 'Cihazlar arası eşitleme' in hb and 'Önceki hâline dön' in hb, 'X: Hesap sayfasında cihaz, eşitleme açıklaması ve önceki hâl')
+        await B.screenshot(path=SHOTS + '/x_hesap.png', full_page=True)
+        for w in [390, 320]:
+            await B.set_viewport_size({'width': w, 'height': 760}); await B.wait_for_timeout(150); await overflow(B, 'X %d px hesap' % w)
+        print('X errors:', eA, eB); check(not eA and not eB, 'X: sayfa hatası yok (iki cihaz)')
+        await cA.close(); await cB.close()
+
+        # ================================================== Y) v0.18: takvimde en çok 3 nokta yan yana
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(250)
+        await pg.fill('#nl-name', 'Sığacık açığı'); await pg.fill('#nl-lat', '38.20'); await pg.fill('#nl-lon', '26.75'); await pg.click('#locForm button[type="submit"]'); await pg.wait_for_timeout(300)
+        await pg.fill('#nl-name', 'Ev'); await pg.fill('#nl-lat', '38.3648'); await pg.fill('#nl-lon', '26.8732'); await pg.click('#locForm button[type="submit"]'); await pg.wait_for_timeout(300)
+        await pg.click('#sheet button[data-use="1"]'); await pg.wait_for_timeout(300); await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(4000)
+        st = await state(pg); ids = {l['name']: l['id'] for l in st['locations'].values()}
+        check(st['locations'][ids['Ev']].get('kind') == 'kara', 'Y: “Ev” noktası Kara bulundu')
+        await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#calPick button[data-calloc]').count() == 3, 'Y: takvimde nokta seçici (3 nokta)')
+        await pg.click('#calPick button[data-calloc="%s"]' % ids['Sığacık açığı']); await pg.wait_for_timeout(300)
+        await pg.click('#calPick button[data-calloc="%s"]' % ids['Ev']); await pg.wait_for_timeout(3500)
+        rows = await pg.locator('#dayList .day.cmp').first.locator('.crow2').count()
+        check(rows == 3, 'Y: her gün 3 nokta alt alta (%d)' % rows)
+        d1 = await pg.locator('#dayList .day.cmp').first.inner_text(); print('   ilk gün:', d1.replace('\n', ' | ')[:300])
+        check('Konum 1' in d1 and 'Sığacık' in d1 and 'Ev' in d1 and 'hava' in d1, 'Y: deniz noktalarında sınıf ve balık, kara noktasında hava')
+        nb = await pg.locator('#dayList .crow2.best').count(); check(nb >= 5, 'Y: günlerin çoğunda en iyi nokta işaretli (%d)' % nb)
+        kara_row = await pg.locator('#dayList .day.cmp').first.locator('.crow2', has_text='Ev').inner_text()
+        check('Gündüz' not in kara_row and 'En iyi' not in kara_row, 'Y: kara noktası sınıfsız ve “en iyi” olamaz')
+        check(await pg.locator('#calPick button[aria-pressed="true"]').count() == 3, 'Y: 3 nokta seçili')
+        st = await state(pg); check(len(st['settings'].get('calLocs') or []) == 3, 'Y: seçim kaydedildi')
+        await pg.screenshot(path=SHOTS + '/y_takvim_3.png', full_page=True)
+        # dördüncü nokta eklenemez
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(250)
+        await pg.fill('#nl-name', 'Dördüncü'); await pg.fill('#nl-lat', '38.25'); await pg.fill('#nl-lon', '26.65'); await pg.click('#locForm button[type="submit"]'); await pg.wait_for_timeout(300)
+        await pg.click('#sheet button[data-use="1"]'); await pg.wait_for_timeout(300); await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(1500)
+        st = await state(pg); i4 = [l['id'] for l in st['locations'].values() if l['name'] == 'Dördüncü'][0]
+        await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(300)
+        await pg.click('#calPick button[data-calloc="%s"]' % i4); await pg.wait_for_timeout(300)
+        check('En çok 3' in await pg.inner_text('#toast') and await pg.locator('#calPick button[aria-pressed="true"]').count() == 3, 'Y: dördüncü nokta eklenmedi, uyarı verildi')
+        # satıra dokun: o nokta seçilir, o günün saatlik tablosu açılır
+        k2 = await pg.locator('#dayList .day.cmp').nth(1).locator('.crow2', has_text='Sığacık').get_attribute('data-calpick')
+        await pg.locator('#dayList .day.cmp').nth(1).locator('.crow2', has_text='Sığacık').click(); await pg.wait_for_timeout(1500)
+        st = await state(pg)
+        check(st['active'] == ids['Sığacık açığı'] and await pg.is_visible('#v-bugun') and await pg.get_attribute('#dayChips button[aria-pressed="true"]', 'data-hday') == k2.split('|')[1], 'Y: satıra dokununca o nokta ve o gün açıldı')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150)
+            await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(200); await overflow(pg, 'Y %d px karşılaştırma' % w)
+        await pg.screenshot(path=SHOTS + '/y_takvim_320.png', full_page=True)
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        # tek noktaya dönünce eski takvim
+        await pg.click('#calPick button[data-calloc="%s"]' % ids['Ev']); await pg.click('#calPick button[data-calloc="1"]'); await pg.wait_for_timeout(300)
+        check(await pg.locator('#dayList .day.cmp').count() == 0 and await pg.locator('#dayList button.day').count() >= 5, 'Y: tek nokta kalınca eski takvim düzeni')
+        print('Y errors:', errs); check(not errs, 'Y: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== E) önizleme

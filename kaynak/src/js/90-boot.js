@@ -96,6 +96,9 @@ function bindEvents(){
     if (d.sys) { ui.sys = d.sys; renderRigs(); return; }
     if (d.iseg) { ui.inv = d.iseg; renderInventory(); return; }
     if (d.hday) { ui.hday = d.hday; renderHourly(); return; }
+    if (d.calloc) { toggleCalLoc(d.calloc); return; }
+    if (d.calpick) { const [id, k] = d.calpick.split('|'); if (S.active !== id && S.locations[id]) { S.active = id; persist(); WX = null; if (wxFresh(MWX[id], S.locations[id])) { S.wx = MWX[id]; WX = buildWx(); } loadWeather(); }
+      ui.hday = k; show('bugun'); renderAll(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
     if (d.lkind) { const [id, k] = d.lkind.split('|'); setLocKind(id, k); return; }
     if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
     if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
@@ -132,6 +135,7 @@ function bindEvents(){
       if (a === 'bkOverwrite') { if (!armOnce(b, 'Buluttaki yedeğin üzerine yazılacak · onayla')) return; $('bk-pass').value = BK.pendingPass || $('bk-pass').value; submitBackupForm(true); return; }
       if (a === 'pkgCheck') { pkgCheck(true); return; }
       if (a === 'refreshWx') { loadWeather(true); closeSheet(); return; }
+      if (a === 'syncHintOff') { S.settings.syncHintOff = true; persistQuiet(); renderNewVersion(); return; }
       if (a === 'gtest') { const n = $('gTestNote'); if (n) n.textContent = 'Google deneniyor…'; const r = await googleTest(); if ($('gTestNote')) $('gTestNote').textContent = r.txt; return; }
       if (a === 'duzenCopy') { const c = duzenCode(), o = $('duzenOut'); if (o) { o.hidden = false; o.value = c; o.select(); }
         try { await navigator.clipboard.writeText(c); toast('Düzen kodu kopyalandı'); } catch (e) { toast('Kodu seçip kopyala'); } return; }

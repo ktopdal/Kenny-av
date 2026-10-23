@@ -79,24 +79,40 @@ async function loadMarine(L){
   if (r.mb.ok) raw.mbest = r.mb.data; status.mbest = r.mb.ok ? 'ok' : r.mb.err;
   return {raw, status, sea: P !== L ? P : null};
 }
+// bir konumun ham verisi (hava modelleri + karada değilse deniz); genel durumu değiştirmez
+async function fetchWxRaw(L){
+  const ids = ['icon', 'ecmwf', 'gfs', 'best'];
+  // kara noktasında deniz verisi istenmez (dalga, akıntı, su sıcaklığı yok; en yakın deniz noktası da aranmaz)
+  const land = locKind(L) === 'kara';
+  const [fr, mr] = await Promise.all([Promise.all(ids.map(id => fetchFirst(reqUrls(id, L)))), land ? Promise.resolve({raw: {}, status: {mf: 'kara', mbest: 'kara'}, sea: null}) : loadMarine(L)]);
+  const raw = Object.assign({}, mr.raw), status = Object.assign({}, mr.status);
+  ids.forEach((id, i) => { status[id] = fr[i].ok ? 'ok' : (fr[i].err || 'hata'); if (fr[i].ok) raw[id] = fr[i].data; });
+  return Object.keys(raw).length ? {key: wxKey(L), at: Date.now(), raw, status, sea: mr.sea, kind: locKind(L)} : null;
+}
+// diğer konumların verisi (takvimde karşılaştırma): bellekte, 45 dk geçerli
+const MWX = {}, MWX_LOAD = {}, MWX_FAIL = {};
+const wxFresh = (w, L) => !!w && w.key === wxKey(L) && Date.now() - w.at < 45 * 60 * 1000 && (w.kind || 'deniz') === locKind(L);
+async function loadWxFor(L){
+  if (!L || MWX_LOAD[L.id]) return;
+  if (PREVIEW) { const smp = SAMPLE_WX(); if (smp) MWX[L.id] = {key: wxKey(L), at: Date.now(), raw: smp.raw, status: smp.status, kind: locKind(L)}; return; }
+  MWX_LOAD[L.id] = true;
+  try { const w = await fetchWxRaw(L); if (w) MWX[L.id] = w; } catch (e) {}
+  finally { delete MWX_LOAD[L.id]; }
+}
 async function loadWeather(force){
   const L = loc();
   if (!L) { WX = null; setNet('idle', 'Konum yok'); renderAll(); return; }
   const key = wxKey(L);
+  if (!force && (!S.wx || S.wx.key !== key) && wxFresh(MWX[L.id], L)) S.wx = MWX[L.id];   // takvim için zaten çekilmiş
   if (PREVIEW) { if (!S.wx || S.wx.key !== key) { const smp = SAMPLE_WX(); if (smp) S.wx = {key, at: Date.now(), raw: smp.raw, status: smp.status}; } WX = buildWx(); setNet('ok', 'Örnek veri'); renderAll(); return; }
   if (S.wx && S.wx.key === key && !force && Date.now() - S.wx.at < 45 * 60 * 1000 && (S.wx.kind || 'deniz') === locKind(L)) { WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date(S.wx.at))); renderAll(); return; }
   const my = ++LOAD_ID;
   setNet('load', 'Yükleniyor');
   try {
-    const ids = ['icon', 'ecmwf', 'gfs', 'best'];
-    // kara noktasında deniz verisi istenmez (dalga, akıntı, su sıcaklığı yok; en yakın deniz noktası da aranmaz)
-    const land = locKind(L) === 'kara';
-    const [fr, mr] = await Promise.all([Promise.all(ids.map(id => fetchFirst(reqUrls(id, L)))), land ? Promise.resolve({raw: {}, status: {mf: 'kara', mbest: 'kara'}, sea: null}) : loadMarine(L)]);
+    const w = await fetchWxRaw(L);
     if (my !== LOAD_ID) return;
-    const raw = Object.assign({}, mr.raw), status = Object.assign({}, mr.status);
-    ids.forEach((id, i) => { status[id] = fr[i].ok ? 'ok' : (fr[i].err || 'hata'); if (fr[i].ok) raw[id] = fr[i].data; });
-    if (Object.keys(raw).length) {
-      S.wx = {key, at: Date.now(), raw, status, sea: mr.sea, kind: locKind(L)}; persistQuiet();
+    if (w) {
+      S.wx = w; MWX[L.id] = w; persistQuiet();
       WX = buildWx(); setNet('ok', 'Güncel ' + hm(new Date()));
     } else {
       WX = S.wx && S.wx.key === key ? buildWx() : null;

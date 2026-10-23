@@ -84,7 +84,76 @@ function winRow(lbl, w){
     (w.cls ? '<span class="chip ' + w.cls + '">deniz ' + w.cls + '</span>' : '') + w.evs.map(e => '<span class="chip gold" title="' + esc(EV_LONG[e.e] || '') + '">' + esc(evChip(e)) + '</span>').join('') + '</span>' +
     (w.skipped ? '<span class="note wskip">' + skipTxt(w.skipped) + '</span>' : '') + '</div>';
 }
+// ---- takvimde en çok 3 nokta: seçim, diğer noktaların verisi ve gün gün karşılaştırma
+const CAL_MAX = 3;
+function calLocs(){
+  const ids = (S.settings.calLocs || []).filter(id => S.locations[id]);
+  return ids.length ? ids : (S.active && S.locations[S.active] ? [S.active] : []);
+}
+function toggleCalLoc(id){
+  let ids = calLocs().slice();
+  if (ids.includes(id)) { if (ids.length > 1) ids = ids.filter(x => x !== id); }
+  else { if (ids.length >= CAL_MAX) { toast('En çok ' + CAL_MAX + ' nokta karşılaştırılır; önce birini çıkar'); return; } ids.push(id); }
+  S.settings.calLocs = ids; persist(); renderCalendar();
+}
+// başka bir konumun günlerini hesapla: genel durum (seçili konum, veri) geçici olarak o konuma çevrilir, sonra geri alınır
+function withLoc(L, w, fn){
+  const sv = {a: S.active, wx: S.wx, WX, DC: DAYS_CACHE};
+  try { S.active = L.id; S.wx = w; WX = buildWx(); DAYS_CACHE = null; return fn(); }
+  finally { S.active = sv.a; S.wx = sv.wx; WX = sv.WX; DAYS_CACHE = sv.DC; }
+}
+const CAL_SUM = {};
+function locSummary(L){
+  const w = L.id === S.active ? S.wx : MWX[L.id];
+  if (!w || !w.raw) return null;
+  const sig = w.at + '|' + locKind(L) + '|' + (S.settings.model || '') + '|' + S.mode + '|' + (L.facing || '') + '|' + (L.bottom || '');
+  if (CAL_SUM[L.id] && CAL_SUM[L.id].sig === sig) return CAL_SUM[L.id].days;
+  const make = () => days().slice(0, 16).map(dd => {
+    const land = locKind(L) === 'kara', win = land ? null : windows(dd)[0] || null;
+    const worst = [dd.clsD, dd.clsN].filter(Boolean).sort().pop() || null;
+    const score = land || !win ? 0 : win.pct * (SEA_F[win.cls || worst] || 0.5);
+    return {key: dd.key, date: dd.date, idx: dd.idx, wd: dd.wd, wn: dd.wn, gust: dd.gust, wave: dd.wave, clsD: dd.clsD, clsN: dd.clsN, tmin: dd.tmin, tmax: dd.tmax, pop: dd.pop, rain: dd.rain,
+      land, win: win ? {pct: win.pct, fish: win.fish, a: win.a, b: win.b, cls: win.cls} : null, score};
+  });
+  const out = L.id === S.active ? make() : withLoc(L, w, make);
+  CAL_SUM[L.id] = {sig, days: out};
+  return out;
+}
+function renderCalPick(){
+  const el = $('calPick'); if (!el) return;
+  const all = Object.values(S.locations), sel = calLocs();
+  if (all.length < 2) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="eyebrow">Noktalar · en çok ' + CAL_MAX + '</div><div class="seg wrapseg">' + all.map(L => '<button class="btn small" type="button" data-calloc="' + esc(L.id) + '" aria-pressed="' + sel.includes(L.id) + '">' +
+    esc(locLabel(L)) + ' <em class="kd ' + locKind(L) + '">' + KIND_TXT[locKind(L)] + '</em></button>').join('') + '</div>';
+}
+function renderCalCompare(ids){
+  const Ls = ids.map(id => S.locations[id]);
+  const sums = Ls.map(L => { const sm = locSummary(L); if (!sm && L.id !== S.active && !wxFresh(MWX[L.id], L) && !MWX_LOAD[L.id] && Date.now() - (MWX_FAIL[L.id] || 0) > 5 * 60000)
+    loadWxFor(L).then(() => { if (!MWX[L.id]) MWX_FAIL[L.id] = Date.now(); renderCalendar(); }); return sm; });
+  const allLand = Ls.every(L => locKind(L) === 'kara');
+  $('calTitle').textContent = allLand ? 'Hava takvimi' : 'Av takvimi';
+  $('calSub').textContent = Ls.length + ' nokta yan yana. ' + (allLand ? '' : 'Her gün balık ve deniz sınıfına göre en iyi nokta işaretli. ') + 'Bir satıra dokun: o nokta seçilir, o günün saatlik tablosu açılır.';
+  $('calAlertRow').hidden = allLand;
+  const keys = []; sums.forEach(sm => (sm || []).forEach(d => { if (!keys.includes(d.key)) keys.push(d.key); })); keys.sort();
+  if (!keys.length) { $('dayList').innerHTML = '<div class="empty">Noktaların verisi yükleniyor…</div>'; return; }
+  const cls = (c, l) => c ? '<span class="chip ' + c + '">' + l + ' ' + c + '</span>' : '';
+  $('dayList').innerHTML = keys.slice(0, 16).map(k => {
+    const rows = Ls.map((L, i) => ({L, d: (sums[i] || []).find(x => x.key === k) || null}));
+    const best = rows.filter(r => r.d && r.d.score > 0).sort((p, q) => q.d.score - p.d.score)[0];
+    const d0 = rows.find(r => r.d).d;
+    return '<div class="day cmp' + (d0.idx >= 10 ? ' low' : '') + '"><div class="d"><b>' + d0.date.getDate() + '</b><span>' + MON3[d0.date.getMonth()] + ' ' + DOW[d0.date.getDay()] + '</span></div><div class="body">' +
+      rows.map(({L, d}) => '<button class="crow2' + (best && best.L === L ? ' best' : '') + '" type="button" data-calpick="' + esc(L.id) + '|' + k + '"><span class="nm">' + esc(locLabel(L)) + (best && best.L === L ? ' <em class="besttag">En iyi</em>' : '') + '</span>' +
+        (!d ? '<span class="note">yükleniyor…</span>' : '<span class="chips">' + (d.land ? '' : cls(d.clsD, 'Gündüz') + cls(d.clsN, 'Gece')) +
+          '<span><em>rüzgâr</em> ' + bftBadge(bft(d.wd)) + '/' + bftBadge(bft(d.wn)) + ' Bft</span>' +
+          (d.land ? '<span><em>hava</em> ' + tempV(d.tmin) + '–' + tempV(d.tmax) + ' ' + TU() + '</span>' + (d.pop != null ? '<span><em>yağış</em> %' + Math.round(d.pop) + '</span>' : '') :
+            (d.wave != null ? '<span><em>dalga</em> ' + f1(d.wave) + ' m</span>' : '') + (d.win ? '<span class="cw">' + fishHtml(d.win.fish) + ' <b>%' + d.win.pct + '</b> ' + hm(d.win.a) + '–' + hm(d.win.b) + '</span>' : '')) + '</span>') +
+        '</button>').join('') + '</div></div>';
+  }).join('');
+}
 function renderCalendar(){
+  renderCalPick();
+  const sel = calLocs();
+  if (sel.length >= 2) { renderCalCompare(sel); return; }
   const ds = days().slice(0, 16), land = landMode();
   // karada: hava takvimi (deniz sınıfı, balık penceresi, solunar yıldızı, dalga, akıntı, su yok)
   $('calTitle').textContent = land ? 'Hava takvimi' : 'Av takvimi';
