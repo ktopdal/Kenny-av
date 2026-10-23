@@ -56,6 +56,7 @@ function baitHtml(rg, tier){
 }
 function rigCard(rg, dd, why, extra, tier, x){
   tier = tier || 'envanter';
+  if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız 32'lik özel sistemde
   const ok = ready(rg); const ld = leadFor(rg, dd, x);
   const chips = [];
   (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
@@ -65,7 +66,7 @@ function rigCard(rg, dd, why, extra, tier, x){
   if (rg.window) chips.push('<span class="chip">' + rg.window.join('–') + '</span>');
   if (rg.mode === 'kiyi') chips.push('<span class="chip">Kıyı</span>');
   const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
-  const other = TIERS.filter(x => x !== tier);
+  const other = TIERS.filter(x => x !== tier && x !== 'dunya');   // Notlar ve diğer seviyeler: dünyanın en iyisi gösterilmez
   const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + other.map(x => { const t = sl.t[x] || {}; const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.raw || [t.name, t.size].filter(Boolean).join(' ')); return esc(TIER_TXT[x]) + ': ' + esc(nm || '—') + (t.item && x !== 'envanter' ? ' ✓' : ''); }).join(' · ') + '</span>').join('');
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
   const bait = baitHtml(rg, tier);

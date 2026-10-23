@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------- 26 · Rig Atölyesi motoru: cevaplardan rig sistemi kurar ve envanterle eşleştirir
-// Her yuvanın bir "ölçüsü" vardır (iğne deseni + boy aralığı, ip çapı aralığı, yem tipi + ağırlık). Üç seviye:
-//   dunya    → ölçüye uyan dünyanın en iyi serisi
+// Her yuvanın bir "ölçüsü" vardır (iğne deseni + boy aralığı, ip çapı aralığı, yem tipi + ağırlık). İki seviye:
 //   turkiye  → envanterde ölçüye tam uyan kalem varsa o (✓), yoksa Türkiye'de bulunan en iyi seri
 //   envanter → envanterdeki en yakın uyumlu kalem (gerekirse bir boy oynar); yoksa eksik
 function hookIdx(s){
@@ -83,14 +82,17 @@ function resolveSlot(sp){
 // sihirbaz rigini o anki envanterle çöz (envanter değişince rigler kendiliğinden güncellenir)
 function resolveRig(rg){
   const base = rg.slots.some(sl => sl.kind === 'rod') ? rg.slots : rg.slots.concat(reqSlots(rg));   // kamış, makine ve terminal yuvaları (27-req.js)
+  // "Dünyanın en iyisi" yalnız Kenny'nin 32'lik özel sisteminde; diğer sistemlerde (eski kayıtlarda da) atılır
+  const noW = t => { const o = Object.assign({}, t || {}); delete o.dunya; return o; };
   const slots = base.map(sl => {
-    if (!sl.sp) return sl;
+    if (!sl.sp) return Object.assign({}, sl, {t: noW(sl.t)});
     const r = resolveSlot(sl.sp);
-    const t = {dunya: sl.t.dunya, turkiye: r.strict ? {name: r.strict.name, size: r.strict.size, item: r.strict.item, inv: true} : sl.t.turkiye,
+    const t = {turkiye: r.strict ? {name: r.strict.name, size: r.strict.size, item: r.strict.item, inv: true} : sl.t.turkiye,
       envanter: r.loose ? {name: r.loose.name, size: r.loose.size, item: r.loose.item} : {name: '', size: null, item: null}};
     return Object.assign({}, sl, {t});
   });
-  return Object.assign({}, rg, {slots});
+  const baits = rg.baits ? {ana: noW(rg.baits.ana), alt: noW(rg.baits.alt)} : rg.baits;
+  return Object.assign({}, rg, {slots, baits});
 }
 // ---- yuva ölçüsü ve ürün önerisi
 function hookSpec(spec, plus){
@@ -105,13 +107,13 @@ function hookSpec(spec, plus){
 function prodHook(sp){
   const p0 = sp.p[0]; const prod = (sp.big && p0 === 'circle') ? KB.HOOK.bigcircle : KB.HOOK[p0] || KB.HOOK.octopus;
   const sz = hookFmt(sp.sc, Math.round((sp.lo + sp.hi) / 2));
-  return {dunya: {name: prod.dunya, size: sz}, turkiye: {name: prod.turkiye, size: sz}};
+  return {turkiye: {name: prod.turkiye, size: sz}};
 }
 function prodLine(sp, kind){
   const mid = (sp.lo + sp.hi) / 2;
   const prod = kind === 'braid' ? KB.LINE.braid : kind === 'mono' ? KB.LINE.mono : kind === 'sok' ? KB.LINE.shock : (sp.lo >= 0.8 ? KB.LINE.fcbig : KB.LINE.fc);
   const sz = mmTxt(mid) + (kind === 'braid' ? ' (≈PE ' + String(peOf(mid)).replace('.', ',') + ')' : '');
-  return {dunya: {name: prod.dunya, size: sz}, turkiye: {name: prod.turkiye, size: sz}};
+  return {turkiye: {name: prod.turkiye, size: sz}};
 }
 const rangeTxt = sp => sp.kind === 'hook' ? KB.PAT[sp.p[0]].name + ' ' + hookFmt(sp.sc, sp.lo) + '–' + hookFmt(sp.sc, sp.hi) :
   sp.kind === 'line' ? mmTxt(sp.lo) + '–' + mmTxt(sp.hi) : (sp.g ? sp.g[0] + '–' + sp.g[1] + ' g' : '');
@@ -123,7 +125,7 @@ function slotFor(role, F, X, klass, rock){
   }
   if (role === 'assist' || role === 'jighead') {
     const sp = {kind: 'hook', p: [role], sc: 'w', lo: wRange(X[role])[0], hi: wRange(X[role])[1]};
-    const t = prodHook(sp); if (role === 'jighead' && X.g) { t.dunya.size += ' · ' + X.g.join('–') + ' g'; t.turkiye.size += ' · ' + X.g.join('–') + ' g'; }
+    const t = prodHook(sp); if (role === 'jighead' && X.g) { t.turkiye.size += ' · ' + X.g.join('–') + ' g'; }
     return {sp, t};
   }
   if (['braid', 'beden', 'kostek', 'sok', 'mono'].includes(role)) {
@@ -138,7 +140,7 @@ function slotFor(role, F, X, klass, rock){
     const type = role.slice(5); const L = KB.LURE[type];
     const sp = {kind: 'lure', lt: type, kw: L.kw, g: X.g || null, hs: type === 'sabiki' && X.sabiki ? X.sabiki : null};
     const sz = type === 'egi' ? X.egi : type === 'sabiki' && X.sabiki ? '#' + X.sabiki[0] + '–#' + X.sabiki[1] : X.g ? X.g[0] + '–' + X.g[1] + ' g' : '';
-    return {sp, t: {dunya: {name: L.dunya, size: sz}, turkiye: {name: L.turkiye, size: sz}}};
+    return {sp, t: {turkiye: {name: L.turkiye, size: sz}}};
   }
   return null;
 }
@@ -194,7 +196,7 @@ function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
   return {id: '', code, name: target + ' · ' + L.name + (rock ? ' · kayalık' : ''), group: isDip ? (klass === 'trofe' ? 'T' : 'P') + (time === 'gece' ? 'N' : time === 'gunduz' ? 'G' : 'H') : tid,
     groupName: isDip ? KLASS_TXT[klass] + ' ' + TIME_TXT[time] : T.name, mode, tech: tid, lay, fam, time, klass, species: list.map(s => s.id), target,
     baitText: baits.slice(0, 2).join(' · '), bottom, season: months, window: null, core: isDip && klass === 'porsiyon' && !months && !rock, current: false, slots,
-    baits: baits.length ? {ana: {dunya: baits[0], turkiye: baits[0], envanter: baits[0]}, alt: {dunya: baits[1] || '', turkiye: baits[1] || '', envanter: baits[1] || ''}} : null,
+    baits: baits.length ? {ana: {turkiye: baits[0], envanter: baits[0]}, alt: {turkiye: baits[1] || '', envanter: baits[1] || ''}} : null,
     lengths, own: rock, sinker, success: null, notes};
 }
 // sihirbaz cevaplarından rig listesi

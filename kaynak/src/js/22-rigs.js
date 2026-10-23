@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------- 22 · rig sistemleri, envanter dizini, türler
-// Genel rig biçimi: her rigin "yuvaları" (üst/orta/hırsız iğne, ana ip, beden, köstek…) ve her yuva için üç malzeme seviyesi:
-// dunya (dünyanın en iyisi), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
+// Genel rig biçimi: her rigin "yuvaları" (üst/orta/hırsız iğne, ana ip, beden, köstek…) ve her yuva için malzeme seviyeleri:
+// dunya (dünyanın en iyisi: yalnız 32'lik özel sistemde, yalnız Rigler seçicisinde), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
 const TIERS = ['dunya', 'turkiye', 'envanter'];
 const TIER_TXT = {dunya: 'Dünyanın en iyisi', turkiye: "Türkiye'de en iyi", envanter: 'Envanterimden'};
 const SLOT_LBL = {ust: 'Üst', orta: 'Orta', hirsiz: 'Hırsız', braid: 'Ana ip', beden: 'Beden', kostek: 'Köstek'};

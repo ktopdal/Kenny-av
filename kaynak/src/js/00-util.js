@@ -3,6 +3,10 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.16.1', notes: [
+    '“Dünyanın en iyisi” seviyesi yalnız 32’lik özel sistemde ve yalnız Rigler ekranındaki seçicide; Rig Atölyesi ve Türlerim rigleri yalnız Envanterimden / Türkiye’de en iyi',
+    '“Notlar ve diğer seviyeler” kısmında dünyanın en iyisi artık yok',
+  ]},
   {v: '0.16.0', notes: [
     'Yeni Fishing sekmesi (crimson): gün ve gündüz/gece seç → o bölümün solunar pencereleri → yalnızca en uygun 3 rig → en altta 3 saatlik dilimlerle sürüklenme ve kurşun',
     'Solunar, Bunu bağla ve Sürüklenme ve kurşun Bugün ekranından Fishing’e taşındı',

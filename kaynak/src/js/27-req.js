@@ -75,7 +75,7 @@ function gRange(it){ const m = [it.name, it.model, it.spec].join(' ').match(/(\d
 function reqSlots(rg){
   if (!rg.lay || rg.sys === 'ozel') return [];
   const key = gearKey(rg.lay, rg.mode); const G = GEAR[key]; if (!G) return [];
-  const tier = (o, size) => ({dunya: {name: o.name, size}, turkiye: {name: o.name, size}});
+  const tier = (o, size) => ({turkiye: {name: o.name, size}});
   const out = [
     {k: 'kamis', label: 'Kamış', kind: 'rod', sp: {kind: 'rod', types: G.rod.types, cls: G.rod.cls, minLen: G.rod.minLen || null}, t: tier(G.rod, G.rod.spec)},
     {k: 'makine', label: 'Makine', kind: 'reel', sp: {kind: 'reel', types: G.reel.types, cls: G.reel.cls}, t: tier(G.reel, G.reel.spec)}];

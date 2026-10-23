@@ -82,7 +82,7 @@ function renderWizard(keep){
       '<h3>Sistem ne kadar ayrıntılı olsun?</h3><div class="opts">' + [['sade', 'Sade', 'Her tür grubu için tek rig'], ['dengeli', 'Dengeli', 'Boya, gündüz/geceye ve takım düzenine göre ayrı rigler'], ['tam', 'Tam', 'Dengeli + kayalık ve keşif rigleri']].map(([v, t, s]) => optBtn('data-wzz', v, a.size === v, t, s)).join('') + '</div>' +
       '<h3>Sistemin adı</h3><div class="fields"><label class="f wide">Ad<input id="wz-name" value="' + esc(a.name || '') + '" placeholder="Ör. Benim dip sistemim"></label></div>' +
       '<div class="panel stack"><b id="wzCount">' + n + ' rig kurulacak</b><span class="note">' + esc(wzSummary()) + '</span>' +
-      '<span class="note">Her rigde üç malzeme seviyesi olur: dünyanın en iyisi, envanterinden ve Türkiye\'de bulunabilen en iyi (envanterinde uygun olan varsa o). Envanteri değiştirdikçe rigler kendiliğinden güncellenir.</span></div>';
+      '<span class="note">Her rigde iki malzeme seviyesi olur: envanterinden ve Türkiye\'de bulunabilen en iyi (envanterinde uygun olan varsa o). Envanteri değiştirdikçe rigler kendiliğinden güncellenir.</span></div>';
   }
   const ok = wzValid();
   openSheet(sheetBar(WZ.editId ? 'Rig sistemini düzenle' : 'Rig Atölyesi', null, 'Kapat') +

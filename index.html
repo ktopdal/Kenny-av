@@ -1053,9 +1053,13 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.16.0';
+const APP_VERSION = '0.16.1';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.16.1', notes: [
+    '“Dünyanın en iyisi” seviyesi yalnız 32’lik özel sistemde ve yalnız Rigler ekranındaki seçicide; Rig Atölyesi ve Türlerim rigleri yalnız Envanterimden / Türkiye’de en iyi',
+    '“Notlar ve diğer seviyeler” kısmında dünyanın en iyisi artık yok',
+  ]},
   {v: '0.16.0', notes: [
     'Yeni Fishing sekmesi (crimson): gün ve gündüz/gece seç → o bölümün solunar pencereleri → yalnızca en uygun 3 rig → en altta 3 saatlik dilimlerle sürüklenme ve kurşun',
     'Solunar, Bunu bağla ve Sürüklenme ve kurşun Bugün ekranından Fishing’e taşındı',
@@ -1865,8 +1869,8 @@ function regionOf(L){
 }
 
 // ---------------------------------------------------------------- 22 · rig sistemleri, envanter dizini, türler
-// Genel rig biçimi: her rigin "yuvaları" (üst/orta/hırsız iğne, ana ip, beden, köstek…) ve her yuva için üç malzeme seviyesi:
-// dunya (dünyanın en iyisi), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
+// Genel rig biçimi: her rigin "yuvaları" (üst/orta/hırsız iğne, ana ip, beden, köstek…) ve her yuva için malzeme seviyeleri:
+// dunya (dünyanın en iyisi: yalnız 32'lik özel sistemde, yalnız Rigler seçicisinde), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
 const TIERS = ['dunya', 'turkiye', 'envanter'];
 const TIER_TXT = {dunya: 'Dünyanın en iyisi', turkiye: "Türkiye'de en iyi", envanter: 'Envanterimden'};
 const SLOT_LBL = {ust: 'Üst', orta: 'Orta', hirsiz: 'Hırsız', braid: 'Ana ip', beden: 'Beden', kostek: 'Köstek'};
@@ -2176,8 +2180,7 @@ function baitPick(rg, tier){
 }
 
 // ---------------------------------------------------------------- 26 · Rig Atölyesi motoru: cevaplardan rig sistemi kurar ve envanterle eşleştirir
-// Her yuvanın bir "ölçüsü" vardır (iğne deseni + boy aralığı, ip çapı aralığı, yem tipi + ağırlık). Üç seviye:
-//   dunya    → ölçüye uyan dünyanın en iyi serisi
+// Her yuvanın bir "ölçüsü" vardır (iğne deseni + boy aralığı, ip çapı aralığı, yem tipi + ağırlık). İki seviye:
 //   turkiye  → envanterde ölçüye tam uyan kalem varsa o (✓), yoksa Türkiye'de bulunan en iyi seri
 //   envanter → envanterdeki en yakın uyumlu kalem (gerekirse bir boy oynar); yoksa eksik
 function hookIdx(s){
@@ -2260,14 +2263,17 @@ function resolveSlot(sp){
 // sihirbaz rigini o anki envanterle çöz (envanter değişince rigler kendiliğinden güncellenir)
 function resolveRig(rg){
   const base = rg.slots.some(sl => sl.kind === 'rod') ? rg.slots : rg.slots.concat(reqSlots(rg));   // kamış, makine ve terminal yuvaları (27-req.js)
+  // "Dünyanın en iyisi" yalnız Kenny'nin 32'lik özel sisteminde; diğer sistemlerde (eski kayıtlarda da) atılır
+  const noW = t => { const o = Object.assign({}, t || {}); delete o.dunya; return o; };
   const slots = base.map(sl => {
-    if (!sl.sp) return sl;
+    if (!sl.sp) return Object.assign({}, sl, {t: noW(sl.t)});
     const r = resolveSlot(sl.sp);
-    const t = {dunya: sl.t.dunya, turkiye: r.strict ? {name: r.strict.name, size: r.strict.size, item: r.strict.item, inv: true} : sl.t.turkiye,
+    const t = {turkiye: r.strict ? {name: r.strict.name, size: r.strict.size, item: r.strict.item, inv: true} : sl.t.turkiye,
       envanter: r.loose ? {name: r.loose.name, size: r.loose.size, item: r.loose.item} : {name: '', size: null, item: null}};
     return Object.assign({}, sl, {t});
   });
-  return Object.assign({}, rg, {slots});
+  const baits = rg.baits ? {ana: noW(rg.baits.ana), alt: noW(rg.baits.alt)} : rg.baits;
+  return Object.assign({}, rg, {slots, baits});
 }
 // ---- yuva ölçüsü ve ürün önerisi
 function hookSpec(spec, plus){
@@ -2282,13 +2288,13 @@ function hookSpec(spec, plus){
 function prodHook(sp){
   const p0 = sp.p[0]; const prod = (sp.big && p0 === 'circle') ? KB.HOOK.bigcircle : KB.HOOK[p0] || KB.HOOK.octopus;
   const sz = hookFmt(sp.sc, Math.round((sp.lo + sp.hi) / 2));
-  return {dunya: {name: prod.dunya, size: sz}, turkiye: {name: prod.turkiye, size: sz}};
+  return {turkiye: {name: prod.turkiye, size: sz}};
 }
 function prodLine(sp, kind){
   const mid = (sp.lo + sp.hi) / 2;
   const prod = kind === 'braid' ? KB.LINE.braid : kind === 'mono' ? KB.LINE.mono : kind === 'sok' ? KB.LINE.shock : (sp.lo >= 0.8 ? KB.LINE.fcbig : KB.LINE.fc);
   const sz = mmTxt(mid) + (kind === 'braid' ? ' (≈PE ' + String(peOf(mid)).replace('.', ',') + ')' : '');
-  return {dunya: {name: prod.dunya, size: sz}, turkiye: {name: prod.turkiye, size: sz}};
+  return {turkiye: {name: prod.turkiye, size: sz}};
 }
 const rangeTxt = sp => sp.kind === 'hook' ? KB.PAT[sp.p[0]].name + ' ' + hookFmt(sp.sc, sp.lo) + '–' + hookFmt(sp.sc, sp.hi) :
   sp.kind === 'line' ? mmTxt(sp.lo) + '–' + mmTxt(sp.hi) : (sp.g ? sp.g[0] + '–' + sp.g[1] + ' g' : '');
@@ -2300,7 +2306,7 @@ function slotFor(role, F, X, klass, rock){
   }
   if (role === 'assist' || role === 'jighead') {
     const sp = {kind: 'hook', p: [role], sc: 'w', lo: wRange(X[role])[0], hi: wRange(X[role])[1]};
-    const t = prodHook(sp); if (role === 'jighead' && X.g) { t.dunya.size += ' · ' + X.g.join('–') + ' g'; t.turkiye.size += ' · ' + X.g.join('–') + ' g'; }
+    const t = prodHook(sp); if (role === 'jighead' && X.g) { t.turkiye.size += ' · ' + X.g.join('–') + ' g'; }
     return {sp, t};
   }
   if (['braid', 'beden', 'kostek', 'sok', 'mono'].includes(role)) {
@@ -2315,7 +2321,7 @@ function slotFor(role, F, X, klass, rock){
     const type = role.slice(5); const L = KB.LURE[type];
     const sp = {kind: 'lure', lt: type, kw: L.kw, g: X.g || null, hs: type === 'sabiki' && X.sabiki ? X.sabiki : null};
     const sz = type === 'egi' ? X.egi : type === 'sabiki' && X.sabiki ? '#' + X.sabiki[0] + '–#' + X.sabiki[1] : X.g ? X.g[0] + '–' + X.g[1] + ' g' : '';
-    return {sp, t: {dunya: {name: L.dunya, size: sz}, turkiye: {name: L.turkiye, size: sz}}};
+    return {sp, t: {turkiye: {name: L.turkiye, size: sz}}};
   }
   return null;
 }
@@ -2371,7 +2377,7 @@ function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
   return {id: '', code, name: target + ' · ' + L.name + (rock ? ' · kayalık' : ''), group: isDip ? (klass === 'trofe' ? 'T' : 'P') + (time === 'gece' ? 'N' : time === 'gunduz' ? 'G' : 'H') : tid,
     groupName: isDip ? KLASS_TXT[klass] + ' ' + TIME_TXT[time] : T.name, mode, tech: tid, lay, fam, time, klass, species: list.map(s => s.id), target,
     baitText: baits.slice(0, 2).join(' · '), bottom, season: months, window: null, core: isDip && klass === 'porsiyon' && !months && !rock, current: false, slots,
-    baits: baits.length ? {ana: {dunya: baits[0], turkiye: baits[0], envanter: baits[0]}, alt: {dunya: baits[1] || '', turkiye: baits[1] || '', envanter: baits[1] || ''}} : null,
+    baits: baits.length ? {ana: {turkiye: baits[0], envanter: baits[0]}, alt: {turkiye: baits[1] || '', envanter: baits[1] || ''}} : null,
     lengths, own: rock, sinker, success: null, notes};
 }
 // sihirbaz cevaplarından rig listesi
@@ -2515,7 +2521,7 @@ function gRange(it){ const m = [it.name, it.model, it.spec].join(' ').match(/(\d
 function reqSlots(rg){
   if (!rg.lay || rg.sys === 'ozel') return [];
   const key = gearKey(rg.lay, rg.mode); const G = GEAR[key]; if (!G) return [];
-  const tier = (o, size) => ({dunya: {name: o.name, size}, turkiye: {name: o.name, size}});
+  const tier = (o, size) => ({turkiye: {name: o.name, size}});
   const out = [
     {k: 'kamis', label: 'Kamış', kind: 'rod', sp: {kind: 'rod', types: G.rod.types, cls: G.rod.cls, minLen: G.rod.minLen || null}, t: tier(G.rod, G.rod.spec)},
     {k: 'makine', label: 'Makine', kind: 'reel', sp: {kind: 'reel', types: G.reel.types, cls: G.reel.cls}, t: tier(G.reel, G.reel.spec)}];
@@ -3312,6 +3318,7 @@ function baitHtml(rg, tier){
 }
 function rigCard(rg, dd, why, extra, tier, x){
   tier = tier || 'envanter';
+  if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız 32'lik özel sistemde
   const ok = ready(rg); const ld = leadFor(rg, dd, x);
   const chips = [];
   (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
@@ -3321,7 +3328,7 @@ function rigCard(rg, dd, why, extra, tier, x){
   if (rg.window) chips.push('<span class="chip">' + rg.window.join('–') + '</span>');
   if (rg.mode === 'kiyi') chips.push('<span class="chip">Kıyı</span>');
   const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
-  const other = TIERS.filter(x => x !== tier);
+  const other = TIERS.filter(x => x !== tier && x !== 'dunya');   // Notlar ve diğer seviyeler: dünyanın en iyisi gösterilmez
   const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + other.map(x => { const t = sl.t[x] || {}; const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.raw || [t.name, t.size].filter(Boolean).join(' ')); return esc(TIER_TXT[x]) + ': ' + esc(nm || '—') + (t.item && x !== 'envanter' ? ' ✓' : ''); }).join(' · ') + '</span>').join('');
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
   const bait = baitHtml(rg, tier);
@@ -3644,16 +3651,17 @@ function renderRigs(){
     sys.map(sy => '<button class="btn small" data-sys="' + esc(sy.id) + '" aria-pressed="' + (ui.sys === sy.id || sys.length === 1) + '">' + esc(sy.name) + '</button>').join('') +
     '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button><button class="btn small" type="button" data-open="turler">Türlerim</button>';
   const one = sys.length === 1 ? sys[0] : S.systems[ui.sys];
-  const tier = S.settings.tier || 'envanter';
+  const wOk = !!(one && one.source === 'paket');   // "Dünyanın en iyisi" yalnız 32'lik özel sistemde, yalnız bu seçicide
+  const tier = S.settings.tier === 'dunya' && !wOk ? 'turkiye' : (S.settings.tier || 'envanter');
   $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : one.source === 'tur' ? 'Tür planından' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
       (one.source === 'sihirbaz' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
       '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
       (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
-    (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
+    (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().filter(t => t !== 'dunya' || wOk).map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
   if (!all.length) {
     $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
     if (sys.length) { $('rigList').innerHTML = '<div class="empty">Açık sistemde rig yok. Kapalı bir sistemi açabilir ya da yeni sistem kurabilirsin.</div>'; return; }
-    $('rigList').innerHTML = '<div class="panel stack"><h3>Rig sistemini kur</h3><p class="sub">Uygulama boş başlar. Nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel bir rig sistemi kurar; her rig için dünyanın en iyisi, envanterinden ve Türkiye\'de bulunabilen en iyi olmak üzere üç malzeme seviyesi verir.</p>' +
+    $('rigList').innerHTML = '<div class="panel stack"><h3>Rig sistemini kur</h3><p class="sub">Uygulama boş başlar. Nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel bir rig sistemi kurar; her rig için envanterinden ve Türkiye\'de bulunabilen en iyi olmak üzere iki malzeme seviyesi verir.</p>' +
       '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
     return;
   }
@@ -5068,7 +5076,7 @@ function renderWizard(keep){
       '<h3>Sistem ne kadar ayrıntılı olsun?</h3><div class="opts">' + [['sade', 'Sade', 'Her tür grubu için tek rig'], ['dengeli', 'Dengeli', 'Boya, gündüz/geceye ve takım düzenine göre ayrı rigler'], ['tam', 'Tam', 'Dengeli + kayalık ve keşif rigleri']].map(([v, t, s]) => optBtn('data-wzz', v, a.size === v, t, s)).join('') + '</div>' +
       '<h3>Sistemin adı</h3><div class="fields"><label class="f wide">Ad<input id="wz-name" value="' + esc(a.name || '') + '" placeholder="Ör. Benim dip sistemim"></label></div>' +
       '<div class="panel stack"><b id="wzCount">' + n + ' rig kurulacak</b><span class="note">' + esc(wzSummary()) + '</span>' +
-      '<span class="note">Her rigde üç malzeme seviyesi olur: dünyanın en iyisi, envanterinden ve Türkiye\'de bulunabilen en iyi (envanterinde uygun olan varsa o). Envanteri değiştirdikçe rigler kendiliğinden güncellenir.</span></div>';
+      '<span class="note">Her rigde iki malzeme seviyesi olur: envanterinden ve Türkiye\'de bulunabilen en iyi (envanterinde uygun olan varsa o). Envanteri değiştirdikçe rigler kendiliğinden güncellenir.</span></div>';
   }
   const ok = wzValid();
   openSheet(sheetBar(WZ.editId ? 'Rig sistemini düzenle' : 'Rig Atölyesi', null, 'Kapat') +
