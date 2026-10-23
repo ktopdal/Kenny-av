@@ -541,6 +541,63 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
 @media (max-width:460px){.now{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .metric .k .mb{font-size:9px;vertical-align:1px;margin-left:2px;text-transform:none}
 
+/* ---------- v0.16: Fishing sekmesi (crimson), saatlik tablo sadeleşti ---------- */
+:root{--fish:#DC143C;--fish-ink:#B5102F;--fish-soft:color-mix(in srgb,#DC143C 13%,transparent)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fish-ink:#FF5C72;--fish-soft:color-mix(in srgb,#DC143C 24%,transparent)}}
+:root[data-theme="dark"]{--fish-ink:#FF5C72;--fish-soft:color-mix(in srgb,#DC143C 24%,transparent)}
+.tabbar{grid-template-columns:repeat(7,minmax(0,1fr))}
+.tabbar button{font-size:10.5px;letter-spacing:-.01em;min-width:0;overflow:hidden}
+.tabbar .fishtab{color:var(--fish-ink);font-weight:700;overflow:visible}
+.tabbar .fishtab svg{width:32px;height:32px;padding:4px;margin-top:-10px;border-radius:50%;background:var(--fish);color:#fff;box-shadow:0 2px 8px color-mix(in srgb,var(--fish) 45%,transparent)}
+.tabbar .fishtab[aria-current="page"]{color:var(--fish-ink);background:var(--fish-soft)}
+.fview .sec-head h2{color:var(--fish-ink)}
+.fview .fey{color:var(--fish-ink)}
+.fpick{padding:10px 0 12px}
+.fpick .daychips{padding-top:0}
+.fparts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px 0}
+.fpart{display:flex;align-items:center;gap:8px;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px 10px;cursor:pointer;font:inherit;min-width:0}
+.fpart i{font-style:normal;font-size:20px;line-height:1}
+.fpart span{display:flex;flex-direction:column;min-width:0;flex:1}
+.fpart b{font:700 15px var(--display)}
+.fpart small{font:500 11px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fpart em{font-style:normal;flex:none}
+.fpart[aria-pressed="true"]{border-color:var(--fish);background:var(--fish-soft)}
+.fsum{padding:10px 12px 0}
+.fsrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fsrow b{font:700 15px var(--mono)}
+.fsrow b small{font:500 11px var(--mono);color:var(--muted)}
+.fsum .note{margin-top:4px}
+.rank{font:800 13px/1 var(--display);color:#fff;background:var(--fish);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;margin:4px 0 -4px}
+.banner.bad{background:var(--D-bg);color:var(--D)}
+.fblock{border-top:1px solid var(--line-2);padding:8px 0}
+.fblock p{margin:4px 0 0;font-size:14px;line-height:1.45;color:var(--ink-2)}
+.fbh{display:flex;align-items:center;gap:6px}
+.fbh b{font:700 14px var(--mono);color:var(--ink)}
+.fcta{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:12px 14px;border:0;border-radius:12px;background:var(--fish);color:#fff;cursor:pointer;text-align:left;font:inherit}
+.fcta b{font:800 16px var(--display)}
+.fcta span{flex:1;min-width:0;font-size:13px;opacity:.92}
+.fcta i{font-style:normal;font-size:18px}
+/* saatlik tablo: yağış satırları alçak, balık satırı yüksek; bulut % Hava hücresinde; solunar Balık hücresinde */
+.htab tr.slim td.c{height:24px;font-size:12px}
+.htab tr.slim th.lbl{padding-top:2px;padding-bottom:2px}
+.htab td.fish{height:68px}
+.htab td.fish .fi{height:16px;margin-bottom:3px}
+.htab td.fish svg{width:14px;height:14px}
+.htab td.fish small{font-size:10.5px;margin-top:1px}
+.htab td.fish em.sol{display:block;font:700 10px/1.2 var(--mono);font-style:normal;color:var(--gold);min-height:12px;margin-top:2px;letter-spacing:-.02em}
+.htab td.wxc svg{display:block;margin:0 auto}
+.htab td.wxc small{font-size:9.5px;margin-top:0}
+.hscroll.compact .htab tr.slim .lbl .sh em{display:inline;margin-left:2px}
+/* Google altlığı ve hata notu, Düzenim kodu */
+.gbase{position:absolute;inset:0;z-index:0;pointer-events:none}
+#map.hasg,.leaflet-container.hasg{background:transparent}
+.hasg .leaflet-bottom.leaflet-right{bottom:18px}
+.mc-g{font-size:12.5px;color:var(--D);background:var(--D-bg);border-radius:8px;padding:6px 8px}
+.codebox{width:100%;box-sizing:border-box;font:500 12px/1.4 var(--mono);border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface-2);color:var(--ink);resize:vertical;margin-top:6px;word-break:break-all}
+.tabbar .av{color:var(--muted)}
+.tabbar button[aria-current="page"].av{color:var(--brand);background:var(--brand-soft)}
+@media (max-width:360px){.tabbar button{font-size:9.6px;letter-spacing:-.02em}}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -585,24 +642,31 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
     <div class="tcard" data-card="anlik">
     <div class="now" id="nowGrid" style="margin-top:12px"></div>
     <div class="classrow" id="classRow"></div>
+    <button class="fcta" type="button" data-goto="fishing"><b>Fishing</b><span>Solunar, bağlanacak 3 rig, sürüklenme ve kurşun</span><i aria-hidden="true">→</i></button>
     </div>
-    <div class="tcard" data-card="surukle">
-    <div class="panel drift" style="margin-top:12px" id="driftPanel" hidden></div>
     </div>
-    <div class="tcard" data-card="solunar">
+  </section>
+
+  <!-- FISHING: gün ve gündüz/gece seç → solunar → bunu bağla → sürüklenme ve kurşun -->
+  <section class="view fview" id="v-fishing" hidden>
+    <div class="sec-head"><span class="eyebrow fey" id="fLoc">Fishing</span><h2>Fishing</h2></div>
+    <div id="fNoLoc" hidden></div>
+    <div class="panel fpick" id="fPick">
+      <div class="daychips" id="fDays"></div>
+      <div class="fparts" id="fParts" role="group" aria-label="Gündüz ya da gece"></div>
+      <div class="fsum" id="fSum"></div>
+    </div>
     <div class="panel" style="margin-top:12px" id="solPanel">
       <div class="row" style="justify-content:space-between"><h3>Solunar</h3><span id="solStars"></span></div>
       <p class="note" id="solSub" style="margin-top:2px"></p>
       <div id="solWins" style="margin-top:6px"></div>
     </div>
-    </div>
-    <div class="tcard" data-card="oneri">
-    <div class="row rechead" style="margin-top:20px;justify-content:space-between;align-items:center"><h3 id="recHead">Bugün bağla</h3><button class="btn small" type="button" data-open="liste">Çıkış listesi</button></div>
+    <div class="row rechead" style="margin-top:20px;justify-content:space-between;align-items:center"><h3 id="recHead">Bunu bağla</h3><button class="btn small" type="button" data-open="liste">Çıkış listesi</button></div>
     <p class="note" id="recNote" style="margin-top:2px"></p>
     <div class="stack" id="recList" style="margin-top:10px"></div>
-    <details style="margin-top:12px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
-    </div>
-    </div>
+    <details style="margin-top:10px" id="recMoreW" hidden><summary class="note" style="cursor:pointer" id="recMoreS">Diğer uygun rigler</summary><div class="stack" id="recMore" style="margin-top:8px"></div></details>
+    <details style="margin-top:10px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
+    <div class="panel drift" style="margin-top:16px" id="driftPanel" hidden></div>
   </section>
 
   <!-- TAKVİM -->
@@ -654,6 +718,7 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
   <button data-v="bugun" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Bugün</button>
   <button data-v="takvim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Takvim</button>
   <button data-v="avlar" class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-4.5 7-6 11-4.5 2 .8 3.6 2.4 4.5 4.5-.9 2.1-2.5 3.7-4.5 4.5C10 18 6 16.5 3 12z"/><path d="M18.5 12l2.5-3v6z"/><circle cx="8" cy="11" r=".9" fill="currentColor"/></svg>Avlar</button>
+  <button data-v="fishing" class="fishtab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 2.6v10.6a2.4 2.4 0 0 1-4.8 0v-1"/><path d="M.8 12.2l1.5 1.4"/><circle cx="5.6" cy="2.2" r=".9"/><path d="M9.2 12c2-3.3 4.9-4.4 7.6-3.3 1.4.6 2.5 1.7 3.1 3.3-.6 1.6-1.7 2.7-3.1 3.3-2.7 1.1-5.6 0-7.6-3.3z"/><path d="M19.9 12l3-2.6v5.2z"/><circle cx="12.2" cy="11.4" r=".7" fill="currentColor"/></svg>Fishing</button>
   <button data-v="rigler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v14"/><path d="M12 6h5M12 10h-5M12 14h5"/><path d="M17 6v2.5a1.5 1.5 0 0 1-3 0M7 10v2.5a1.5 1.5 0 0 0 3 0M17 14v2.5a1.5 1.5 0 0 1-3 0"/><path d="M10 19h4l-2 3z"/></svg>Rigler</button>
   <button data-v="envanter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>Envanter</button>
   <button data-v="daha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Daha</button>
@@ -988,9 +1053,19 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.15.0';
+const APP_VERSION = '0.16.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.16.0', notes: [
+    'Yeni Fishing sekmesi (crimson): gün ve gündüz/gece seç → o bölümün solunar pencereleri → yalnızca en uygun 3 rig → en altta 3 saatlik dilimlerle sürüklenme ve kurşun',
+    'Solunar, Bunu bağla ve Sürüklenme ve kurşun Bugün ekranından Fishing’e taşındı',
+    'Saatlik tablo: bulut % Hava hücresinde, solunar olayları Balık hücresinde (Bulut ve Solunar satırları kalktı); Yağış % ve mm satırları alçak, Balık satırı yüksek; Rüzgâr Yönü',
+    'Kapalı bilgi alanında birimler: Uyum kn, Dlg. m, Per. sn, Akın. kn, Sürk. kn',
+    'Varsayılan satır düzeni yenilendi (model karşılaştırma satırları kapalı; Görünüm’den açılır)',
+    'Harita: yer adı, kıyı ve derinlik geldikçe karta yazılır; deniz/kara kıyı çizgisinin yönünden bulunur (yanlış “Kara” yok); Overpass iki sunucudan sorulur',
+    'Harita: Google ve Google uydu altlığı (anahtar varsa); Google bir isteği reddederse sebebi yazılır; Ayarlar → Harita → Google’ı dene',
+    'Görünüm → Düzenim: satır, kart, birim ve renk ayarlarını kodla kopyala, diğer cihazda uygula',
+  ]},
   {v: '0.15.0', notes: [
     'Saatlik tablo, rüzgâr: “Rüzgâr · Karma” satırı üstteki model seçimini izler; Karma\'da ICON-EU, ICON bitince ECMWF\'ye geçmez, – gösterir',
     'Rüzgâr ve hamle her model için ayrı satır: ICON-EU, ECMWF, GFS (rüzgâr) ve ICON-EU, ECMWF, GFS (hamle); adlar her yerde ICON-EU',
@@ -1473,7 +1548,7 @@ function newState(){
   return {v: 2, created: new Date().toISOString(), seenVersion: APP_VERSION, onboarded: false, mode: 'tekne',
     profile: {name: '', baits: []},
     settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter', anchor: 'surukle', leeway: 'orta',
-      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false},
+      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false, hrv: 16},
     inv: {items: {}, qty: {}, status: {}, unit: {}, v: 2},
     systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {},
     pkg: {unlocked: false, version: null, need: false, locs: []},
@@ -1482,13 +1557,16 @@ function newState(){
 // eksik alanları tamamla (eski sürümden ya da yedekten gelen profil)
 function normalizeState(st){
   const n = newState();
+  const hrv0 = (st.settings && st.settings.hrv) || 0;   // satır düzeni sürümü (eksik alan doldurulmadan önce)
   if (st.inv && st.inv.v == null) st.inv.v = 1;   // eski envanter: adetler yeni birim düzenine taşınacak (migrateInv)
   for (const k of Object.keys(n)) if (st[k] === undefined || st[k] === null && typeof n[k] === 'object' && k !== 'wx' && k !== 'active') st[k] = n[k];
   for (const g of ['settings', 'inv', 'pkg', 'backup', 'profile']) for (const k of Object.keys(n[g])) if (st[g][k] === undefined) st[g][k] = n[g][k];
   if (!st.locations[st.active]) st.active = Object.keys(st.locations)[0] || null;
   if (st.wx && !st.wx.raw) st.wx = null;
   // v0.15: rüzgâr/hamle satırları yeni düzene (Karma + 3 model rüzgâr + 3 model hamle) varsayılan yerleriyle gelir
-  if ((st.settings.hrv || 0) < 15) { if (Array.isArray(st.settings.hrows)) st.settings.hrows = st.settings.hrows.filter(e => !/^(ruzgar|r_icon|r_ecmwf|r_gfs|h_icon|h_ecmwf|h_gfs|hamle|yon|uyum)$/.test(e && e[0])); st.settings.hrv = 15; }
+  if (hrv0 < 15) { if (Array.isArray(st.settings.hrows)) st.settings.hrows = st.settings.hrows.filter(e => !/^(ruzgar|r_icon|r_ecmwf|r_gfs|h_icon|h_ecmwf|h_gfs|hamle|yon|uyum)$/.test(e && e[0])); st.settings.hrv = 15; }
+  // v0.16: saatlik tablonun yeni varsayılan düzeni (Kenny'nin düzeni) herkese bir kez uygulanır; Bulut ve Solunar satırı kalktı
+  if (hrv0 < 16) { st.settings.hrows = null; st.settings.hrv = 16; }
   return st;
 }
 // v0.2 (Kenny Av) → v0.3: adetler, durumlar, konumlar, hava önbelleği ve açılmış paket taşınır
@@ -3019,18 +3097,12 @@ async function captureHeading(){
   });
 }
 const dirOpts = () => DIR8.map((d, i) => [String(i * 45), d + ' · ' + WIND_NAMES[i]]);
-function renderShore(dd, cur){
-  const el = $('driftPanel'); if (!el) return;
-  const Lc = loc(); if (!dd || !cur || !Lc) { el.hidden = true; return; }
-  el.hidden = false;
-  const f = facingOf(Lc), rel = shoreRel(cur.wdir, f);
+// kıyının bakışı: pusulayla al ya da elle seç (Fishing → Kıyı ve kurşun)
+function shoreControls(Lc, f){
+  if (!Lc) return '';
   const sel = '<select data-lk="' + esc(Lc.id) + '" data-f="facing" aria-label="Kıyının bakışı"><option value="">Seç</option>' +
     dirOpts().map(([v, t]) => '<option value="' + v + '"' + (f != null && Math.round(f / 45) % 8 * 45 === Number(v) ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>';
-  el.innerHTML = '<div class="row" style="justify-content:space-between;align-items:center"><h3>Kıyı</h3>' + segBtns('mode', [['tekne', 'Tekne'], ['kiyi', 'Kıyı']], 'kiyi') + '</div>' +
-    '<p class="dline">' + (f == null ? 'Kıyının bakışı bilinmiyor. Telefonu denize doğru tut ve “Pusulayla al”a dokun ya da yönü seç.' :
-      'Kıyı <b>' + dir8(f) + '</b> yönüne bakıyor (' + Math.round(f) + '°). Şimdi rüzgâr ' + esc(windName(cur.wdir)) + ' ' + kn(cur.wind) + ' kn: <b>' + esc(REL_TXT[rel] || '–') + '</b>' + (cur.wave != null ? ', kıyıda dalga ' + f1(cur.wave) + ' m' : '') + '.') + '</p>' +
-    (f != null ? '<p class="note">' + esc(shoreAdvice(cur, f)) + '</p>' : '') +
-    '<div class="row shorebtns"><button class="btn small" type="button" data-act="heading">Pusulayla al</button><label class="f inl">Bakış ' + sel + '</label></div>';
+  return '<div class="row shorebtns"><button class="btn small" type="button" data-act="heading">Pusulayla al</button><label class="f inl">Bakış ' + sel + '</label></div>';
 }
 
 // ---------------------------------------------------------------- 50 · öneri motoru (kurallar şeffaf, her önerinin nedeni yazılır)
@@ -3278,12 +3350,10 @@ function dayLabel(d, i, todayKey){
 }
 function modelText(arr){ const u = [...new Set(arr.filter(Boolean))]; return u.length ? u.join(' / ') : '–'; }
 // Bugün ekranının kartları ve takvim satırları (Görünüm sayfasından açılıp kapatılır, sırası değiştirilir)
+// Solunar, Bunu bağla ve Sürüklenme ve kurşun v0.16'da Fishing sekmesine taşındı
 const TCARDS = [
   {id: 'saatlik', t: 'Saatlik tablo'},
   {id: 'anlik', t: 'Şu an ve deniz sınıfı'},
-  {id: 'surukle', t: 'Sürüklenme ve kurşun'},
-  {id: 'solunar', t: 'Solunar ve en iyi pencereler'},
-  {id: 'oneri', t: 'Bugün bağla (öneriler)'},
 ];
 const CROWS = [
   {id: 'ruzgar', t: 'Rüzgâr'}, {id: 'hamle', t: 'Hamle'}, {id: 'dalga', t: 'Dalga'}, {id: 'akinti', t: 'Akıntı'}, {id: 'su', t: 'Su sıcaklığı'},
@@ -3307,10 +3377,8 @@ function renderToday(){
   const dd = ds.find(d => d.key === todayKey) || ds[0];
   if (!dd) {
     $('nowGrid').innerHTML = L ? '<div class="empty" style="grid-column:1/-1">Hava ve deniz verisi henüz yok. İnternete bağlanınca kendiliğinden gelir.</div>' : '';
-    $('classRow').innerHTML = ''; $('solWins').innerHTML = ''; $('solSub').textContent = ''; $('solStars').innerHTML = ''; $('solPanel').hidden = true;
-    renderDrift(null); renderRecs(null); return;
+    $('classRow').innerHTML = ''; return;
   }
-  $('solPanel').hidden = false;
   $('todayLbl').textContent = DOW[dd.date.getDay()] + ' · ' + dd.date.getDate() + ' ' + MONTHS[dd.date.getMonth()];
   const cur = dd.hs.reduce((b, x) => Math.abs(x.t - now) < Math.abs(b.t - now) ? x : b, dd.hs[0]);
   const M = (k, v, u, s) => '<div class="metric"><span class="k">' + k + '</span><span class="v">' + v + ' <small>' + u + '</small></span><span class="s">' + s + '</span></div>';
@@ -3329,20 +3397,6 @@ function renderToday(){
     M('Hava', cur.temp == null ? '–' : tempV(cur.temp), TU(), pressTxt(cur.press) + (cur.dp3 == null ? '' : ' ' + (cur.dp3 >= 0.5 ? '↑' : cur.dp3 <= -0.5 ? '↓' : '→')));
   const cl = (c, lbl, w) => c ? '<div class="cls ' + c + '"><b>' + c + '</b><span><b style="font:600 13px var(--body)">' + lbl + '</b><br>' + CLS_TXT[c] + ' · en çok ' + bft(w) + ' Bft</span></div>' : '';
   $('classRow').innerHTML = cl(dd.clsD, 'Gündüz', dd.wd) + cl(dd.clsN, 'Gece', dd.wn);
-  $('solStars').innerHTML = starsHtml(dd.sol.stars);
-  $('solSub').textContent = dd.sol.name + ' · aydınlık %' + Math.round(dd.sol.illum * 100) + ' · gün doğumu ' + hm(dd.sol.sunrise) + ', batımı ' + hm(dd.sol.sunset);
-  // bugün: bitmemiş pencereler; hepsi geçtiyse yarının en iyisi
-  const isToday = dd.key === todayKey;
-  const rest = (isToday ? bestWindows(dd, null, 2, now) : windows(dd)).slice().sort((p, q) => p.a - q.a);
-  const wl = rest.map(w => winRow(winLabel(w), w));
-  if (isToday && (!rest.length || Math.max(...rest.map(w => w.pct)) < 50)) {
-    const nd = ds[ds.indexOf(dd) + 1]; const w = nd && windows(nd).slice().sort((p, q) => p.a - q.a)[0];
-    if (!rest.length) wl.push('<p class="note">Bugünün pencereleri geçti.</p>');
-    if (w) wl.push(winRow('Yarın · ' + winLabel(w), w));
-  }
-  $('solWins').innerHTML = wl.join('');
-  if (shoreMode()) renderShore(dd, cur); else renderDrift(dd, cur);
-  renderRecs(dd);
 }
 const skipTxt = k => hm(k.t) + ' civarında balık daha yüksek (%' + k.pct + ') ama deniz ' + (k.cls || 'bilinmiyor') + '; sakin deniz öne alındı.';
 // pencere satırı: saat aralığı, balık, olaylar, deniz sınıfı (takvim, Bugün ve öneriler aynı hesabı gösterir)
@@ -3350,60 +3404,6 @@ function winRow(lbl, w){
   return '<div class="win"><span class="t">' + (lbl ? '<small>' + esc(lbl) + '</small>' : '') + winTxt(w) + '</span><span class="chips">' + fishHtml(w.fish) + '<b class="wpct">%' + w.pct + '</b>' +
     (w.cls ? '<span class="chip ' + w.cls + '">deniz ' + w.cls + '</span>' : '') + w.evs.map(e => '<span class="chip gold" title="' + esc(EV_LONG[e.e] || '') + '">' + esc(evChip(e)) + '</span>').join('') + '</span>' +
     (w.skipped ? '<span class="note wskip">' + skipTxt(w.skipped) + '</span>' : '') + '</div>';
-}
-function renderDrift(dd, cur){
-  const el = $('driftPanel'); if (!el) return;
-  if (!dd || !cur) { el.hidden = true; return; }
-  el.hidden = false;
-  const dr = driftAt(cur); const depth = locDepth(); const off = startOffset(dr, depth); const ex = leadExtra(dr, depth);
-  const lines = [];
-  lines.push('<p class="dline">' + (dr && dr.known && !dr.anchored ? '<span class="dbig">' + f1(dr.sog) + ' <small>kn</small> ' + arrowTo(dr.dir) + ' ' + dir8(dr.dir) + '</span>' : '') + esc(driftSentence(dr)) + '</p>');
-  if (off) lines.push('<p class="note">Noktanın üstünden geçmek için yaklaşık <b>' + off.m + ' m ' + dir8(off.from) + '</b> tarafından başla (' + (depth || DEPTH_REF) + ' m’ye iniş ≈ ' + off.sinkS + ' sn, dipte 1,5 dk).</p>');
-  if (dr && dr.known) lines.push('<p class="note">İpe binen akış ' + f1(dr.line) + ' kn → kurşun ' + (ex ? '<b>+' + ex + ' g</b>' : 'artışı yok') + (dr.line >= 0.4 ? ', hırsız köstek %20 kısa' : '') + '.' + (depth ? ' Derinlik ' + depth + ' m.' : ' Derinlik bilinmiyor, ' + DEPTH_REF + ' m varsayıldı; Konumlar’dan yazabilirsin.') + '</p>');
-  el.innerHTML = '<div class="row" style="justify-content:space-between;align-items:center"><h3>Sürüklenme ve kurşun</h3>' + segBtns('anchor', [['surukle', 'Sürüklenerek'], ['demir', 'Demirli']], S.settings.anchor === 'demir' ? 'demir' : 'surukle') + '</div>' + lines.join('');
-}
-function renderRecs(dd){
-  const L = loc();
-  // kapalı sistem uyarısı: kapatılan sistemin rigleri önerilere girmez
-  const offSys = Object.values(S.systems).filter(sy => sy.active === false && (sy.source !== 'paket' || pkgOn()));
-  const offNote = offSys.length ? '<div class="banner">' + offSys.map(sy => esc(sy.name) + ' kapalı ' + '<button class="btn small" type="button" data-systool="toggle" data-sid="' + esc(sy.id) + '">Aç</button>').join(' · ') + '</div>' : '';
-  if (!RIG_LIST.length) {
-    $('recNote').textContent = '';
-    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
-      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
-    $('recBlockedW').hidden = true; return;
-  }
-  $('recBlockedW').hidden = false;
-  if (!RIG_LIST.some(r => !r.mode || r.mode === (S.mode || 'tekne'))) {
-    $('recNote').textContent = '';
-    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (shoreMode() ? 'Kıyı rigin yok' : 'Tekne rigin yok') + '</h3><p class="sub">' + (shoreMode() ? 'Sistemlerindeki rigler tekne için. Rig Atölyesi’nde “Kıyıdan” seçip surf, LRF, spin ya da şamandıra sistemini kur.' : 'Sistemlerindeki rigler kıyı için. Rig Atölyesi’nde “Tekneden” seçip sistem kur.') + '</p>' +
-      '<div class="row"><button class="btn primary" type="button" data-act="wizard">' + (shoreMode() ? 'Kıyı sistemimi kur' : 'Tekne sistemimi kur') + '</button><button class="btn" type="button" data-set="mode" data-val="' + (shoreMode() ? 'tekne' : 'kiyi') + '">' + (shoreMode() ? 'Tekne moduna dön' : 'Kıyı moduna geç') + '</button></div></div>';
-    $('recBlocked').innerHTML = ''; $('recBlockedW').hidden = true; return;
-  }
-  if (!dd) { $('recNote').textContent = 'Hava verisi gelince öneriler hazırlanır.'; $('recList').innerHTML = ''; $('recBlocked').innerHTML = ''; return; }
-  // bugün akşamdan sonra gündüz önerileri yarının; gece yarısından sonra gece önerileri dün başlayan gecenin
-  const now = new Date(), ds = days(), i0 = ds.indexOf(dd), isToday = dd.key === dateKey(now);
-  let dGun = dd, dGece = dd, tagGun = '', tagGece = '';
-  if (isToday) {
-    if (now.getTime() > partRange(dd, 'gun')[1] && ds[i0 + 1]) { dGun = ds[i0 + 1]; tagGun = ' · yarın'; }
-    if (i0 > 0 && now.getTime() < partRange(ds[i0 - 1], 'gece')[1]) { dGece = ds[i0 - 1]; tagGece = ' · bu gece'; }
-  }
-  const from = isToday ? now : null;
-  const day = recommend(dGun, false, dGun === dd ? from : null), night = recommend(dGece, true, from);
-  day.tag = tagGun; night.tag = tagGece; day.dd = dGun; night.dd = dGece;
-  const pick = arr => arr.filter(x => x.ok).slice(0, 2);
-  const recs = pick(day).map(x => Object.assign({}, x, {night: false, R: day})).concat(pick(night).map(x => Object.assign({}, x, {night: true, R: night})));
-  const lb = learnBase();
-  $('recNote').textContent = (L && L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · yalnızca tamamlanmış rigler önerilir' +
-    (lb.on ? ' · avlarına göre ayarlı' : lb.total ? ' · avlardan öğrenme ' + lb.total + '/' + LEARN_MIN : '') + '.';
-  const warn = R => (R.cls === 'D' ? ' · deniz uygun değil, çıkma' : R.cls === 'C' ? ' · dikkat, rüzgârlı' : '') +
-    (R.dr && R.dr.known && R.dr.line >= 0.7 ? (R.dr.anchored ? ' · akıntı güçlü' : ' · sürüklenme hızlı: paraşüt çapa ya da demir') : '');
-  const wTxt = R => R.win ? '<div class="meta why">En iyi pencere ' + winTxt(R.win) + ' · balık %' + R.win.pct + (R.win.cls ? ' · deniz ' + R.win.cls : '') + '</div>' : '';
-  $('recList').innerHTML = recs.length ? recs.map((x, i) => (i === 0 || recs[i - 1].night !== x.night ? '<div class="eyebrow" style="margin-top:4px">' + (x.night ? 'Gece' : 'Gündüz') + x.R.tag + warn(x.R) + '</div>' : '') +
-    rigCard(x.rg, x.R.dd, x.why, wTxt(x.R), null, x.R.x)).join('') : '<div class="empty">Bugün için uygun ve tamamlanmış rig yok.</div>';
-  const blocked = day.concat(night).filter(x => !x.ok).sort((a, b) => b.sc - a.sc).slice(0, 4);
-  $('recBlocked').innerHTML = blocked.map(x => '<div class="rec"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + esc(x.rg.code || '') + '</span></div><div class="why">Eksik: ' +
-    esc(missingOf(x.rg).map(sl => { const e = sl.t.envanter || {}; return (e.item && ITEMS[e.item] ? ITEMS[e.item].name : (e.name || sl.label)) + ' ' + (e.size || ''); }).join(', ')) + '</div></div>').join('') || '<p class="note">Yok.</p>';
 }
 function renderCalendar(){
   const ds = days().slice(0, 16);
@@ -3465,35 +3465,34 @@ function moonSvg(p, size){
   return '<svg class="moon" viewBox="0 0 14 14" width="' + (size || 14) + '" height="' + (size || 14) + '" aria-hidden="true"><circle cx="7" cy="7" r="6"/><path d="M7 1A6 6 0 0 ' + so + ' 7 13A' + rx.toFixed(2) + ' 6 0 0 ' + si + ' 7 1Z"/></svg>';
 }
 // ---- satırlar
+// varsayılan sıra ve açık/kapalı satırlar Kenny'nin düzeni (v0.16); Bulut ve Solunar satırı yok: bulut % Hava hücresinde, solunar Balık hücresinde
 const HROWS = [
   {id: 'saat', t: 'Saat', fixed: true},
   {id: 'gunes', t: 'Güneş ve ay'},
-  {id: 'hava', t: 'Hava (bulut, yağış simgesi)'},
-  {id: 'balik', t: 'Balık (5 balık)'},
-  {id: 'balikgrafik', t: 'Balık çubukları ve günün eğrisi'},
-  {id: 'solunar', t: 'Solunar olayları'},
+  {id: 'sicaklik', t: 'Hava sıcaklığı'},
+  {id: 'su', t: 'Su sıcaklığı'},
+  {id: 'hava', t: 'Hava (bulut %, yağış simgesi)'},
   {id: 'yagis', t: 'Yağış olasılığı'},
   {id: 'yagismm', t: 'Yağış miktarı'},
-  {id: 'sicaklik', t: 'Hava sıcaklığı'},
+  {id: 'balik', t: 'Balık (5 balık, % ve solunar)'},
+  {id: 'balikgrafik', t: 'Balık çubukları ve günün eğrisi'},
   {id: 'ruzgar', t: 'Rüzgâr · Karma (üstte seçili model)'},
-  {id: 'r_icon', t: 'Rüzgâr · ICON-EU'},
-  {id: 'r_ecmwf', t: 'Rüzgâr · ECMWF'},
-  {id: 'r_gfs', t: 'Rüzgâr · GFS'},
-  {id: 'h_icon', t: 'Hamle · ICON-EU'},
-  {id: 'h_ecmwf', t: 'Hamle · ECMWF'},
-  {id: 'h_gfs', t: 'Hamle · GFS'},
-  {id: 'hamle', t: 'Hamle · Bugün ekranındaki (Karma: GFS)', on: false},
+  {id: 'r_icon', t: 'Rüzgâr · ICON-EU', on: false},
+  {id: 'r_ecmwf', t: 'Rüzgâr · ECMWF', on: false},
+  {id: 'r_gfs', t: 'Rüzgâr · GFS', on: false},
+  {id: 'hamle', t: 'Hamle · Bugün ekranındaki (Karma: GFS)'},
+  {id: 'h_icon', t: 'Hamle · ICON-EU', on: false},
+  {id: 'h_ecmwf', t: 'Hamle · ECMWF', on: false},
+  {id: 'h_gfs', t: 'Hamle · GFS', on: false},
   {id: 'yon', t: 'Rüzgâr yönü'},
-  {id: 'uyum', t: 'Model uyumu'},
+  {id: 'uyum', t: 'Model uyumu', on: false},
   {id: 'dalga', t: 'Dalga'},
   {id: 'periyot', t: 'Dalga periyodu ve yönü'},
   {id: 'akinti', t: 'Akıntı'},
   {id: 'suruklenme', t: 'Sürüklenme (tekne)', mode: 'tekne'},
   {id: 'kiyiya', t: 'Rüzgâr kıyıya göre (kıyı)', mode: 'kiyi'},
-  {id: 'su', t: 'Su sıcaklığı'},
   {id: 'basinc', t: 'Basınç'},
   {id: 'basincgrafik', t: 'Basınç grafiği'},
-  {id: 'bulut', t: 'Bulut', on: false},
 ];
 // kayıtlı sıra + yeni eklenen satırlar varsayılan yerlerine
 function orderedRows(reg, saved){
@@ -3522,8 +3521,8 @@ function bftLegend(){
 const mBadge = t => t ? '<span class="mb">' + esc(t) + '</span>' : '';
 function spreadKn(x){ const v = ['icon', 'ecmwf', 'gfs'].map(k => x.m && x.m[k] ? x.m[k].w : null).filter(v => v != null); return v.length >= 2 ? (Math.max(...v) - Math.min(...v)) * KN : null; }
 // bilgi alanı kapalıyken (dar sütun) gösterilen kısa adlar
-const H_SHORT = {'Saat': 'Saat', 'Güneş · Ay': '☀ ☾', 'Hava': 'Hava', 'Balık': 'Balık', 'Balık eğrisi': 'Eğri', 'Solunar': 'Sol.', 'Model uyumu': 'Uyum', 'Yön': 'Yön',
-  'Dalga': 'Dlg.', 'Periyot': 'Per.', 'Akıntı': 'Akın.', 'Sürüklenme': 'Sürk.', 'İpe akış': 'İpe', 'Kıyıya göre': 'Kıyı', 'Bulut': 'Bulut'};
+const H_SHORT = {'Saat': 'Saat', 'Güneş · Ay': '☀ ☾', 'Hava': 'Hava', 'Balık': 'Balık', 'Balık eğrisi': 'Eğri', 'Model uyumu': 'Uyum', 'Yön': 'Yön',
+  'Dalga': 'Dlg.', 'Periyot': 'Per.', 'Akıntı': 'Akın.', 'Sürüklenme': 'Sürk.', 'İpe akış': 'İpe', 'Kıyıya göre': 'Kıyı'};
 function renderHourly(){
   const ds = days(); const tbl = $('hTable');
   $('hLegend').innerHTML = bftLegend();
@@ -3541,7 +3540,7 @@ function renderHourly(){
   const cls = (x, extra) => 'c' + (nightH(x) ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (extra ? ' ' + extra : '');
   // bilgi alanı: açıkken tam ad + alt satır, kapalıyken kısa ad (sh = [üst, alt]); yalnız dokununca açılır/kapanır
   const short = (label, sh) => sh ? esc(sh[0]) + (sh[1] ? '<em>' + esc(sh[1]) + '</em>' : '') : esc(H_SHORT[label] || label.slice(0, 4));
-  const row = (label, sub, cells, trc, sh) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '<i class="sh" aria-hidden="true">' + short(label, sh) + '</i></th>' + cells + '</tr>';
+  const row = (label, sub, cells, trc, sh) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b>' + (Array.isArray(sub) ? sub : [sub]).filter(Boolean).map(t => '<small>' + t + '</small>').join('') + '<i class="sh" aria-hidden="true">' + short(label, sh) + '</i></th>' + cells + '</tr>';
   const acts = hs.map(activity);
   const u = windU(), u2 = windU2(), UT = WU_TXT[u];
   // rüzgâr hücresi: ana değer + yanında küçük birim, altında ikinci birim (renk her zaman Bft ölçeği)
@@ -3561,8 +3560,12 @@ function renderHourly(){
       return row('Güneş · Ay', 'Doğuş · Batış', hs.map(x => { const a = x.t.getTime() - 30 * 60000, b = a + 3600000; const e = evs.filter(v => v.t.getTime() >= a && v.t.getTime() < b);
         return '<td class="' + cls(x, 'ev') + '">' + e.map(v => '<span class="evi">' + v.h + '<small>' + hm(v.t) + '</small></span>').join('') + '</td>'; }).join(''));
     },
-    hava: () => row('Hava', 'bulut · yağış', hs.map(x => '<td class="' + cls(x) + '">' + wxIcon(x, nightH(x)) + '</td>').join('')),
-    balik: () => row('Balık', 'aktivite %', hs.map((x, i) => '<td class="' + cls(x, 'fish' + (acts[i].pct >= 61 ? ' hi' : '')) + '">' + fishHtml(acts[i].fish) + '<small>%' + acts[i].pct + '</small></td>').join('')),
+    // Hava: simgenin altında bulut %; bulut yoksa (%0) yazı yok
+    hava: () => row('Hava', 'bulut % · yağış', hs.map(x => { const c = x.cloud == null ? null : Math.round(x.cloud);
+      return '<td class="' + cls(x, 'wxc') + '">' + wxIcon(x, nightH(x)) + (c ? '<small>%' + c + '</small>' : '') + '</td>'; }).join('')),
+    // Balık: 5 balık, saatlik %, altında o saatin solunar olayları (M major · m minor · ☀↑ şafak · ☀↓ alacakaranlık)
+    balik: () => row('Balık', ['aktivite %', 'Solunar M · m · ☀'], hs.map((x, i) => '<td class="' + cls(x, 'fish' + (acts[i].pct >= 61 ? ' hi' : '')) + '">' + fishHtml(acts[i].fish) + '<small>%' + acts[i].pct + '</small>' +
+      '<em class="sol">' + (acts[i].tags.length ? esc(acts[i].tags.join(' ')) : '') + '</em></td>').join(''), 'fishrow', ['Balık', '% M m ☀']),
     balikgrafik: () => {
       const H = 44, pts = curve(dd).pts.filter(p => p.t.getTime() >= t0 - 1800000 && p.t.getTime() <= hs[hs.length - 1].t.getTime() + 1800000);
       const bars = hs.map((x, i) => { const p = acts[i].pct, h = Math.max(1, p / 100 * (H - 6)); return '<rect x="' + (i * COL_W + 12) + '" y="' + (H - 2 - h).toFixed(1) + '" width="' + (COL_W - 24) + '" height="' + h.toFixed(1) + '" rx="2" class="fb' + fishN(p) + '"/>'; }).join('');
@@ -3570,9 +3573,8 @@ function renderHourly(){
       const grid = [20, 40, 60, 80].map(v => '<line x1="0" x2="' + W + '" y1="' + (H - 2 - v / 100 * (H - 6)).toFixed(1) + '" y2="' + (H - 2 - v / 100 * (H - 6)).toFixed(1) + '" class="gl"/>').join('');
       return row('Balık eğrisi', 'saat · 10 dk', span('<svg class="spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' + grid + bars + '<polyline points="' + line + '" class="fl"/></svg>'));
     },
-    solunar: () => row('Solunar', 'M · m · ☀', hs.map((x, i) => '<td class="' + cls(x, 'sol') + '">' + esc(acts[i].tags.join(' ')) + '</td>').join('')),
-    yagis: () => row('Yağış', 'olasılık %', hs.map(x => '<td class="' + cls(x, (x.pop || 0) < 10 ? 'p0' : '') + '" style="' + (x.pop >= 10 ? tint('#3D7DD8', Math.min(60, 10 + x.pop * 0.5)) : '') + '">' + (x.pop == null ? '–' : Math.round(x.pop)) + '</td>').join(''), '', ['Yağ.', '%']),
-    yagismm: () => row('Yağış', 'mm', hs.map(x => '<td class="' + cls(x, (x.rain || 0) < 0.1 ? 'p0' : '') + '" style="' + ((x.rain || 0) >= 0.1 ? tint('#2F6BC7', Math.min(70, 25 + x.rain * 12)) : '') + '">' + (x.rain == null ? '–' : x.rain < 0.1 ? '0' : f1(x.rain)) + '</td>').join(''), '', ['Yağ.', 'mm']),
+    yagis: () => row('Yağış %', '', hs.map(x => '<td class="' + cls(x, (x.pop || 0) < 10 ? 'p0' : '') + '" style="' + (x.pop >= 10 ? tint('#3D7DD8', Math.min(60, 10 + x.pop * 0.5)) : '') + '">' + (x.pop == null ? '–' : '%' + Math.round(x.pop)) + '</td>').join(''), 'slim', ['Yağ.', '%']),
+    yagismm: () => row('Yağış mm', '', hs.map(x => '<td class="' + cls(x, (x.rain || 0) < 0.1 ? 'p0' : '') + '" style="' + ((x.rain || 0) >= 0.1 ? tint('#2F6BC7', Math.min(70, 25 + x.rain * 12)) : '') + '">' + (x.rain == null ? '–' : x.rain < 0.1 ? '0' : f1(x.rain)) + '</td>').join(''), 'slim', ['Yağ.', 'mm']),
     sicaklik: () => row('Hava sıcaklığı', TU(), hs.map(x => '<td class="' + cls(x, 'tc') + '" style="' + tint(scaleColor(TEMP_STOPS, x.temp)) + '">' + degHtml(x.temp) + '</td>').join(''), '', ['Sıc.', TU()]),
     // Karma satırı: Karma seçiliyken ICON-EU, tek model seçiliyken o model; yedeğe geçmez, model bitince –
     ruzgar: () => row(mSel === 'karma' ? 'Rüzgâr · Karma' : 'Rüzgâr · Seçili', UT + ' ' + mBadge(SRC[kId].short), hs.map(x => wcell(x, x.wk)).join(''), 'krow', ['Rüz.', WU_UP[u] + ' ' + (mSel === 'karma' ? 'KRM' : SRC[kId].ab)]),
@@ -3583,14 +3585,14 @@ function renderHourly(){
     h_ecmwf: () => wRow('Hamle', 'ecmwf', 'g', 'mrow2'),
     h_gfs: () => wRow('Hamle', 'gfs', 'g', 'mrow2'),
     uyum: () => row('Model uyumu', 'fark kn', hs.map(x => { const sp = spreadKn(x); const c = sp == null ? '' : sp <= 4 ? 'A' : sp <= 8 ? 'C' : 'D';
-      return '<td class="' + cls(x, 'agree') + '">' + (sp == null ? '–' : '<i class="dot ' + c + '"></i><small>' + Math.round(sp) + '</small>') + '</td>'; }).join('')),
-    yon: () => row('Yön', 'ok · ad', hs.map(x => '<td class="' + cls(x, 'wd') + '">' + arrowFrom(x.wdir) + '<small>' + esc(windName(x.wdir)) + '</small></td>').join('')),
+      return '<td class="' + cls(x, 'agree') + '">' + (sp == null ? '–' : '<i class="dot ' + c + '"></i><small>' + Math.round(sp) + '</small>') + '</td>'; }).join(''), '', ['Uyum', 'kn']),
+    yon: () => row('Rüzgâr Yönü', '', hs.map(x => '<td class="' + cls(x, 'wd') + '">' + arrowFrom(x.wdir) + '<small>' + esc(windName(x.wdir)) + '</small></td>').join(''), '', ['Yön']),
     hamle: () => row('Hamle', UT + ' ' + mBadge(modelText(hs.map(x => x.gm))), hs.map(x => wcell(x, x.gust)).join(''), '', ['Hml.', WU_UP[u] + ' ' + modelText(hs.map(x => x.gid ? SRC[x.gid].ab : null))]),
-    dalga: () => row('Dalga', 'm ' + mBadge(modelText(hs.map(x => x.wvm)) === 'MFWAM' ? 'MFWAM' : 'deniz'), hs.map(x => '<td class="' + cls(x, x.wave == null ? '' : 'b' + waveClass(x.wave)) + '">' + f1(x.wave) + '</td>').join('')),
-    periyot: () => row('Periyot', 'sn · ok', hs.map(x => '<td class="' + cls(x) + '">' + (x.per == null ? '–' : Math.round(x.per)) + '<small>' + arrowFrom(x.waveDir) + '</small></td>').join('')),
-    akinti: () => row('Akıntı', 'kn · ok', hs.map(x => '<td class="' + cls(x) + '">' + f1(x.cur) + '<small>' + arrowTo(x.curDir) + '</small></td>').join('')),
+    dalga: () => row('Dalga', 'm ' + mBadge(modelText(hs.map(x => x.wvm)) === 'MFWAM' ? 'MFWAM' : 'deniz'), hs.map(x => '<td class="' + cls(x, x.wave == null ? '' : 'b' + waveClass(x.wave)) + '">' + f1(x.wave) + '</td>').join(''), '', ['Dlg.', 'm']),
+    periyot: () => row('Periyot', 'sn · ok', hs.map(x => '<td class="' + cls(x) + '">' + (x.per == null ? '–' : Math.round(x.per)) + '<small>' + arrowFrom(x.waveDir) + '</small></td>').join(''), '', ['Per.', 'sn']),
+    akinti: () => row('Akıntı', 'kn · ok', hs.map(x => '<td class="' + cls(x) + '">' + f1(x.cur) + '<small>' + arrowTo(x.curDir) + '</small></td>').join(''), '', ['Akın.', 'kn']),
     suruklenme: () => { const anch = S.settings.anchor === 'demir';
-      return row(anch ? 'İpe akış' : 'Sürüklenme', 'kn', hs.map(x => { const dr = driftAt(x); return '<td class="' + cls(x) + '">' + (dr && dr.known ? f1(anch ? dr.line : dr.sog) + (anch ? '' : '<small>' + arrowTo(dr.dir) + '</small>') : '–') + '</td>'; }).join('')); },
+      return row(anch ? 'İpe akış' : 'Sürüklenme', 'kn', hs.map(x => { const dr = driftAt(x); return '<td class="' + cls(x) + '">' + (dr && dr.known ? f1(anch ? dr.line : dr.sog) + (anch ? '' : '<small>' + arrowTo(dr.dir) + '</small>') : '–') + '</td>'; }).join(''), '', [anch ? 'İpe' : 'Sürk.', 'kn']); },
     kiyiya: () => { const f = facingOf(loc());
       return row('Kıyıya göre', f == null ? 'bakışı gir' : 'bakış ' + dir8(f), hs.map(x => { const r = shoreRel(x.wdir, f), c = shoreClass(x, f);
         return '<td class="' + cls(x, c ? 'b' + c : '') + '">' + (r ? {vuran: 'vuran', esen: 'esen', yandan: 'yandan'}[r] : '–') + '</td>'; }).join('')); },
@@ -3605,7 +3607,6 @@ function renderHourly(){
       return row('Basınç', 'gün içi ' + (d > 1 ? '↑' : d < -1 ? '↓' : '→'), span('<svg class="spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><polyline points="' + pts + '" class="pl"/>' +
         '<text x="4" y="11" class="gt">' + Math.round(pressNum(Math.max(...ok))) + '</text><text x="4" y="' + (H - 2) + '" class="gt">' + Math.round(pressNum(Math.min(...ok))) + '</text></svg>'), '', ['Bas.', 'gün ' + (d > 1 ? '↑' : d < -1 ? '↓' : '→')]);
     },
-    bulut: () => row('Bulut', '%', hs.map(x => '<td class="' + cls(x) + '" style="' + (x.cloud != null ? tint('#8A9AAE', Math.round(x.cloud * 0.5)) : '') + '">' + f0(x.cloud) + '</td>').join('')),
   };
   const rows = orderedRows(HROWS, S.settings.hrows).filter(r => r.on && R[r.id] && (!r.mode || r.mode === (S.mode || 'tekne'))).map(r => R[r.id]());
   tbl.innerHTML = '<tbody>' + rows.join('') + '</tbody>';
@@ -3870,6 +3871,183 @@ function buyAdd(key){
   S.inv.items[id] = Object.assign({id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()}, extra);
   if (S.shopX) delete S.shopX[key];
   persist(); indexAll(); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
+}
+
+// ---------------------------------------------------------------- 73 · Fishing sekmesi (uygulamanın asıl yeri)
+// Sıra: gün + gündüz/gece seç → o bölümün solunar pencereleri → yalnızca en uygun 3 rig (Bunu bağla) → en altta 3 saatlik dilimlerle sürüklenme ve kurşun.
+// Gündüz: gün doğumundan 75 dk önce → gün batımından 45 dk sonra · Gece: gün batımından 30 dk önce → ertesi gün doğumundan 45 dk önce (partRange).
+const F_TOP = 3;
+const PART_TXT = {gun: 'Gündüz', gece: 'Gece'};
+// seçili gün ve bölüm; ilk açılışta bugün, akşamüstünden sonra gece
+function fState(ds){
+  const now = new Date(), tk = dateKey(now);
+  if (!ui.fday || !ds.find(d => d.key === ui.fday)) ui.fday = (ds.find(d => d.key === tk) || ds[0]).key;
+  const dd = ds.find(d => d.key === ui.fday);
+  if (!ui.fpart) ui.fpart = dd.key === tk && now.getTime() > partRange(dd, 'gun')[1] - 90 * 60000 ? 'gece' : 'gun';
+  return dd;
+}
+const fHours = (dd, part) => { const [A, B] = partRange(dd, part); return WX ? WX.hours.filter(x => { const t = x.t.getTime(); return t >= A - 30 * 60000 && t < B; }) : []; };
+// yön ortalaması (vektörle): ağırlık hız
+function meanDir(items){
+  let sx = 0, sy = 0; items.forEach(([v, d]) => { if (v == null || d == null) return; sx += v * Math.sin(d * Math.PI / 180); sy += v * Math.cos(d * Math.PI / 180); });
+  return sx === 0 && sy === 0 ? null : (Math.atan2(sx, sy) * 180 / Math.PI + 360) % 360;
+}
+const meanV = arr => { const v = arr.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+const spanTxt = (lo, hi, u) => lo == null ? '–' : lo === hi ? lo + ' ' + u : lo + '–' + hi + ' ' + u;
+const hhmm = t => hm(new Date(t));
+function renderFishing(){
+  if (!$('v-fishing')) return;
+  const L = loc(); const ds = L ? days() : [];
+  $('fLoc').textContent = L ? locLabel(L) : 'Fishing';
+  const empty = !L || !ds.length;
+  $('fNoLoc').hidden = !empty;
+  $('fNoLoc').innerHTML = !L ? '<div class="panel stack"><h3>Önce bir konum ekle</h3><p class="sub">Av planı seçtiğin noktanın hava, deniz ve solunar bilgisine göre hazırlanır.</p>' +
+    '<div class="row"><button class="btn primary" type="button" data-act="gpsloc">Bulunduğum yer</button><button class="btn" type="button" data-open="konumlar">Koordinat gir</button></div></div>' :
+    !ds.length ? '<div class="empty">Hava ve deniz verisi henüz yok. İnternete bağlanınca av planı hazırlanır.</div>' : '';
+  ['fPick', 'solPanel'].forEach(id => { $(id).hidden = empty; });
+  if (empty) { $('fDays').innerHTML = ''; $('fParts').innerHTML = ''; $('fSum').innerHTML = ''; fRecs(null); fDrift(null); return; }
+  const dd = fState(ds), part = ui.fpart, now = new Date(), tk = dateKey(now), isToday = dd.key === tk;
+  const [A, B] = partRange(dd, part);
+  const past = isToday && now.getTime() > B;
+  $('fDays').innerHTML = ds.slice(0, 16).map((d, i) => '<button class="btn small dchip" type="button" data-fday="' + d.key + '" aria-pressed="' + (d.key === dd.key) + '"><span>' + dayLabel(d.date, i, tk) + '</span>' + dayStrip(d) + '</button>').join('');
+  const pc = {gun: dd.clsD, gece: dd.clsN};
+  $('fParts').innerHTML = [['gun', '☀', 'doğuş ' + hm(dd.sol.sunrise)], ['gece', '☾', 'batış ' + hm(dd.sol.sunset)]].map(([v, ic, s]) =>
+    '<button class="fpart" type="button" data-fpart="' + v + '" aria-pressed="' + (part === v) + '"><i aria-hidden="true">' + ic + '</i><span><b>' + PART_TXT[v] + '</b><small>' + s + '</small></span>' +
+    (pc[v] ? '<em class="chip ' + pc[v] + '">' + pc[v] + '</em>' : '') + '</button>').join('');
+  // bölümün özeti: saat aralığı, deniz sınıfı, rüzgâr ve dalga
+  const hs = fHours(dd, part);
+  const bs = hs.map(x => bft(x.wind)).filter(v => v != null), wv = hs.map(x => x.wave).filter(v => v != null);
+  const cls = part === 'gun' ? dd.clsD : dd.clsN;
+  $('fSum').innerHTML = '<div class="fsrow"><b class="mono">' + hhmm(A) + ' – ' + hhmm(B) + (part === 'gece' ? ' <small>(ertesi sabah)</small>' : '') + '</b>' +
+    (cls ? '<span class="chip ' + cls + '">deniz ' + cls + ' · ' + esc(CLS_TXT[cls]) + '</span>' : '') + '</div>' +
+    '<p class="note">' + [bs.length ? 'rüzgâr ' + spanTxt(Math.min(...bs), Math.max(...bs), 'Bft') : '', wv.length ? 'dalga en çok ' + f1(Math.max(...wv)) + ' m' : '',
+      hs.some(x => x.cur != null) ? 'akıntı en çok ' + f1(Math.max(...hs.map(x => x.cur || 0))) + ' kn' : ''].filter(Boolean).join(' · ') + '</p>' +
+    (past ? '<div class="banner">Bugünün gündüzü bitti. <button class="btn small" type="button" data-fpart="gece">Bu gece</button> ' +
+      (ds[ds.indexOf(dd) + 1] ? '<button class="btn small" type="button" data-fday="' + ds[ds.indexOf(dd) + 1].key + '">Yarın sabah</button>' : '') + '</div>' : '');
+  // solunar: o günün ayı ve bu bölümün en iyi pencereleri
+  $('solStars').innerHTML = starsHtml(dd.sol.stars);
+  $('solSub').textContent = dd.sol.name + ' · aydınlık %' + Math.round(dd.sol.illum * 100) + ' · gün doğumu ' + hm(dd.sol.sunrise) + ', batımı ' + hm(dd.sol.sunset);
+  const from = isToday ? now : null;
+  const ws = past ? [] : bestWindows(dd, part, 2, from).slice().sort((p, q) => p.a - q.a);
+  $('solWins').innerHTML = ws.length ? ws.map(w => winRow(winLabel(w), w)).join('') : '<p class="note">' + (past ? 'Bu bölüm geçti.' : 'Bu bölümde belirgin bir pencere yok.') + '</p>';
+  fRecs(dd, part, from, past);
+  fDrift(dd, part);
+}
+// ---- Bunu bağla: yalnızca seçili bölüm, en uygun 3 rig (kafa karışmasın); kalanlar kapalı listede ad olarak
+function fRecs(dd, part, from, past){
+  const L = loc();
+  const offSys = Object.values(S.systems).filter(sy => sy.active === false && (sy.source !== 'paket' || pkgOn()));
+  const offNote = offSys.length ? '<div class="banner">' + offSys.map(sy => esc(sy.name) + ' kapalı ' + '<button class="btn small" type="button" data-systool="toggle" data-sid="' + esc(sy.id) + '">Aç</button>').join(' · ') + '</div>' : '';
+  $('recHead').textContent = 'Bunu bağla' + (dd ? ' · ' + PART_TXT[part] : '');
+  $('recMoreW').hidden = true; $('recMore').innerHTML = '';
+  if (!RIG_LIST.length) {
+    $('recNote').textContent = '';
+    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
+    $('recBlockedW').hidden = true; return;
+  }
+  if (!RIG_LIST.some(r => !r.mode || r.mode === (S.mode || 'tekne'))) {
+    $('recNote').textContent = '';
+    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (shoreMode() ? 'Kıyı rigin yok' : 'Tekne rigin yok') + '</h3><p class="sub">' + (shoreMode() ? 'Sistemlerindeki rigler tekne için. Rig Atölyesi’nde “Kıyıdan” seçip surf, LRF, spin ya da şamandıra sistemini kur.' : 'Sistemlerindeki rigler kıyı için. Rig Atölyesi’nde “Tekneden” seçip sistem kur.') + '</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">' + (shoreMode() ? 'Kıyı sistemimi kur' : 'Tekne sistemimi kur') + '</button><button class="btn" type="button" data-set="mode" data-val="' + (shoreMode() ? 'tekne' : 'kiyi') + '">' + (shoreMode() ? 'Tekne moduna dön' : 'Kıyı moduna geç') + '</button></div></div>';
+    $('recBlocked').innerHTML = ''; $('recBlockedW').hidden = true; return;
+  }
+  $('recBlockedW').hidden = false;
+  if (!dd) { $('recNote').textContent = 'Hava verisi gelince öneriler hazırlanır.'; $('recList').innerHTML = offNote; $('recBlocked').innerHTML = ''; return; }
+  const night = part === 'gece';
+  const R = recommend(dd, night, past ? null : from);
+  const ok = R.filter(x => x.ok), top = ok.slice(0, F_TOP), more = ok.slice(F_TOP, F_TOP + 6);
+  const lb = learnBase();
+  $('recNote').textContent = (L && L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · en uygun ' + F_TOP + ' rig · yalnızca tamamlanmış rigler' +
+    (lb.on ? ' · avlarına göre ayarlı' : lb.total ? ' · avlardan öğrenme ' + lb.total + '/' + LEARN_MIN : '') + '.';
+  // uyarı, üstteki özetle aynı sınıfa bakar (bölümün en kötü saatleri)
+  const pcls = night ? dd.clsN : dd.clsD;
+  const warn = pcls === 'D' ? '<div class="banner bad">' + PART_TXT[part] + ' deniz D: uygun değil, çıkma.' + (R.win && R.win.cls && R.win.cls !== 'D' ? ' En iyi pencerede ' + R.win.cls + ' (' + winTxt(R.win) + ').' : '') + '</div>' :
+    pcls === 'C' ? '<div class="banner">Dikkat: ' + PART_TXT[part].toLowerCase() + ' deniz C, rüzgârlı.</div>' : '';
+  const flow = R.dr && R.dr.known && R.dr.line >= 0.7 ? '<div class="banner">' + (R.dr.anchored ? 'Akıntı güçlü: ağır kurşun.' : 'Sürüklenme hızlı: paraşüt çapa ya da demir.') + '</div>' : '';
+  const wTxt = R.win ? '<div class="meta why">En iyi pencere ' + winTxt(R.win) + ' · balık %' + R.win.pct + (R.win.cls ? ' · deniz ' + R.win.cls : '') + '</div>' : '';
+  $('recList').innerHTML = offNote + warn + flow + (top.length ? top.map((x, i) => '<div class="rank">' + (i + 1) + '</div>' + rigCard(x.rg, dd, x.why, wTxt, null, R.x)).join('') :
+    '<div class="empty">' + PART_TXT[part] + ' için uygun ve tamamlanmış rig yok.</div>');
+  $('recMoreW').hidden = !more.length;
+  $('recMoreS').textContent = 'Diğer uygun rigler (' + more.length + ')';
+  $('recMore').innerHTML = more.map(x => '<div class="rec"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + esc(x.rg.code || '') + '</span></div><div class="why">' + esc(x.why.slice(0, 3).join(' · ')) + '</div></div>').join('');
+  const blocked = R.filter(x => !x.ok).slice(0, 3);
+  $('recBlocked').innerHTML = blocked.map(x => '<div class="rec"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + esc(x.rg.code || '') + '</span></div><div class="why">Eksik: ' +
+    esc(missingOf(x.rg).map(sl => { const e = sl.t.envanter || {}; return (e.item && ITEMS[e.item] ? ITEMS[e.item].name : (e.name || sl.label)) + ' ' + (e.size || ''); }).join(', ')) + '</div></div>').join('') || '<p class="note">Yok.</p>';
+}
+// ---- 3 saatlik dilimler (son dilim 1,5 saatten kısaysa öncekine katılır)
+function fBlocks(dd, part){
+  const [A, B] = partRange(dd, part); const hs = fHours(dd, part);
+  const t = new Date(A); t.setMinutes(0, 0, 0);
+  const out = []; let a = t.getTime();
+  while (a < B) { let b = a + 3 * 3600000; if (B - b < 90 * 60000) b = B; out.push({a: Math.max(a, A), b: Math.min(b, B), a0: a}); a = b; }
+  return out.map(k => Object.assign(k, {xs: hs.filter(x => x.t.getTime() >= k.a0 && x.t.getTime() < k.b)})).filter(k => k.xs.length);
+}
+function blockStats(k, depth){
+  const xs = k.xs;
+  const drs = xs.map(driftAt).filter(d => d && d.known);
+  const bs = xs.map(x => bft(x.wind)).filter(v => v != null);
+  const o = {bLo: bs.length ? Math.min(...bs) : null, bHi: bs.length ? Math.max(...bs) : null,
+    wdir: meanDir(xs.map(x => [x.wind, x.wdir])), wave: xs.some(x => x.wave != null) ? Math.max(...xs.map(x => x.wave || 0)) : null,
+    cur: meanV(xs.map(x => x.cur)), curDir: meanDir(xs.map(x => [x.cur, x.curDir])), cls: worstCls(xs.map(seaClsAt)), known: drs.length > 0};
+  if (drs.length) {
+    o.anch = drs[0].anchored;
+    o.sog = meanV(drs.map(d => d.sog)); o.dir = meanDir(drs.map(d => [d.sog, d.dir]));
+    o.lineHi = Math.max(...drs.map(d => d.line)); o.lineLo = Math.min(...drs.map(d => d.line));
+    o.extra = leadExtra({line: o.lineHi}, depth);
+    o.off = o.anch ? null : startOffset({anchored: false, sog: o.sog, dir: o.dir == null ? 0 : o.dir}, depth);
+  }
+  return o;
+}
+function fDrift(dd, part){
+  const el = $('driftPanel'); if (!el) return;
+  if (!dd) { el.hidden = true; return; }
+  el.hidden = false;
+  const depth = locDepth(), blocks = fBlocks(dd, part).map(k => Object.assign(k, {st: blockStats(k, depth)}));
+  if (shoreMode()) { el.innerHTML = fShore(dd, part, blocks); return; }
+  const anch = S.settings.anchor === 'demir';
+  const kn = blocks.filter(k => k.st.known);
+  const rows = blocks.map((k, i) => {
+    const s = k.st, prev = i ? blocks[i - 1].st : null;
+    const head = '<div class="fbh"><b class="mono">' + hhmm(k.a) + '–' + hhmm(k.b) + '</b>' + (s.bHi != null ? '<span class="bftb" style="' + bftStyle(s.bHi) + '">' + s.bHi + '</span>' : '') + (s.cls ? '<span class="chip ' + s.cls + '">' + s.cls + '</span>' : '') + '</div>';
+    if (!s.known) return '<div class="fblock">' + head + '<p>Rüzgâr ve akıntı verisi yok.</p></div>';
+    const wind = 'rüzgâr ' + (s.wdir != null ? windName(s.wdir) + ' ' : '') + spanTxt(s.bLo, s.bHi, 'Bft');
+    const cur = s.cur != null ? 'akıntı ' + f1(s.cur) + ' kn' + (s.curDir != null ? ' ' + dir8(s.curDir) + ' yönüne' : '') : 'akıntı verisi yok';
+    const trend = prev && prev.bHi != null && s.bHi != null ? (s.bHi - prev.bHi >= 1 ? ' Rüzgâr artıyor.' : prev.bHi - s.bHi >= 1 ? ' Rüzgâr azalıyor.' : '') : '';
+    const lead = s.extra ? 'kurşun <b>+' + s.extra + ' g</b>' : 'kurşun artışı yok';
+    const txt = anch ? 'Demirli: ' + cur + ' · ' + wind + '. İpe binen akış ' + f1(s.lineHi) + ' kn → ' + lead + '.' :
+      'Tekne ~' + f1(s.sog) + ' kn ile ' + (s.dir != null ? dir8(s.dir) + ' yönüne' : '') + ' sürüklenir (' + wind + ', ' + cur + ').' + trend +
+      ' İpe binen akış ' + (f1(s.lineLo) === f1(s.lineHi) ? f1(s.lineHi) : f1(s.lineLo) + '–' + f1(s.lineHi)) + ' kn → ' + lead + (s.lineHi >= 0.4 ? ', hırsız köstek %20 kısa' : '') + '.' +
+      (s.off ? ' Noktanın ~' + s.off.m + ' m ' + dir8(s.off.from) + ' tarafından başla.' : '');
+    return '<div class="fblock">' + head + '<p>' + txt + '</p></div>';
+  });
+  let sum = '';
+  if (kn.length) {
+    const fast = kn.reduce((b, k) => (anch ? k.st.lineHi : k.st.sog) > (anch ? b.st.lineHi : b.st.sog) ? k : b, kn[0]);
+    const vals = kn.map(k => anch ? k.st.lineHi : k.st.sog), ex = Math.max(...kn.map(k => k.st.extra || 0));
+    sum = '<p class="dline"><span class="dbig">' + f1(Math.min(...vals)) + '–' + f1(Math.max(...vals)) + ' <small>kn</small></span>' + PART_TXT[part] + ' boyunca ' + (anch ? 'ipe binen akış' : 'sürüklenme') +
+      '; en hızlı ' + hhmm(fast.a) + '–' + hhmm(fast.b) + '. Kurşun en çok ' + (ex ? '+' + ex + ' g' : 'artmaz') + '.</p>';
+  }
+  el.innerHTML = '<div class="row" style="justify-content:space-between;align-items:center"><h3>Sürüklenme ve kurşun</h3>' + segBtns('anchor', [['surukle', 'Sürüklenerek'], ['demir', 'Demirli']], anch ? 'demir' : 'surukle') + '</div>' +
+    sum + rows.join('') +
+    '<p class="note">' + (depth ? 'Derinlik ' + depth + ' m.' : 'Derinlik bilinmiyor, ' + DEPTH_REF + ' m varsayıldı; Konumlar’dan yazabilirsin.') + ' Rig kartlarındaki kurşun en iyi penceredeki koşula göredir. Tekne rüzgâr payı Ayarlar’dan.</p>';
+}
+// ---- kıyı modu: kıyıya göre rüzgâr ve dalga, çapalı kurşun
+function fShore(dd, part, blocks){
+  const Lc = loc(), f = facingOf(Lc);
+  const rows = blocks.map(k => {
+    const s = k.st; const rx = k.xs.reduce((b, x) => (x.wind || 0) > (b.wind || 0) ? x : b, k.xs[0]);
+    const rel = shoreRel(s.wdir, f);
+    let extra = 0; const why = [];
+    if ((s.wave || 0) >= 0.6 && rel !== 'esen') { extra += 20; why.push('dalga'); }
+    if ((s.cur || 0) >= 0.5) { extra += 20; why.push('akıntı'); }
+    return '<div class="fblock"><div class="fbh"><b class="mono">' + hhmm(k.a) + '–' + hhmm(k.b) + '</b>' + (s.bHi != null ? '<span class="bftb" style="' + bftStyle(s.bHi) + '">' + s.bHi + '</span>' : '') + (s.cls ? '<span class="chip ' + s.cls + '">' + s.cls + '</span>' : '') + '</div>' +
+      '<p>' + (s.bHi == null ? 'Rüzgâr verisi yok.' : 'Rüzgâr ' + (s.wdir != null ? windName(s.wdir) + ' ' : '') + spanTxt(s.bLo, s.bHi, 'Bft') + (rel ? ' · ' + esc(REL_TXT[rel] || rel) : '') + (s.wave != null ? ' · dalga ' + f1(s.wave) + ' m' : '') + '. ' +
+        esc(f == null ? '' : shoreAdvice(rx, f)) + ' ' + (extra ? 'Çapalı kurşun, <b>+' + extra + ' g</b> (' + why.join(' ve ') + ').' : 'Normal kurşun yeter.')) + '</p></div>';
+  });
+  return '<div class="row" style="justify-content:space-between;align-items:center"><h3>Kıyı ve kurşun</h3>' + segBtns('mode', [['tekne', 'Tekne'], ['kiyi', 'Kıyı']], 'kiyi') + '</div>' +
+    (f == null ? '<p class="dline">Kıyının bakışı bilinmiyor. Telefonu denize doğru tut ve “Pusulayla al”a dokun ya da yönü seç.</p>' : '<p class="note">Kıyı <b>' + dir8(f) + '</b> yönüne bakıyor (' + Math.round(f) + '°).</p>') +
+    shoreControls(Lc, f) + rows.join('');
 }
 
 // ---------------------------------------------------------------- 74 · Av kaydı (fotoğraflar telefonda, IndexedDB)
@@ -4205,7 +4383,8 @@ function sheetSettings(){
     '<section class="set"><h4>Envanter</h4><p class="note">İğneleri nasıl sayarsın? Her kalemin üstünden ayrı ayrı da seçebilirsin.</p>' + segBtns('hookUnit', [['durum', 'Yalnız var / yok'], ['adet', 'Adet'], ['paket', 'Paket']], st.hookUnit || 'durum') +
       '<p class="note">Makine, kamış, ip, terminal, kurşun ve yemde adet sorulmaz: var, alınacak ya da yok. Jig ve zokada istersen adet.</p></section>' +
     '<section class="set"><h4>Harita</h4><label class="f wide">Google Maps API anahtarı (isteğe bağlı)<input id="gkey" data-setk="gkey" value="' + esc(st.gkey || '') + '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="AIza…"></label>' +
-    '<p class="note">Yer adları OpenStreetMap’ten gelir. Google adlarını istersen Google Cloud’da “Maps JavaScript API” ve “Geocoding API”yi aç, anahtarı yalnızca <b>https://ktopdal.github.io/Kenny-av/*</b> adresine kısıtla ve buraya yapıştır. Ayda 10.000 sorgu ücretsiz.</p></section>' +
+    '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>https://ktopdal.github.io/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
+    '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '</div>';
 }
@@ -4243,7 +4422,12 @@ function sheetView(){
     '<p class="note">Ad rüzgârın geldiği yönü söyler (Kıble güneyden eser); tablodaki ok rüzgârın gittiği yöne bakar. Yıldız K · Poyraz KD · Gündoğusu D · Keşişleme GD · Kıble G · Lodos GB · Batı B · Karayel KB.</p></section>' +
     list('hrows', 'Saatlik tablo satırları', 'Göstermek istediklerini işaretle, oklarla sırasını değiştir.', true) +
     list('cards', 'Bugün ekranındaki kartlar', '', true) +
-    list('calrows', 'Takvimde gösterilenler', '', false) + '</div>';
+    list('calrows', 'Takvimde gösterilenler', '', false) +
+    '<section class="set"><h4>Düzenim</h4><p class="note">Satırlar, kartlar, birimler, model ve renkler tek bir kodda. Kopyala, diğer cihazında (tablet ↔ telefon) yapıştırıp uygula; ya da bana gönder, herkes için varsayılan yapayım.</p>' +
+    '<div class="row"><button class="btn small" type="button" data-act="duzenCopy">Düzenimi kopyala</button></div>' +
+    '<textarea id="duzenOut" class="codebox" readonly rows="3" hidden aria-label="Düzen kodu"></textarea>' +
+    '<label class="f wide" style="margin-top:8px">Düzen kodu yapıştır<textarea id="duzenIn" class="codebox" rows="3" placeholder="ALYSSA-DUZEN:…" autocapitalize="none" autocorrect="off" spellcheck="false"></textarea></label>' +
+    '<div class="row"><button class="btn small" type="button" data-act="duzenApply">Uygula</button></div></section></div>';
 }
 // ---- Bulut yedek
 function sheetBackup(){
@@ -4393,6 +4577,34 @@ async function importBackup(file){
   } catch (e) { $('bkNote').textContent = 'Bu dosya ' + APP_SHORT + ' yedeği değil.'; }
 }
 
+// ---- Düzenim: görünüm ayarlarını kod olarak taşı (tablet ↔ telefon) ya da varsayılan yapılması için gönder
+const DUZEN_KEYS = ['hrows', 'cards', 'calrows', 'windUnit', 'windUnit2', 'tempUnit', 'pressUnit', 'windNames', 'model', 'hFull', 'coord', 'zoom', 'scheme', 'preset', 'brand', 'accent', 'bft'];
+function duzenCode(){
+  const o = {v: 1, app: APP_VERSION}; DUZEN_KEYS.forEach(k => { if (S.settings[k] !== undefined) o[k] = S.settings[k]; });
+  return 'ALYSSA-DUZEN:' + b64eUtf8(JSON.stringify(o));
+}
+function duzenApply(code){
+  const m = /ALYSSA-DUZEN:([A-Za-z0-9+/=]+)/.exec(String(code || '').replace(/\s+/g, ''));
+  if (!m) throw new Error('Kod tanınmadı');
+  const o = JSON.parse(new TextDecoder().decode(b64d(m[1])));
+  if (!o || o.v !== 1) throw new Error('Kod sürümü tanınmadı');
+  const reg = {hrows: HROWS, cards: TCARDS, calrows: CROWS};
+  let n = 0;
+  DUZEN_KEYS.forEach(k => {
+    if (!(k in o)) return; const v = o[k];
+    if (reg[k]) { if (v !== null && !(Array.isArray(v) && v.every(e => Array.isArray(e) && typeof e[0] === 'string'))) return; S.settings[k] = v; n++; return; }
+    if (k === 'bft') { if (v === null || (Array.isArray(v) && v.length === 13 && v.every(isHex))) { S.settings.bft = v; n++; } return; }
+    if (['brand', 'accent'].includes(k)) { if (v === '' || isHex(v)) { S.settings[k] = v; n++; } return; }
+    if (k === 'zoom') { if ([0, 1, 2].includes(v)) { S.settings.zoom = v; n++; } return; }
+    if (k === 'hFull') { S.settings.hFull = !!v; n++; return; }
+    if (typeof v === 'string' && v.length < 40) { S.settings[k] = v; n++; }
+  });
+  if (!n) throw new Error('Kodda ayar yok');
+  if (S.wx) WX = buildWx();
+  persist(); applyTheme(); renderAll();
+  return n;
+}
+
 // ---------------------------------------------------------------- 77 · Harita: nokta seç, yer adı, derece-dakika koordinat, derinlik, katmanlar
 // Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
 // Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
@@ -4400,7 +4612,8 @@ async function importBackup(file){
 const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, substrate: false, locs: true, catches: true, grup: true};
 const mapCfg = () => Object.assign({}, MAP_DEF, S.settings.map || {});
 const NOMI = 'https://nominatim.openstreetmap.org/reverse';
-const OVERPASS = 'https://overpass-api.de/api/interpreter';
+// Overpass: ana sunucu sık sık yoğun; iki sunucuya birden sorulur, ilk yanıt alınır
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
 const EMOD_DEPTH = 'https://rest.emodnet-bathymetry.eu/depth_sample';
 let MAP = null, MAPL = null, MPICK = null, PICK_ID = 0;
 const LF = () => window.L;
@@ -4421,84 +4634,163 @@ let NOMI_AT = 0;
 async function nominatim(lat, lon){
   const wait = NOMI_AT + 1100 - Date.now(); if (wait > 0) await new Promise(r => setTimeout(r, wait));   // Nominatim: saniyede en çok 1 istek
   NOMI_AT = Date.now();
-  return fetchJ(NOMI + '?format=jsonv2&addressdetails=1&zoom=14&accept-language=tr&lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5));
+  return fetchJ(NOMI + '?format=jsonv2&addressdetails=1&zoom=14&accept-language=tr&lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5), null, 8000);
 }
 function overpassNear(lat, lon){
   const b = [lat - 0.06, lon - 0.075, lat + 0.06, lon + 0.075].map(v => v.toFixed(4)).join(',');
-  const q = '[out:json][timeout:15];way(around:6000,' + lat.toFixed(5) + ',' + lon.toFixed(5) + ')[natural=coastline];out geom(' + b + ');' +
+  const q = '[out:json][timeout:9];way(around:6000,' + lat.toFixed(5) + ',' + lon.toFixed(5) + ')[natural=coastline];out geom(' + b + ');' +
     'node(around:15000,' + lat.toFixed(5) + ',' + lon.toFixed(5) + ')[place~"^(city|town|village|suburb|hamlet|neighbourhood|locality|island|islet)$"][name];out;' +
     'nwr(around:6000,' + lat.toFixed(5) + ',' + lon.toFixed(5) + ')[natural~"^(bay|cape|peninsula|strait)$"][name];out center;';
-  return fetchJ(OVERPASS, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'data=' + encodeURIComponent(q)}, 20000);
+  const one = async u => { const j = await fetchJ(u, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'data=' + encodeURIComponent(q)}, 10000);
+    if (!j || !Array.isArray(j.elements) || /runtime error|timed out/i.test(j.remark || '')) throw new Error('overpass yarım yanıt'); return j; };
+  return anyOf(OVERPASS.map(one));
 }
+// ilk başarılı yanıt (Promise.any yedeği)
+function anyOf(ps){ return new Promise((res, rej) => { let n = ps.length; ps.forEach(p => p.then(res, () => { if (--n === 0) rej(new Error('hepsi başarısız')); })); }); }
 async function depthAt(lat, lon){
-  const j = await fetchJ(EMOD_DEPTH + '?geom=' + encodeURIComponent('POINT(' + lon.toFixed(5) + ' ' + lat.toFixed(5) + ')'));
+  const j = await fetchJ(EMOD_DEPTH + '?geom=' + encodeURIComponent('POINT(' + lon.toFixed(5) + ' ' + lat.toFixed(5) + ')'), null, 8000);
   const v = j && (j.avg != null ? j.avg : j.smoothed);
   return v == null || !isFinite(v) ? null : Number(v);
 }
-// Google yer adları (isteğe bağlı): Ayarlar'a anahtar girilirse Maps JavaScript API'nin Geocoder'ı kullanılır
+// Google (isteğe bağlı): anahtar varsa yer adları Maps JavaScript API'nin Geocoder'ından, altlık olarak Google haritası ve uydu.
+// Google bir isteği reddederse sebebi GERR'e yazılır ve kullanıcıya Google Cloud'daki adıyla (İngilizce) gösterilir.
+let GERR = null, GOK = false;
+const G_ERR = {
+  RefererNotAllowedMapError: 'Anahtarın Website restrictions listesi bu adresi kapsamıyor. Credentials → anahtar → Application restrictions → Websites: https://ktopdal.github.io/* yaz.',
+  ApiNotActivatedMapError: 'Maps JavaScript API projede açık değil. APIs & Services → Library → Maps JavaScript API → Enable.',
+  ApiTargetBlockedMapError: 'Anahtarın API restrictions listesinde Maps JavaScript API yok. Credentials → anahtar → API restrictions.',
+  BillingNotEnabledMapError: 'Projede Billing açık değil. ☰ → Billing → projeyi bir billing account’a bağla.',
+  InvalidKeyMapError: 'Anahtar geçersiz. Ayarlar → Harita’daki anahtarı Google Cloud’daki “Show key” ile karşılaştır.',
+  MissingKeyMapError: 'Anahtar gönderilmedi.', ExpiredKeyMapError: 'Anahtarın süresi dolmuş.', DeletedApiProjectMapError: 'Google Cloud projesi silinmiş.',
+  ProjectDeniedMapError: 'Google projeyi reddetti (hesap ya da Billing sorunu).', OverQuotaMapError: 'Günlük kota doldu.',
+};
+function gReason(msg){
+  const m = String(msg || ''), seen = (/with referer:\s*(\S+)/i.exec(m) || [])[1];
+  if (/billing/i.test(m)) return G_ERR.BillingNotEnabledMapError;
+  if (/site or mobile application|referer|referrer|RefererNotAllowed/i.test(m)) return G_ERR.RefererNotAllowedMapError + (seen ? ' (Google’ın gördüğü adres: ' + seen + ')' : '');
+  if (/API key is not authorized|ApiTargetBlocked/i.test(m)) return 'Anahtarın API restrictions listesinde Geocoding API yok. Credentials → anahtar → API restrictions → Geocoding API’yi ekle.';
+  if (/API project is not authorized|has not been used|disabled|not activated|ApiNotActivated/i.test(m)) return 'Geocoding API projede açık değil. APIs & Services → Library → Geocoding API → Enable.';
+  if (/OVER_QUERY_LIMIT|quota/i.test(m)) return 'Google kotası doldu.';
+  if (/INVALID|invalid/.test(m)) return G_ERR.InvalidKeyMapError;
+  return m ? 'Google: ' + m.slice(0, 160) : 'Google yanıt vermedi.';
+}
+function hookGoogleErrors(){
+  if (hookGoogleErrors.on) return; hookGoogleErrors.on = true;
+  window.gm_authFailure = () => { GOK = false; if (!GERR) GERR = 'Google anahtarı reddetti (site kısıtı, Billing ya da API kapalı).'; setTimeout(() => { if (GDIV && !GDIV.hidden) googleFallback(); }, 50); };
+  const ce = console.error.bind(console);
+  console.error = (...a) => { try { const m = String(a[0] || ''); const k = /Google Maps JavaScript API (?:error|warning): (\w+)/.exec(m);
+    if (k && /Error$/.test(k[1])) { GOK = false; const u = /authorized:\s*(\S+)/.exec(m); GERR = (G_ERR[k[1]] || k[1]) + (u && k[1] === 'RefererNotAllowedMapError' ? ' (Google’ın gördüğü adres: ' + u[1] + ')' : ''); } } catch (e) {} ce(...a); };
+}
 function loadGoogle(){
   const key = (S.settings.gkey || '').trim(); if (!key) return Promise.reject(new Error('anahtar yok'));
   if (window.google && window.google.maps && window.google.maps.Geocoder) return Promise.resolve();
   if (loadGoogle.p && loadGoogle.key === key) return loadGoogle.p;
-  loadGoogle.key = key;
+  loadGoogle.key = key; hookGoogleErrors();
   loadGoogle.p = new Promise((res, rej) => {
     window.__alyssaGm = () => res();
     const s = document.createElement('script'); s.async = true;
-    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&language=tr&region=TR&callback=__alyssaGm';
-    s.onerror = () => { loadGoogle.p = null; rej(new Error('Google yüklenemedi')); };
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&language=tr&region=TR&loading=async&callback=__alyssaGm';
+    s.onerror = () => { loadGoogle.p = null; GERR = 'Google Maps betiği yüklenemedi (bağlantı).'; rej(new Error('Google yüklenemedi')); };
     document.head.appendChild(s);
-    setTimeout(() => rej(new Error('zaman aşımı')), 15000);
+    setTimeout(() => { if (!(window.google && window.google.maps && window.google.maps.Geocoder)) { loadGoogle.p = null; rej(new Error('zaman aşımı')); } }, 10000);
   });
   return loadGoogle.p;
 }
 async function googleName(lat, lon){
   await loadGoogle();
-  const r = await new window.google.maps.Geocoder().geocode({location: {lat, lng: lon}});
+  let r;
+  try {
+    r = await Promise.race([new window.google.maps.Geocoder().geocode({location: {lat, lng: lon}}), new Promise((_, rej) => setTimeout(() => rej(new Error('zaman aşımı')), 8000))]);
+  } catch (e) {
+    const code = (e && (e.code || e.status)) || '';
+    if (code === 'ZERO_RESULTS' || /ZERO_RESULTS/.test(String(e && e.message))) { GOK = true; GERR = null; return null; }
+    GOK = false; GERR = gReason((code ? code + ' ' : '') + (e && e.message || '')); throw e;
+  }
+  GOK = true; GERR = null;
   const res = (r && r.results) || [];
   const comp = type => { for (const x of res) for (const c of (x.address_components || [])) if (c.types.includes(type)) return c.long_name; return null; };
   const local = comp('administrative_area_level_4') || comp('neighborhood') || comp('locality') || comp('administrative_area_level_2');
   const region = comp('administrative_area_level_1');
   return [local, region && region !== local ? region : null].filter(Boolean).join(', ') || null;
 }
-// bir noktadan doğru parçasına uzaklık (km), küçük alanda düzlem yaklaşımı
-function segKm(p, a, b){
+// Google durumu (Ayarlar → Harita'daki "Google'ı dene")
+async function googleTest(){
+  const L = loc() || {lat: 38.4, lon: 26.6};
+  GERR = null;
+  try { const n = await googleName(L.lat, L.lon); return {ok: true, txt: 'Google çalışıyor ✓' + (n ? ' · ' + n : '')}; }
+  catch (e) { return {ok: false, txt: GERR || gReason(e && e.message)}; }
+}
+// En yakın kıyı çizgisi ve noktanın hangi tarafta kaldığı. OSM kıyı çizgisi yönlüdür: kara solda, deniz sağda.
+// Bu yüzden "deniz mi kara mı" sorusunu derinlik servisi yanıt vermese de kesin cevaplar (kıyıya 6 km'den yakınsa).
+function coastSide(p, ways){
   const kx = 111.32 * Math.cos(p.lat * Math.PI / 180), ky = 110.57;
-  const ax = (a.lon - p.lon) * kx, ay = (a.lat - p.lat) * ky, bx = (b.lon - p.lon) * kx, by = (b.lat - p.lat) * ky;
-  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy; let t = l2 ? -(ax * dx + ay * dy) / l2 : 0; t = Math.max(0, Math.min(1, t));
-  return Math.hypot(ax + t * dx, ay + t * dy);
+  const P = c => [(c.lon - p.lon) * kx, (c.lat - p.lat) * ky];          // nokta orijinde, km
+  const side = (a, b) => (b[0] - a[0]) * (-a[1]) - (b[1] - a[1]) * (-a[0]);   // > 0: nokta parçanın solunda (kara)
+  let best = null;
+  ways.forEach(g => { for (let i = 1; i < g.length; i++) {
+    if (!g[i - 1] || !g[i]) continue;
+    const a = P(g[i - 1]), b = P(g[i]), dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
+    let t = l2 ? -(a[0] * dx + a[1] * dy) / l2 : 0; t = Math.max(0, Math.min(1, t));
+    const d = Math.hypot(a[0] + t * dx, a[1] + t * dy);
+    if (!best || d < best.d) best = {d, a, b, t, g, i};
+  } });
+  if (!best) return null;
+  let left;
+  if (best.t > 0 && best.t < 1) left = side(best.a, best.b) > 0;
+  else {
+    // en yakın yer bir köşe: iki komşu parçaya birlikte bakılır (sola dönen köşede iki parçanın da solu, sağa dönende biri yeter)
+    const g = best.g, v = best.t <= 0 ? best.i - 1 : best.i;
+    const pr = v > 0 && g[v - 1] ? P(g[v - 1]) : null, V = P(g[v]), nx = v < g.length - 1 && g[v + 1] ? P(g[v + 1]) : null;
+    if (!pr || !nx) left = side(best.a, best.b) > 0;
+    else { const l1 = side(pr, V) > 0, l2 = side(V, nx) > 0; const turn = (V[0] - pr[0]) * (nx[1] - V[1]) - (V[1] - pr[1]) * (nx[0] - V[0]); left = turn > 0 ? l1 && l2 : l1 || l2; }
+  }
+  const br = (Math.atan2(best.b[0] - best.a[0], best.b[1] - best.a[1]) * 180 / Math.PI + 360) % 360;
+  return {sea: !left, km: best.d, facing: Math.round((br + 90) % 360)};
 }
 const PLACE_W = {city: 0.5, town: 0.6, village: 0.8, suburb: 0.9, island: 0.8, islet: 1, hamlet: 1.2, neighbourhood: 1.3, locality: 1.4};
-async function placeInfo(lat, lon){
-  const p = {lat, lon};
-  const [rv, op, dep, gname] = await Promise.all([nominatim(lat, lon).catch(() => null), overpassNear(lat, lon).catch(() => null), depthAt(lat, lon).catch(() => null),
-    S.settings.gkey ? googleName(lat, lon).catch(() => null) : Promise.resolve(null)]);
-  let land = null, rvKm = null;
-  if (rv && !rv.error && rv.lat != null) {
-    rvKm = distKm(p, {lat: +rv.lat, lon: +rv.lon}); const a = rv.address || {};
-    const local = a.village || a.town || a.suburb || a.neighbourhood || a.quarter || a.hamlet || a.city_district || a.municipality || a.district || a.city;
-    const region = a.province || a.city || a.state;
-    land = [local, region && region !== local ? region : null].filter(Boolean).join(', ') || rv.name || null;
-  }
-  let coastKm = null, facing = null; const places = [], feats = [];
-  ((op && op.elements) || []).forEach(el => {
-    const t = el.tags || {};
-    if (t.natural === 'coastline' && el.geometry) { for (let i = 1; i < el.geometry.length; i++) { const a = el.geometry[i - 1], b2 = el.geometry[i]; const d = segKm(p, a, b2);
-      if (coastKm == null || d < coastKm) { coastKm = d; const br = (Math.atan2((b2.lon - a.lon) * Math.cos(p.lat * Math.PI / 180), b2.lat - a.lat) * 180 / Math.PI + 360) % 360; facing = Math.round((br + 90) % 360); } } return; }
-    const c = el.center || (el.lat != null ? {lat: el.lat, lon: el.lon} : null); if (!c || !t.name) return;
-    const o = {name: t['name:tr'] || t.name, kind: t.place || t.natural, d: distKm(p, c)};
-    (t.place ? places : feats).push(o);
-  });
-  // deniz mi kara mı: derinlik varsa ona, yoksa Nominatim'in bulduğu nesnenin uzaklığına bak
-  const sea = dep != null ? dep > 0.5 : (rv && !rv.error ? rvKm > 0.35 : true);
-  let name = null;
-  if (!sea) name = gname || land || (places.sort((a, b) => a.d - b.d)[0] || {}).name || null;
-  else {
-    const bay = feats.filter(f => f.kind === 'bay' && f.d <= 4).sort((a, b) => a.d - b.d)[0];
+// Yer bilgisi: dört kaynak aynı anda sorulur, her yanıt geldikçe kart güncellenir (onPart). En çok ~10 sn.
+async function placeInfo(lat, lon, onPart){
+  const p = {lat, lon}, R = {rv: undefined, op: undefined, dep: undefined, g: S.settings.gkey ? undefined : null};
+  const build = done => {
+    const rv = R.rv, op = R.op, dep = R.dep, gname = R.g;
+    let land = null, rvKm = null;
+    if (rv && !rv.error && rv.lat != null) {
+      rvKm = distKm(p, {lat: +rv.lat, lon: +rv.lon}); const a = rv.address || {};
+      const local = a.village || a.town || a.suburb || a.neighbourhood || a.quarter || a.hamlet || a.city_district || a.municipality || a.district || a.city;
+      const region = a.province || a.city || a.state;
+      land = [local, region && region !== local ? region : null].filter(Boolean).join(', ') || rv.name || null;
+    }
+    const ways = [], places = [], feats = [];
+    ((op && op.elements) || []).forEach(el => {
+      const t = el.tags || {};
+      if (t.natural === 'coastline' && el.geometry) { ways.push(el.geometry); return; }
+      const c = el.center || (el.lat != null ? {lat: el.lat, lon: el.lon} : null); if (!c || !t.name) return;
+      (t.place ? places : feats).push({name: t['name:tr'] || t.name, kind: t.place || t.natural, d: distKm(p, c)});
+    });
+    const cs = ways.length ? coastSide(p, ways) : null;
+    // deniz mi kara mı: 1) kıyı çizgisinin hangi tarafı (en güvenilir) 2) derinlik 3) kıyı 6 km'de yoksa: yakında adres varsa kara, yoksa açık deniz 4) yalnız Nominatim
+    let sea = null;
+    if (cs) sea = cs.sea;
+    else if (dep != null && dep > 0.5) sea = true;
+    else if (op && (rv !== undefined || done)) sea = !(rv && !rv.error && rvKm != null && rvKm < 1.5);
+    else if (done && rv !== undefined && rv !== null) sea = rv.error ? true : rvKm > 0.35;
+    let name = null;
     const pl = places.slice().sort((a, b) => a.d * (PLACE_W[a.kind] || 1) - b.d * (PLACE_W[b.kind] || 1))[0];
-    const gl = gname ? gname.split(',')[0] : null;
-    name = bay ? bay.name : gl ? gl + ' açıkları' : pl ? pl.name + ' açıkları' : land ? land + ' açıkları' : 'Açık deniz';
-  }
-  return {name, sea, coastKm, facing: coastKm != null && coastKm <= 0.8 ? facing : null, depth: dep != null && dep > 0.5 ? Math.round(dep) : null, land, src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || dep != null || gname)};
+    if (sea === false) name = gname || land || (places.slice().sort((a, b) => a.d - b.d)[0] || {}).name || null;
+    else if (sea === true) {
+      const bay = feats.filter(f => f.kind === 'bay' && f.d <= 4).sort((a, b) => a.d - b.d)[0];
+      const gl = gname ? gname.split(',')[0] : null;
+      name = bay ? bay.name : gl ? gl + ' açıkları' : pl ? pl.name + ' açıkları' : land ? land.split(',')[0] + ' açıkları' : done ? 'Açık deniz' : null;
+    } else name = gname || land || (pl ? pl.name : null);
+    const coastKm = cs ? cs.km : null;
+    return {name, sea, coastKm, facing: cs && cs.km <= 0.8 ? cs.facing : null, depth: dep != null && dep > 0.5 ? Math.round(dep) : null, land,
+      src: gname ? 'Google' : 'OpenStreetMap', ok: !!(rv || op || dep != null || gname), coastChecked: !!op, done,
+      wait: ['rv', 'op', 'dep', 'g'].filter(k => R[k] === undefined).length};
+  };
+  const step = (k, pr) => pr.then(v => v, () => null).then(v => { R[k] = v; if (onPart) try { onPart(build(false)); } catch (e) {} });
+  await Promise.all([step('rv', nominatim(lat, lon)), step('op', overpassNear(lat, lon)), step('dep', depthAt(lat, lon)),
+    S.settings.gkey ? step('g', googleName(lat, lon)) : Promise.resolve()]);
+  return build(true);
 }
 // ---- harita sayfası
 function sheetMap(){
@@ -4519,6 +4811,7 @@ async function openMap(){
 function initMap(){
   const LL = LF(); const cur = loc(); const v = S.settings.mapView;
   if (MAP) { try { MAP.remove(); } catch (e) {} MAP = null; }
+  GMAP = null; GDIV = null;
   const center = cur ? [cur.lat, cur.lon] : v ? [v.lat, v.lon] : [38.4, 26.6];
   MAP = LL.map('map', {zoomControl: false, attributionControl: true}).setView(center, cur ? 11 : v ? v.z : 8);
   LL.control.zoom({position: 'topright'}).addTo(MAP);
@@ -4533,7 +4826,7 @@ function initMap(){
   const m = $('mapMsg'); if (m) m.hidden = true;
   setTimeout(() => { if (MAP) MAP.invalidateSize(); }, 80);
 }
-function closeMap(){ if (MAP) { try { MAP.remove(); } catch (e) {} } MAP = null; MAPL = null; MPICK = null; }
+function closeMap(){ if (MAP) { try { MAP.remove(); } catch (e) {} } MAP = null; MAPL = null; MPICK = null; GMAP = null; GDIV = null; }
 const BASES = {
   osm: () => LF().tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> katkıcıları'}),
   uydu: () => LF().tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, attribution: 'Uydu © Esri, Maxar, Earthstar Geographics'}),
@@ -4545,7 +4838,37 @@ const OVERS = {
   substrate: () => LF().tileLayer.wms('https://drive.emodnet-geology.eu/geoserver/wms', {layers: 'cp_wp3_seabed_substrate_folk_7', format: 'image/png', transparent: true, opacity: 0.6, attribution: 'Dip türü © EMODnet Geology'}),
 };
 const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', substrate: 'Dip türü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
-function setBase(k){ if (!MAP) return; if (MAPL.base) MAP.removeLayer(MAPL.base); MAPL.base = (BASES[k] || BASES.osm)().addTo(MAP); MAPL.base.bringToBack(); }
+function setBase(k){
+  if (!MAP) return; if (MAPL.base) { MAP.removeLayer(MAPL.base); MAPL.base = null; }
+  if (G_TYPES[k] && S.settings.gkey) { setGoogleBase(k); return; }
+  hideGoogle(); MAPL.base = (BASES[G_TYPES[k] ? 'osm' : k] || BASES.osm)().addTo(MAP); MAPL.base.bringToBack();
+}
+// Google altlığı: Leaflet'in altına eşzamanlı bir Google haritası (Maps JavaScript API) konur; dokunuşlar ve işaretler Leaflet'te kalır
+let GMAP = null, GDIV = null;
+const G_TYPES = {g: 'roadmap', gsat: 'hybrid'};
+function gSync(){ if (!GMAP || !MAP) return; const c = MAP.getCenter(); GMAP.moveCamera({center: {lat: c.lat, lng: c.lng}, zoom: MAP.getZoom()}); }
+function gZoomAnim(e){ if (GMAP && e && e.center) GMAP.moveCamera({center: {lat: e.center.lat, lng: e.center.lng}, zoom: e.zoom}); }
+function hideGoogle(){ if (GDIV) GDIV.hidden = true; if (MAP) MAP.getContainer().classList.remove('hasg'); }
+function googleFallback(){
+  if (!MAP || !MAPL || MAPL.base) return;
+  hideGoogle(); MAPL.base = BASES.osm().addTo(MAP); MAPL.base.bringToBack();
+  toast('Google haritası açılamadı: ' + (GERR || 'bağlantı yok') + ' Şimdilik OpenStreetMap gösteriliyor.');
+  if (!$('mapLayers').hidden) renderLayers();
+}
+async function setGoogleBase(k){
+  const box = MAP.getContainer();
+  try { await loadGoogle(); } catch (e) { if (MAP && MAP.getContainer() === box) googleFallback(); return; }
+  if (!MAP || MAP.getContainer() !== box || mapCfg().base !== k || MAPL.base) return;
+  if (!GDIV || !box.contains(GDIV)) {
+    GDIV = document.createElement('div'); GDIV.className = 'gbase'; box.insertBefore(GDIV, box.firstChild);
+    const c = MAP.getCenter();
+    GMAP = new window.google.maps.Map(GDIV, {center: {lat: c.lat, lng: c.lng}, zoom: MAP.getZoom(), mapTypeId: G_TYPES[k], disableDefaultUI: true, gestureHandling: 'none',
+      keyboardShortcuts: false, clickableIcons: false, isFractionalZoomEnabled: true, backgroundColor: 'transparent'});
+    MAP.on('move zoom resize', gSync); MAP.on('zoomanim', gZoomAnim);
+  } else GMAP.setMapTypeId(G_TYPES[k]);
+  GDIV.hidden = false; box.classList.add('hasg'); gSync();
+  if (GERR && !GOK) googleFallback();
+}
 function setOver(k, on){
   if (!MAP) return;
   if (k === 'locs' || k === 'catches' || k === 'grup') { const g = MAPL[k]; if (on) { g.addTo(MAP); if (k === 'grup') grpFetch().then(drawGroup); } else MAP.removeLayer(g); return; }
@@ -4554,7 +4877,9 @@ function setOver(k, on){
 }
 function renderLayers(){
   const cfg = mapCfg(), el = $('mapLayers'); if (!el) return;
-  el.innerHTML = '<b>Altlık</b><div class="seg">' + [['osm', 'Harita'], ['uydu', 'Uydu']].map(([v, t]) => '<button class="btn small" type="button" data-mapbase="' + v + '" aria-pressed="' + (cfg.base === v) + '">' + t + '</button>').join('') + '</div>' +
+  const bases = [['osm', 'Harita'], ['uydu', 'Uydu']].concat(S.settings.gkey ? [['g', 'Google'], ['gsat', 'Google uydu']] : []);
+  el.innerHTML = '<b>Altlık</b><div class="seg wrapseg">' + bases.map(([v, t]) => '<button class="btn small" type="button" data-mapbase="' + v + '" aria-pressed="' + (cfg.base === v) + '">' + t + '</button>').join('') + '</div>' +
+    (G_TYPES[cfg.base] && GERR ? '<p class="note mc-g">Google kullanılamadı: ' + esc(GERR) + '</p>' : '') + (!S.settings.gkey ? '<p class="note">Google haritası için Ayarlar → Harita’ya Google anahtarını yaz.</p>' : '') +
     '<b>Katmanlar</b>' + Object.keys(OVER_TXT).filter(k => k !== 'grup' || grpOn()).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
     '<p class="note">Derinlik ve dip türü EMODnet verisidir; seyir için resmî harita yerine geçmez.</p>';
 }
@@ -4594,7 +4919,7 @@ async function pickPoint(lat, lon){
   if (MAPL.pick) MAPL.pick.setLatLng([lat, lon]); else MAPL.pick = LF().marker([lat, lon], {icon: pinIcon('pick'), keyboard: false}).addTo(MAP);
   const my = ++PICK_ID; MPICK = {lat, lon, busy: true};
   $('mapLayers').hidden = true; renderPick();
-  const info = await placeInfo(lat, lon).catch(() => null);
+  const info = await placeInfo(lat, lon, part => { if (my === PICK_ID && MPICK) { Object.assign(MPICK, part, {busy: true}); renderPick(); } }).catch(() => null);
   if (my !== PICK_ID || !MPICK) return;
   Object.assign(MPICK, info || {}, {busy: false, failed: !info || !info.ok}); renderPick();
 }
@@ -4605,11 +4930,12 @@ function coordBlock(lat, lon){
 const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lon.toFixed(6);
 function renderPick(){
   const p = MPICK, el = $('mapCard'); if (!el || !p) return;
-  const info = p.busy ? 'Yer adı, kıyı ve derinlik aranıyor…' : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servis yanıt vermedi).' :
-    [p.sea ? 'Deniz' : 'Kara', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + f1(p.coastKm) + ' km') : p.sea ? 'kıyı 6 km’den uzak' : '', p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '',
-      p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean).join(' · ');
-  el.innerHTML = '<div class="mc-h"><b>' + esc(p.busy ? 'Seçilen nokta' : (p.name || 'Seçilen nokta')) + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
-    coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' +
+  const facts = [p.sea === true ? 'Deniz' : p.sea === false ? 'Kara' : '', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + f1(p.coastKm) + ' km') : p.sea && p.coastChecked ? 'kıyı 6 km’den uzak' : '',
+    p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean);
+  const info = p.busy ? (facts.length ? facts.join(' · ') + ' · ' : '') + 'aranıyor…' : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servisler yanıt vermedi). Koordinatlar doğru; yine kaydedebilirsin.' : facts.join(' · ');
+  const gNote = !p.busy && S.settings.gkey && GERR ? '<div class="mc-g">Google kullanılamadı: ' + esc(GERR) + '</div>' : '';
+  el.innerHTML = '<div class="mc-h"><b>' + esc(p.name || 'Seçilen nokta') + (p.busy && p.name ? ' …' : '') + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
+    coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' + gNote +
     '<div class="row"><button class="btn primary" type="button" data-mapact="forecast">Bu noktanın tahmini</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
     '<a class="btn" href="' + gmapsUrl(p.lat, p.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
   el.hidden = false;
@@ -5333,11 +5659,13 @@ function sheetAlert(){
 // ---- çıkış listesi ve güvenlik mesajı
 const BOAT_KIT = ['Can yelekleri (herkese bir)', 'VHF telsiz ya da şarjlı telefon (su geçirmez kılıfta)', 'Yakıt: dolu depo ve yedek', 'Çapa ve halat', 'İlk yardım çantası', 'El feneri / kafa lambası', 'Su ve yiyecek', 'Güneş kremi, şapka, güneş gözlüğü', 'Pense, makas, iğne çıkarıcı', 'Kepçe ya da kanca', 'Buz kutusu ve buz', 'Paraşüt çapa (drift sock)'];
 const SHORE_KIT = ['Kamış ayağı', 'Kafa lambası ve yedek pil', 'Kaymaz ayakkabı', 'Kepçe ya da uzun saplı kanca', 'Pense ve iğne çıkarıcı', 'Yedek şok lider ve köstek', 'Çapalı (grip) kurşun', 'Yem kutusu ve havlu', 'Buz kutusu', 'Şarjlı telefon', 'Su, mont ya da yağmurluk'];
+// Fishing'de seçilen gün ve bölümün (gündüz/gece) 3 rigi; Fishing açılmadıysa bugünün gündüz ve gece ilk ikileri
 function checklist(){
-  const ds = days(); const dd = ds.find(d => d.key === dateKey(new Date())) || ds[0];
-  const out = {rigs: [], gear: [], bait: [], kit: shoreMode() ? SHORE_KIT : BOAT_KIT};
+  const ds = days(); const dd = (ui.fday && ds.find(d => d.key === ui.fday)) || ds.find(d => d.key === dateKey(new Date())) || ds[0];
+  const out = {rigs: [], gear: [], bait: [], kit: shoreMode() ? SHORE_KIT : BOAT_KIT, dd, part: ui.fpart || null};
   if (dd && RIG_LIST.length) {
-    const recs = [false, true].flatMap(n => { const R = recommend(dd, n); return R.filter(x => x.ok).slice(0, 2).map(x => ({rg: x.rg, x: R.x})); });
+    const parts = ui.fpart ? [ui.fpart === 'gece'] : [false, true];
+    const recs = parts.flatMap(n => { const R = recommend(dd, n); return R.filter(x => x.ok).slice(0, ui.fpart ? F_TOP : 2).map(x => ({rg: x.rg, x: R.x})); });
     const seenRig = new Set(), gear = {}, bait = new Set();
     recs.forEach(({rg, x}) => {
       if (seenRig.has(rg.id)) return; seenRig.add(rg.id); out.rigs.push(rg);
@@ -5357,9 +5685,9 @@ function sheetChecklist(){
   const Lc = loc(); const sp = S.settings.safety || {};
   return sheetBar('Çıkış listesi') + '<div class="stack">' +
     '<p class="sub">' + (shoreMode() ? 'Kıyı' : 'Tekne') + ' · ' + (Lc ? esc(Lc.name) : 'konum yok') + ' · işaretler bugün için saklanır.</p>' +
-    (c.rigs.length ? '<section class="set"><h4>Bugünün rigleri</h4><p class="note">' + esc(c.rigs.map(r => (r.code ? r.code + ' ' : '') + r.name).join(' · ')) + '</p>' +
+    (c.rigs.length ? '<section class="set"><h4>' + (c.part && c.dd ? esc(dayLabel(c.dd.date, 0, dateKey(new Date())) + ' · ' + PART_TXT[c.part]) + ' rigleri' : 'Bugünün rigleri') + '</h4><p class="note">' + esc(c.rigs.map(r => (r.code ? r.code + ' ' : '') + r.name).join(' · ')) + '</p>' +
       c.gear.map(g => box('g:' + g.k, g.k, g.v.join(', '))).join('') + (c.bait.length ? c.bait.map(b => box('y:' + b, 'Yem: ' + b)).join('') : '') + '</section>' :
-      '<section class="set"><h4>Bugünün rigleri</h4><p class="note">Önerilen hazır rig yok; Bugün ekranından rig seçtiğinde burada malzemeleri listelenir.</p></section>') +
+      '<section class="set"><h4>Rigler</h4><p class="note">Önerilen hazır rig yok; Fishing’de gün ve bölüm seçince önerilen riglerin malzemeleri burada listelenir.</p></section>') +
     '<section class="set"><h4>' + (shoreMode() ? 'Kıyı ekipmanı' : 'Tekne ve güvenlik') + '</h4>' + c.kit.map(k => box('k:' + k, k)).join('') + '</section>' +
     '<section class="set"><h4>Güvenlik mesajı</h4><p class="note">Çıkmadan önce bir yakınına nerede olduğunu ve dönüş saatini WhatsApp’tan gönder.</p>' +
     '<div class="fields"><label class="f">Dönüş saati<input type="time" id="sf-ret" value="' + esc(sp.ret || '') + '"></label>' +
@@ -5608,9 +5936,9 @@ function renderAll(){
   const a = document.activeElement;
   if (a && ((a.tagName === 'INPUT' && !['file', 'search', 'checkbox', 'color'].includes(a.type)) || a.tagName === 'TEXTAREA') && !$('sheet').contains(a) && !$('welcome').contains(a)) { a.addEventListener('blur', () => setTimeout(renderAll, 300), {once: true}); return; }   // gecikme: odaktan çıkaran dokunuş (ör. −/+ düğmesi) önce kendi işini yapsın
   DAYS_CACHE = null;
-  renderTop(); renderNewVersion(); renderToday(); renderCalendar(); renderCatches(); renderRigs(); renderInventory(); renderMore();
+  renderTop(); renderNewVersion(); renderToday(); renderFishing(); renderCalendar(); renderCatches(); renderRigs(); renderInventory(); renderMore();
 }
-const VIEWS = ['bugun', 'takvim', 'avlar', 'rigler', 'envanter', 'daha'];
+const VIEWS = ['bugun', 'takvim', 'avlar', 'fishing', 'rigler', 'envanter', 'daha'];
 function show(v){
   document.querySelectorAll('section.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
   document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'));
@@ -5683,6 +6011,9 @@ function bindEvents(){
     if (d.sys) { ui.sys = d.sys; renderRigs(); return; }
     if (d.iseg) { ui.inv = d.iseg; renderInventory(); return; }
     if (d.hday) { ui.hday = d.hday; renderHourly(); return; }
+    if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
+    if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
+    if (d.goto) { show(d.goto); return; }
     if (d.calday) { ui.hday = d.calday; show('bugun'); renderHourly(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
     if (d.use) { S.active = d.use; persist(); WX = null; renderAll(); loadWeather(); if (ui.sheet === 'konumlar') openMore('konumlar', true); toast('Konum değişti'); return; }
     if (d.del) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.locations[d.del]; if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null; persist(); WX = null; renderAll(); loadWeather(); openMore('konumlar', true); return; }
@@ -5715,6 +6046,10 @@ function bindEvents(){
       if (a === 'bkOverwrite') { if (!armOnce(b, 'Buluttaki yedeğin üzerine yazılacak · onayla')) return; $('bk-pass').value = BK.pendingPass || $('bk-pass').value; submitBackupForm(true); return; }
       if (a === 'pkgCheck') { pkgCheck(true); return; }
       if (a === 'refreshWx') { loadWeather(true); closeSheet(); return; }
+      if (a === 'gtest') { const n = $('gTestNote'); if (n) n.textContent = 'Google deneniyor…'; const r = await googleTest(); if ($('gTestNote')) $('gTestNote').textContent = r.txt; return; }
+      if (a === 'duzenCopy') { const c = duzenCode(), o = $('duzenOut'); if (o) { o.hidden = false; o.value = c; o.select(); }
+        try { await navigator.clipboard.writeText(c); toast('Düzen kodu kopyalandı'); } catch (e) { toast('Kodu seçip kopyala'); } return; }
+      if (a === 'duzenApply') { const el = $('duzenIn'); try { const n = duzenApply(el ? el.value : ''); toast('Düzen uygulandı (' + n + ' ayar)'); openMore('gorunum', true); } catch (e) { toast('Uygulanamadı: ' + e.message); } return; }
       if (a === 'export') { exportBackup(); return; }
     }
     if (b.id === 'seenVer') { S.seenVersion = APP_VERSION; persist(); renderNewVersion(); return; }

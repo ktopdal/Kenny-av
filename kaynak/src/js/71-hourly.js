@@ -37,35 +37,34 @@ function moonSvg(p, size){
   return '<svg class="moon" viewBox="0 0 14 14" width="' + (size || 14) + '" height="' + (size || 14) + '" aria-hidden="true"><circle cx="7" cy="7" r="6"/><path d="M7 1A6 6 0 0 ' + so + ' 7 13A' + rx.toFixed(2) + ' 6 0 0 ' + si + ' 7 1Z"/></svg>';
 }
 // ---- satırlar
+// varsayılan sıra ve açık/kapalı satırlar Kenny'nin düzeni (v0.16); Bulut ve Solunar satırı yok: bulut % Hava hücresinde, solunar Balık hücresinde
 const HROWS = [
   {id: 'saat', t: 'Saat', fixed: true},
   {id: 'gunes', t: 'Güneş ve ay'},
-  {id: 'hava', t: 'Hava (bulut, yağış simgesi)'},
-  {id: 'balik', t: 'Balık (5 balık)'},
-  {id: 'balikgrafik', t: 'Balık çubukları ve günün eğrisi'},
-  {id: 'solunar', t: 'Solunar olayları'},
+  {id: 'sicaklik', t: 'Hava sıcaklığı'},
+  {id: 'su', t: 'Su sıcaklığı'},
+  {id: 'hava', t: 'Hava (bulut %, yağış simgesi)'},
   {id: 'yagis', t: 'Yağış olasılığı'},
   {id: 'yagismm', t: 'Yağış miktarı'},
-  {id: 'sicaklik', t: 'Hava sıcaklığı'},
+  {id: 'balik', t: 'Balık (5 balık, % ve solunar)'},
+  {id: 'balikgrafik', t: 'Balık çubukları ve günün eğrisi'},
   {id: 'ruzgar', t: 'Rüzgâr · Karma (üstte seçili model)'},
-  {id: 'r_icon', t: 'Rüzgâr · ICON-EU'},
-  {id: 'r_ecmwf', t: 'Rüzgâr · ECMWF'},
-  {id: 'r_gfs', t: 'Rüzgâr · GFS'},
-  {id: 'h_icon', t: 'Hamle · ICON-EU'},
-  {id: 'h_ecmwf', t: 'Hamle · ECMWF'},
-  {id: 'h_gfs', t: 'Hamle · GFS'},
-  {id: 'hamle', t: 'Hamle · Bugün ekranındaki (Karma: GFS)', on: false},
+  {id: 'r_icon', t: 'Rüzgâr · ICON-EU', on: false},
+  {id: 'r_ecmwf', t: 'Rüzgâr · ECMWF', on: false},
+  {id: 'r_gfs', t: 'Rüzgâr · GFS', on: false},
+  {id: 'hamle', t: 'Hamle · Bugün ekranındaki (Karma: GFS)'},
+  {id: 'h_icon', t: 'Hamle · ICON-EU', on: false},
+  {id: 'h_ecmwf', t: 'Hamle · ECMWF', on: false},
+  {id: 'h_gfs', t: 'Hamle · GFS', on: false},
   {id: 'yon', t: 'Rüzgâr yönü'},
-  {id: 'uyum', t: 'Model uyumu'},
+  {id: 'uyum', t: 'Model uyumu', on: false},
   {id: 'dalga', t: 'Dalga'},
   {id: 'periyot', t: 'Dalga periyodu ve yönü'},
   {id: 'akinti', t: 'Akıntı'},
   {id: 'suruklenme', t: 'Sürüklenme (tekne)', mode: 'tekne'},
   {id: 'kiyiya', t: 'Rüzgâr kıyıya göre (kıyı)', mode: 'kiyi'},
-  {id: 'su', t: 'Su sıcaklığı'},
   {id: 'basinc', t: 'Basınç'},
   {id: 'basincgrafik', t: 'Basınç grafiği'},
-  {id: 'bulut', t: 'Bulut', on: false},
 ];
 // kayıtlı sıra + yeni eklenen satırlar varsayılan yerlerine
 function orderedRows(reg, saved){
@@ -94,8 +93,8 @@ function bftLegend(){
 const mBadge = t => t ? '<span class="mb">' + esc(t) + '</span>' : '';
 function spreadKn(x){ const v = ['icon', 'ecmwf', 'gfs'].map(k => x.m && x.m[k] ? x.m[k].w : null).filter(v => v != null); return v.length >= 2 ? (Math.max(...v) - Math.min(...v)) * KN : null; }
 // bilgi alanı kapalıyken (dar sütun) gösterilen kısa adlar
-const H_SHORT = {'Saat': 'Saat', 'Güneş · Ay': '☀ ☾', 'Hava': 'Hava', 'Balık': 'Balık', 'Balık eğrisi': 'Eğri', 'Solunar': 'Sol.', 'Model uyumu': 'Uyum', 'Yön': 'Yön',
-  'Dalga': 'Dlg.', 'Periyot': 'Per.', 'Akıntı': 'Akın.', 'Sürüklenme': 'Sürk.', 'İpe akış': 'İpe', 'Kıyıya göre': 'Kıyı', 'Bulut': 'Bulut'};
+const H_SHORT = {'Saat': 'Saat', 'Güneş · Ay': '☀ ☾', 'Hava': 'Hava', 'Balık': 'Balık', 'Balık eğrisi': 'Eğri', 'Model uyumu': 'Uyum', 'Yön': 'Yön',
+  'Dalga': 'Dlg.', 'Periyot': 'Per.', 'Akıntı': 'Akın.', 'Sürüklenme': 'Sürk.', 'İpe akış': 'İpe', 'Kıyıya göre': 'Kıyı'};
 function renderHourly(){
   const ds = days(); const tbl = $('hTable');
   $('hLegend').innerHTML = bftLegend();
@@ -113,7 +112,7 @@ function renderHourly(){
   const cls = (x, extra) => 'c' + (nightH(x) ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (extra ? ' ' + extra : '');
   // bilgi alanı: açıkken tam ad + alt satır, kapalıyken kısa ad (sh = [üst, alt]); yalnız dokununca açılır/kapanır
   const short = (label, sh) => sh ? esc(sh[0]) + (sh[1] ? '<em>' + esc(sh[1]) + '</em>' : '') : esc(H_SHORT[label] || label.slice(0, 4));
-  const row = (label, sub, cells, trc, sh) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '<i class="sh" aria-hidden="true">' + short(label, sh) + '</i></th>' + cells + '</tr>';
+  const row = (label, sub, cells, trc, sh) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b>' + (Array.isArray(sub) ? sub : [sub]).filter(Boolean).map(t => '<small>' + t + '</small>').join('') + '<i class="sh" aria-hidden="true">' + short(label, sh) + '</i></th>' + cells + '</tr>';
   const acts = hs.map(activity);
   const u = windU(), u2 = windU2(), UT = WU_TXT[u];
   // rüzgâr hücresi: ana değer + yanında küçük birim, altında ikinci birim (renk her zaman Bft ölçeği)
@@ -133,8 +132,12 @@ function renderHourly(){
       return row('Güneş · Ay', 'Doğuş · Batış', hs.map(x => { const a = x.t.getTime() - 30 * 60000, b = a + 3600000; const e = evs.filter(v => v.t.getTime() >= a && v.t.getTime() < b);
         return '<td class="' + cls(x, 'ev') + '">' + e.map(v => '<span class="evi">' + v.h + '<small>' + hm(v.t) + '</small></span>').join('') + '</td>'; }).join(''));
     },
-    hava: () => row('Hava', 'bulut · yağış', hs.map(x => '<td class="' + cls(x) + '">' + wxIcon(x, nightH(x)) + '</td>').join('')),
-    balik: () => row('Balık', 'aktivite %', hs.map((x, i) => '<td class="' + cls(x, 'fish' + (acts[i].pct >= 61 ? ' hi' : '')) + '">' + fishHtml(acts[i].fish) + '<small>%' + acts[i].pct + '</small></td>').join('')),
+    // Hava: simgenin altında bulut %; bulut yoksa (%0) yazı yok
+    hava: () => row('Hava', 'bulut % · yağış', hs.map(x => { const c = x.cloud == null ? null : Math.round(x.cloud);
+      return '<td class="' + cls(x, 'wxc') + '">' + wxIcon(x, nightH(x)) + (c ? '<small>%' + c + '</small>' : '') + '</td>'; }).join('')),
+    // Balık: 5 balık, saatlik %, altında o saatin solunar olayları (M major · m minor · ☀↑ şafak · ☀↓ alacakaranlık)
+    balik: () => row('Balık', ['aktivite %', 'Solunar M · m · ☀'], hs.map((x, i) => '<td class="' + cls(x, 'fish' + (acts[i].pct >= 61 ? ' hi' : '')) + '">' + fishHtml(acts[i].fish) + '<small>%' + acts[i].pct + '</small>' +
+      '<em class="sol">' + (acts[i].tags.length ? esc(acts[i].tags.join(' ')) : '') + '</em></td>').join(''), 'fishrow', ['Balık', '% M m ☀']),
     balikgrafik: () => {
       const H = 44, pts = curve(dd).pts.filter(p => p.t.getTime() >= t0 - 1800000 && p.t.getTime() <= hs[hs.length - 1].t.getTime() + 1800000);
       const bars = hs.map((x, i) => { const p = acts[i].pct, h = Math.max(1, p / 100 * (H - 6)); return '<rect x="' + (i * COL_W + 12) + '" y="' + (H - 2 - h).toFixed(1) + '" width="' + (COL_W - 24) + '" height="' + h.toFixed(1) + '" rx="2" class="fb' + fishN(p) + '"/>'; }).join('');
@@ -142,9 +145,8 @@ function renderHourly(){
       const grid = [20, 40, 60, 80].map(v => '<line x1="0" x2="' + W + '" y1="' + (H - 2 - v / 100 * (H - 6)).toFixed(1) + '" y2="' + (H - 2 - v / 100 * (H - 6)).toFixed(1) + '" class="gl"/>').join('');
       return row('Balık eğrisi', 'saat · 10 dk', span('<svg class="spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' + grid + bars + '<polyline points="' + line + '" class="fl"/></svg>'));
     },
-    solunar: () => row('Solunar', 'M · m · ☀', hs.map((x, i) => '<td class="' + cls(x, 'sol') + '">' + esc(acts[i].tags.join(' ')) + '</td>').join('')),
-    yagis: () => row('Yağış', 'olasılık %', hs.map(x => '<td class="' + cls(x, (x.pop || 0) < 10 ? 'p0' : '') + '" style="' + (x.pop >= 10 ? tint('#3D7DD8', Math.min(60, 10 + x.pop * 0.5)) : '') + '">' + (x.pop == null ? '–' : Math.round(x.pop)) + '</td>').join(''), '', ['Yağ.', '%']),
-    yagismm: () => row('Yağış', 'mm', hs.map(x => '<td class="' + cls(x, (x.rain || 0) < 0.1 ? 'p0' : '') + '" style="' + ((x.rain || 0) >= 0.1 ? tint('#2F6BC7', Math.min(70, 25 + x.rain * 12)) : '') + '">' + (x.rain == null ? '–' : x.rain < 0.1 ? '0' : f1(x.rain)) + '</td>').join(''), '', ['Yağ.', 'mm']),
+    yagis: () => row('Yağış %', '', hs.map(x => '<td class="' + cls(x, (x.pop || 0) < 10 ? 'p0' : '') + '" style="' + (x.pop >= 10 ? tint('#3D7DD8', Math.min(60, 10 + x.pop * 0.5)) : '') + '">' + (x.pop == null ? '–' : '%' + Math.round(x.pop)) + '</td>').join(''), 'slim', ['Yağ.', '%']),
+    yagismm: () => row('Yağış mm', '', hs.map(x => '<td class="' + cls(x, (x.rain || 0) < 0.1 ? 'p0' : '') + '" style="' + ((x.rain || 0) >= 0.1 ? tint('#2F6BC7', Math.min(70, 25 + x.rain * 12)) : '') + '">' + (x.rain == null ? '–' : x.rain < 0.1 ? '0' : f1(x.rain)) + '</td>').join(''), 'slim', ['Yağ.', 'mm']),
     sicaklik: () => row('Hava sıcaklığı', TU(), hs.map(x => '<td class="' + cls(x, 'tc') + '" style="' + tint(scaleColor(TEMP_STOPS, x.temp)) + '">' + degHtml(x.temp) + '</td>').join(''), '', ['Sıc.', TU()]),
     // Karma satırı: Karma seçiliyken ICON-EU, tek model seçiliyken o model; yedeğe geçmez, model bitince –
     ruzgar: () => row(mSel === 'karma' ? 'Rüzgâr · Karma' : 'Rüzgâr · Seçili', UT + ' ' + mBadge(SRC[kId].short), hs.map(x => wcell(x, x.wk)).join(''), 'krow', ['Rüz.', WU_UP[u] + ' ' + (mSel === 'karma' ? 'KRM' : SRC[kId].ab)]),
@@ -155,14 +157,14 @@ function renderHourly(){
     h_ecmwf: () => wRow('Hamle', 'ecmwf', 'g', 'mrow2'),
     h_gfs: () => wRow('Hamle', 'gfs', 'g', 'mrow2'),
     uyum: () => row('Model uyumu', 'fark kn', hs.map(x => { const sp = spreadKn(x); const c = sp == null ? '' : sp <= 4 ? 'A' : sp <= 8 ? 'C' : 'D';
-      return '<td class="' + cls(x, 'agree') + '">' + (sp == null ? '–' : '<i class="dot ' + c + '"></i><small>' + Math.round(sp) + '</small>') + '</td>'; }).join('')),
-    yon: () => row('Yön', 'ok · ad', hs.map(x => '<td class="' + cls(x, 'wd') + '">' + arrowFrom(x.wdir) + '<small>' + esc(windName(x.wdir)) + '</small></td>').join('')),
+      return '<td class="' + cls(x, 'agree') + '">' + (sp == null ? '–' : '<i class="dot ' + c + '"></i><small>' + Math.round(sp) + '</small>') + '</td>'; }).join(''), '', ['Uyum', 'kn']),
+    yon: () => row('Rüzgâr Yönü', '', hs.map(x => '<td class="' + cls(x, 'wd') + '">' + arrowFrom(x.wdir) + '<small>' + esc(windName(x.wdir)) + '</small></td>').join(''), '', ['Yön']),
     hamle: () => row('Hamle', UT + ' ' + mBadge(modelText(hs.map(x => x.gm))), hs.map(x => wcell(x, x.gust)).join(''), '', ['Hml.', WU_UP[u] + ' ' + modelText(hs.map(x => x.gid ? SRC[x.gid].ab : null))]),
-    dalga: () => row('Dalga', 'm ' + mBadge(modelText(hs.map(x => x.wvm)) === 'MFWAM' ? 'MFWAM' : 'deniz'), hs.map(x => '<td class="' + cls(x, x.wave == null ? '' : 'b' + waveClass(x.wave)) + '">' + f1(x.wave) + '</td>').join('')),
-    periyot: () => row('Periyot', 'sn · ok', hs.map(x => '<td class="' + cls(x) + '">' + (x.per == null ? '–' : Math.round(x.per)) + '<small>' + arrowFrom(x.waveDir) + '</small></td>').join('')),
-    akinti: () => row('Akıntı', 'kn · ok', hs.map(x => '<td class="' + cls(x) + '">' + f1(x.cur) + '<small>' + arrowTo(x.curDir) + '</small></td>').join('')),
+    dalga: () => row('Dalga', 'm ' + mBadge(modelText(hs.map(x => x.wvm)) === 'MFWAM' ? 'MFWAM' : 'deniz'), hs.map(x => '<td class="' + cls(x, x.wave == null ? '' : 'b' + waveClass(x.wave)) + '">' + f1(x.wave) + '</td>').join(''), '', ['Dlg.', 'm']),
+    periyot: () => row('Periyot', 'sn · ok', hs.map(x => '<td class="' + cls(x) + '">' + (x.per == null ? '–' : Math.round(x.per)) + '<small>' + arrowFrom(x.waveDir) + '</small></td>').join(''), '', ['Per.', 'sn']),
+    akinti: () => row('Akıntı', 'kn · ok', hs.map(x => '<td class="' + cls(x) + '">' + f1(x.cur) + '<small>' + arrowTo(x.curDir) + '</small></td>').join(''), '', ['Akın.', 'kn']),
     suruklenme: () => { const anch = S.settings.anchor === 'demir';
-      return row(anch ? 'İpe akış' : 'Sürüklenme', 'kn', hs.map(x => { const dr = driftAt(x); return '<td class="' + cls(x) + '">' + (dr && dr.known ? f1(anch ? dr.line : dr.sog) + (anch ? '' : '<small>' + arrowTo(dr.dir) + '</small>') : '–') + '</td>'; }).join('')); },
+      return row(anch ? 'İpe akış' : 'Sürüklenme', 'kn', hs.map(x => { const dr = driftAt(x); return '<td class="' + cls(x) + '">' + (dr && dr.known ? f1(anch ? dr.line : dr.sog) + (anch ? '' : '<small>' + arrowTo(dr.dir) + '</small>') : '–') + '</td>'; }).join(''), '', [anch ? 'İpe' : 'Sürk.', 'kn']); },
     kiyiya: () => { const f = facingOf(loc());
       return row('Kıyıya göre', f == null ? 'bakışı gir' : 'bakış ' + dir8(f), hs.map(x => { const r = shoreRel(x.wdir, f), c = shoreClass(x, f);
         return '<td class="' + cls(x, c ? 'b' + c : '') + '">' + (r ? {vuran: 'vuran', esen: 'esen', yandan: 'yandan'}[r] : '–') + '</td>'; }).join('')); },
@@ -177,7 +179,6 @@ function renderHourly(){
       return row('Basınç', 'gün içi ' + (d > 1 ? '↑' : d < -1 ? '↓' : '→'), span('<svg class="spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><polyline points="' + pts + '" class="pl"/>' +
         '<text x="4" y="11" class="gt">' + Math.round(pressNum(Math.max(...ok))) + '</text><text x="4" y="' + (H - 2) + '" class="gt">' + Math.round(pressNum(Math.min(...ok))) + '</text></svg>'), '', ['Bas.', 'gün ' + (d > 1 ? '↑' : d < -1 ? '↓' : '→')]);
     },
-    bulut: () => row('Bulut', '%', hs.map(x => '<td class="' + cls(x) + '" style="' + (x.cloud != null ? tint('#8A9AAE', Math.round(x.cloud * 0.5)) : '') + '">' + f0(x.cloud) + '</td>').join('')),
   };
   const rows = orderedRows(HROWS, S.settings.hrows).filter(r => r.on && R[r.id] && (!r.mode || r.mode === (S.mode || 'tekne'))).map(r => R[r.id]());
   tbl.innerHTML = '<tbody>' + rows.join('') + '</tbody>';

@@ -3,6 +3,16 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.16.0', notes: [
+    'Yeni Fishing sekmesi (crimson): gün ve gündüz/gece seç → o bölümün solunar pencereleri → yalnızca en uygun 3 rig → en altta 3 saatlik dilimlerle sürüklenme ve kurşun',
+    'Solunar, Bunu bağla ve Sürüklenme ve kurşun Bugün ekranından Fishing’e taşındı',
+    'Saatlik tablo: bulut % Hava hücresinde, solunar olayları Balık hücresinde (Bulut ve Solunar satırları kalktı); Yağış % ve mm satırları alçak, Balık satırı yüksek; Rüzgâr Yönü',
+    'Kapalı bilgi alanında birimler: Uyum kn, Dlg. m, Per. sn, Akın. kn, Sürk. kn',
+    'Varsayılan satır düzeni yenilendi (model karşılaştırma satırları kapalı; Görünüm’den açılır)',
+    'Harita: yer adı, kıyı ve derinlik geldikçe karta yazılır; deniz/kara kıyı çizgisinin yönünden bulunur (yanlış “Kara” yok); Overpass iki sunucudan sorulur',
+    'Harita: Google ve Google uydu altlığı (anahtar varsa); Google bir isteği reddederse sebebi yazılır; Ayarlar → Harita → Google’ı dene',
+    'Görünüm → Düzenim: satır, kart, birim ve renk ayarlarını kodla kopyala, diğer cihazda uygula',
+  ]},
   {v: '0.15.0', notes: [
     'Saatlik tablo, rüzgâr: “Rüzgâr · Karma” satırı üstteki model seçimini izler; Karma\'da ICON-EU, ICON bitince ECMWF\'ye geçmez, – gösterir',
     'Rüzgâr ve hamle her model için ayrı satır: ICON-EU, ECMWF, GFS (rüzgâr) ve ICON-EU, ECMWF, GFS (hamle); adlar her yerde ICON-EU',

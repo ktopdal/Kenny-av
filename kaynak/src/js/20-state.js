@@ -13,7 +13,7 @@ function newState(){
   return {v: 2, created: new Date().toISOString(), seenVersion: APP_VERSION, onboarded: false, mode: 'tekne',
     profile: {name: '', baits: []},
     settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter', anchor: 'surukle', leeway: 'orta',
-      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false},
+      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false, hrv: 16},
     inv: {items: {}, qty: {}, status: {}, unit: {}, v: 2},
     systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {},
     pkg: {unlocked: false, version: null, need: false, locs: []},
@@ -22,13 +22,16 @@ function newState(){
 // eksik alanları tamamla (eski sürümden ya da yedekten gelen profil)
 function normalizeState(st){
   const n = newState();
+  const hrv0 = (st.settings && st.settings.hrv) || 0;   // satır düzeni sürümü (eksik alan doldurulmadan önce)
   if (st.inv && st.inv.v == null) st.inv.v = 1;   // eski envanter: adetler yeni birim düzenine taşınacak (migrateInv)
   for (const k of Object.keys(n)) if (st[k] === undefined || st[k] === null && typeof n[k] === 'object' && k !== 'wx' && k !== 'active') st[k] = n[k];
   for (const g of ['settings', 'inv', 'pkg', 'backup', 'profile']) for (const k of Object.keys(n[g])) if (st[g][k] === undefined) st[g][k] = n[g][k];
   if (!st.locations[st.active]) st.active = Object.keys(st.locations)[0] || null;
   if (st.wx && !st.wx.raw) st.wx = null;
   // v0.15: rüzgâr/hamle satırları yeni düzene (Karma + 3 model rüzgâr + 3 model hamle) varsayılan yerleriyle gelir
-  if ((st.settings.hrv || 0) < 15) { if (Array.isArray(st.settings.hrows)) st.settings.hrows = st.settings.hrows.filter(e => !/^(ruzgar|r_icon|r_ecmwf|r_gfs|h_icon|h_ecmwf|h_gfs|hamle|yon|uyum)$/.test(e && e[0])); st.settings.hrv = 15; }
+  if (hrv0 < 15) { if (Array.isArray(st.settings.hrows)) st.settings.hrows = st.settings.hrows.filter(e => !/^(ruzgar|r_icon|r_ecmwf|r_gfs|h_icon|h_ecmwf|h_gfs|hamle|yon|uyum)$/.test(e && e[0])); st.settings.hrv = 15; }
+  // v0.16: saatlik tablonun yeni varsayılan düzeni (Kenny'nin düzeni) herkese bir kez uygulanır; Bulut ve Solunar satırı kalktı
+  if (hrv0 < 16) { st.settings.hrows = null; st.settings.hrv = 16; }
   return st;
 }
 // v0.2 (Kenny Av) → v0.3: adetler, durumlar, konumlar, hava önbelleği ve açılmış paket taşınır

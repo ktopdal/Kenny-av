@@ -288,3 +288,60 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
 .now{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:460px){.now{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .metric .k .mb{font-size:9px;vertical-align:1px;margin-left:2px;text-transform:none}
+
+/* ---------- v0.16: Fishing sekmesi (crimson), saatlik tablo sadeleşti ---------- */
+:root{--fish:#DC143C;--fish-ink:#B5102F;--fish-soft:color-mix(in srgb,#DC143C 13%,transparent)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fish-ink:#FF5C72;--fish-soft:color-mix(in srgb,#DC143C 24%,transparent)}}
+:root[data-theme="dark"]{--fish-ink:#FF5C72;--fish-soft:color-mix(in srgb,#DC143C 24%,transparent)}
+.tabbar{grid-template-columns:repeat(7,minmax(0,1fr))}
+.tabbar button{font-size:10.5px;letter-spacing:-.01em;min-width:0;overflow:hidden}
+.tabbar .fishtab{color:var(--fish-ink);font-weight:700;overflow:visible}
+.tabbar .fishtab svg{width:32px;height:32px;padding:4px;margin-top:-10px;border-radius:50%;background:var(--fish);color:#fff;box-shadow:0 2px 8px color-mix(in srgb,var(--fish) 45%,transparent)}
+.tabbar .fishtab[aria-current="page"]{color:var(--fish-ink);background:var(--fish-soft)}
+.fview .sec-head h2{color:var(--fish-ink)}
+.fview .fey{color:var(--fish-ink)}
+.fpick{padding:10px 0 12px}
+.fpick .daychips{padding-top:0}
+.fparts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px 0}
+.fpart{display:flex;align-items:center;gap:8px;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px 10px;cursor:pointer;font:inherit;min-width:0}
+.fpart i{font-style:normal;font-size:20px;line-height:1}
+.fpart span{display:flex;flex-direction:column;min-width:0;flex:1}
+.fpart b{font:700 15px var(--display)}
+.fpart small{font:500 11px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fpart em{font-style:normal;flex:none}
+.fpart[aria-pressed="true"]{border-color:var(--fish);background:var(--fish-soft)}
+.fsum{padding:10px 12px 0}
+.fsrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fsrow b{font:700 15px var(--mono)}
+.fsrow b small{font:500 11px var(--mono);color:var(--muted)}
+.fsum .note{margin-top:4px}
+.rank{font:800 13px/1 var(--display);color:#fff;background:var(--fish);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;margin:4px 0 -4px}
+.banner.bad{background:var(--D-bg);color:var(--D)}
+.fblock{border-top:1px solid var(--line-2);padding:8px 0}
+.fblock p{margin:4px 0 0;font-size:14px;line-height:1.45;color:var(--ink-2)}
+.fbh{display:flex;align-items:center;gap:6px}
+.fbh b{font:700 14px var(--mono);color:var(--ink)}
+.fcta{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:12px 14px;border:0;border-radius:12px;background:var(--fish);color:#fff;cursor:pointer;text-align:left;font:inherit}
+.fcta b{font:800 16px var(--display)}
+.fcta span{flex:1;min-width:0;font-size:13px;opacity:.92}
+.fcta i{font-style:normal;font-size:18px}
+/* saatlik tablo: yağış satırları alçak, balık satırı yüksek; bulut % Hava hücresinde; solunar Balık hücresinde */
+.htab tr.slim td.c{height:24px;font-size:12px}
+.htab tr.slim th.lbl{padding-top:2px;padding-bottom:2px}
+.htab td.fish{height:68px}
+.htab td.fish .fi{height:16px;margin-bottom:3px}
+.htab td.fish svg{width:14px;height:14px}
+.htab td.fish small{font-size:10.5px;margin-top:1px}
+.htab td.fish em.sol{display:block;font:700 10px/1.2 var(--mono);font-style:normal;color:var(--gold);min-height:12px;margin-top:2px;letter-spacing:-.02em}
+.htab td.wxc svg{display:block;margin:0 auto}
+.htab td.wxc small{font-size:9.5px;margin-top:0}
+.hscroll.compact .htab tr.slim .lbl .sh em{display:inline;margin-left:2px}
+/* Google altlığı ve hata notu, Düzenim kodu */
+.gbase{position:absolute;inset:0;z-index:0;pointer-events:none}
+#map.hasg,.leaflet-container.hasg{background:transparent}
+.hasg .leaflet-bottom.leaflet-right{bottom:18px}
+.mc-g{font-size:12.5px;color:var(--D);background:var(--D-bg);border-radius:8px;padding:6px 8px}
+.codebox{width:100%;box-sizing:border-box;font:500 12px/1.4 var(--mono);border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface-2);color:var(--ink);resize:vertical;margin-top:6px;word-break:break-all}
+.tabbar .av{color:var(--muted)}
+.tabbar button[aria-current="page"].av{color:var(--brand);background:var(--brand-soft)}
+@media (max-width:360px){.tabbar button{font-size:9.6px;letter-spacing:-.02em}}

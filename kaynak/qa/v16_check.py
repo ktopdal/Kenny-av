@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.15 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v15_check.py
+"""Alyssa v0.3–v0.16 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v16_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v15'
+SHOTS = ROOT + '/qa/v16'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8780
+PORT = 8781
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -29,6 +29,7 @@ def check(cond, msg):
     if not cond: FAIL.append(msg)
 
 LAND = lambda lat, lon: 38.40 < lat < 38.50 and 27.15 < lon < 27.25   # sahte kara kutusu (test noktası 38.45, 27.20)
+TRAP = lambda lat, lon: 38.30 < lat < 38.32 and 26.70 < lon < 26.72   # denizde ama Nominatim yakın bir adres veriyor, derinlik servisi hata veriyor (eski sürüm "Kara" derdi)
 HANG = {'gfs': False}
 CORS = {'Access-Control-Allow-Origin': '*'}
 
@@ -119,11 +120,15 @@ async def mock_geo(route):
         q = urllib.parse.parse_qs(urllib.parse.urlparse(u).query); lat, lon = float(q['lat'][0]), float(q['lon'][0])
         if LAND(lat, lon):
             return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'lat': str(lat), 'lon': str(lon), 'name': '', 'address': {'village': 'Test Köyü', 'province': 'İzmir'}}))
+        if TRAP(lat, lon):
+            return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'lat': str(lat + 0.001), 'lon': str(lon), 'name': '', 'address': {'suburb': 'Tuzak Mahallesi', 'province': 'İzmir'}}))
         return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'error': 'Unable to geocode'}))
     if 'overpass' in u:
         body = urllib.parse.unquote_plus(route.request.post_data or '')
         mm = re.search(r'around:6000,([-\d.]+),([-\d.]+)', body); lat, lon = float(mm.group(1)), float(mm.group(2))
-        els = [{'type': 'way', 'id': 1, 'tags': {'natural': 'coastline'}, 'geometry': [{'lat': lat + 0.02, 'lon': lon - 0.05}, {'lat': lat + 0.02, 'lon': lon + 0.05}]},
+        if TRAP(lat, lon): await asyncio.sleep(2.5)   # yavaş Overpass: ad ve diğer bilgiler önce gelmeli
+        cy = lat - 0.02 if LAND(lat, lon) else lat + 0.02   # OSM kıyı çizgisi batıdan doğuya: kara solda (kuzey), deniz sağda (güney)
+        els = [{'type': 'way', 'id': 1, 'tags': {'natural': 'coastline'}, 'geometry': [{'lat': cy, 'lon': lon - 0.05}, {'lat': cy, 'lon': lon + 0.05}]},
                {'type': 'node', 'id': 2, 'lat': lat + 0.03, 'lon': lon, 'tags': {'place': 'village', 'name': 'Deneme'}},
                {'type': 'node', 'id': 3, 'lat': lat + 0.09, 'lon': lon, 'tags': {'place': 'town', 'name': 'Uzakkasaba'}}]
         return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'elements': els}))
@@ -131,6 +136,7 @@ async def mock_geo(route):
         g = urllib.parse.unquote(urllib.parse.parse_qs(urllib.parse.urlparse(u).query)['geom'][0]); mm = re.search(r'POINT\(([-\d.]+) ([-\d.]+)\)', g)
         lon, lat = float(mm.group(1)), float(mm.group(2))
         if LAND(lat, lon): return await route.fulfill(status=404, headers=CORS, body='{}')
+        if TRAP(lat, lon): return await route.fulfill(status=503, headers=CORS, body='{}')
         return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'min': 53.1, 'max': 55.2, 'avg': 54.3, 'smoothed': 54.0}))
     return await route.fulfill(status=404, headers=CORS, body='{}')
 
@@ -144,7 +150,7 @@ async def new_ctx(b, storage=None, w=390):
     await fbmock.install(ctx)
     for pat in ['https://tile.openstreetmap.org/**', 'https://server.arcgisonline.com/**', 'https://tiles.openseamap.org/**', 'https://ows.emodnet-bathymetry.eu/**', 'https://drive.emodnet-geology.eu/**']:
         await ctx.route(pat, mock_tiles)
-    for pat in ['https://nominatim.openstreetmap.org/**', 'https://overpass-api.de/**', 'https://rest.emodnet-bathymetry.eu/**']:
+    for pat in ['https://nominatim.openstreetmap.org/**', 'https://overpass-api.de/**', 'https://overpass.kumi.systems/**', 'https://rest.emodnet-bathymetry.eu/**']:
         await ctx.route(pat, mock_geo)
     await ctx.route('https://wa.me/**', lambda route: route.fulfill(status=200, content_type='text/html', body='<p>wa</p>'))
     pg = await ctx.new_page(); errs = []
@@ -197,7 +203,7 @@ async def main():
         net = await pg.inner_text('#net'); check(net.startswith('Güncel'), 'durum: ' + net)
         rows = await pg.locator('#hTable tr').count(); check(rows >= 15, 'saatlik tablo satırları ' + str(rows))
         # Bft rengi
-        cell = pg.locator('#hTable tr').nth(await row_idx(pg, 'Rüzgâr')).locator('td').nth(3)
+        cell = pg.locator('#hTable tr').nth(await row_idx(pg, 'Rüzgâr · Karma')).locator('td').nth(3)
         bg = await cell.evaluate('e => getComputedStyle(e).backgroundColor'); txt = (await cell.inner_text()).split('\n')[0]
         pal = ['#86D9A6', '#2DB46C', '#93C83E', '#E8D61E', '#F6B40C', '#F18A1B', '#E5531D', '#D0231F', '#9E1530', '#681E74', '#1F4EB4', '#173A87', '#0D2256']
         exp = pal[int(re.match(r'\d+', txt).group(0))]; r, g, bb = int(exp[1:3], 16), int(exp[3:5], 16), int(exp[5:7], 16)
@@ -391,20 +397,20 @@ async def main():
             if not same: print('   pencere/tablo farkı', t.replace('\n', ' ')[:200], inwin)
             await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(250)
         check(okc == ndays, 'G: takvimdeki pencere yüzdesi saatlik tabloyla aynı (%d/%d gün)' % (okc, ndays))
-        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
         labels = await pg.evaluate("""() => [...document.querySelectorAll('#solWins .win .t small')].map(e => e.textContent)""")
         check(labels and all(l in ('Sabah', 'Gündüz', 'Akşam', 'Gece') for l in labels), 'G: Bugün pencereleri adlı: ' + str(labels))
         recw = await pg.locator('#recList .meta.why').all_inner_texts()
         check(any('En iyi pencere' in x for x in recw), 'G: önerilerde en iyi pencere yazıyor')
         # sürüklenme paneli ve demirli seçimi
         dtxt = await pg.inner_text('#driftPanel')
-        check('sürüklenir' in dtxt and 'Noktanın üstünden' in dtxt and 'kurşun' in dtxt, 'G: sürüklenme paneli: ' + dtxt.replace('\n', ' ')[:160])
+        check('sürüklenir' in dtxt and 'tarafından başla' in dtxt and 'kurşun' in dtxt and len(re.findall(r'\d\d:\d\d–\d\d:\d\d', dtxt)) >= 3, 'G: sürüklenme paneli (3 saatlik dilimler): ' + dtxt.replace('\n', ' ')[:200])
         await pg.locator('#driftPanel').screenshot(path=SHOTS + '/g_surukle.png')
         lbls = await pg.locator('#hTable th.lbl b').all_text_contents(); check('Sürüklenme' in lbls, 'G: tabloda sürüklenme satırı')
         await pg.click('#driftPanel button[data-set="anchor"][data-val="demir"]'); await pg.wait_for_timeout(300)
         st = await state(pg); check(st['settings']['anchor'] == 'demir', 'G: demirli seçimi kaydedildi')
         lbls = await pg.locator('#hTable th.lbl b').all_text_contents(); dtxt2 = await pg.inner_text('#driftPanel')
-        check('İpe akış' in lbls and 'Demirli' in dtxt2 and 'Noktanın üstünden' not in dtxt2, 'G: demirliyken ipe akış, başlangıç önerisi yok')
+        check('İpe akış' in lbls and 'Demirli' in dtxt2 and 'tarafından başla' not in dtxt2, 'G: demirliyken ipe akış, başlangıç önerisi yok')
         await pg.click('#driftPanel button[data-set="anchor"][data-val="surukle"]'); await pg.wait_for_timeout(300)
         sogs = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const S = Q.state(); const x = Q.days()[0].hs[9]; const r = {}; for (const k of ['az', 'orta', 'cok']) { S.settings.leeway = k; r[k] = Q.driftAt(x).sog; } S.settings.leeway = 'orta'; return r; }""")
         check(sogs['az'] < sogs['orta'] < sogs['cok'], 'G: rüzgâr payı ayarı sürüklenmeyi değiştiriyor ' + json.dumps({k: round(v, 2) for k, v in sogs.items()}))
@@ -416,7 +422,7 @@ async def main():
         x50 = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const x = Q.days()[0].hs[9]; return Q.leadExtra(Q.driftAt(x), 50); }""")
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(250)
         await pg.evaluate("""() => { const i = document.querySelector('#sheet input[data-f="depth"]'); i.value = '25'; i.dispatchEvent(new Event('input', {bubbles: true})); i.dispatchEvent(new Event('change', {bubbles: true})); }""")
-        await pg.wait_for_timeout(200); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(300); await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(200)
+        await pg.wait_for_timeout(200); await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(300); await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(200)
         x25 = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const x = Q.days()[0].hs[9]; return Q.leadExtra(Q.driftAt(x), Q.loc().depth ? +Q.loc().depth : null); }""")
         check(abs(x25 - x50 / 2) <= 10 and 'Derinlik 25 m' in await pg.inner_text('#driftPanel'), 'G: derinlik kurşuna giriyor (50 m: +%d g, 25 m: +%d g)' % (x50, x25))
         # av kaydı o saatin koşullarını yeni ölçek ve sürüklenmeyle saklar
@@ -455,10 +461,14 @@ async def main():
         ctx, pg, errs = await new_ctx_at(b, '2026-10-17T21:40:00+03:00')
         await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
-        eb = await pg.locator('#recList .eyebrow').all_inner_texts()
-        check(any('YARIN' in e.upper() for e in eb), 'H: akşam gündüz önerileri yarının: ' + str(eb))
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
+        check(await pg.get_attribute('#fParts button[data-fpart="gece"]', 'aria-pressed') == 'true' and 'Gece' in await pg.inner_text('#recHead'), 'H: akşam Fishing geceyi açıyor: ' + await pg.inner_text('#recHead'))
         sw = await pg.inner_text('#solWins'); print('   pencereler 21:40:', sw.replace('\n', ' ')[:200])
-        check(sw.strip() != '', 'H: Bugün penceresi paneli boş değil')
+        check(sw.strip() != '', 'H: gece penceresi paneli boş değil')
+        await pg.click('#fParts button[data-fpart="gun"]'); await pg.wait_for_timeout(300)
+        check('Bugünün gündüzü bitti' in await pg.inner_text('#fSum'), 'H: geçmiş gündüz uyarısı')
+        await pg.click('#fSum button[data-fday]'); await pg.wait_for_timeout(300)
+        check(await pg.get_attribute('#fDays .dchip:nth-child(2)', 'aria-pressed') == 'true' and 'Gündüz' in await pg.inner_text('#recHead'), 'H: “Yarın sabah” ile yarının gündüzü')
         await pg.screenshot(path=SHOTS + '/h_aksam.png', full_page=True)
         print('H errors:', errs); check(not errs, 'H: sayfa hatası yok')
         await ctx.close()
@@ -469,10 +479,10 @@ async def main():
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
         lbl = lambda: pg.evaluate("""() => [...document.querySelectorAll('#hTable th.lbl')].map(th => th.querySelector('b').textContent + '|' + (th.querySelector('small') ? th.querySelector('small').textContent : ''))""")
         L0 = await lbl(); print('   satırlar:', [x.split('|')[0] for x in L0])
-        check(any(x.startswith('Güneş · Ay') for x in L0) and any(x.startswith('Balık eğrisi') for x in L0) and any(x.startswith('Model uyumu') for x in L0), 'I: yeni satırlar (güneş/ay, balık eğrisi, model uyumu)')
-        check(any(x.startswith('Rüzgâr|') and 'ECMWF' in x for x in L0), 'I: ECMWF karşılaştırma satırı')
+        check(any(x.startswith('Güneş · Ay') for x in L0) and any(x.startswith('Balık eğrisi') for x in L0) and not any(x.startswith('Model uyumu') for x in L0), 'I: satırlar (güneş/ay, balık eğrisi; model uyumu varsayılan kapalı)')
+        check(not any(x.startswith('Rüzgâr|') for x in L0) and any(x.startswith('Hamle|') and 'GFS' in x for x in L0), 'I: varsayılan: model karşılaştırma satırları kapalı, Hamle (GFS) açık')
         check('☀↑' in await pg.inner_text('#hTable'), 'I: gün doğumu tabloda')
-        check(await pg.locator('#hTable td.agree .dot').count() >= 10, 'I: model uyumu noktaları')
+        check(await pg.locator('#hTable td.agree .dot').count() == 0, 'I: model uyumu varsayılan kapalı')
         check(await pg.locator('#hTable svg.spark').count() == 2, 'I: balık ve basınç grafikleri')
         check(await pg.locator('#dayChips .dstrip').count() >= 5 and await pg.locator('#dayChips .dstrip').first.locator('i').count() == 8, 'I: gün şeridi (8 dilim)')
         names = await pg.evaluate("""() => [...document.querySelectorAll('#hTable td.wd small')].map(e => e.textContent)""")
@@ -494,9 +504,10 @@ async def main():
         idx = lambda L, name: next((i for i, x in enumerate(L) if x.startswith(name)), -1)
         d0 = idx(L2, 'Dalga|')
         await pg.click('#sheet button[data-rowmv="hrows|dalga|-1"]'); await pg.wait_for_timeout(250)
+        await pg.click('#sheet button[data-rowmv="hrows|dalga|-1"]'); await pg.wait_for_timeout(250)   # önce kapalı "Model uyumu"nun, sonra "Rüzgâr Yönü"nün üstüne
         L3 = await lbl(); check(idx(L3, 'Dalga|') == d0 - 1, 'I: dalga satırı bir üste taşındı')
         await pg.click('#sheet button[data-set="windUnit"][data-val="kn"]'); await pg.wait_for_timeout(250)
-        wcell = await pg.evaluate("""() => { const r = [...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === 'Rüzgâr'); return r.querySelectorAll('td')[9].innerText; }""")
+        wcell = await pg.evaluate("""() => { const r = [...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent.startsWith('Rüzgâr')); return r.querySelectorAll('td')[9].innerText; }""")
         check('Bft' in wcell and 'kn' in wcell.split('\n')[0] and int(re.match(r'\d+', wcell).group(0)) > 12, 'I: rüzgâr kn biriminde: ' + wcell.replace('\n', ' '))
         await pg.click('#sheet button[data-set="pressUnit"][data-val="mmhg"]'); await pg.wait_for_timeout(250)
         pv = await pg.evaluate("""() => { const r = [...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === 'Basınç' && tr.querySelectorAll('td').length > 2); return r.querySelectorAll('td')[9].innerText.split('\\n')[0]; }""")
@@ -504,13 +515,13 @@ async def main():
         await pg.click('#sheet button[data-set="windNames"][data-val="harf"]'); await pg.wait_for_timeout(250)
         names2 = await pg.evaluate("""() => [...document.querySelectorAll('#hTable td.wd small')].map(e => e.textContent)""")
         check(names2 and all(n in ('K', 'KD', 'D', 'GD', 'G', 'GB', 'B', 'KB') for n in names2), 'I: harfle yön adları')
-        await pg.click('#sheet input[data-rowtog="cards|surukle"]'); await pg.wait_for_timeout(200)
-        await pg.click('#sheet button[data-rowmv="cards|oneri|-1"]'); await pg.click('#sheet button[data-rowmv="cards|oneri|-1"]'); await pg.click('#sheet button[data-rowmv="cards|oneri|-1"]'); await pg.click('#sheet button[data-rowmv="cards|oneri|-1"]'); await pg.wait_for_timeout(250)
+        await pg.click('#sheet input[data-rowtog="cards|anlik"]'); await pg.wait_for_timeout(200)
+        await pg.click('#sheet button[data-rowmv="cards|anlik|-1"]'); await pg.wait_for_timeout(250)
         await pg.click('#sheet input[data-rowtog="calrows|guven"]'); await pg.wait_for_timeout(200)
         st = await state(pg); print('   ayarlar:', json.dumps({k: st['settings'][k] for k in ('windUnit', 'pressUnit', 'windNames', 'cards')}, ensure_ascii=False))
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(250)
         order = await pg.evaluate("""() => [...document.querySelectorAll('#todayCards > .tcard')].map(e => e.dataset.card + (e.hidden ? '-' : ''))""")
-        check(order[0] == 'oneri' and 'surukle-' in order, 'I: Bugün kartları sırası ve gizleme: ' + str(order))
+        check(order == ['anlik-', 'saatlik'], 'I: Bugün kartları sırası ve gizleme: ' + str(order))
         await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(250)
         check('güven' not in (await pg.inner_text('#dayList')).lower(), 'I: takvimde güven satırı kapalı')
         await pg.reload(); await pg.wait_for_timeout(2000)
@@ -586,6 +597,7 @@ async def main():
         st = await state(pg); lbls = await pg.locator('#hTable th.lbl b').all_text_contents()
         check(st['mode'] == 'kiyi' and await pg.inner_text('#todayTitle') == 'Bugün kıyıda' and 'Kıyı' in await pg.evaluate("document.getElementById('modeBtn').textContent"), 'K: kıyı moduna geçildi')
         check('Kıyıya göre' in lbls and 'Sürüklenme' not in lbls, 'K: tabloda kıyıya göre satırı, sürüklenme yok')
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
         check('Kıyı rigin yok' in await pg.inner_text('#recList'), 'K: kıyı rigi yokken kurulum önerisi')
         dp = await pg.inner_text('#driftPanel'); check('bilinmiyor' in dp, 'K: kıyının bakışı soruluyor')
         await pg.select_option('#driftPanel select[data-f="facing"]', '180'); await pg.wait_for_timeout(400)
@@ -620,7 +632,7 @@ async def main():
         while await pg.locator('#sheet button[data-buyadd], #sheet button[data-bought]').count():
             await pg.click('#sheet button[data-buyadd], #sheet button[data-bought] >> nth=0'); await pg.wait_for_timeout(150)
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
-        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(400)
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(400)
         recs = await pg.locator('#recList article.rig').all_inner_texts(); print('   kıyı önerileri:', [r.split('\n')[0:2] for r in recs])
         check(recs and all('surf' in r.lower() and r.startswith('K') for r in recs), 'K: Bugün bağla kıyı riglerini öneriyor (%d)' % len(recs))
         check(any('kurşun' in r for r in recs), 'K: kıyı rig kartında kurşun')
@@ -662,8 +674,8 @@ async def main():
         check(all(len(l.encode()) <= 75 for l in ics.split('\r\n')), 'L: .ics satırları 75 baytı aşmıyor')
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
         # çıkış listesi
-        await pg.click('.tabbar button[data-v="bugun"]'); await pg.click('.rechead button[data-open="liste"]'); await pg.wait_for_timeout(300)
-        ck = await pg.inner_text('#sheet'); check('Bugünün rigleri' in ck and 'Can yelekleri' in ck and 'Kurşun' in ck, 'L: çıkış listesi rigler, kurşun ve güvenlik')
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.click('.rechead button[data-open="liste"]'); await pg.wait_for_timeout(300)
+        ck = await pg.inner_text('#sheet'); check('Bugün · Gündüz rigleri' in ck and 'Can yelekleri' in ck and 'Kurşun' in ck, 'L: çıkış listesi seçili gün ve bölümün rigleri, kurşun ve güvenlik')
         await pg.click('#sheet input[data-ck^="k:Can"]'); await pg.wait_for_timeout(200)
         await pg.fill('#sf-ret', '14:00'); await pg.dispatch_event('#sf-ret', 'change'); await pg.fill('#sf-not', 'Alya 8, 2 kişi'); await pg.dispatch_event('#sf-not', 'change')
         async with ctx.expect_page() as pinfo:
@@ -987,7 +999,7 @@ async def main():
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.wait_for_timeout(300)
         t0 = await pg.locator('#rigList article.rig').first.inner_text(); check('gitmeden al' not in t0 and 'Sülünez' in t0, 'N: Sülünez var → kart elindeki yemi yazıyor')
         await pg.screenshot(path=SHOTS + '/n_kenny_rig.png')
-        await pg.click('.tabbar button[data-v="bugun"]'); await pg.click('.rechead button[data-open="liste"]'); await pg.wait_for_timeout(300)
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.click('.rechead button[data-open="liste"]'); await pg.wait_for_timeout(300)
         ck = await pg.inner_text('#sheet'); check('Yem:' in ck and ('(elinde)' in ck or '(gitmeden al)' in ck), 'N: çıkış listesinde yem durumu')
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
         print('N2 errors:', errs); check(not errs, 'N: sayfa hatası yok (Kenny)')
@@ -1210,7 +1222,7 @@ async def main():
         cls = await pg.get_attribute('#hScroll', 'class'); w0 = await pg.evaluate('document.querySelector("#hTable th.lbl").getBoundingClientRect().width')
         check('compact' in cls and w0 < 60, 'S: satır adları dar sütunda (%d px)' % w0)
         sh = await pg.evaluate('[...document.querySelectorAll("#hTable th.lbl .sh")].map(e => e.textContent)')
-        check('Rüz.BFT KRM' in sh and 'Rüz.BFT ICON' in sh and 'Rüz.BFT ECM' in sh and 'Hml.BFT GFS' in sh and 'Dlg.' in sh and 'SaatSaat' not in sh, 'S: kısa adlar: ' + ', '.join(sh[:16]))
+        check('Rüz.BFT KRM' in sh and 'Hml.BFT GFS' in sh and 'Dlg.m' in sh and 'Per.sn' in sh and 'Akın.kn' in sh and 'Sürk.kn' in sh and 'Yön' in sh and 'SaatSaat' not in sh, 'S: kısa adlar: ' + ', '.join(sh))
         hts0 = await pg.evaluate('[...document.querySelectorAll("#hTable tr")].map(r => Math.round(r.getBoundingClientRect().height))')
         await pg.screenshot(path=SHOTS + '/s_kisa.png')
         await pg.click('#hTable tr:nth-child(5) th.lbl'); await pg.wait_for_timeout(200)
@@ -1231,8 +1243,8 @@ async def main():
         await pg.set_viewport_size({'width': 390, 'height': 860})
         # kapalı sistem uyarısı
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('#sysTools button[data-systool="toggle"]'); await pg.wait_for_timeout(300)
-        await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
-        rl = await pg.inner_text('#recList'); check('kapalı' in rl and 'Açık rig sistemin yok' in rl, 'S: Bugün ekranında kapalı sistem uyarısı')
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
+        rl = await pg.inner_text('#recList'); check('kapalı' in rl and 'Açık rig sistemin yok' in rl, 'S: Fishing ekranında kapalı sistem uyarısı')
         await pg.click('#recList button[data-systool="toggle"]'); await pg.wait_for_timeout(300)
         check(await pg.locator('#recList article.rig').count() >= 1, 'S: “Aç” ile öneriler geri geldi')
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('#sysTools button[data-systool="toggle"]'); await pg.wait_for_timeout(200)
@@ -1248,11 +1260,15 @@ async def main():
         await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
         LB = """() => [...document.querySelectorAll('#hTable th.lbl')].map(th => th.querySelector('b').textContent + '|' + (th.querySelector('small') ? th.querySelector('small').textContent : ''))"""
-        L = await pg.evaluate(LB); W = [x for x in L if x.startswith('Rüzgâr') or x.startswith('Hamle')]
+        await pg.click('#hEdit'); await pg.wait_for_timeout(300)
+        for rid in ['r_icon', 'r_ecmwf', 'r_gfs', 'h_icon', 'h_ecmwf', 'h_gfs', 'hamle']:
+            await pg.click('#sheet input[data-rowtog="hrows|%s"]' % rid); await pg.wait_for_timeout(120)
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(300)
+        L = await pg.evaluate(LB); W = [x for x in L if (x.startswith('Rüzgâr') and not x.startswith('Rüzgâr Yönü')) or x.startswith('Hamle')]
         print('   rüzgâr satırları:', W)
         check(W == ['Rüzgâr · Karma|Bft ICON-EU', 'Rüzgâr|Bft ICON-EU', 'Rüzgâr|Bft ECMWF', 'Rüzgâr|Bft GFS', 'Hamle|Bft ICON-EU', 'Hamle|Bft ECMWF', 'Hamle|Bft GFS'], 'T: 7 rüzgâr/hamle satırı doğru sırada')
         check('Saat|' in L and 'Güneş · Ay|Doğuş · Batış' in L and 'Hava sıcaklığı|°C' in L and 'Su sıcaklığı|°C' in L, 'T: Saat, Güneş · Ay, sıcaklık alt yazıları')
-        check('Yön|ok · ad' in L and 'Akıntı|kn · ok' in L and 'Periyot|sn · ok' in L and 'Sürüklenme|kn' in L and 'Basınç|hPa · 3 sa' in L and any(x.startswith('Basınç|gün içi ') and len(x) <= len('Basınç|gün içi ↓') for x in L), 'T: kısa alt yazılar')
+        check('Rüzgâr Yönü|' in L and 'Akıntı|kn · ok' in L and 'Periyot|sn · ok' in L and 'Sürüklenme|kn' in L and 'Basınç|hPa · 3 sa' in L and any(x.startswith('Basınç|gün içi ') and len(x) <= len('Basınç|gün içi ↓') for x in L), 'T: kısa alt yazılar')
         mbs = await pg.evaluate("[...document.querySelectorAll('#hTable .mb, #nowGrid .mb')].map(e => e.textContent)")
         check('ICON' not in mbs and 'ICON-EU' in mbs, 'T: model adı her yerde ICON-EU')
         cells = await pg.evaluate("[...document.querySelectorAll('#hTable td.bf')].map(td => [td.querySelector('u.wu') ? td.querySelector('u.wu').textContent : '', td.querySelector('small') ? td.querySelector('small').textContent : ''])")
@@ -1302,16 +1318,147 @@ async def main():
         st['settings'].pop('hrv', None)
         await pg.evaluate('(s) => localStorage.setItem("alyssa-v1", JSON.stringify(s))', st)
         await pg.reload(); await pg.wait_for_timeout(2500)
-        L = await pg.evaluate(LB); W = [x.split('|')[0] + ' ' + x.split('|')[1].split(' ')[-1] for x in L if x.startswith('Rüzgâr') or x.startswith('Hamle')]
-        check(len(W) == 7 and 'Rüzgâr ICON-EU' in W and not any(x.startswith('Hamle|Bft GFS / ') for x in L), 'T: eski düzenden göç: ' + str(W))
+        L = await pg.evaluate(LB); W = [x.split('|')[0] + ' ' + x.split('|')[1].split(' ')[-1] for x in L if (x.startswith('Rüzgâr') and not x.startswith('Rüzgâr Yönü')) or x.startswith('Hamle')]
+        check(W == ['Rüzgâr · Karma ICON-EU', 'Hamle GFS'], 'T: eski düzenden göç, v0.16 varsayılanı: ' + str(W))
         await pg.click('#hBar button[data-val="karma"]'); await pg.wait_for_timeout(300)
-        st = await state(pg); check(st['settings'].get('hrv') == 15 and not any(e[0] == 'hamle' and e[1] for e in st['settings']['hrows'] or []), 'T: göç kaydedildi (hrv 15)')
+        st = await state(pg); check(st['settings'].get('hrv') == 16 and not st['settings'].get('hrows'), 'T: göç kaydedildi (hrv 16)')
         for w in [390, 320]:
             await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'T %d px' % w)
             await pg.screenshot(path=SHOTS + '/t_%d.png' % w)
         await pg.set_viewport_size({'width': 390, 'height': 860})
         print('T errors:', errs); check(not errs, 'T: sayfa hatası yok')
         await ctx.close()
+
+        # ================================================== U) v0.16: Fishing sekmesi, sade tablo, harita adı (yanlış "Kara" yok), Google, Düzenim
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        LB = """() => [...document.querySelectorAll('#hTable th.lbl')].map(th => th.querySelector('b').textContent + '|' + [...th.querySelectorAll('small')].map(e => e.textContent).join(' / '))"""
+        L = await pg.evaluate(LB); print('   satırlar:', L)
+        check('Hava|bulut % · yağış' in L and 'Yağış %|' in L and 'Yağış mm|' in L and 'Rüzgâr Yönü|' in L and 'Balık|aktivite % / Solunar M · m · ☀' in L, 'U: satır adları (Hava bulut %, Yağış %/mm, Rüzgâr Yönü, Balık + solunar)')
+        check(not any(x.startswith('Bulut|') or x.startswith('Solunar|') for x in L), 'U: Bulut ve Solunar satırları kalktı')
+        W = [x for x in L if x.startswith('Rüzgâr ·') or x.startswith('Rüzgâr|') or x.startswith('Hamle')]
+        check(W == ['Rüzgâr · Karma|Bft ICON-EU', 'Hamle|Bft GFS'], 'U: varsayılan rüzgâr satırları: ' + str(W))
+        order = [x.split('|')[0] for x in L]
+        check(order[:9] == ['Saat', 'Güneş · Ay', 'Hava sıcaklığı', 'Su sıcaklığı', 'Hava', 'Yağış %', 'Yağış mm', 'Balık', 'Balık eğrisi'], 'U: varsayılan sıra Kenny’nin düzeni: ' + str(order[:9]))
+        cl = await pg.evaluate("[...document.querySelectorAll('#hTable td.wxc')].map(td => td.querySelector('small') ? td.querySelector('small').textContent : '')")
+        check(len(cl) > 10 and any(x.startswith('%') for x in cl) and '%0' not in cl, 'U: Hava hücresinde bulut %, %0 yazılmıyor')
+        pops = await pg.evaluate("[...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === 'Yağış %').querySelectorAll('td')[3].textContent")
+        check(pops.startswith('%'), 'U: yağış olasılığı %17 biçiminde: ' + pops)
+        hts = await pg.evaluate("""() => { const h = n => { const r = [...document.querySelectorAll('#hTable tr')].find(tr => tr.querySelector('th b').textContent === n); return Math.round(r.getBoundingClientRect().height); }; return [h('Yağış %'), h('Yağış mm'), h('Balık'), h('Dalga')]; }""")
+        check(hts[0] <= 30 and hts[1] <= 30 and hts[2] >= 64 and hts[3] >= 32, 'U: yağış satırları alçak, balık satırı yüksek: ' + str(hts))
+        sol = await pg.evaluate("[...document.querySelectorAll('#hTable td.fish em.sol')].map(e => e.textContent).filter(Boolean)")
+        check(sol and all(re.fullmatch(r'(M|m|☀↑|☀↓)( (M|m|☀↑|☀↓))*', x) for x in sol), 'U: solunar olayları Balık hücresinde: ' + str(sol[:6]))
+        # sekmeler: 7, Fishing ortada; Bugün'de solunar/öneri/sürüklenme yok
+        tabs = await pg.evaluate("[...document.querySelectorAll('.tabbar button')].map(b => b.dataset.v)")
+        check(tabs == ['bugun', 'takvim', 'avlar', 'fishing', 'rigler', 'envanter', 'daha'], 'U: Fishing sekmesi ortada: ' + str(tabs))
+        check(await pg.locator('#v-bugun #recList, #v-bugun #solPanel, #v-bugun #driftPanel').count() == 0 and await pg.locator('#v-fishing #recList').count() == 1, 'U: solunar, öneri ve sürüklenme Bugün’den Fishing’e taşındı')
+        await pg.click('#v-bugun .fcta'); await pg.wait_for_timeout(300)
+        check(await pg.is_visible('#v-fishing') and not await pg.is_visible('#v-bugun'), 'U: Bugün’deki Fishing kısayolu')
+        check(await pg.locator('#fDays .dchip').count() >= 5 and await pg.locator('#fParts .fpart').count() == 2, 'U: gün ve gündüz/gece seçici')
+        check(await pg.get_attribute('#fParts button[data-fpart="gun"]', 'aria-pressed') == 'true' and await pg.inner_text('#recHead') == 'Bunu bağla · Gündüz', 'U: sabah gündüz seçili')
+        fs = await pg.inner_text('#fSum'); check(re.search(r'\d\d:\d\d – \d\d:\d\d', fs) and 'rüzgâr' in fs, 'U: bölüm özeti: ' + fs.replace('\n', ' ')[:120])
+        nr = await pg.locator('#recList article.rig').count(); check(1 <= nr <= 3 and await pg.locator('#recList .rank').count() == nr, 'U: en çok 3 rig, sıralı (%d)' % nr)
+        check((await pg.inner_text('#solWins')).strip() != '', 'U: solunar pencereleri')
+        dp = await pg.inner_text('#driftPanel'); nb = await pg.locator('#driftPanel .fblock').count()
+        check(nb >= 3 and 'İpe binen akış' in dp and 'Gündüz boyunca' in dp, 'U: sürüklenme 3 saatlik dilimlerle (%d dilim)' % nb)
+        pos = await pg.evaluate("""() => { const v = document.getElementById('v-fishing'); const y = id => document.getElementById(id).getBoundingClientRect().top; return [y('fPick'), y('solPanel'), y('recList'), y('driftPanel')]; }""")
+        check(pos == sorted(pos), 'U: sıra: gün/bölüm → solunar → bunu bağla → sürüklenme (en altta)')
+        await pg.screenshot(path=SHOTS + '/u_fishing_gunduz.png', full_page=True)
+        await pg.click('#fParts button[data-fpart="gece"]'); await pg.wait_for_timeout(300)
+        dp2 = await pg.inner_text('#driftPanel')
+        check(await pg.inner_text('#recHead') == 'Bunu bağla · Gece' and 'Gece boyunca' in dp2 and await pg.locator('#recList article.rig').count() <= 3, 'U: gece seçildi, gece rigleri ve gece dilimleri')
+        await pg.screenshot(path=SHOTS + '/u_fishing_gece.png', full_page=True)
+        await pg.locator('#fDays .dchip').nth(2).click(); await pg.wait_for_timeout(300)
+        check(await pg.get_attribute('#fDays .dchip:nth-child(3)', 'aria-pressed') == 'true' and await pg.get_attribute('#fParts button[data-fpart="gece"]', 'aria-pressed') == 'true', 'U: başka gün seçilince bölüm (gece) korunuyor')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(200); await overflow(pg, 'U %d px fishing' % w)
+            tb = await pg.evaluate("[...document.querySelectorAll('.tabbar button')].every(b => b.scrollWidth <= b.clientWidth + 1)")
+            check(tb, 'U %d px: sekme adları sığıyor' % w)
+        await pg.locator('.tabbar').screenshot(path=SHOTS + '/u_tabbar_320.png')
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        # Düzenim: kodu al, ayarı değiştir, kodu uygula → eski hali
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.click('#hEdit'); await pg.wait_for_timeout(300)
+        await pg.click('#sheet button[data-act="duzenCopy"]'); await pg.wait_for_timeout(300)
+        code = await pg.input_value('#duzenOut'); check(code.startswith('ALYSSA-DUZEN:') and len(code) > 40, 'U: Düzen kodu üretildi (%d karakter)' % len(code))
+        await pg.click('#sheet button[data-set="tempUnit"][data-val="f"]'); await pg.wait_for_timeout(250)
+        await pg.click('#sheet input[data-rowtog="hrows|dalga"]'); await pg.wait_for_timeout(250)
+        st = await state(pg); check(st['settings']['tempUnit'] == 'f', 'U: ayar değişti (°F)')
+        await pg.fill('#duzenIn', code); await pg.click('#sheet button[data-act="duzenApply"]'); await pg.wait_for_timeout(400)
+        st = await state(pg); L2 = await pg.evaluate(LB)
+        check(st['settings']['tempUnit'] == 'c' and any(x.startswith('Dalga|') for x in L2) and 'uygulandı' in await pg.inner_text('#toast'), 'U: Düzen kodu uygulandı, ayarlar geri geldi')
+        await pg.fill('#duzenIn', 'çöp'); await pg.click('#sheet button[data-act="duzenApply"]'); await pg.wait_for_timeout(300)
+        check('Uygulanamadı' in await pg.inner_text('#toast'), 'U: geçersiz kod reddedildi')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        # harita: denizde, Nominatim yakın adres verip derinlik servisi hata verse de "Deniz"; ad ve bilgiler geldikçe yazılır
+        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
+        await pg.evaluate('() => { window.ALYSSA_QA.pickPoint(38.31, 26.71); }'); await pg.wait_for_timeout(1300)   # beklemeden: kart yanıtlar geldikçe dolmalı
+        c1 = await pg.inner_text('#mapCard'); print('   ara kart:', c1.replace('\n', ' | ')[:200])
+        check('Tuzak Mahallesi' in c1 and 'aranıyor' in c1, 'U: yer adı Overpass beklenmeden göründü')
+        await pg.wait_for_timeout(3500)
+        c2 = await pg.inner_text('#mapCard'); print('   son kart:', c2.replace('\n', ' | ')[:220])
+        check('Deniz' in c2 and 'Kara' not in c2 and 'açıkları' in c2 and 'aranıyor' not in c2, 'U: deniz noktası “Kara” denmeden bulundu')
+        await pg.evaluate('window.ALYSSA_QA.pickPoint(38.45, 27.20)'); await pg.wait_for_timeout(2000)
+        c3 = await pg.inner_text('#mapCard'); check('Kara' in c3 and 'Test Köyü' in c3, 'U: kara noktası yine Kara: ' + c3.replace('\n', ' | ')[:100])
+        await pg.click('button[data-mapact="layers"]'); await pg.wait_for_timeout(200)
+        check(await pg.locator('#mapLayers button[data-mapbase="g"]').count() == 1 and await pg.locator('#mapLayers button[data-mapbase="gsat"]').count() == 1, 'U: anahtar varken Google altlıkları listede')
+        await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+        print('U errors:', errs); check(not errs, 'U: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== V) v0.16: Google (sahte Maps JavaScript API): çalışan anahtar ve site kısıtına takılan anahtar
+        GFAKE = """(function(){ var mode = window.__GM_MODE || 'ok';
+          function Map(el, o){ this.el = el; el.setAttribute('data-gmap', o.mapTypeId); window.__gmMoves = 0; }
+          Map.prototype.moveCamera = function(c){ window.__gmMoves++; this.c = c; }; Map.prototype.setMapTypeId = function(t){ this.el.setAttribute('data-gmap', t); };
+          function Geocoder(){}
+          Geocoder.prototype.geocode = function(){ if (mode !== 'ok') { var e = new Error('Geocoding Service: This IP, site or mobile application is not authorized to use this API key. Request received from IP address 1.2.3.4, with referer: https://ktopdal.github.io/'); e.code = 'REQUEST_DENIED'; return Promise.reject(e); }
+            return Promise.resolve({results: [{address_components: [{long_name: 'Gümüldür', types: ['administrative_area_level_4']}, {long_name: 'İzmir', types: ['administrative_area_level_1']}]}]}); };
+          window.google = {maps: {Map: Map, Geocoder: Geocoder}};
+          if (mode === 'referer') { console.error('Google Maps JavaScript API error: RefererNotAllowedMapError\\nhttps://developers.google.com/maps/documentation/javascript/error-messages#referer-not-allowed-map-error\\nYour site URL to be authorized: ' + location.href); setTimeout(function(){ window.gm_authFailure && window.gm_authFailure(); }, 20); }
+          var cb = new URL(document.currentScript.src).searchParams.get('callback'); setTimeout(function(){ window[cb] && window[cb](); }, 5); })();"""
+        GLOG = []
+        async def mock_gmaps(route):
+            GLOG.append(route.request.url)
+            return await route.fulfill(status=200, content_type='application/javascript', body=GFAKE, headers=CORS)
+        for mode in ['ok', 'referer']:
+            ctx, pg, errs = await new_ctx(b)
+            await ctx.add_init_script('window.__GM_MODE = %s;' % json.dumps(mode))
+            await ctx.route('https://maps.googleapis.com/**', mock_gmaps)
+            await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+            await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+            await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
+            await pg.evaluate('window.ALYSSA_QA.pickPoint(38.20, 26.75)'); await pg.wait_for_timeout(2200)
+            card = await pg.inner_text('#mapCard'); print('   %s kart:' % mode, card.replace('\n', ' | ')[:220])
+            if mode == 'ok':
+                check('Gümüldür açıkları' in card and 'Google kullanılamadı' not in card, 'V: Google yer adı (deniz: “… açıkları”)')
+                await pg.click('button[data-mapact="layers"]'); await pg.wait_for_timeout(200)
+                await pg.click('#mapLayers button[data-mapbase="g"]'); await pg.wait_for_timeout(600)
+                check(await pg.locator('#map.hasg .gbase[data-gmap="roadmap"]').count() == 1 and await pg.locator('#map img[src*="tile.openstreetmap.org"]').count() == 0, 'V: Google haritası altlık oldu (OSM karoları kalktı)')
+                m0 = await pg.evaluate('window.__gmMoves'); await pg.evaluate('window.ALYSSA_QA.map().panBy([120, 60], {animate: false})'); await pg.wait_for_timeout(200)
+                check(await pg.evaluate('window.__gmMoves') > m0, 'V: Google haritası Leaflet’le birlikte kayıyor')
+                await pg.click('#mapLayers button[data-mapbase="gsat"]'); await pg.wait_for_timeout(400)
+                check(await pg.get_attribute('#map .gbase', 'data-gmap') == 'hybrid', 'V: Google uydu')
+                await pg.screenshot(path=SHOTS + '/v_google.png')
+                await pg.click('#mapLayers button[data-mapbase="osm"]'); await pg.wait_for_timeout(500)
+                check(await pg.locator('#map.hasg').count() == 0 and await pg.locator('#map img[src*="tile.openstreetmap.org"]').count() > 0, 'V: OSM’ye dönüldü')
+                await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+                await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="ayarlar"]'); await pg.wait_for_timeout(300)
+                await pg.click('#sheet button[data-act="gtest"]'); await pg.wait_for_timeout(800)
+                check('Google çalışıyor' in await pg.inner_text('#gTestNote'), 'V: Ayarlar → Google’ı dene: çalışıyor')
+            else:
+                check('Google kullanılamadı' in card and 'Website restrictions' in card and 'Kara' not in card, 'V: site kısıtı hatası kartta açıklandı')
+                await pg.click('button[data-mapact="layers"]'); await pg.wait_for_timeout(200)
+                await pg.click('#mapLayers button[data-mapbase="g"]'); await pg.wait_for_timeout(800)
+                check(await pg.locator('#map img[src*="tile.openstreetmap.org"]').count() > 0 and 'Google haritası açılamadı' in await pg.inner_text('#toast'), 'V: Google reddedince OSM’ye düşüldü ve sebep yazıldı')
+                await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
+                await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="ayarlar"]'); await pg.wait_for_timeout(300)
+                await pg.click('#sheet button[data-act="gtest"]'); await pg.wait_for_timeout(800)
+                gt = await pg.inner_text('#gTestNote'); print('   Google’ı dene:', gt)
+                check('Website restrictions' in gt and 'ktopdal.github.io/*' in gt, 'V: Google’ı dene: site kısıtı ve doğru tarif')
+            errs[:] = [e for e in errs if 'Google Maps JavaScript API' not in e]
+            print('V %s errors:' % mode, errs); check(not errs, 'V %s: sayfa hatası yok' % mode)
+            await ctx.close()
+        check(len(GLOG) >= 2, 'V: Google betiği istendi (%d)' % len(GLOG))
 
         # ================================================== E) önizleme
         ctx = await b.new_context(viewport={'width': 390, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2)

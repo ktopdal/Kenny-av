@@ -63,16 +63,10 @@ async function captureHeading(){
   });
 }
 const dirOpts = () => DIR8.map((d, i) => [String(i * 45), d + ' · ' + WIND_NAMES[i]]);
-function renderShore(dd, cur){
-  const el = $('driftPanel'); if (!el) return;
-  const Lc = loc(); if (!dd || !cur || !Lc) { el.hidden = true; return; }
-  el.hidden = false;
-  const f = facingOf(Lc), rel = shoreRel(cur.wdir, f);
+// kıyının bakışı: pusulayla al ya da elle seç (Fishing → Kıyı ve kurşun)
+function shoreControls(Lc, f){
+  if (!Lc) return '';
   const sel = '<select data-lk="' + esc(Lc.id) + '" data-f="facing" aria-label="Kıyının bakışı"><option value="">Seç</option>' +
     dirOpts().map(([v, t]) => '<option value="' + v + '"' + (f != null && Math.round(f / 45) % 8 * 45 === Number(v) ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>';
-  el.innerHTML = '<div class="row" style="justify-content:space-between;align-items:center"><h3>Kıyı</h3>' + segBtns('mode', [['tekne', 'Tekne'], ['kiyi', 'Kıyı']], 'kiyi') + '</div>' +
-    '<p class="dline">' + (f == null ? 'Kıyının bakışı bilinmiyor. Telefonu denize doğru tut ve “Pusulayla al”a dokun ya da yönü seç.' :
-      'Kıyı <b>' + dir8(f) + '</b> yönüne bakıyor (' + Math.round(f) + '°). Şimdi rüzgâr ' + esc(windName(cur.wdir)) + ' ' + kn(cur.wind) + ' kn: <b>' + esc(REL_TXT[rel] || '–') + '</b>' + (cur.wave != null ? ', kıyıda dalga ' + f1(cur.wave) + ' m' : '') + '.') + '</p>' +
-    (f != null ? '<p class="note">' + esc(shoreAdvice(cur, f)) + '</p>' : '') +
-    '<div class="row shorebtns"><button class="btn small" type="button" data-act="heading">Pusulayla al</button><label class="f inl">Bakış ' + sel + '</label></div>';
+  return '<div class="row shorebtns"><button class="btn small" type="button" data-act="heading">Pusulayla al</button><label class="f inl">Bakış ' + sel + '</label></div>';
 }

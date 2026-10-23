@@ -62,7 +62,8 @@ function sheetSettings(){
     '<section class="set"><h4>Envanter</h4><p class="note">İğneleri nasıl sayarsın? Her kalemin üstünden ayrı ayrı da seçebilirsin.</p>' + segBtns('hookUnit', [['durum', 'Yalnız var / yok'], ['adet', 'Adet'], ['paket', 'Paket']], st.hookUnit || 'durum') +
       '<p class="note">Makine, kamış, ip, terminal, kurşun ve yemde adet sorulmaz: var, alınacak ya da yok. Jig ve zokada istersen adet.</p></section>' +
     '<section class="set"><h4>Harita</h4><label class="f wide">Google Maps API anahtarı (isteğe bağlı)<input id="gkey" data-setk="gkey" value="' + esc(st.gkey || '') + '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="AIza…"></label>' +
-    '<p class="note">Yer adları OpenStreetMap’ten gelir. Google adlarını istersen Google Cloud’da “Maps JavaScript API” ve “Geocoding API”yi aç, anahtarı yalnızca <b>https://ktopdal.github.io/Kenny-av/*</b> adresine kısıtla ve buraya yapıştır. Ayda 10.000 sorgu ücretsiz.</p></section>' +
+    '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>https://ktopdal.github.io/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
+    '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '</div>';
 }
@@ -100,7 +101,12 @@ function sheetView(){
     '<p class="note">Ad rüzgârın geldiği yönü söyler (Kıble güneyden eser); tablodaki ok rüzgârın gittiği yöne bakar. Yıldız K · Poyraz KD · Gündoğusu D · Keşişleme GD · Kıble G · Lodos GB · Batı B · Karayel KB.</p></section>' +
     list('hrows', 'Saatlik tablo satırları', 'Göstermek istediklerini işaretle, oklarla sırasını değiştir.', true) +
     list('cards', 'Bugün ekranındaki kartlar', '', true) +
-    list('calrows', 'Takvimde gösterilenler', '', false) + '</div>';
+    list('calrows', 'Takvimde gösterilenler', '', false) +
+    '<section class="set"><h4>Düzenim</h4><p class="note">Satırlar, kartlar, birimler, model ve renkler tek bir kodda. Kopyala, diğer cihazında (tablet ↔ telefon) yapıştırıp uygula; ya da bana gönder, herkes için varsayılan yapayım.</p>' +
+    '<div class="row"><button class="btn small" type="button" data-act="duzenCopy">Düzenimi kopyala</button></div>' +
+    '<textarea id="duzenOut" class="codebox" readonly rows="3" hidden aria-label="Düzen kodu"></textarea>' +
+    '<label class="f wide" style="margin-top:8px">Düzen kodu yapıştır<textarea id="duzenIn" class="codebox" rows="3" placeholder="ALYSSA-DUZEN:…" autocapitalize="none" autocorrect="off" spellcheck="false"></textarea></label>' +
+    '<div class="row"><button class="btn small" type="button" data-act="duzenApply">Uygula</button></div></section></div>';
 }
 // ---- Bulut yedek
 function sheetBackup(){
@@ -248,4 +254,32 @@ async function importBackup(file){
     pkgLoadCached(); indexAll(); applyTheme(); await loadCatches(); renderAll(); loadWeather(true);
     $('bkNote').textContent = 'Yedek yüklendi' + (j.catches ? ' · ' + j.catches.length + ' av' : '') + '.';
   } catch (e) { $('bkNote').textContent = 'Bu dosya ' + APP_SHORT + ' yedeği değil.'; }
+}
+
+// ---- Düzenim: görünüm ayarlarını kod olarak taşı (tablet ↔ telefon) ya da varsayılan yapılması için gönder
+const DUZEN_KEYS = ['hrows', 'cards', 'calrows', 'windUnit', 'windUnit2', 'tempUnit', 'pressUnit', 'windNames', 'model', 'hFull', 'coord', 'zoom', 'scheme', 'preset', 'brand', 'accent', 'bft'];
+function duzenCode(){
+  const o = {v: 1, app: APP_VERSION}; DUZEN_KEYS.forEach(k => { if (S.settings[k] !== undefined) o[k] = S.settings[k]; });
+  return 'ALYSSA-DUZEN:' + b64eUtf8(JSON.stringify(o));
+}
+function duzenApply(code){
+  const m = /ALYSSA-DUZEN:([A-Za-z0-9+/=]+)/.exec(String(code || '').replace(/\s+/g, ''));
+  if (!m) throw new Error('Kod tanınmadı');
+  const o = JSON.parse(new TextDecoder().decode(b64d(m[1])));
+  if (!o || o.v !== 1) throw new Error('Kod sürümü tanınmadı');
+  const reg = {hrows: HROWS, cards: TCARDS, calrows: CROWS};
+  let n = 0;
+  DUZEN_KEYS.forEach(k => {
+    if (!(k in o)) return; const v = o[k];
+    if (reg[k]) { if (v !== null && !(Array.isArray(v) && v.every(e => Array.isArray(e) && typeof e[0] === 'string'))) return; S.settings[k] = v; n++; return; }
+    if (k === 'bft') { if (v === null || (Array.isArray(v) && v.length === 13 && v.every(isHex))) { S.settings.bft = v; n++; } return; }
+    if (['brand', 'accent'].includes(k)) { if (v === '' || isHex(v)) { S.settings[k] = v; n++; } return; }
+    if (k === 'zoom') { if ([0, 1, 2].includes(v)) { S.settings.zoom = v; n++; } return; }
+    if (k === 'hFull') { S.settings.hFull = !!v; n++; return; }
+    if (typeof v === 'string' && v.length < 40) { S.settings[k] = v; n++; }
+  });
+  if (!n) throw new Error('Kodda ayar yok');
+  if (S.wx) WX = buildWx();
+  persist(); applyTheme(); renderAll();
+  return n;
 }

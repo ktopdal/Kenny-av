@@ -16,9 +16,9 @@ function renderAll(){
   const a = document.activeElement;
   if (a && ((a.tagName === 'INPUT' && !['file', 'search', 'checkbox', 'color'].includes(a.type)) || a.tagName === 'TEXTAREA') && !$('sheet').contains(a) && !$('welcome').contains(a)) { a.addEventListener('blur', () => setTimeout(renderAll, 300), {once: true}); return; }   // gecikme: odaktan çıkaran dokunuş (ör. −/+ düğmesi) önce kendi işini yapsın
   DAYS_CACHE = null;
-  renderTop(); renderNewVersion(); renderToday(); renderCalendar(); renderCatches(); renderRigs(); renderInventory(); renderMore();
+  renderTop(); renderNewVersion(); renderToday(); renderFishing(); renderCalendar(); renderCatches(); renderRigs(); renderInventory(); renderMore();
 }
-const VIEWS = ['bugun', 'takvim', 'avlar', 'rigler', 'envanter', 'daha'];
+const VIEWS = ['bugun', 'takvim', 'avlar', 'fishing', 'rigler', 'envanter', 'daha'];
 function show(v){
   document.querySelectorAll('section.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
   document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'));
@@ -91,6 +91,9 @@ function bindEvents(){
     if (d.sys) { ui.sys = d.sys; renderRigs(); return; }
     if (d.iseg) { ui.inv = d.iseg; renderInventory(); return; }
     if (d.hday) { ui.hday = d.hday; renderHourly(); return; }
+    if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
+    if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
+    if (d.goto) { show(d.goto); return; }
     if (d.calday) { ui.hday = d.calday; show('bugun'); renderHourly(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
     if (d.use) { S.active = d.use; persist(); WX = null; renderAll(); loadWeather(); if (ui.sheet === 'konumlar') openMore('konumlar', true); toast('Konum değişti'); return; }
     if (d.del) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delete S.locations[d.del]; if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null; persist(); WX = null; renderAll(); loadWeather(); openMore('konumlar', true); return; }
@@ -123,6 +126,10 @@ function bindEvents(){
       if (a === 'bkOverwrite') { if (!armOnce(b, 'Buluttaki yedeğin üzerine yazılacak · onayla')) return; $('bk-pass').value = BK.pendingPass || $('bk-pass').value; submitBackupForm(true); return; }
       if (a === 'pkgCheck') { pkgCheck(true); return; }
       if (a === 'refreshWx') { loadWeather(true); closeSheet(); return; }
+      if (a === 'gtest') { const n = $('gTestNote'); if (n) n.textContent = 'Google deneniyor…'; const r = await googleTest(); if ($('gTestNote')) $('gTestNote').textContent = r.txt; return; }
+      if (a === 'duzenCopy') { const c = duzenCode(), o = $('duzenOut'); if (o) { o.hidden = false; o.value = c; o.select(); }
+        try { await navigator.clipboard.writeText(c); toast('Düzen kodu kopyalandı'); } catch (e) { toast('Kodu seçip kopyala'); } return; }
+      if (a === 'duzenApply') { const el = $('duzenIn'); try { const n = duzenApply(el ? el.value : ''); toast('Düzen uygulandı (' + n + ' ayar)'); openMore('gorunum', true); } catch (e) { toast('Uygulanamadı: ' + e.message); } return; }
       if (a === 'export') { exportBackup(); return; }
     }
     if (b.id === 'seenVer') { S.seenVersion = APP_VERSION; persist(); renderNewVersion(); return; }

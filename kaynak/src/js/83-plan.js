@@ -68,11 +68,13 @@ function sheetAlert(){
 // ---- çıkış listesi ve güvenlik mesajı
 const BOAT_KIT = ['Can yelekleri (herkese bir)', 'VHF telsiz ya da şarjlı telefon (su geçirmez kılıfta)', 'Yakıt: dolu depo ve yedek', 'Çapa ve halat', 'İlk yardım çantası', 'El feneri / kafa lambası', 'Su ve yiyecek', 'Güneş kremi, şapka, güneş gözlüğü', 'Pense, makas, iğne çıkarıcı', 'Kepçe ya da kanca', 'Buz kutusu ve buz', 'Paraşüt çapa (drift sock)'];
 const SHORE_KIT = ['Kamış ayağı', 'Kafa lambası ve yedek pil', 'Kaymaz ayakkabı', 'Kepçe ya da uzun saplı kanca', 'Pense ve iğne çıkarıcı', 'Yedek şok lider ve köstek', 'Çapalı (grip) kurşun', 'Yem kutusu ve havlu', 'Buz kutusu', 'Şarjlı telefon', 'Su, mont ya da yağmurluk'];
+// Fishing'de seçilen gün ve bölümün (gündüz/gece) 3 rigi; Fishing açılmadıysa bugünün gündüz ve gece ilk ikileri
 function checklist(){
-  const ds = days(); const dd = ds.find(d => d.key === dateKey(new Date())) || ds[0];
-  const out = {rigs: [], gear: [], bait: [], kit: shoreMode() ? SHORE_KIT : BOAT_KIT};
+  const ds = days(); const dd = (ui.fday && ds.find(d => d.key === ui.fday)) || ds.find(d => d.key === dateKey(new Date())) || ds[0];
+  const out = {rigs: [], gear: [], bait: [], kit: shoreMode() ? SHORE_KIT : BOAT_KIT, dd, part: ui.fpart || null};
   if (dd && RIG_LIST.length) {
-    const recs = [false, true].flatMap(n => { const R = recommend(dd, n); return R.filter(x => x.ok).slice(0, 2).map(x => ({rg: x.rg, x: R.x})); });
+    const parts = ui.fpart ? [ui.fpart === 'gece'] : [false, true];
+    const recs = parts.flatMap(n => { const R = recommend(dd, n); return R.filter(x => x.ok).slice(0, ui.fpart ? F_TOP : 2).map(x => ({rg: x.rg, x: R.x})); });
     const seenRig = new Set(), gear = {}, bait = new Set();
     recs.forEach(({rg, x}) => {
       if (seenRig.has(rg.id)) return; seenRig.add(rg.id); out.rigs.push(rg);
@@ -92,9 +94,9 @@ function sheetChecklist(){
   const Lc = loc(); const sp = S.settings.safety || {};
   return sheetBar('Çıkış listesi') + '<div class="stack">' +
     '<p class="sub">' + (shoreMode() ? 'Kıyı' : 'Tekne') + ' · ' + (Lc ? esc(Lc.name) : 'konum yok') + ' · işaretler bugün için saklanır.</p>' +
-    (c.rigs.length ? '<section class="set"><h4>Bugünün rigleri</h4><p class="note">' + esc(c.rigs.map(r => (r.code ? r.code + ' ' : '') + r.name).join(' · ')) + '</p>' +
+    (c.rigs.length ? '<section class="set"><h4>' + (c.part && c.dd ? esc(dayLabel(c.dd.date, 0, dateKey(new Date())) + ' · ' + PART_TXT[c.part]) + ' rigleri' : 'Bugünün rigleri') + '</h4><p class="note">' + esc(c.rigs.map(r => (r.code ? r.code + ' ' : '') + r.name).join(' · ')) + '</p>' +
       c.gear.map(g => box('g:' + g.k, g.k, g.v.join(', '))).join('') + (c.bait.length ? c.bait.map(b => box('y:' + b, 'Yem: ' + b)).join('') : '') + '</section>' :
-      '<section class="set"><h4>Bugünün rigleri</h4><p class="note">Önerilen hazır rig yok; Bugün ekranından rig seçtiğinde burada malzemeleri listelenir.</p></section>') +
+      '<section class="set"><h4>Rigler</h4><p class="note">Önerilen hazır rig yok; Fishing’de gün ve bölüm seçince önerilen riglerin malzemeleri burada listelenir.</p></section>') +
     '<section class="set"><h4>' + (shoreMode() ? 'Kıyı ekipmanı' : 'Tekne ve güvenlik') + '</h4>' + c.kit.map(k => box('k:' + k, k)).join('') + '</section>' +
     '<section class="set"><h4>Güvenlik mesajı</h4><p class="note">Çıkmadan önce bir yakınına nerede olduğunu ve dönüş saatini WhatsApp’tan gönder.</p>' +
     '<div class="fields"><label class="f">Dönüş saati<input type="time" id="sf-ret" value="' + esc(sp.ret || '') + '"></label>' +
