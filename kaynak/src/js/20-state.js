@@ -13,9 +13,9 @@ function newState(){
   return {v: 2, created: new Date().toISOString(), seenVersion: APP_VERSION, onboarded: false, mode: 'tekne',
     profile: {name: '', baits: []},
     settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter', anchor: 'surukle', leeway: 'orta',
-      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false, hrv: 16},
+      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false, hrv: 16, ftarget: ''},
     inv: {items: {}, qty: {}, status: {}, unit: {}, v: 2},
-    systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {},
+    systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {}, fb: {},
     pkg: {unlocked: false, version: null, need: false, locs: []},
     backup: {repo: '', name: '', auto: true, photosOn: true, lastAt: null, sha: null, photos: {}, salt: null, err: null}};
 }

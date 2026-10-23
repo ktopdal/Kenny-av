@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.18 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v18_check.py
+"""Alyssa v0.3–v0.19 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v19_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v18'
+SHOTS = ROOT + '/qa/v19'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8783
+PORT = 8784
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -235,7 +235,7 @@ async def main():
         for v in ['takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(200); await overflow(pg, v)
         await pg.screenshot(path=SHOTS + '/a_daha.png')
-        check(await pg.locator('#moreMenu .mrow').count() == 17, 'Daha menüsü 17 satır (Hesap dahil)')
+        check(await pg.locator('#moreMenu .mrow').count() == 18, 'Daha menüsü 18 satır (Hesap ve Tür takvimi dahil)')
         # alışveriş: aynı rig iki kez yok
         await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
         lines = await pg.locator('#sheet .item .sp').all_inner_texts()
@@ -1691,6 +1691,127 @@ async def main():
         await pg.click('#calPick button[data-calloc="%s"]' % ids['Ev']); await pg.click('#calPick button[data-calloc="1"]'); await pg.wait_for_timeout(300)
         check(await pg.locator('#dayList .day.cmp').count() == 0 and await pg.locator('#dayList button.day').count() >= 5, 'Y: tek nokta kalınca eski takvim düzeni')
         print('Y errors:', errs); check(not errs, 'Y: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== Z) v0.19: tür takvimi + su, bugünkü ayar, hedef boy, bağladım → tuttu/tutmadı
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        # 1) motorun parçaları (birim)
+        u = await pg.evaluate("""() => { const Q = window.ALYSSA_QA, K = Q.kb();
+          const lf = Q.spNow('lufer', 12, 19), ls = Q.spNow('lufer', 7, 26), cold = Q.spNow('cipura', 9, 12);
+          const s1 = Q.rigSeason({species: ['lufer']}, 12, 19), s2 = Q.rigSeason({species: ['lufer']}, 7, 26), s3 = Q.rigSeason({species: ['akya']}, 1, 15);
+          return {tf: [Q.tempFit(20, [13, 16, 23, 27]), Q.tempFit(14.5, [13, 16, 23, 27]), Q.tempFit(30, [13, 16, 23, 27]), Q.tempFit(null, [1, 2, 3, 4])],
+            lf, ls, cold, s1, s2, s3, runs: [Q.monthRuns(new Set([9, 10, 11, 0])), Q.monthRuns(new Set([3])), Q.monthRuns(new Set([0,1,2,3,4,5,6,7,8,9,10,11]))],
+            ncal: Object.keys(K.CAL).length, nsp: K.SPECIES.length, miss: K.SPECIES.filter(x => !K.CAL[x.id]).map(x => x.id),
+            bad: Object.entries(K.CAL).filter(([k, v]) => !/^[0-3]{12}$/.test(v[0]) || !(v[1][0] < v[1][1] && v[1][1] <= v[1][2] && v[1][2] < v[1][3])).map(x => x[0])}; }""")
+        print('   birim:', json.dumps(u, ensure_ascii=False)[:600])
+        check(u['tf'][0] == 1 and abs(u['tf'][1] - 0.5) < 1e-9 and u['tf'][2] == 0 and u['tf'][3] is None, 'Z: su uyumu (ideal 1, yarı yolda 0,5, sınır dışı 0, veri yoksa yok)')
+        check(u['lf']['m'] == 3 and u['lf']['v'] == 1 and u['ls']['m'] == 1 and u['ls']['v'] < 0.3, 'Z: lüfer Aralık 19°C en iyi; Temmuz 26°C az')
+        check(u['cold']['tf'] == 0 and u['cold']['v'] < 0.3, 'Z: çipura için 12°C çok soğuk')
+        check(u['s1']['d'] > 1 and 'Aralık: Lüfer en iyi ayında, su 19° ideal' in u['s1']['why'][0], 'Z: rig puanı: mevsiminde ve suda ideal → artı, nedeni yazılı')
+        check(u['s2']['d'] < 0 and u['s3']['d'] <= -2.5 and 'mevsimi değil' in u['s3']['why'][0], 'Z: mevsim dışı ve sıcak su → eksi; akya Ocak “mevsimi değil”')
+        check(u['runs'] == ['Eki–Oca', 'Nis', 'yıl boyu'], 'Z: ay aralıkları yıl dönümünü kapsıyor: %s' % u['runs'])
+        check(not u['miss'] and not u['bad'], 'Z: her türün takvimi ve su aralığı var, biçim doğru (%d tür)' % u['nsp'])
+        t = await pg.evaluate("""() => { const Q = window.ALYSSA_QA, S = Q.state(); const ds = Q.days(); const dd = ds.find(d => d.key === '2026-10-17') || ds[0];
+          const K = (mm) => ({k: 'kostek', label: 'Köstek', kind: 'kostek', t: {envanter: {name: 'Seaguar FXR', size: mm}}});
+          const H = {k: 'ust', label: 'Üst', kind: 'hook', t: {envanter: {name: 'Chinu', size: 'No:2'}}};
+          const sunny = {t: new Date('2026-10-17T11:00:00+03:00'), cloud: 10, wave: 0.2, rain: 0, wind: 0.5, wdir: 0, cur: 0.05, curDir: 0};
+          const night = Object.assign({}, sunny, {t: new Date('2026-10-17T23:00:00+03:00'), cloud: 80});
+          const a = Q.tuneRig({id: 't1', slots: [H, K('0,26 mm')], species: ['karagoz'], klass: 'porsiyon', lengths: {hirsiz: 80}, tech: 'dip'}, dd, sunny, null, false, 10);
+          const b = Q.tuneRig({id: 't2', slots: [K('0,40 mm')], species: ['lufer'], klass: 'porsiyon', tech: 'spin'}, dd, sunny, null, false, 12);
+          const c = Q.tuneRig({id: 't3', slots: [H, K('0,40 mm')], species: ['sargoz'], klass: 'trofe', tech: 'dip'}, dd, night, null, true, 10);
+          const old = S.settings.ftarget; S.settings.ftarget = 'trofe';
+          const d = Q.tuneRig({id: 't4', slots: [H, K('0,26 mm')], species: ['karagoz'], klass: 'porsiyon', tech: 'dip'}, dd, sunny, null, false, 10);
+          S.settings.ftarget = old;
+          return {a, b, c, d, la: Q.lightAt(sunny, dd, null, false), ln: Q.lightAt(night, dd, null, true), lw: Q.lightAt(sunny, dd, {kinds: ['Şafak']}, false)}; }""")
+        print('   ayar:', json.dumps(t, ensure_ascii=False)[:700])
+        txt = lambda arr: ' | '.join(x['k'] + ': ' + x['t'] for x in arr)
+        check(t['la']['lv'] == 3 and t['ln']['lv'] == 0 and t['lw']['lv'] == 1, 'Z: ışık: güneşli-sakin 3, karanlık gece 0, şafak 1')
+        check('0,26 → 0,235 mm' in txt(t['a']) and 'tam boy' in txt(t['a']), 'Z: güneşli ve sakin: köstek bir boy ince; akış yok: köstekler tam boy (%s)' % txt(t['a'])[:120])
+        check(any(x.get('warn') and 'çelik tel' in x['t'] for x in t['b']) and 'ince köstek' not in txt(t['b']).replace('ince köstek keser', ''), 'Z: lüfer mevsiminde çelik tel uyarısı (ince köstek önerilmez)')
+        check('0,40 → 0,45 mm' in txt(t['c']), 'Z: karanlık gece, trofe: köstek bir boy kalın olabilir')
+        check('Hedef trofe, bu rig porsiyon' in txt(t['d']), 'Z: hedef trofe, porsiyon rig: iğne bir boy büyük')
+        # 2) Fishing: mevsiminde satırı, su sıcaklığı, hedef boy, bugünkü ayar, Bağladım
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(500)
+        await pg.click('#fParts button[data-fpart="gun"]'); await pg.wait_for_timeout(300)
+        fs = await pg.inner_text('#fSum'); print('   özet:', fs.replace('\n', ' | ')[:300])
+        check('Mevsiminde' in fs.title() or 'MEVSİMİNDE' in fs or 'Mevsiminde' in fs, 'Z: Fishing özetinde “Mevsiminde”')
+        check(await pg.locator('#fSum .fseason .sz').count() >= 2 and ' su ' in ' ' + fs.lower(), 'Z: Fishing özetinde su sıcaklığı ve en az 2 tür')
+        why = ' '.join(await pg.locator('#recList .rig .meta.why').all_text_contents())
+        check('Ekim:' in why, 'Z: önerinin nedeninde ay ve tür (Ekim: …)')
+        check(await pg.locator('#fTarget button[data-set="ftarget"]').count() == 3, 'Z: hedef boy seçici (Hepsi / Porsiyon / Trofe)')
+        tune = await pg.locator('#recList .rig .tune').count()
+        print('   bugünkü ayar kartları:', tune, (await pg.locator('#recList .rig .tune').first.inner_text()).replace('\n', ' | ')[:300] if tune else '')
+        check(tune >= 1 and 'BUGÜNKÜ AYAR' in (await pg.locator('#recList .rig .tune').first.inner_text()).upper(), 'Z: önerilen rigde “Bugünkü ayar”')
+        nr = await pg.locator('#recList article.rig').count()
+        check(nr >= 1 and await pg.locator('#recList button[data-fb="bagla"]').count() == nr, 'Z: her önerilen rigde “Bağladım” (%d)' % nr)
+        await pg.screenshot(path=SHOTS + '/z_fishing.png', full_page=True)
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 800}); await pg.wait_for_timeout(150); await overflow(pg, 'Z %d px Fishing' % w)
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        # hedef trofe
+        await pg.click('#fTarget button[data-set="ftarget"][data-val="trofe"]'); await pg.wait_for_timeout(400)
+        st = await state(pg); txt = await pg.inner_text('#recList')
+        check(st['settings']['ftarget'] == 'trofe' and ('hedef trofe' in txt or 'Hedef trofe' in txt), 'Z: hedef trofe seçildi ve önerilere yansıdı')
+        await pg.click('#fTarget button[data-set="ftarget"][data-val=""]'); await pg.wait_for_timeout(400)
+        check((await state(pg))['settings']['ftarget'] == '', 'Z: hedef boy “Hepsi”ye döndü')
+        # 3) Bağladım → Tutmadı → Geri al → Tuttu → Avı kaydet
+        rid = await pg.get_attribute('#recList button[data-fb="bagla"]', 'data-rig')
+        await pg.click('#recList button[data-fb="bagla"][data-rig="%s"]' % rid); await pg.wait_for_timeout(300)
+        st = await state(pg); fbs = list(st['fb'].values())
+        check(len(fbs) == 1 and fbs[0]['rig'] == rid and fbs[0]['res'] is None and fbs[0]['loc'] and not fbs[0]['night'], 'Z: “Bağladım” kaydedildi (rig, konum, gündüz)')
+        card = pg.locator('#recList article.rig', has=pg.locator('button[data-fid]'))
+        check('Bağlı' in await card.inner_text() and await card.locator('button[data-fb="tuttu"]').count() == 1, 'Z: kartta “Bağlı · saat” ve Tuttu / Tutmadı')
+        await card.locator('button[data-fb="tutmadi"]').click(); await pg.wait_for_timeout(300)
+        st = await state(pg); f0_ = list(st['fb'].values())[0]
+        check(f0_['res'] == 'tutmadi' and 'Tutmadı' in await pg.inner_text('#recList'), 'Z: Tutmadı işlendi')
+        await pg.locator('#recList button[data-fb="geri"]').first.click(); await pg.wait_for_timeout(300)
+        check(list((await state(pg))['fb'].values())[0]['res'] is None, 'Z: Geri al → yeniden cevap bekliyor')
+        await pg.locator('#recList button[data-fb="tuttu"]').first.click(); await pg.wait_for_timeout(300)
+        check(list((await state(pg))['fb'].values())[0]['res'] == 'tuttu' and await pg.locator('#recList button[data-fb="av"]').count() == 1, 'Z: Tuttu → “Avı kaydet”')
+        await pg.click('#recList button[data-fb="av"]'); await pg.wait_for_timeout(400)
+        check(await pg.is_visible('#cf-rig') and await pg.input_value('#cf-rig') == rid, 'Z: av formu bağlanan rigle açıldı')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        # 4) öğrenme: aynı rig benzer koşulda 3 kez tutmadıysa puanı düşer
+        sc = await pg.evaluate("""(rid) => { const Q = window.ALYSSA_QA; const ds = Q.days(); const dd = ds.find(d => d.key === '2026-10-17') || ds[0];
+          const R0 = Q.recommend(dd, false, null); const before = R0.find(x => x.rg.id === rid);
+          const rg = Q.rigs().find(r => r.id === rid);
+          for (let i = 0; i < 3; i++) { const f = Q.fbAdd(rg, dd, 'gun', R0.x); Q.fbSet(f.id, 'tutmadi'); }
+          const after = Q.recommend(dd, false, null).find(x => x.rg.id === rid);
+          return {b: before.sc, a: after.sc, why: after.why}; }""", rid)
+        print('   öğrenme:', json.dumps(sc, ensure_ascii=False)[:400])
+        check(sc['a'] < sc['b'] - 1.5 and any('tutmadı' in w for w in sc['why']), 'Z: 3 kez tutmayan rig benzer koşulda geri plana düştü (%.1f → %.1f)' % (sc['b'], sc['a']))
+        # 5) cevaplanmamış soru Fishing'in üstünde
+        await pg.evaluate("""() => { const Q = window.ALYSSA_QA, S = Q.state(); const rg = Q.rigs()[0]; const dd = Q.days()[0];
+          const f = Q.fbAdd(rg, dd, 'gece', null); f.t = new Date(Date.now() - 3 * 3600000).toISOString(); localStorage.setItem('alyssa-v1', JSON.stringify(S)); }""")
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.click('.tabbar button[data-v="fishing"]'); await pg.click('#fParts button[data-fpart="gece"]'); await pg.wait_for_timeout(400)
+        check(await pg.is_visible('#fAsk') and 'tuttu mu' in (await pg.inner_text('#fAsk')).lower(), 'Z: cevaplanmamış “Bağladığın rig tuttu mu?” sorusu')
+        await pg.screenshot(path=SHOTS + '/z_soru.png')
+        await pg.click('#fAsk button[data-fb="tutmadi"]'); await pg.wait_for_timeout(300)
+        check(not await pg.is_visible('#fAsk'), 'Z: cevaplayınca soru kalktı')
+        # Avlar: bildirim özeti
+        await pg.click('.tabbar button[data-v="avlar"]'); await pg.wait_for_timeout(300)
+        lb = await pg.inner_text('#learnBox') if await pg.is_visible('#learnBox') else ''
+        check('Bağladım bildirimleri' in lb and 'tutmadı' in lb, 'Z: Avlar’da bağladım bildirimleri özeti')
+        # 6) Tür takvimi sayfası
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
+        await pg.click('#fSum button[data-open="turtakvim"]'); await pg.wait_for_timeout(400)
+        n1 = await pg.locator('#sheet button.tcal-r').count()
+        check(await pg.inner_text('#sheetTitle') == 'Tür takvimi' and n1 >= 5, 'Z: Tür takvimi açıldı (%d tür)' % n1)
+        check(await pg.inner_text('#sheet .tcal-h .mo.now') == 'E' and await pg.locator('#sheet .tcal .c.now').count() == n1, 'Z: bu ay (Ekim) işaretli')
+        await pg.click('#sheet button[data-tcal="all"]'); await pg.wait_for_timeout(300)
+        n2 = await pg.locator('#sheet button.tcal-r').count()
+        check(n2 > n1 and n2 >= 35, 'Z: bölgenin türleri (%d)' % n2)
+        await pg.screenshot(path=SHOTS + '/z_turtakvimi.png', full_page=True)
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'Z %d px tür takvimi' % w)
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        await pg.click('#sheet button.tcal-r[data-tur="lufer"]'); await pg.wait_for_timeout(400)
+        sh = await pg.inner_text('#sheet')
+        check(await pg.inner_text('#sheetTitle') == 'Lüfer' and re.search(r'en iyi (Eki|Kas)–Ara', sh) and 'ideal' in sh, 'Z: türe dokununca takım planı: ne zaman ve su')
+        await pg.locator('#sheet .bar .btn').first.click(); await pg.wait_for_timeout(200)
+        print('Z errors:', errs); check(not errs, 'Z: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== E) önizleme

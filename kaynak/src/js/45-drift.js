@@ -40,14 +40,14 @@ function refHour(dd){
   return hs.find(x => x.h === 7) || hs[0] || null;
 }
 // kurşun ve köstek: rigin taban kurşunu + sürüklenme payı; derin noktada üst sınırdan başlar; kamış sınırı aşılmaz.
-// İpe binen akış 0,4 kn üstündeyse hırsız köstek %20 kısalır (kayalık rigler zaten kısa).
+// İpe binen akış 0,4 kn üstündeyse hırsız köstek %20, 0,7 kn üstündeyse %30 kısalır (kayalık rigler zaten kısa).
 function leadFor(rg, dd, x){
   x = x || refHour(dd);
   if (rg.mode === 'kiyi') return shoreLead(rg, x);
   const dr = x ? driftAt(x) : null;
   const depth = locDepth();
   const k = Object.assign({}, rg.lengths || {});
-  if (dr && dr.line >= 0.4 && !rg.own && k.hirsiz) { k.hirsiz = Math.round(k.hirsiz * 0.8); k.short = true; }
+  if (dr && dr.line >= 0.4 && !rg.own && k.hirsiz) { k.short = dr.line >= 0.7 ? 30 : 20; k.hirsiz = Math.round(k.hirsiz * (1 - k.short / 100)); }
   if (!rg.sinker || !rg.sinker.g) return rg.lengths ? Object.assign(k, {kursun: null, drift: dr}) : null;
   let [lo, hi] = rg.sinker.g; const max = rg.sinker.max || hi;
   if ((depth || 0) > 80) lo = hi;

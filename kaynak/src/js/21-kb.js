@@ -104,6 +104,27 @@ const KB = (() => {
     S('trakonya', 'Trakonya', 'Trachinus draco', 'kum', ['kum', 'camur'], [5, 100], null, ['gunduz', 'gece'], {g: ['Mamun', 'Karides'], n: ['Mamun']}, ALL, {porsiyon: '100–300 g'}, 'Sırt ve solungaç dikenleri zehirli; eldivenle tut, dikkatle sök.'),
     S('sarikuyruk', 'Sarıkuyruk', 'Seriola dumerili', 'yirtici', ['kayalik', 'orta-su'], [10, 150], [5, 6, 7, 8, 9, 10], ['safak', 'gunduz'], {g: ['Canlı istavrit', 'Canlı kalamar', 'Sahte yem']}, ['ege', 'akdeniz'], {porsiyon: '3–8 kg', trofe: '10–40 kg'}),
   ];
+  // v0.19 · Ege (İzmir–Seferihisar) av takvimi: ay ay oltaya gelme (Ocak→Aralık; 0 yok · 1 az · 2 iyi · 3 en iyi)
+  // ve su sıcaklığı [en düşük, ideal alt, ideal üst, en yüksek] °C. Genel bilgidir; yıla, noktaya ve suya göre değişir; avların öğretir.
+  const CAL = {
+    karagoz: ['222222223332', [13, 16, 23, 27]], isparoz: ['111233333221', [14, 18, 26, 28]], izmarit: ['233321111222', [12, 14, 19, 24]],
+    kupes: ['222233333322', [14, 17, 24, 27]], melanurya: ['111233333221', [15, 19, 26, 28]], mirmir: ['111223333211', [15, 19, 26, 28]],
+    sargoz: ['322221112333', [12, 14, 21, 26]], mercan: ['112233322221', [13, 16, 22, 26]], cipura: ['211222223332', [13, 17, 24, 28]],
+    minakop: ['111223333221', [15, 18, 26, 28]], fangri: ['112332222321', [13, 16, 21, 25]], sinarit: ['112332112332', [13, 16, 21, 25]],
+    sinagrit: ['112233222221', [13, 16, 22, 25]], tranca: ['111222333221', [15, 18, 25, 28]], eskina: ['111123333211', [15, 19, 26, 28]],
+    iskorpit: ['222222222233', [11, 14, 22, 26]], lipsoz: ['322222222223', [12, 14, 20, 24]], akya: ['000112333321', [17, 20, 27, 29]],
+    levrek: ['322211112333', [9, 12, 19, 24]], lufer: ['211111112333', [12, 15, 22, 26]], palamut: ['100111123332', [14, 16, 22, 25]],
+    lambuka: ['000000123320', [19, 21, 28, 30]], orkinos: ['000012223210', [16, 18, 25, 28]], zargana: ['112331112331', [12, 15, 21, 25]],
+    istavrit: ['322222223333', [11, 13, 22, 26]], kolyoz: ['100112233321', [15, 18, 25, 28]], uskumru: ['222100001222', [8, 11, 17, 20]],
+    kefal: ['222233333322', [10, 16, 26, 30]], barbunya: ['111122233322', [12, 15, 22, 26]], tekir: ['111223333221', [13, 16, 24, 27]],
+    kirlangic: ['332211111223', [10, 12, 18, 22]], mezgit: ['222100000122', [6, 8, 15, 18]], dil: ['112222222221', [10, 12, 22, 26]],
+    kalkan: ['112000112221', [6, 8, 16, 20]], lahos: ['111123333211', [16, 20, 26, 28]], orfoz: ['111122333211', [16, 20, 26, 28]],
+    kalamar: ['332110011233', [12, 14, 19, 23]], murekkep: ['123331111121', [12, 14, 20, 24]], ahtapot: ['222222223332', [12, 15, 24, 27]],
+    kirma: ['222222223332', [13, 15, 22, 26]], hani: ['112233333221', [13, 17, 24, 27]], 'kaya-baligi': ['222233333222', [11, 14, 25, 28]],
+    gelincik: ['332211111223', [11, 13, 18, 22]], trakonya: ['111123332211', [14, 17, 25, 28]], sarikuyruk: ['000123333210', [17, 20, 27, 29]],
+  };
+  // dişli türler köstek keser: lüferde çelik tel (ya da 0,50+ mm florokarbon), palamutta kalın florokarbon
+  const TEETH = {lufer: 'steel', palamut: 'fc'};
   // takım aileleri: iğne deseni ve boy aralığı (jp: No, w: # ve /0), köstek/beden/ana ip çapı (mm)
   const FAM = {
     sk: {name: 'Küçük ağızlılar', hook: {porsiyon: {p: ['chinu', 'maruseigo', 'iseama', 'baitholder'], jp: [1, 3], w: ['8', '4']}, trofe: {p: ['chinu', 'iseama', 'octopus'], jp: [3, 5], w: ['4', '1']}},
@@ -185,7 +206,7 @@ const KB = (() => {
     samandira: {mono: [0.20, 0.26], kostek: [0.16, 0.22], g: [2, 8], hook: {p: ['aberdeen', 'chinu', 'maruseigo'], jp: [1, 3], w: ['12', '6']}, len: {kostek: 50}},
   };
   const REGIONS = [['ege', 'Ege'], ['marmara', 'Marmara'], ['karadeniz', 'Karadeniz'], ['akdeniz', 'Akdeniz']];
-  return {PAT, COMPAT, HOOK, LINE, LURE, SPECIES, FAM, TECH, STD, LAY, FIX, REGIONS};
+  return {PAT, COMPAT, HOOK, LINE, LURE, SPECIES, FAM, TECH, STD, LAY, FIX, REGIONS, CAL, TEETH};
 })();
 // konumdan kaba bölge tahmini (kullanıcı değiştirebilir)
 function regionOf(L){

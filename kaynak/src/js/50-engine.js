@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------- 50 · öneri motoru (kurallar şeffaf, her önerinin nedeni yazılır)
 // Her rig, günün o bölümünün (gündüz / gece) en iyi penceresindeki koşullarla puanlanır:
-// dip uyumu, mevsim, deniz sınıfı, balık değeri, akıntı ve sürüklenme, tekniğin istediği koşullar ve avlarından öğrenilenler.
+// dip uyumu, mevsim (tür takvimi ve su sıcaklığı), hedef boy, deniz sınıfı, balık değeri, akıntı ve sürüklenme, tekniğin istediği koşullar,
+// avlarından ve "bağladım: tuttu / tutmadı" bildirimlerinden öğrenilenler.
 function bottomMatch(rg, b){
   const rb = rg.bottom || [];
   if (!b) return rb.includes('bilinmeyen') ? 3 : 0;
@@ -35,6 +36,7 @@ function recommend(dd, night, from){
   const dr = x ? driftAt(x) : null;
   const cls = (w && w.cls) || (night ? dd.clsN : dd.clsD);
   const ctx = {night, cur: x ? x.cur : null, illum: Math.round(dd.sol.illum * 100), month, L};
+  const sst = x && x.sst != null ? x.sst : dd.sst != null ? dd.sst : null, tgt = S.settings.ftarget || '';
   const out = [];
   RIG_LIST.forEach(rg => {
     if (rg.mode && rg.mode !== modeNow()) return;
@@ -52,14 +54,17 @@ function recommend(dd, night, from){
     const curKn = x && x.cur != null ? x.cur : null;
     if (rg.current && ((dr && dr.line >= 0.35) || (curKn || 0) >= 0.4)) { sc += 3; why.push('akıntı ' + f1(curKn) + ' kn, akıntı rigi'); }
     if (rg.window && night) { sc += 0.5; why.push('pencere ' + rg.window.join('–')); }
-    if (rg.season && rg.season.length) { sc += 1; why.push('mevsiminde'); }
-    if (month === 10 || month === 11) { const fit = Math.max(0, ...(rg.species || []).map(s => (SPECIES[s] && SPECIES[s].fit_oct_est) || 0)); if (fit) { sc += (fit - 3) * 0.5; if (fit >= 4) why.push('sezon uyumu ' + fit + '/5 (tahmin)'); } }
+    // tür takvimi ve su sıcaklığı (52-tune.js): rigin türlerinden bu ay ve bu suda en uygun olanı
+    const se = rigSeason(rg, month, sst); if (se) { sc += se.d; why.push(...se.why); }
+    if (rg.season && rg.season.length) { sc += 1; if (!se) why.push('mevsiminde'); }
+    // hedef boy (Fishing'de seçilir): porsiyon ya da trofe
+    if (tgt && rg.klass) { if (rg.klass === tgt) { sc += 1.5; why.push('hedef ' + (tgt === 'trofe' ? 'trofe' : 'porsiyon')); } else sc -= 3; }
     const tr = techRule(rg, {dr, x, w, night, cls}); sc += tr.d; why.push(...tr.why);
     const lr = learnRig(rg, ctx); if (lr) { sc += lr.bonus; why.push(...lr.why); }
     const ls = learnSpecies(rg, ctx); if (ls) { sc += ls.bonus; why.push(ls.why); }
     out.push({rg, sc, why, ok: ready(rg), learned: !!(lr || ls)});
   });
   out.sort((a, b) => b.sc - a.sc);
-  out.win = w; out.x = x; out.dr = dr; out.cls = cls;
+  out.win = w; out.x = x; out.dr = dr; out.cls = cls; out.sst = sst; out.month = month;
   return out;
 }

@@ -35,7 +35,7 @@ function compRow(rg, sl, tier){
 }
 function lengthsTxt(ld){
   if (!ld) return '';
-  const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %20 kısa)' : ''));
+  const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %' + (ld.short === true ? 20 : ld.short) + ' kısa)' : ''));
   if (ld.kursun && ld.shore) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g ' + ld.shoreWhy.join(' ve ') + ' için, çapalı kurşun)' : '') + (ld.over ? ' · <b class="warn">atış sınırı ' + ld.max + ' g: daha korunaklı bir nokta seç</b>' : ''));
   else if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
     (ld.over ? ' · <b class="warn">gereken ≈ ' + ld.need + ' g, kamış sınırı ' + ld.max + ' g: paraşüt çapa at, motorla karşıla ya da demirle</b>' : ''));
@@ -54,8 +54,9 @@ function baitHtml(rg, tier){
   if (!p.have.length && bi.some(x => x.st)) h += ' · <span class="warnt">elinde yok, gitmeden al</span>';
   return h;
 }
-function rigCard(rg, dd, why, extra, tier, x){
-  tier = tier || 'envanter';
+// opt: {tune: bugünkü ayar satırları (52-tune.js), foot: kartın altına (Bağladım satırı)}
+function rigCard(rg, dd, why, extra, tier, x, opt){
+  tier = tier || 'envanter'; opt = opt || {};
   if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız 32'lik özel sistemde
   const ok = ready(rg); const ld = leadFor(rg, dd, x);
   const chips = [];
@@ -80,7 +81,8 @@ function rigCard(rg, dd, why, extra, tier, x){
     rg.slots.map(sl => compRow(rg, sl, tier)).join('') +
     (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
     (ld && lengthsTxt(ld) ? '<div class="crow"><span class="k">Takım</span><span class="v">' + lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') + '</span><span class="s"></span></div>' : '') +
-    '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details></article>';
+    (opt.tune && opt.tune.length ? '<div class="tune"><b class="tuneh">Bugünkü ayar</b>' + opt.tune.map(t => '<div class="tl' + (t.warn ? ' warn' : '') + '"><span class="k">' + esc(t.k) + '</span><span class="v">' + esc(t.t) + '</span></div>').join('') + '</div>' : '') +
+    '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details>' + (opt.foot || '') + '</article>';
 }
 // menü satırı ve sayfa (sheet) başlığı
 const sheetBar = (title, right, close) => '<div class="bar"><button class="btn" type="button" data-close>' + (close || 'Geri') + '</button><h3 id="sheetTitle">' + esc(title) + '</h3>' + (right || '<span style="width:64px"></span>') + '</div>';

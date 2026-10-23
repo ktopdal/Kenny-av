@@ -12,6 +12,7 @@ const MORE = [
   ['grup', 'Ortak av haritası', () => { const g = grpCfg(); return g ? g.group + ' · ' + (GROUP.members.length ? GROUP.members.length + ' üye' : 'grup açık') : 'Kapalı · arkadaşlarınla şifreli ortak harita'; }],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
   ['turler', 'Türlerim ve takım planı', () => { const n = (S.targets || []).length; return n ? n + ' hedef tür · takım ve alınacaklar' : 'Tür ekle: hangi takım, ne almalısın'; }],
+  ['turtakvim', 'Tür takvimi', () => 'Ege: hangi tür hangi ayda, hangi suda · bu ay ' + MON_LONG[new Date().getMonth()]],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
   ['dosya', 'Dosya yedeği', () => 'Telefona indir ya da dosyadan yükle'],
@@ -41,7 +42,7 @@ function openMore(name, keep){
   ui.sheet = name;
   if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar

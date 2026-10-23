@@ -3,6 +3,12 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.19.0', notes: [
+    'Tür takvimi (Ege): her türün ay ay oltaya gelmesi ve sevdiği su sıcaklığı; öneriler bu ayı ve bugünkü suyu hesaba katar (Daha → Tür takvimi)',
+    'Fishing: “Mevsiminde” satırı (bu ay ve bu suda en uygun türler) ve hedef boy seçimi (Hepsi / Porsiyon / Trofe)',
+    'Bugünkü ayar: önerilen her rigde koşula göre köstek kalınlığı (ışık ve dip), köstek boyu (akış), kurşun, hedef boya göre iğne; lüfer mevsiminde çelik tel uyarısı',
+    'Bağladım → Tuttu / Tutmadı: tek dokunuşla bildir; tutmayan rig benzer koşulda geri planda kalır, tutan öne çıkar. Cevaplanmayan soru Fishing’in üstünde sorulur',
+    'Akış 0,7 kn üstünde hırsız köstek %30 kısalır']},
   {v: '0.18.0', notes: [
     'Tablet ve telefon aynı hesapla: bir cihazdaki değişiklik diğerine kendiliğinden geçer (açıksa en geç 30 sn, kapalıysa açılınca)',
     'İki cihazda aynı anda değişiklik olursa birleştirilir (rig sistemleri, konumlar, envanter, ayarlar, avlar ayrı ayrı); aynı şey iki yerde değiştiyse son değiştiren kalır',

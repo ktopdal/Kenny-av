@@ -99,9 +99,11 @@ async function renderCatches(){
   const top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
   const M = (k, v, s) => '<div class="metric"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>';
   $('catchStats').innerHTML = M('Av', tot, 'balık') + M('Toplam', fmtNum(kg, 1) || '0', 'kg') + M('En çok', top ? esc(top[0]) : '–', top ? top[1] + ' balık' : '');
-  const ls = learnSummary(); const lb = $('learnBox');
-  lb.hidden = !ls;
-  if (ls) lb.innerHTML = '<b>Avlarından öğrenme</b>' + (!ls.on ? '<span>' + esc(ls.txt) + '</span>' :
+  const ls = learnSummary(), fs = fbSummary(); const lb = $('learnBox');
+  lb.hidden = !ls && !fs;
+  const fsH = fs ? '<span>Bağladım bildirimleri: <b>' + fs.ok + ' tuttu, ' + fs.no + ' tutmadı</b>' + (fs.rigs.length ? ' · ' + fs.rigs.map(r => esc(r.n) + ' ' + r.ok + '/' + (r.ok + r.no)).join(', ') : '') + '. Tutmayan rig benzer koşulda geri planda kalır.</span>' : '';
+  if (!ls && fs) lb.innerHTML = '<b>Avlarından öğrenme</b>' + fsH;
+  if (ls) lb.innerHTML = '<b>Avlarından öğrenme</b>' + fsH + (!ls.on ? '<span>' + esc(ls.txt) + '</span>' :
     '<span>Öneriler ' + ls.total + ' av kaydına göre ayarlanıyor: aynı rigin benzer koşullarda (gece/gündüz, akıntı, ay, mevsim, nokta) verdiği sonuç öne çıkar.</span>' +
     (ls.rigs.length ? '<span>En verimli rigler: <b>' + ls.rigs.join(', ') + '</b></span>' : '') +
     (ls.hours.length ? '<span>En çok tuttuğun saatler: <b>' + ls.hours.join(', ') + '</b></span>' : '') +
@@ -128,8 +130,9 @@ window.addEventListener('popstate', () => { if (!$('sheet').hidden) closeSheet(t
 function toLocalInput(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function nearestLoc(p){ if (!p || p.lat == null) return null; let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
 const CATCH_TECH = ['Jig', 'Slow jig', 'Inchiku', 'Tai rubber', 'Kalamar zokası', 'Çapari', 'Sırtı (trolling)', 'Surf', 'LRF', 'Spin', 'Şamandıra', 'Diğer'];
-function catchForm(c){
-  const isNew = !c; c = c || {};
+// pre: yeni av için ön değerler (ör. "Tuttu → Avı kaydet": bağlanan rig)
+function catchForm(c, pre){
+  const isNew = !c; c = c || pre || {};
   const L = loc();
   FORM = {id: c.id || null, photos: [], keep: (c.photos || []).slice(), removed: [], loc: c.loc || (L ? {lat: L.lat, lon: L.lon, name: L.name, src: 'konum'} : null), t: c.t ? new Date(c.t) : new Date(), botTouched: c.bottom != null};
   const sps = Object.values(SPECIES).sort((a, b) => trCmp(a.name, b.name));

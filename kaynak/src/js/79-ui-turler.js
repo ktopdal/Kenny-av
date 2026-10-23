@@ -58,7 +58,7 @@ function sheetTurler(){
     return '<button type="button" class="mrow" data-tur="' + esc(t.id) + '"><span><b>' + esc(t.name) + '</b><small>' + esc(s ? (t.like ? 'benzer: ' + s.name + ' · ' : '') + (KB.FAM[s.fam] || {}).name : '') + '</small></span>' + chip(st) + '</button>'; };
   const mine = new Set(tg.map(t => t.like || t.id));
   const sysSp = [...new Set(RIG_LIST.flatMap(r => r.species || []))].filter(id => !mine.has(id) && spById(id));
-  return sheetBar('Türlerim') + '<div class="stack"><p class="sub">Hedeflediğin türü ekle; uygulama hangi takımla gitmen gerektiğini, elinde ne olduğunu ve neyi alman gerektiğini çıkarır.</p>' +
+  return sheetBar('Türlerim', '<button class="btn" type="button" data-open="turtakvim">Takvim</button>') + '<div class="stack"><p class="sub">Hedeflediğin türü ekle; uygulama hangi takımla gitmen gerektiğini, elinde ne olduğunu ve neyi alman gerektiğini çıkarır.</p>' +
     '<label class="f">Tür ekle<input id="tr-q" type="search" placeholder="Ör. istavrit, çinekop, sinarit" autocomplete="off"></label><div class="catres" id="trRes"></div>' +
     (ui.custom ? customPick() : '') +
     (tg.length ? '<div class="eyebrow">Hedef türlerim (' + tg.length + ')</div><div class="mlist">' + tg.map(row).join('') + '</div>' : '<div class="empty">Henüz tür eklemedin. Yukarıya bir tür adı yaz.</div>') +
@@ -91,7 +91,8 @@ function sheetTur(id){
   const month = new Date().getMonth() + 1;
   const info = [
     ['Takım ailesi', (KB.FAM[s.fam] || {}).name],
-    ['Ne zaman', s.m ? s.m.map(m => MON3[m - 1]).join(' ') + (s.m.includes(month) ? ' · şu an mevsimi' : ' · şu an mevsimi değil') : 'Yıl boyu'],
+    ['Ne zaman', KB.CAL[s.id] ? calSummary(s.id, month) : s.m ? s.m.map(m => MON3[m - 1]).join(' ') + (s.m.includes(month) ? ' · şu an mevsimi' : ' · şu an mevsimi değil') : 'Yıl boyu'],
+    ['Su', KB.CAL[s.id] ? suTxt(s.id) : ''],
     ['Saat', s.t.map(x => ({gunduz: 'gündüz', gece: 'gece', safak: 'şafak'}[x] || x)).join(', ')],
     ['Derinlik', s.depth[0] + '–' + s.depth[1] + ' m'],
     ['Dip', s.hab.map(b => BOTTOM_TXT[b] || b).join(', ')],
@@ -161,4 +162,43 @@ function planToSystem(id){
   raw.code = c; raw.id = 'tur:' + c; raw.plan = {species: p.s.id, target: t.id};
   sys.rigs.push(raw); sys.active = true; sys.updated = new Date().toISOString();
   S.onboarded = true; persist(); indexAll(); return raw.id;
+}
+// ---- Tür takvimi (v0.19): Ege için ay ay oltaya gelme ve sevdiği su sıcaklığı (52-tune.js, KB.CAL)
+// ardışık ayları aralık olarak yaz (Ara–Şub gibi yıl dönümünü de)
+function monthRuns(sel){
+  if (sel.size >= 12) return 'yıl boyu';
+  if (!sel.size) return '';
+  let start = 0; while (sel.has(start)) start++;
+  const runs = []; let cur = null;
+  for (let k = 1; k <= 12; k++) { const i = (start + k) % 12; if (sel.has(i)) { if (!cur) cur = [i, i]; else cur[1] = i; } else if (cur) { runs.push(cur); cur = null; } }
+  if (cur) runs.push(cur);
+  return runs.map(([a, b]) => a === b ? MON3[a] : MON3[a] + '–' + MON3[b]).join(', ');
+}
+function calSummary(id, month){
+  const by = [new Set(), new Set(), new Set(), new Set()];
+  for (let i = 0; i < 12; i++) by[calMonth(id, i + 1)].add(i);   // Ekim–Kasım: özel paketteki tahmin varsa o
+  const best = monthRuns(by[3]), good = monthRuns(by[2]);
+  return [best ? 'en iyi ' + best : '', good ? 'iyi ' + good : '', 'şu an ' + CAL_TXT[calMonth(id, month)]].filter(Boolean).join(' · ');
+}
+const todaySst = () => { if (!WX || landMode()) return null; const ds = days(); const dd = ds.find(d => d.key === dateKey(new Date())) || ds[0]; return dd ? dd.sst : null; };
+function suTxt(id){
+  const r = KB.CAL[id][1], t = todaySst();
+  return 'ideal ' + f0(tempNum(r[1])) + '–' + f0(tempNum(r[2])) + ' ' + TU() + (t != null ? ' · bugün ' + tempTxt(t, true) + ', ' + tempWord(t, r) : '');
+}
+function sheetSpeciesCal(){
+  const month = new Date().getMonth() + 1, sst = todaySst(), L = loc(), reg = regionOf(L);
+  const mine = new Set(RIG_LIST.flatMap(r => r.species || []).concat((S.targets || []).map(t => t.like || t.id)));
+  const all = ui.calAll || !mine.size;
+  const list = KB.SPECIES.filter(s => KB.CAL[s.id] && (all ? (s.bol.includes(reg) || mine.has(s.id)) : mine.has(s.id)))
+    .map(s => ({s, n: spNow(s.id, month, sst)})).sort((a, b) => b.n.v - a.n.v || b.n.m - a.n.m || trCmp(a.s.name, b.s.name));
+  const head = '<div class="tcal-r tcal-h"><span class="nm"></span>' + MON3.map((m, i) => '<span class="mo' + (i + 1 === month ? ' now' : '') + '">' + m.charAt(0) + '</span>').join('') + '<span class="su">su ' + TU() + '</span></div>';
+  const rows = list.map(({s, n}) => { const c = KB.CAL[s.id], w = sst != null ? tempWord(sst, c[1]) : '';
+    return '<button type="button" class="tcal-r" data-tur="' + esc(s.id) + '"><span class="nm">' + esc(s.name) + (mine.has(s.id) && all ? ' <i class="mk" aria-label="sistemimde"></i>' : '') + '</span>' +
+      MON3.map((x, i) => '<span class="c c' + calMonth(s.id, i + 1) + (i + 1 === month ? ' now' : '') + '"></span>').join('') +
+      '<span class="su ' + (w === 'ideal' ? 'ok' : /soğuk/.test(w) ? 'cold' : /sıcak/.test(w) ? 'hot' : '') + '">' + f0(tempNum(c[1][1])) + '–' + f0(tempNum(c[1][2])) + '</span></button>'; }).join('');
+  return sheetBar('Tür takvimi') + '<div class="stack"><p class="sub">Ege (İzmir–Seferihisar) için ay ay oltaya gelme ve türün sevdiği su sıcaklığı. Genel bilgidir; yıla ve noktaya göre değişir. Avların ve “tuttu / tutmadı” bildirimlerin önerileri senin noktana göre ayarlar.</p>' +
+    (mine.size ? '<div class="seg wrapseg"><button class="btn small" type="button" data-tcal="mine" aria-pressed="' + !all + '">Sistemimdeki türler</button><button class="btn small" type="button" data-tcal="all" aria-pressed="' + all + '">Bölgenin türleri</button></div>' : '') +
+    (sst != null ? '<p class="note">Bugün su <b>' + tempTxt(sst, true) + '</b> (' + esc(locLabel(L)) + '). Sağdaki sütun türün sevdiği su: yeşil uygun, mavi soğuk, kırmızı sıcak.</p>' : '<p class="note">Su sıcaklığı deniz noktası seçilince gelir.</p>') +
+    '<div class="tcal">' + head + rows + '</div>' +
+    '<div class="tcal-leg"><span><i class="c c1"></i>az</span><span><i class="c c2"></i>iyi</span><span><i class="c c3"></i>en iyi</span><span class="note">Bu ay: ' + MON_LONG[month - 1] + '. Türe dokun: takım planı.</span></div></div>';
 }

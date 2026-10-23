@@ -629,6 +629,50 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
 .syncinfo{margin:6px 0 8px;display:flex;flex-direction:column;gap:2px;font-size:13px}
 .syncinfo span{color:var(--ink-2)}
 .syncinfo b{font-weight:600;color:var(--ink);margin-right:4px}
+/* v0.19 · tür takvimi, bugünkü ayar, bağladım → tuttu/tutmadı, hedef boy */
+.fseason{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line-2)}
+.fseason>b{font:600 12px var(--mono);color:var(--fish-ink);text-transform:uppercase;letter-spacing:.03em;margin-right:2px}
+.fseason .sz{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 9px;font:500 13px var(--body);cursor:pointer;min-height:30px}
+.fseason .sz em{font-style:normal;font:500 11px var(--mono);color:var(--muted)}
+.fseason .btn{margin-left:auto}
+.cdots{display:inline-flex;gap:2px}
+.cdots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.cdots i.on{background:var(--fish)}
+.ftarget{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ftarget .seg{margin:0}
+.tune{border-top:1px solid var(--line-2);padding:8px 12px;background:var(--fish-soft);display:flex;flex-direction:column;gap:5px}
+.tuneh{font:600 11.5px var(--mono);color:var(--fish-ink);text-transform:uppercase;letter-spacing:.03em}
+.tune .tl{display:grid;grid-template-columns:82px minmax(0,1fr);gap:8px;font-size:13.5px;line-height:1.4}
+.tune .tl .k{font:500 11.5px var(--mono);color:var(--muted);text-transform:uppercase;padding-top:2px}
+.tune .tl.warn .v{color:var(--D);font-weight:600}
+.fbrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line-2)}
+.fbrow .note{flex:1 1 160px;min-width:0}
+.fbrow .fbst{font:600 13px var(--mono);margin-right:auto}
+.fbrow.on .fbst{color:var(--fish-ink)}
+.fbrow.tuttu .fbst{color:var(--A)}
+.fbrow.tutmadi .fbst{color:var(--muted)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.fbask{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--fish-soft);border:1px solid var(--fish);display:flex;flex-direction:column;gap:6px}
+.fbask b{color:var(--fish-ink)}
+.tcal{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:12px;padding:6px;background:var(--surface)}
+.tcal-r{display:grid;grid-template-columns:minmax(64px,1.7fr) repeat(12,minmax(11px,1fr)) 46px;gap:2px;align-items:center;width:100%;border:0;background:none;color:var(--ink);padding:3px 2px;font:inherit;text-align:left;cursor:pointer;border-radius:6px}
+button.tcal-r:hover{background:var(--surface-2)}
+.tcal-h{cursor:default;font:600 10.5px var(--mono);color:var(--muted)}
+.tcal-h .mo{text-align:center}
+.tcal-h .mo.now{color:var(--fish-ink)}
+.tcal-r .nm{font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcal-r .mk{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--brand);vertical-align:middle}
+.tcal .c,.tcal-leg .c{display:block;height:16px;border-radius:3px;background:var(--line-2)}
+.tcal .c1,.tcal-leg .c1{background:color-mix(in srgb,var(--fish) 22%,var(--surface))}
+.tcal .c2,.tcal-leg .c2{background:color-mix(in srgb,var(--fish) 55%,var(--surface))}
+.tcal .c3,.tcal-leg .c3{background:var(--fish)}
+.tcal .c.now{outline:2px solid var(--ink);outline-offset:-1px}
+.tcal-r .su{font:500 11px var(--mono);text-align:right;color:var(--muted);white-space:nowrap}
+.tcal-r .su.ok{color:var(--A);font-weight:700}.tcal-r .su.cold{color:var(--buy);font-weight:700}.tcal-r .su.hot{color:var(--D);font-weight:700}
+.tcal-leg{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.tcal-leg span{display:inline-flex;align-items:center;gap:5px}
+.tcal-leg .c{width:16px;height:12px}
+@media (max-width:360px){.tcal-r{grid-template-columns:minmax(58px,1.5fr) repeat(12,minmax(10px,1fr)) 40px}.tcal-r .nm{font-size:12px}}
 
 </style>
 <style id="userTheme"></style></head><body>
@@ -684,6 +728,7 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
   <section class="view fview" id="v-fishing" hidden>
     <div class="sec-head"><span class="eyebrow fey" id="fLoc">Fishing</span><h2>Fishing</h2></div>
     <div id="fNoLoc" hidden></div>
+    <div id="fAsk" hidden></div>
     <div class="panel fpick" id="fPick">
       <div class="daychips" id="fDays"></div>
       <div class="fparts" id="fParts" role="group" aria-label="Gündüz ya da gece"></div>
@@ -696,6 +741,7 @@ ul.buy{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap
     </div>
     <div class="row rechead" style="margin-top:20px;justify-content:space-between;align-items:center"><h3 id="recHead">Bunu bağla</h3><button class="btn small" type="button" data-open="liste">Çıkış listesi</button></div>
     <p class="note" id="recNote" style="margin-top:2px"></p>
+    <div class="ftarget" id="fTarget"></div>
     <div class="stack" id="recList" style="margin-top:10px"></div>
     <details style="margin-top:10px" id="recMoreW" hidden><summary class="note" style="cursor:pointer" id="recMoreS">Diğer uygun rigler</summary><div class="stack" id="recMore" style="margin-top:8px"></div></details>
     <details style="margin-top:10px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
@@ -1087,9 +1133,15 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.18.0';
+const APP_VERSION = '0.19.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.19.0', notes: [
+    'Tür takvimi (Ege): her türün ay ay oltaya gelmesi ve sevdiği su sıcaklığı; öneriler bu ayı ve bugünkü suyu hesaba katar (Daha → Tür takvimi)',
+    'Fishing: “Mevsiminde” satırı (bu ay ve bu suda en uygun türler) ve hedef boy seçimi (Hepsi / Porsiyon / Trofe)',
+    'Bugünkü ayar: önerilen her rigde koşula göre köstek kalınlığı (ışık ve dip), köstek boyu (akış), kurşun, hedef boya göre iğne; lüfer mevsiminde çelik tel uyarısı',
+    'Bağladım → Tuttu / Tutmadı: tek dokunuşla bildir; tutmayan rig benzer koşulda geri planda kalır, tutan öne çıkar. Cevaplanmayan soru Fishing’in üstünde sorulur',
+    'Akış 0,7 kn üstünde hırsız köstek %30 kısalır']},
   {v: '0.18.0', notes: [
     'Tablet ve telefon aynı hesapla: bir cihazdaki değişiklik diğerine kendiliğinden geçer (açıksa en geç 30 sn, kapalıysa açılınca)',
     'İki cihazda aynı anda değişiklik olursa birleştirilir (rig sistemleri, konumlar, envanter, ayarlar, avlar ayrı ayrı); aynı şey iki yerde değiştiyse son değiştiren kalır',
@@ -1722,9 +1774,9 @@ function newState(){
   return {v: 2, created: new Date().toISOString(), seenVersion: APP_VERSION, onboarded: false, mode: 'tekne',
     profile: {name: '', baits: []},
     settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter', anchor: 'surukle', leeway: 'orta',
-      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false, hrv: 16},
+      model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false, hrv: 16, ftarget: ''},
     inv: {items: {}, qty: {}, status: {}, unit: {}, v: 2},
-    systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {},
+    systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {}, fb: {},
     pkg: {unlocked: false, version: null, need: false, locs: []},
     backup: {repo: '', name: '', auto: true, photosOn: true, lastAt: null, sha: null, photos: {}, salt: null, err: null}};
 }
@@ -1954,6 +2006,27 @@ const KB = (() => {
     S('trakonya', 'Trakonya', 'Trachinus draco', 'kum', ['kum', 'camur'], [5, 100], null, ['gunduz', 'gece'], {g: ['Mamun', 'Karides'], n: ['Mamun']}, ALL, {porsiyon: '100–300 g'}, 'Sırt ve solungaç dikenleri zehirli; eldivenle tut, dikkatle sök.'),
     S('sarikuyruk', 'Sarıkuyruk', 'Seriola dumerili', 'yirtici', ['kayalik', 'orta-su'], [10, 150], [5, 6, 7, 8, 9, 10], ['safak', 'gunduz'], {g: ['Canlı istavrit', 'Canlı kalamar', 'Sahte yem']}, ['ege', 'akdeniz'], {porsiyon: '3–8 kg', trofe: '10–40 kg'}),
   ];
+  // v0.19 · Ege (İzmir–Seferihisar) av takvimi: ay ay oltaya gelme (Ocak→Aralık; 0 yok · 1 az · 2 iyi · 3 en iyi)
+  // ve su sıcaklığı [en düşük, ideal alt, ideal üst, en yüksek] °C. Genel bilgidir; yıla, noktaya ve suya göre değişir; avların öğretir.
+  const CAL = {
+    karagoz: ['222222223332', [13, 16, 23, 27]], isparoz: ['111233333221', [14, 18, 26, 28]], izmarit: ['233321111222', [12, 14, 19, 24]],
+    kupes: ['222233333322', [14, 17, 24, 27]], melanurya: ['111233333221', [15, 19, 26, 28]], mirmir: ['111223333211', [15, 19, 26, 28]],
+    sargoz: ['322221112333', [12, 14, 21, 26]], mercan: ['112233322221', [13, 16, 22, 26]], cipura: ['211222223332', [13, 17, 24, 28]],
+    minakop: ['111223333221', [15, 18, 26, 28]], fangri: ['112332222321', [13, 16, 21, 25]], sinarit: ['112332112332', [13, 16, 21, 25]],
+    sinagrit: ['112233222221', [13, 16, 22, 25]], tranca: ['111222333221', [15, 18, 25, 28]], eskina: ['111123333211', [15, 19, 26, 28]],
+    iskorpit: ['222222222233', [11, 14, 22, 26]], lipsoz: ['322222222223', [12, 14, 20, 24]], akya: ['000112333321', [17, 20, 27, 29]],
+    levrek: ['322211112333', [9, 12, 19, 24]], lufer: ['211111112333', [12, 15, 22, 26]], palamut: ['100111123332', [14, 16, 22, 25]],
+    lambuka: ['000000123320', [19, 21, 28, 30]], orkinos: ['000012223210', [16, 18, 25, 28]], zargana: ['112331112331', [12, 15, 21, 25]],
+    istavrit: ['322222223333', [11, 13, 22, 26]], kolyoz: ['100112233321', [15, 18, 25, 28]], uskumru: ['222100001222', [8, 11, 17, 20]],
+    kefal: ['222233333322', [10, 16, 26, 30]], barbunya: ['111122233322', [12, 15, 22, 26]], tekir: ['111223333221', [13, 16, 24, 27]],
+    kirlangic: ['332211111223', [10, 12, 18, 22]], mezgit: ['222100000122', [6, 8, 15, 18]], dil: ['112222222221', [10, 12, 22, 26]],
+    kalkan: ['112000112221', [6, 8, 16, 20]], lahos: ['111123333211', [16, 20, 26, 28]], orfoz: ['111122333211', [16, 20, 26, 28]],
+    kalamar: ['332110011233', [12, 14, 19, 23]], murekkep: ['123331111121', [12, 14, 20, 24]], ahtapot: ['222222223332', [12, 15, 24, 27]],
+    kirma: ['222222223332', [13, 15, 22, 26]], hani: ['112233333221', [13, 17, 24, 27]], 'kaya-baligi': ['222233333222', [11, 14, 25, 28]],
+    gelincik: ['332211111223', [11, 13, 18, 22]], trakonya: ['111123332211', [14, 17, 25, 28]], sarikuyruk: ['000123333210', [17, 20, 27, 29]],
+  };
+  // dişli türler köstek keser: lüferde çelik tel (ya da 0,50+ mm florokarbon), palamutta kalın florokarbon
+  const TEETH = {lufer: 'steel', palamut: 'fc'};
   // takım aileleri: iğne deseni ve boy aralığı (jp: No, w: # ve /0), köstek/beden/ana ip çapı (mm)
   const FAM = {
     sk: {name: 'Küçük ağızlılar', hook: {porsiyon: {p: ['chinu', 'maruseigo', 'iseama', 'baitholder'], jp: [1, 3], w: ['8', '4']}, trofe: {p: ['chinu', 'iseama', 'octopus'], jp: [3, 5], w: ['4', '1']}},
@@ -2035,7 +2108,7 @@ const KB = (() => {
     samandira: {mono: [0.20, 0.26], kostek: [0.16, 0.22], g: [2, 8], hook: {p: ['aberdeen', 'chinu', 'maruseigo'], jp: [1, 3], w: ['12', '6']}, len: {kostek: 50}},
   };
   const REGIONS = [['ege', 'Ege'], ['marmara', 'Marmara'], ['karadeniz', 'Karadeniz'], ['akdeniz', 'Akdeniz']];
-  return {PAT, COMPAT, HOOK, LINE, LURE, SPECIES, FAM, TECH, STD, LAY, FIX, REGIONS};
+  return {PAT, COMPAT, HOOK, LINE, LURE, SPECIES, FAM, TECH, STD, LAY, FIX, REGIONS, CAL, TEETH};
 })();
 // konumdan kaba bölge tahmini (kullanıcı değiştirebilir)
 function regionOf(L){
@@ -3211,14 +3284,14 @@ function refHour(dd){
   return hs.find(x => x.h === 7) || hs[0] || null;
 }
 // kurşun ve köstek: rigin taban kurşunu + sürüklenme payı; derin noktada üst sınırdan başlar; kamış sınırı aşılmaz.
-// İpe binen akış 0,4 kn üstündeyse hırsız köstek %20 kısalır (kayalık rigler zaten kısa).
+// İpe binen akış 0,4 kn üstündeyse hırsız köstek %20, 0,7 kn üstündeyse %30 kısalır (kayalık rigler zaten kısa).
 function leadFor(rg, dd, x){
   x = x || refHour(dd);
   if (rg.mode === 'kiyi') return shoreLead(rg, x);
   const dr = x ? driftAt(x) : null;
   const depth = locDepth();
   const k = Object.assign({}, rg.lengths || {});
-  if (dr && dr.line >= 0.4 && !rg.own && k.hirsiz) { k.hirsiz = Math.round(k.hirsiz * 0.8); k.short = true; }
+  if (dr && dr.line >= 0.4 && !rg.own && k.hirsiz) { k.short = dr.line >= 0.7 ? 30 : 20; k.hirsiz = Math.round(k.hirsiz * (1 - k.short / 100)); }
   if (!rg.sinker || !rg.sinker.g) return rg.lengths ? Object.assign(k, {kursun: null, drift: dr}) : null;
   let [lo, hi] = rg.sinker.g; const max = rg.sinker.max || hi;
   if ((depth || 0) > 80) lo = hi;
@@ -3309,7 +3382,8 @@ function shoreControls(Lc, f){
 
 // ---------------------------------------------------------------- 50 · öneri motoru (kurallar şeffaf, her önerinin nedeni yazılır)
 // Her rig, günün o bölümünün (gündüz / gece) en iyi penceresindeki koşullarla puanlanır:
-// dip uyumu, mevsim, deniz sınıfı, balık değeri, akıntı ve sürüklenme, tekniğin istediği koşullar ve avlarından öğrenilenler.
+// dip uyumu, mevsim (tür takvimi ve su sıcaklığı), hedef boy, deniz sınıfı, balık değeri, akıntı ve sürüklenme, tekniğin istediği koşullar,
+// avlarından ve "bağladım: tuttu / tutmadı" bildirimlerinden öğrenilenler.
 function bottomMatch(rg, b){
   const rb = rg.bottom || [];
   if (!b) return rb.includes('bilinmeyen') ? 3 : 0;
@@ -3344,6 +3418,7 @@ function recommend(dd, night, from){
   const dr = x ? driftAt(x) : null;
   const cls = (w && w.cls) || (night ? dd.clsN : dd.clsD);
   const ctx = {night, cur: x ? x.cur : null, illum: Math.round(dd.sol.illum * 100), month, L};
+  const sst = x && x.sst != null ? x.sst : dd.sst != null ? dd.sst : null, tgt = S.settings.ftarget || '';
   const out = [];
   RIG_LIST.forEach(rg => {
     if (rg.mode && rg.mode !== modeNow()) return;
@@ -3361,15 +3436,132 @@ function recommend(dd, night, from){
     const curKn = x && x.cur != null ? x.cur : null;
     if (rg.current && ((dr && dr.line >= 0.35) || (curKn || 0) >= 0.4)) { sc += 3; why.push('akıntı ' + f1(curKn) + ' kn, akıntı rigi'); }
     if (rg.window && night) { sc += 0.5; why.push('pencere ' + rg.window.join('–')); }
-    if (rg.season && rg.season.length) { sc += 1; why.push('mevsiminde'); }
-    if (month === 10 || month === 11) { const fit = Math.max(0, ...(rg.species || []).map(s => (SPECIES[s] && SPECIES[s].fit_oct_est) || 0)); if (fit) { sc += (fit - 3) * 0.5; if (fit >= 4) why.push('sezon uyumu ' + fit + '/5 (tahmin)'); } }
+    // tür takvimi ve su sıcaklığı (52-tune.js): rigin türlerinden bu ay ve bu suda en uygun olanı
+    const se = rigSeason(rg, month, sst); if (se) { sc += se.d; why.push(...se.why); }
+    if (rg.season && rg.season.length) { sc += 1; if (!se) why.push('mevsiminde'); }
+    // hedef boy (Fishing'de seçilir): porsiyon ya da trofe
+    if (tgt && rg.klass) { if (rg.klass === tgt) { sc += 1.5; why.push('hedef ' + (tgt === 'trofe' ? 'trofe' : 'porsiyon')); } else sc -= 3; }
     const tr = techRule(rg, {dr, x, w, night, cls}); sc += tr.d; why.push(...tr.why);
     const lr = learnRig(rg, ctx); if (lr) { sc += lr.bonus; why.push(...lr.why); }
     const ls = learnSpecies(rg, ctx); if (ls) { sc += ls.bonus; why.push(ls.why); }
     out.push({rg, sc, why, ok: ready(rg), learned: !!(lr || ls)});
   });
   out.sort((a, b) => b.sc - a.sc);
-  out.win = w; out.x = x; out.dr = dr; out.cls = cls;
+  out.win = w; out.x = x; out.dr = dr; out.cls = cls; out.sst = sst; out.month = month;
+  return out;
+}
+
+// ---------------------------------------------------------------- 52 · tür takvimi, su sıcaklığı ve koşula göre ölçüler (v0.19)
+// Tür takvimi (KB.CAL, Ege için genel bilgi): türün "şimdi" değeri = ay puanı (0–3) × su sıcaklığı uyumu. Rig puanına, rigin türlerinden
+// bu ay ve bu suda en uygun olanı katkı verir ve nedeni yazılır. Kenny'nin paketindeki Ekim–Kasım tahmini (1–5) varsa o ay için o kullanılır.
+// Bugünkü ayar (yalnız öneri; rigin kendi ölçüsü değişmez): kurşun (derinlik ve akış), köstek boyu (akış), köstek kalınlığı (ışık ve dip),
+// hedef boy (porsiyon / trofe) ve dişli tür (lüfer, palamut) uyarısı.
+const MON_LONG = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+const CAL_TXT = ['mevsimi değil', 'az görülür', 'mevsiminde', 'en iyi ayında'];
+// su sıcaklığı uyumu: ideal aralıkta 1, en düşük/en yüksekte ve ötesinde 0, arada doğrusal
+function tempFit(t, r){
+  if (t == null || !r) return null;
+  const [a, lo, hi, b] = r;
+  if (t >= lo && t <= hi) return 1;
+  if (t <= a || t >= b) return 0;
+  return t < lo ? (t - a) / (lo - a) : (b - t) / (b - hi);
+}
+// söz: ideal aralığın 1 °C dışına kadar "ideal" denir (21,2° için "sıcak" denmez)
+const tempWord = (t, r) => t == null || !r ? '' : t <= r[0] ? 'çok soğuk' : t >= r[3] ? 'çok sıcak' : t < r[1] - 1 ? 'soğuk' : t > r[2] + 1 ? 'sıcak' : 'ideal';
+function calMonth(id, month){
+  const c = KB.CAL[id]; if (!c) return null;
+  const sp = SPECIES[id];
+  if ((month === 10 || month === 11) && sp && sp.fit_oct_est) return [0, 1, 2, 3, 3][Math.max(1, Math.min(5, Math.round(sp.fit_oct_est))) - 1];   // 1–5 → 0–3
+  return +c[0][month - 1];
+}
+// türün bu ay ve bu sudaki durumu: m (0–3), tf (0–1 ya da veri yoksa null), v (0–1): su hiç uymuyorsa en iyi ayında bile düşük
+function spNow(id, month, sst){
+  const c = KB.CAL[id]; if (!c) return null;
+  const m = calMonth(id, month), tf = tempFit(sst, c[1]);
+  return {id, m, tf, v: m / 3 * (tf == null ? 1 : 0.15 + 0.85 * tf)};
+}
+const spName = id => (SPECIES[id] || {}).name || (KB.SPECIES.find(s => s.id === id) || {}).name || id;
+// rigin mevsim ve su payı: {d, why, best}
+function rigSeason(rg, month, sst){
+  const list = (rg.species || []).map(id => spNow(id, month, sst)).filter(Boolean);
+  if (!list.length) return null;
+  list.sort((a, b) => b.v - a.v);
+  const best = list[0];
+  if (list.every(x => x.m === 0)) return {d: -2.5, why: [MON_LONG[month - 1] + ': ' + list.slice(0, 2).map(x => spName(x.id)).join(', ') + ' mevsimi değil'], best};
+  const tw = sst != null ? tempWord(sst, KB.CAL[best.id][1]) : '';
+  const why = [MON_LONG[month - 1] + ': ' + spName(best.id) + ' ' + CAL_TXT[best.m] + (tw ? ', su ' + f0(tempNum(sst)) + '° ' + tw : '')];
+  return {d: Math.round((best.v - 0.45) * 3 * 10) / 10, why, best};
+}
+// şu an mevsiminde olan türler (Fishing özeti): sistemimdeki ve hedeflediğim türler önce; yoksa bölgenin türleri
+function seasonNow(month, sst, n){
+  const reg = regionOf(loc());
+  const mine = new Set(RIG_LIST.flatMap(r => r.species || []).concat((S.targets || []).map(t => t.like || t.id)));
+  const pool = KB.SPECIES.filter(s => KB.CAL[s.id] && s.bol.includes(reg) && (!mine.size || mine.has(s.id)));
+  return pool.map(s => spNow(s.id, month, sst)).filter(x => x && x.m >= 2 && x.v >= 0.4).sort((a, b) => b.v - a.v || b.m - a.m).slice(0, n || 6);
+}
+const calDots = m => '<span class="cdots" aria-label="' + CAL_TXT[m] + '">' + [1, 2, 3].map(i => '<i class="' + (i <= m ? 'on' : '') + '"></i>').join('') + '</span>';
+
+// ---- Bugünkü ayar
+// ışık: gündüz bulut, dalga ve yağış; gece ay ışığı (aydınlık ve ay ufkun üstünde mi) ve bulut; şafak/alacakaranlık loş
+function lightAt(x, dd, w, night){
+  if (!x) return null;
+  const cl = x.cloud == null ? 50 : x.cloud, wave = x.wave || 0, rain = x.rain || 0;
+  if (w && (w.kinds || []).some(k => k === 'Şafak' || k === 'Alacakaranlık')) return {lv: 1, t: (w.kinds.includes('Şafak') ? 'şafak' : 'alacakaranlık') + ', ışık az'};
+  if (!night) {
+    if (cl < 35 && wave < 0.5 && rain < 0.3) return {lv: 3, t: 'güneşli ve sakin, su berrak'};
+    if (cl >= 75 || wave >= 1 || rain >= 0.5) return {lv: 1, t: (rain >= 0.5 ? 'yağışlı' : cl >= 75 ? 'kapalı' : 'dalgalı') + ', ışık az'};
+    return {lv: 2, t: 'gündüz'};
+  }
+  const L = loc(); let up = false;
+  try { up = !!L && SunCalc.getMoonPosition(x.t, L.lat, L.lon).altitude > 0.1; } catch (e) {}
+  const il = dd && dd.sol ? dd.sol.illum : 0;
+  if (up && il >= 0.6 && cl < 50) return {lv: 2, t: 'ay ışıklı gece (%' + Math.round(il * 100) + ')'};
+  return {lv: 0, t: 'karanlık gece'};
+}
+const LEADER_MM = [0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.235, 0.26, 0.28, 0.30, 0.33, 0.37, 0.40, 0.45, 0.50, 0.57, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20, 1.40];
+const mmStep = (mm, dir) => dir < 0 ? LEADER_MM.filter(v => v < mm * 0.97).pop() || null : LEADER_MM.find(v => v > mm * 1.03) || null;
+// yuvanın o seviyedeki çapı (ad, ölçü ya da envanter kaleminden)
+function slotMm(sl, tier){
+  const t = (sl.t && (sl.t[tier] || sl.t.envanter || sl.t.turkiye)) || {};
+  const it = t.item && ITEMS[t.item];
+  return lineMm({name: [t.name, t.size, t.raw].filter(Boolean).join(' '), model: it ? it.name : '', spec: it ? it.spec || '' : ''});
+}
+const leaderSlot = rg => (rg.slots || []).find(sl => sl.k === 'kostek' || sl.k === 'lider') || null;
+// envanterde bu çapta köstek var mı (florokarbon ya da misina)
+function leaderHave(mm){ try { const r = resolveSlot({kind: 'line', cats: ['fc', 'mono'], lo: mm * 0.97, hi: mm * 1.03}); return r.strict ? r.strict.name : null; } catch (e) { return null; } }
+const mmT = mm => { let t = (Math.round(mm * 1000) / 1000).toFixed(3); if (t.endsWith('0')) t = t.slice(0, -1); return t.replace('.', ','); };   // 0,235 · 0,40 · 0,26
+// rig için bugünkü ayar satırları: [{k, t}]
+function tuneRig(rg, dd, x, w, night, month){
+  const out = []; if (!rg || !dd) return out;
+  const L = loc(); const rock = !!(L && (L.bottom === 'kayalik' || L.bottom === 'saf-kayalik'));
+  const sl = leaderSlot(rg), mm = sl ? slotMm(sl, 'envanter') : null;
+  // dişli tür: bu ay mevsimindeyse ve rig ona uygunsa köstek uyarısı (ışık ayarından önce gelir)
+  const pred = ['sirti', 'spin', 'canli', 'lrf'].includes(rg.tech) || /sardalya|kalamar|istavrit|canlı/i.test([rg.baitText || ''].concat(rg.baits && rg.baits.ana ? [rg.baits.ana.envanter || rg.baits.ana.turkiye || ''] : []).join(' '));
+  let teeth = null;
+  Object.keys(KB.TEETH).forEach(id => {
+    if (teeth) return; const s = KB.SPECIES.find(z => z.id === id); if (!s || !s.bol.includes(regionOf(L))) return;
+    const m = calMonth(id, month); if (m < 2) return;
+    if ((rg.species || []).includes(id) || pred) teeth = {id, m, kind: KB.TEETH[id]};
+  });
+  if (teeth) out.push({k: 'Köstek', t: spName(teeth.id) + ' ' + CAL_TXT[teeth.m] + ': ' + (teeth.kind === 'steel' ? 'kaplamalı çelik tel (7–15 kg) ya da en az 0,50 mm florokarbon; ince köstek keser.' : 'lider en az 0,40 mm florokarbon; ince ip kesilir.'), warn: true});
+  // köstek kalınlığı: ışığa göre bir boy ince ya da kalın (kayalıkta incelme önerilmez)
+  const lt = lightAt(x, dd, w, night);
+  if (mm && lt && !(teeth && teeth.kind === 'steel')) {
+    if (lt.lv === 3 && !rock) { const to = mmStep(mm, -1); if (to) { const h = leaderHave(to); out.push({k: 'Köstek', t: lt.t + ': bir boy ince köstek balığı daha az ürkütür (' + mmT(mm) + ' → ' + mmT(to) + ' mm' + (h ? ', envanterinde: ' + h : ', envanterinde yok') + ').'}); } }
+    else if (lt.lv === 3 && rock) out.push({k: 'Köstek', t: lt.t + ' ama dip kayalık: köstek aynen kalsın (' + mmT(mm) + ' mm), ince köstek kayada kopar.'});
+    else if (lt.lv === 0 && (rock || rg.klass === 'trofe')) { const to = mmStep(mm, 1); if (to) { const h = leaderHave(to); out.push({k: 'Köstek', t: lt.t + ': balık ipi görmez; ' + (rock ? 'kayaya ' : 'büyük balığa ') + 'karşı bir boy kalın bağlanabilir (' + mmT(mm) + ' → ' + mmT(to) + ' mm' + (h ? ', envanterinde: ' + h : '') + ').'}); } }
+  }
+  // hedef boy: seçilen hedefle rigin sınıfı uyuşmuyorsa iğne ve köstek bir boy
+  const tg = S.settings.ftarget;
+  if (tg && rg.klass && rg.klass !== tg && (rg.slots || []).some(s => s.kind === 'hook'))
+    out.push({k: 'İğne', t: tg === 'trofe' ? 'Hedef trofe, bu rig porsiyon: iğneleri bir boy büyük, köstek bir boy kalın bağla.' : 'Hedef porsiyon, bu rig trofe: iğneleri bir boy küçült; küçük ağızlı balık iğneyi alamaz.'});
+  // akış: köstek boyu (leadFor zaten kısaltır; burada nedeni yazılır)
+  const dr = x ? driftAt(x) : null;
+  if (dr && dr.known && !rg.own && (rg.lengths || {}).hirsiz) {
+    if (dr.line >= 0.7) out.push({k: 'Köstek boyu', t: 'akış ' + f1(dr.line) + ' kn, çok güçlü: hırsız köstek %30 kısa, köstekler dolaşmasın.'});
+    else if (dr.line >= 0.4) out.push({k: 'Köstek boyu', t: 'akış ' + f1(dr.line) + ' kn: hırsız köstek %20 kısa.'});
+    else if (dr.line < 0.15) out.push({k: 'Köstek boyu', t: 'akış yok denecek kadar az: köstekler tam boy, yem doğal dursun.'});
+  }
   return out;
 }
 
@@ -3377,7 +3569,7 @@ function recommend(dd, night, from){
 // En az 5 av kaydı birikince öneriler senin sonuçlarına göre ayarlanır:
 //   bir rigle tuttuğun balık sayısı, özellikle benzer koşullarda (gece/gündüz, akıntı, ay, mevsim, aynı nokta)
 //   bir türü bu dönemde tuttuysan o türe kurulan rigler öne çıkar.
-// Yalnızca yakaladığın avlar bilinir (avsız çıkışlar kaydedilmiyor); bu yüzden etki sınırlı tutulur ve her öneride nedeni yazılır.
+// Avsız çıkışlar "Bağladım → Tutmadı" ile bilinir (56-feedback.js); etkiler sınırlı tutulur ve her öneride nedeni yazılır.
 const LEARN_MIN = 5;
 let LEARN = null;
 const curB = v => v == null ? null : v < 0.3 ? 0 : v < 0.7 ? 1 : 2;
@@ -3402,6 +3594,11 @@ function learnBase(){
 const rigMatch = (c, rg) => !!c.rig && (c.rig === rg.id || (rg.sys === 'ozel' && rg.code && c.rig === rg.code));
 // ctx: {night, cur (kn), illum (%), month, L}
 function learnRig(rg, ctx){
+  const c = learnRigCatch(rg, ctx), f = learnFb(rg, ctx);   // 56-feedback.js: bağladım → tuttu / tutmadı
+  if (!c && !f) return null;
+  return {bonus: (c ? c.bonus : 0) + (f ? f.bonus : 0), why: (c ? c.why : []).concat(f ? f.why : []), all: c ? c.all : 0, simN: c ? c.simN : 0};
+}
+function learnRigCatch(rg, ctx){
   const B = learnBase(); if (!B.on) return null;
   let all = 0, here = 0, sim = 0, simN = 0;
   const cb0 = curB(ctx.cur), mb0 = moonB(ctx.illum);
@@ -3456,6 +3653,95 @@ function learnSummary0(B){
   return {on: true, rigs: topRigs, hours: topH, model: tot ? Math.round(hit / tot * 100) : null, total: B.total};
 }
 
+// ---------------------------------------------------------------- 56 · "Bağladım → tuttu / tutmadı" (v0.19)
+// Fishing'de önerilen rig bağlanınca tek dokunuşla işaretlenir; sonra "Tuttu" ya da "Tutmadı". Cevaplanmamış soru Fishing'in üstünde
+// sorulur. Kayıtlar profilde (S.fb, kimlikle) tutulur ve cihazlar arasında eşitlenir. Öğrenme: "tuttu" bir av gibi sayılır (aynı rigle
+// 6 saat içinde av kaydı varsa av sayılır, iki kez sayılmaz); "tutmadı" benzer koşulda (gece/gündüz, akıntı, ay, mevsim, aynı nokta)
+// o rigi geri plana iter. Az bildirimle de çalışır; etkisi sınırlıdır ve nedeni öneride yazılır.
+const FB_MAX = 300, FB_OPEN_H = 12;
+const fbAll = () => Object.values(S.fb || {}).filter(f => f && f.id && f.t);
+const fbAge = f => Date.now() - new Date(f.t).getTime();
+function fbAdd(rg, dd, part, x){
+  const L = loc(); S.fb = S.fb || {};
+  const f = {id: 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), t: new Date().toISOString(), rig: rg.id, code: rg.code || '', name: rg.name || '', sys: rg.sys || '',
+    loc: L ? {id: L.id, name: L.name, lat: L.lat, lon: L.lon} : null, night: part === 'gece', cur: x && x.cur != null ? Math.round(x.cur * 100) / 100 : null,
+    illum: dd && dd.sol ? Math.round(dd.sol.illum * 100) : null, sst: x && x.sst != null ? Math.round(x.sst * 10) / 10 : null, res: null, rt: null};
+  S.fb[f.id] = f;
+  const all = fbAll().sort((a, b) => (a.t < b.t ? -1 : 1)); while (all.length > FB_MAX) delete S.fb[all.shift().id];
+  persist(); return f;
+}
+function fbSet(id, res){ const f = S.fb && S.fb[id]; if (!f) return null; f.res = res; f.rt = new Date().toISOString(); persist(); return f; }
+function fbUndo(id){ const f = S.fb && S.fb[id]; if (!f) return; if (f.res) { f.res = null; f.rt = null; } else delete S.fb[id]; persist(); }
+// bu rigin son 12 saatteki bildirimi
+const fbOpen = rg => fbAll().filter(f => f.rig === rg.id && fbAge(f) < FB_OPEN_H * 3600000).sort((a, b) => (a.t < b.t ? 1 : -1))[0] || null;
+// cevap bekleyen (45 dakikadan eski, 3 günden yeni) en son bildirim
+const fbPending = () => fbAll().filter(f => !f.res && fbAge(f) > 45 * 60000 && fbAge(f) < 3 * 86400000).sort((a, b) => (a.t < b.t ? 1 : -1))[0] || null;
+const fbRigName = f => { const r = RIGS[f.rig]; return r ? (r.code ? r.code + ' · ' : '') + r.name : (f.code ? f.code + ' · ' : '') + (f.name || 'rig'); };
+const fbWhen = f => { const d = new Date(f.t), now = new Date(); return (dateKey(d) === dateKey(now) ? '' : d.getDate() + ' ' + MON3[d.getMonth()] + ' ') + hm(d); };
+// rig kartının altındaki satır
+function fbRow(rg){
+  const f = fbOpen(rg), b = (act, txt, cls, f2) => '<button class="btn small' + (cls ? ' ' + cls : '') + '" type="button" data-fb="' + act + '"' + (f2 ? ' data-fid="' + esc(f2.id) + '"' : ' data-rig="' + esc(rg.id) + '"') + '>' + txt + '</button>';
+  if (!f) return '<div class="fbrow">' + b('bagla', 'Bağladım', 'primary') + '<span class="note">Bağlayınca dokun; sonra tuttu mu diye sorarım.</span></div>';
+  if (!f.res) return '<div class="fbrow on"><span class="fbst">Bağlı · ' + fbWhen(f) + '</span>' + b('tuttu', 'Tuttu', 'primary', f) + b('tutmadi', 'Tutmadı', '', f) + b('geri', 'Vazgeç', 'ghost', f) + '</div>';
+  return '<div class="fbrow ' + esc(f.res) + '"><span class="fbst">' + (f.res === 'tuttu' ? '✓ Tuttu' : f.res === 'tutmadi' ? 'Tutmadı' : 'Cevapsız') + ' · ' + fbWhen(f) + '</span>' +
+    (f.res === 'tuttu' ? b('av', 'Avı kaydet', '', f) : '') + b('geri', 'Geri al', 'ghost', f) + '</div>';
+}
+// Fishing'in üstünde: cevap bekleyen soru
+function fbAskHtml(){
+  const f = fbPending(); if (!f) return '';
+  return '<div class="fbask"><b>Bağladığın rig tuttu mu?</b><span class="note">' + esc([fbRigName(f), f.loc ? f.loc.name : '', fbWhen(f)].filter(Boolean).join(' · ')) + '</span>' +
+    '<div class="row"><button class="btn small primary" type="button" data-fb="tuttu" data-fid="' + esc(f.id) + '">Tuttu</button><button class="btn small" type="button" data-fb="tutmadi" data-fid="' + esc(f.id) + '">Tutmadı</button>' +
+    '<button class="btn small ghost" type="button" data-fb="sorma" data-fid="' + esc(f.id) + '">Hatırlamıyorum</button></div></div>';
+}
+// öğrenme: bu rigin bildirimleri benzer koşullara göre tartılır
+function learnFb(rg, ctx){
+  const list = fbAll().filter(f => (f.res === 'tuttu' || f.res === 'tutmadi') && (f.rig === rg.id || (rg.sys === 'ozel' && rg.code && f.code === rg.code && f.sys === 'ozel')));
+  if (!list.length) return null;
+  const cb0 = curB(ctx.cur), mb0 = moonB(ctx.illum);
+  let pos = 0, neg = 0, posN = 0, negN = 0, negSim = 0;
+  list.forEach(f => {
+    const t = new Date(f.t);
+    if (f.res === 'tuttu' && CATCHES.some(c => c.t && rigMatch(c, rg) && Math.abs(new Date(c.t) - t) < 6 * 3600000)) return;   // av kaydı zaten sayılıyor
+    let s = 1;
+    if (!!f.night !== !!ctx.night) s *= 0.4;
+    const cb = curB(f.cur), mb = moonB(f.illum);
+    if (cb != null && cb0 != null && cb !== cb0) s *= 0.6;
+    if (mb != null && mb0 != null && mb !== mb0) s *= 0.8;
+    if (monthDist(t.getMonth() + 1, ctx.month) > 1) s *= 0.6;
+    if (ctx.L && f.loc && f.loc.lat != null && distKm(ctx.L, f.loc) <= 1.5) s *= 1.3;
+    if (f.res === 'tuttu') { pos += s; posN++; } else { neg += s; negN++; if (s >= 0.75) negSim++; }
+  });
+  if (!posN && !negN) return null;
+  const bonus = Math.min(1.5, 0.8 * Math.log2(1 + pos)) - Math.min(3, 1.3 * Math.log2(1 + neg));
+  const why = [];
+  if (posN) why.push('bağladığında ' + posN + ' kez tuttu');
+  if (negN) why.push(negSim ? 'benzer koşulda ' + negSim + ' kez tutmadı' : negN + ' kez tutmadı');
+  return {bonus: Math.round(bonus * 10) / 10, why, posN, negN};
+}
+// Avlar ekranı için kısa özet
+function fbSummary(){
+  const l = fbAll().filter(f => f.res === 'tuttu' || f.res === 'tutmadi');
+  if (!l.length) return null;
+  const by = {}; l.forEach(f => { const k = f.code || f.rig; by[k] = by[k] || {k, n: f.code || fbRigName(f), ok: 0, no: 0}; by[k][f.res === 'tuttu' ? 'ok' : 'no']++; });
+  return {ok: l.filter(f => f.res === 'tuttu').length, no: l.filter(f => f.res === 'tutmadi').length, rigs: Object.values(by).sort((a, b) => (b.ok - b.no) - (a.ok - a.no)).slice(0, 3)};
+}
+const fbRedraw = () => { renderFishing(); renderCatches(); };
+// dokunuşlar (90-boot.js: data-fb)
+function fbAct(a, d){
+  if (a === 'bagla') {
+    const rg = RIGS[d.rig]; if (!rg) return;
+    const ds = days(); const dd = ds.find(x => x.key === ui.fday) || ds[0] || null;
+    const x = hourRec(new Date()) || (dd ? refHour(dd) : null);
+    fbAdd(rg, dd, ui.fpart || 'gun', x); fbRedraw(); toast('Bağladın · dönüşte tuttu mu diye sorarım'); return;
+  }
+  const f = S.fb && S.fb[d.fid]; if (!f) return;
+  if (a === 'tuttu') { fbSet(f.id, 'tuttu'); fbRedraw(); toast('Tuttu · bu rig benzer koşulda öne çıkar'); return; }
+  if (a === 'tutmadi') { fbSet(f.id, 'tutmadi'); fbRedraw(); toast('Not edildi · benzer koşulda bu rig geri planda kalır'); return; }
+  if (a === 'sorma') { fbSet(f.id, 'bilinmiyor'); fbRedraw(); return; }
+  if (a === 'geri') { fbUndo(f.id); fbRedraw(); return; }
+  if (a === 'av') { catchForm(null, {rig: f.rig}); return; }
+}
+
 // ---------------------------------------------------------------- 60 · ortak çizim parçaları
 const STAR = on => '<svg viewBox="0 0 24 24" class="' + (on ? 'on' : 'off') + '" stroke-width="1.6"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2 6.3 20.3l1.2-6.4L2.8 9.5l6.4-.8z"/></svg>';
 const starsHtml = n => '<span class="stars" role="img" aria-label="' + n + ' yıldız">' + [1, 2, 3, 4, 5].map(i => STAR(i <= n)).join('') + '</span>';
@@ -3493,7 +3779,7 @@ function compRow(rg, sl, tier){
 }
 function lengthsTxt(ld){
   if (!ld) return '';
-  const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %20 kısa)' : ''));
+  const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %' + (ld.short === true ? 20 : ld.short) + ' kısa)' : ''));
   if (ld.kursun && ld.shore) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g ' + ld.shoreWhy.join(' ve ') + ' için, çapalı kurşun)' : '') + (ld.over ? ' · <b class="warn">atış sınırı ' + ld.max + ' g: daha korunaklı bir nokta seç</b>' : ''));
   else if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
     (ld.over ? ' · <b class="warn">gereken ≈ ' + ld.need + ' g, kamış sınırı ' + ld.max + ' g: paraşüt çapa at, motorla karşıla ya da demirle</b>' : ''));
@@ -3512,8 +3798,9 @@ function baitHtml(rg, tier){
   if (!p.have.length && bi.some(x => x.st)) h += ' · <span class="warnt">elinde yok, gitmeden al</span>';
   return h;
 }
-function rigCard(rg, dd, why, extra, tier, x){
-  tier = tier || 'envanter';
+// opt: {tune: bugünkü ayar satırları (52-tune.js), foot: kartın altına (Bağladım satırı)}
+function rigCard(rg, dd, why, extra, tier, x, opt){
+  tier = tier || 'envanter'; opt = opt || {};
   if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız 32'lik özel sistemde
   const ok = ready(rg); const ld = leadFor(rg, dd, x);
   const chips = [];
@@ -3538,7 +3825,8 @@ function rigCard(rg, dd, why, extra, tier, x){
     rg.slots.map(sl => compRow(rg, sl, tier)).join('') +
     (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
     (ld && lengthsTxt(ld) ? '<div class="crow"><span class="k">Takım</span><span class="v">' + lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') + '</span><span class="s"></span></div>' : '') +
-    '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details></article>';
+    (opt.tune && opt.tune.length ? '<div class="tune"><b class="tuneh">Bugünkü ayar</b>' + opt.tune.map(t => '<div class="tl' + (t.warn ? ' warn' : '') + '"><span class="k">' + esc(t.k) + '</span><span class="v">' + esc(t.t) + '</span></div>').join('') + '</div>' : '') +
+    '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details>' + (opt.foot || '') + '</article>';
 }
 // menü satırı ve sayfa (sheet) başlığı
 const sheetBar = (title, right, close) => '<div class="bar"><button class="btn" type="button" data-close>' + (close || 'Geri') + '</button><h3 id="sheetTitle">' + esc(title) + '</h3>' + (right || '<span style="width:64px"></span>') + '</div>';
@@ -4206,6 +4494,7 @@ function renderFishing(){
   // kara noktası: balık, rig ve sürüklenme yok; deniz ya da kıyı noktası seçtirilir
   const land = !!L && locKind(L) === 'kara';
   $('v-fishing').classList.toggle('isLand', land);
+  const ask = !land && L ? fbAskHtml() : ''; $('fAsk').hidden = !ask; $('fAsk').innerHTML = ask;
   if (land) { $('fNoLoc').hidden = false; $('fNoLoc').innerHTML = landPanel(); return; }
   const empty = !L || !ds.length;
   $('fNoLoc').hidden = !empty;
@@ -4229,7 +4518,8 @@ function renderFishing(){
   $('fSum').innerHTML = '<div class="fsrow"><b class="mono">' + hhmm(A) + ' – ' + hhmm(B) + (part === 'gece' ? ' <small>(ertesi sabah)</small>' : '') + '</b>' +
     (cls ? '<span class="chip ' + cls + '">deniz ' + cls + ' · ' + esc(CLS_TXT[cls]) + '</span>' : '') + '</div>' +
     '<p class="note">' + [bs.length ? 'rüzgâr ' + spanTxt(Math.min(...bs), Math.max(...bs), 'Bft') : '', wv.length ? 'dalga en çok ' + f1(Math.max(...wv)) + ' m' : '',
-      hs.some(x => x.cur != null) ? 'akıntı en çok ' + f1(Math.max(...hs.map(x => x.cur || 0))) + ' kn' : ''].filter(Boolean).join(' · ') + '</p>' +
+      hs.some(x => x.cur != null) ? 'akıntı en çok ' + f1(Math.max(...hs.map(x => x.cur || 0))) + ' kn' : '', dd.sst != null ? 'su ' + tempTxt(dd.sst, true) : ''].filter(Boolean).join(' · ') + '</p>' +
+    seasonLine(dd) +
     (past ? '<div class="banner">Bugünün gündüzü bitti. <button class="btn small" type="button" data-fpart="gece">Bu gece</button> ' +
       (ds[ds.indexOf(dd) + 1] ? '<button class="btn small" type="button" data-fday="' + ds[ds.indexOf(dd) + 1].key + '">Yarın sabah</button>' : '') + '</div>' : '');
   // solunar: o günün ayı ve bu bölümün en iyi pencereleri
@@ -4241,13 +4531,20 @@ function renderFishing(){
   fRecs(dd, part, from, past);
   fDrift(dd, part);
 }
+// ---- bu ay ve bu suda mevsiminde olan türler (tür takvimi, 52-tune.js)
+function seasonLine(dd){
+  const month = dd.date.getMonth() + 1, list = seasonNow(month, dd.sst, 6);
+  if (!list.length) return '';
+  return '<div class="fseason"><b>Mevsiminde</b>' + list.map(x => '<button type="button" class="sz" data-tur="' + esc(x.id) + '">' + esc(spName(x.id)) + calDots(x.m) + (x.tf != null && tempWord(dd.sst, KB.CAL[x.id][1]) !== 'ideal' ? '<em>' + esc(tempWord(dd.sst, KB.CAL[x.id][1])) + '</em>' : '') + '</button>').join('') +
+    '<button type="button" class="btn small" data-open="turtakvim">Tür takvimi</button></div>';
+}
 // ---- Bunu bağla: yalnızca seçili bölüm, en uygun 3 rig (kafa karışmasın); kalanlar kapalı listede ad olarak
 function fRecs(dd, part, from, past){
   const L = loc();
   const offSys = Object.values(S.systems).filter(sy => sy.active === false && (sy.source !== 'paket' || pkgOn()));
   const offNote = offSys.length ? '<div class="banner">' + offSys.map(sy => esc(sy.name) + ' kapalı ' + '<button class="btn small" type="button" data-systool="toggle" data-sid="' + esc(sy.id) + '">Aç</button>').join(' · ') + '</div>' : '';
   $('recHead').textContent = 'Bunu bağla' + (dd ? ' · ' + PART_TXT[part] : '');
-  $('recMoreW').hidden = true; $('recMore').innerHTML = '';
+  $('recMoreW').hidden = true; $('recMore').innerHTML = ''; $('fTarget').innerHTML = '';
   if (!RIG_LIST.length) {
     $('recNote').textContent = '';
     $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
@@ -4263,6 +4560,7 @@ function fRecs(dd, part, from, past){
   $('recBlockedW').hidden = false;
   if (!dd) { $('recNote').textContent = 'Hava verisi gelince öneriler hazırlanır.'; $('recList').innerHTML = offNote; $('recBlocked').innerHTML = ''; return; }
   const night = part === 'gece';
+  $('fTarget').innerHTML = '<span class="note">Hedef boy</span>' + segBtns('ftarget', [['', 'Hepsi'], ['porsiyon', 'Porsiyon'], ['trofe', 'Trofe']], S.settings.ftarget || '');
   const R = recommend(dd, night, past ? null : from);
   const ok = R.filter(x => x.ok), top = ok.slice(0, F_TOP), more = ok.slice(F_TOP, F_TOP + 6);
   const lb = learnBase();
@@ -4274,7 +4572,8 @@ function fRecs(dd, part, from, past){
     pcls === 'C' ? '<div class="banner">Dikkat: ' + PART_TXT[part].toLowerCase() + ' deniz C, rüzgârlı.</div>' : '';
   const flow = R.dr && R.dr.known && R.dr.line >= 0.7 ? '<div class="banner">' + (R.dr.anchored ? 'Akıntı güçlü: ağır kurşun.' : 'Sürüklenme hızlı: paraşüt çapa ya da demir.') + '</div>' : '';
   const wTxt = R.win ? '<div class="meta why">En iyi pencere ' + winTxt(R.win) + ' · balık %' + R.win.pct + (R.win.cls ? ' · deniz ' + R.win.cls : '') + '</div>' : '';
-  $('recList').innerHTML = offNote + warn + flow + (top.length ? top.map((x, i) => '<div class="rank">' + (i + 1) + '</div>' + rigCard(x.rg, dd, x.why, wTxt, null, R.x)).join('') :
+  $('recList').innerHTML = offNote + warn + flow + (top.length ? top.map((x, i) => '<div class="rank">' + (i + 1) + '</div>' +
+    rigCard(x.rg, dd, x.why, wTxt, null, R.x, {tune: tuneRig(x.rg, dd, R.x, R.win, night, R.month), foot: past ? '' : fbRow(x.rg)})).join('') :
     '<div class="empty">' + PART_TXT[part] + ' için uygun ve tamamlanmış rig yok.</div>');
   $('recMoreW').hidden = !more.length;
   $('recMoreS').textContent = 'Diğer uygun rigler (' + more.length + ')';
@@ -4325,7 +4624,7 @@ function fDrift(dd, part){
     const lead = s.extra ? 'kurşun <b>+' + s.extra + ' g</b>' : 'kurşun artışı yok';
     const txt = anch ? 'Demirli: ' + cur + ' · ' + wind + '. İpe binen akış ' + f1(s.lineHi) + ' kn → ' + lead + '.' :
       'Tekne ~' + f1(s.sog) + ' kn ile ' + (s.dir != null ? dir8(s.dir) + ' yönüne' : '') + ' sürüklenir (' + wind + ', ' + cur + ').' + trend +
-      ' İpe binen akış ' + (f1(s.lineLo) === f1(s.lineHi) ? f1(s.lineHi) : f1(s.lineLo) + '–' + f1(s.lineHi)) + ' kn → ' + lead + (s.lineHi >= 0.4 ? ', hırsız köstek %20 kısa' : '') + '.' +
+      ' İpe binen akış ' + (f1(s.lineLo) === f1(s.lineHi) ? f1(s.lineHi) : f1(s.lineLo) + '–' + f1(s.lineHi)) + ' kn → ' + lead + (s.lineHi >= 0.7 ? ', hırsız köstek %30 kısa' : s.lineHi >= 0.4 ? ', hırsız köstek %20 kısa' : '') + '.' +
       (s.off ? ' Noktanın ~' + s.off.m + ' m ' + dir8(s.off.from) + ' tarafından başla.' : '');
     return '<div class="fblock">' + head + '<p>' + txt + '</p></div>';
   });
@@ -4459,9 +4758,11 @@ async function renderCatches(){
   const top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
   const M = (k, v, s) => '<div class="metric"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>';
   $('catchStats').innerHTML = M('Av', tot, 'balık') + M('Toplam', fmtNum(kg, 1) || '0', 'kg') + M('En çok', top ? esc(top[0]) : '–', top ? top[1] + ' balık' : '');
-  const ls = learnSummary(); const lb = $('learnBox');
-  lb.hidden = !ls;
-  if (ls) lb.innerHTML = '<b>Avlarından öğrenme</b>' + (!ls.on ? '<span>' + esc(ls.txt) + '</span>' :
+  const ls = learnSummary(), fs = fbSummary(); const lb = $('learnBox');
+  lb.hidden = !ls && !fs;
+  const fsH = fs ? '<span>Bağladım bildirimleri: <b>' + fs.ok + ' tuttu, ' + fs.no + ' tutmadı</b>' + (fs.rigs.length ? ' · ' + fs.rigs.map(r => esc(r.n) + ' ' + r.ok + '/' + (r.ok + r.no)).join(', ') : '') + '. Tutmayan rig benzer koşulda geri planda kalır.</span>' : '';
+  if (!ls && fs) lb.innerHTML = '<b>Avlarından öğrenme</b>' + fsH;
+  if (ls) lb.innerHTML = '<b>Avlarından öğrenme</b>' + fsH + (!ls.on ? '<span>' + esc(ls.txt) + '</span>' :
     '<span>Öneriler ' + ls.total + ' av kaydına göre ayarlanıyor: aynı rigin benzer koşullarda (gece/gündüz, akıntı, ay, mevsim, nokta) verdiği sonuç öne çıkar.</span>' +
     (ls.rigs.length ? '<span>En verimli rigler: <b>' + ls.rigs.join(', ') + '</b></span>' : '') +
     (ls.hours.length ? '<span>En çok tuttuğun saatler: <b>' + ls.hours.join(', ') + '</b></span>' : '') +
@@ -4488,8 +4789,9 @@ window.addEventListener('popstate', () => { if (!$('sheet').hidden) closeSheet(t
 function toLocalInput(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function nearestLoc(p){ if (!p || p.lat == null) return null; let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
 const CATCH_TECH = ['Jig', 'Slow jig', 'Inchiku', 'Tai rubber', 'Kalamar zokası', 'Çapari', 'Sırtı (trolling)', 'Surf', 'LRF', 'Spin', 'Şamandıra', 'Diğer'];
-function catchForm(c){
-  const isNew = !c; c = c || {};
+// pre: yeni av için ön değerler (ör. "Tuttu → Avı kaydet": bağlanan rig)
+function catchForm(c, pre){
+  const isNew = !c; c = c || pre || {};
   const L = loc();
   FORM = {id: c.id || null, photos: [], keep: (c.photos || []).slice(), removed: [], loc: c.loc || (L ? {lat: L.lat, lon: L.lon, name: L.name, src: 'konum'} : null), t: c.t ? new Date(c.t) : new Date(), botTouched: c.bottom != null};
   const sps = Object.values(SPECIES).sort((a, b) => trCmp(a.name, b.name));
@@ -4641,6 +4943,7 @@ const MORE = [
   ['grup', 'Ortak av haritası', () => { const g = grpCfg(); return g ? g.group + ' · ' + (GROUP.members.length ? GROUP.members.length + ' üye' : 'grup açık') : 'Kapalı · arkadaşlarınla şifreli ortak harita'; }],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
   ['turler', 'Türlerim ve takım planı', () => { const n = (S.targets || []).length; return n ? n + ' hedef tür · takım ve alınacaklar' : 'Tür ekle: hangi takım, ne almalısın'; }],
+  ['turtakvim', 'Tür takvimi', () => 'Ege: hangi tür hangi ayda, hangi suda · bu ay ' + MON_LONG[new Date().getMonth()]],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
   ['dosya', 'Dosya yedeği', () => 'Telefona indir ya da dosyadan yükle'],
@@ -4670,7 +4973,7 @@ function openMore(name, keep){
   ui.sheet = name;
   if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -5582,7 +5885,7 @@ function sheetTurler(){
     return '<button type="button" class="mrow" data-tur="' + esc(t.id) + '"><span><b>' + esc(t.name) + '</b><small>' + esc(s ? (t.like ? 'benzer: ' + s.name + ' · ' : '') + (KB.FAM[s.fam] || {}).name : '') + '</small></span>' + chip(st) + '</button>'; };
   const mine = new Set(tg.map(t => t.like || t.id));
   const sysSp = [...new Set(RIG_LIST.flatMap(r => r.species || []))].filter(id => !mine.has(id) && spById(id));
-  return sheetBar('Türlerim') + '<div class="stack"><p class="sub">Hedeflediğin türü ekle; uygulama hangi takımla gitmen gerektiğini, elinde ne olduğunu ve neyi alman gerektiğini çıkarır.</p>' +
+  return sheetBar('Türlerim', '<button class="btn" type="button" data-open="turtakvim">Takvim</button>') + '<div class="stack"><p class="sub">Hedeflediğin türü ekle; uygulama hangi takımla gitmen gerektiğini, elinde ne olduğunu ve neyi alman gerektiğini çıkarır.</p>' +
     '<label class="f">Tür ekle<input id="tr-q" type="search" placeholder="Ör. istavrit, çinekop, sinarit" autocomplete="off"></label><div class="catres" id="trRes"></div>' +
     (ui.custom ? customPick() : '') +
     (tg.length ? '<div class="eyebrow">Hedef türlerim (' + tg.length + ')</div><div class="mlist">' + tg.map(row).join('') + '</div>' : '<div class="empty">Henüz tür eklemedin. Yukarıya bir tür adı yaz.</div>') +
@@ -5615,7 +5918,8 @@ function sheetTur(id){
   const month = new Date().getMonth() + 1;
   const info = [
     ['Takım ailesi', (KB.FAM[s.fam] || {}).name],
-    ['Ne zaman', s.m ? s.m.map(m => MON3[m - 1]).join(' ') + (s.m.includes(month) ? ' · şu an mevsimi' : ' · şu an mevsimi değil') : 'Yıl boyu'],
+    ['Ne zaman', KB.CAL[s.id] ? calSummary(s.id, month) : s.m ? s.m.map(m => MON3[m - 1]).join(' ') + (s.m.includes(month) ? ' · şu an mevsimi' : ' · şu an mevsimi değil') : 'Yıl boyu'],
+    ['Su', KB.CAL[s.id] ? suTxt(s.id) : ''],
     ['Saat', s.t.map(x => ({gunduz: 'gündüz', gece: 'gece', safak: 'şafak'}[x] || x)).join(', ')],
     ['Derinlik', s.depth[0] + '–' + s.depth[1] + ' m'],
     ['Dip', s.hab.map(b => BOTTOM_TXT[b] || b).join(', ')],
@@ -5685,6 +5989,45 @@ function planToSystem(id){
   raw.code = c; raw.id = 'tur:' + c; raw.plan = {species: p.s.id, target: t.id};
   sys.rigs.push(raw); sys.active = true; sys.updated = new Date().toISOString();
   S.onboarded = true; persist(); indexAll(); return raw.id;
+}
+// ---- Tür takvimi (v0.19): Ege için ay ay oltaya gelme ve sevdiği su sıcaklığı (52-tune.js, KB.CAL)
+// ardışık ayları aralık olarak yaz (Ara–Şub gibi yıl dönümünü de)
+function monthRuns(sel){
+  if (sel.size >= 12) return 'yıl boyu';
+  if (!sel.size) return '';
+  let start = 0; while (sel.has(start)) start++;
+  const runs = []; let cur = null;
+  for (let k = 1; k <= 12; k++) { const i = (start + k) % 12; if (sel.has(i)) { if (!cur) cur = [i, i]; else cur[1] = i; } else if (cur) { runs.push(cur); cur = null; } }
+  if (cur) runs.push(cur);
+  return runs.map(([a, b]) => a === b ? MON3[a] : MON3[a] + '–' + MON3[b]).join(', ');
+}
+function calSummary(id, month){
+  const by = [new Set(), new Set(), new Set(), new Set()];
+  for (let i = 0; i < 12; i++) by[calMonth(id, i + 1)].add(i);   // Ekim–Kasım: özel paketteki tahmin varsa o
+  const best = monthRuns(by[3]), good = monthRuns(by[2]);
+  return [best ? 'en iyi ' + best : '', good ? 'iyi ' + good : '', 'şu an ' + CAL_TXT[calMonth(id, month)]].filter(Boolean).join(' · ');
+}
+const todaySst = () => { if (!WX || landMode()) return null; const ds = days(); const dd = ds.find(d => d.key === dateKey(new Date())) || ds[0]; return dd ? dd.sst : null; };
+function suTxt(id){
+  const r = KB.CAL[id][1], t = todaySst();
+  return 'ideal ' + f0(tempNum(r[1])) + '–' + f0(tempNum(r[2])) + ' ' + TU() + (t != null ? ' · bugün ' + tempTxt(t, true) + ', ' + tempWord(t, r) : '');
+}
+function sheetSpeciesCal(){
+  const month = new Date().getMonth() + 1, sst = todaySst(), L = loc(), reg = regionOf(L);
+  const mine = new Set(RIG_LIST.flatMap(r => r.species || []).concat((S.targets || []).map(t => t.like || t.id)));
+  const all = ui.calAll || !mine.size;
+  const list = KB.SPECIES.filter(s => KB.CAL[s.id] && (all ? (s.bol.includes(reg) || mine.has(s.id)) : mine.has(s.id)))
+    .map(s => ({s, n: spNow(s.id, month, sst)})).sort((a, b) => b.n.v - a.n.v || b.n.m - a.n.m || trCmp(a.s.name, b.s.name));
+  const head = '<div class="tcal-r tcal-h"><span class="nm"></span>' + MON3.map((m, i) => '<span class="mo' + (i + 1 === month ? ' now' : '') + '">' + m.charAt(0) + '</span>').join('') + '<span class="su">su ' + TU() + '</span></div>';
+  const rows = list.map(({s, n}) => { const c = KB.CAL[s.id], w = sst != null ? tempWord(sst, c[1]) : '';
+    return '<button type="button" class="tcal-r" data-tur="' + esc(s.id) + '"><span class="nm">' + esc(s.name) + (mine.has(s.id) && all ? ' <i class="mk" aria-label="sistemimde"></i>' : '') + '</span>' +
+      MON3.map((x, i) => '<span class="c c' + calMonth(s.id, i + 1) + (i + 1 === month ? ' now' : '') + '"></span>').join('') +
+      '<span class="su ' + (w === 'ideal' ? 'ok' : /soğuk/.test(w) ? 'cold' : /sıcak/.test(w) ? 'hot' : '') + '">' + f0(tempNum(c[1][1])) + '–' + f0(tempNum(c[1][2])) + '</span></button>'; }).join('');
+  return sheetBar('Tür takvimi') + '<div class="stack"><p class="sub">Ege (İzmir–Seferihisar) için ay ay oltaya gelme ve türün sevdiği su sıcaklığı. Genel bilgidir; yıla ve noktaya göre değişir. Avların ve “tuttu / tutmadı” bildirimlerin önerileri senin noktana göre ayarlar.</p>' +
+    (mine.size ? '<div class="seg wrapseg"><button class="btn small" type="button" data-tcal="mine" aria-pressed="' + !all + '">Sistemimdeki türler</button><button class="btn small" type="button" data-tcal="all" aria-pressed="' + all + '">Bölgenin türleri</button></div>' : '') +
+    (sst != null ? '<p class="note">Bugün su <b>' + tempTxt(sst, true) + '</b> (' + esc(locLabel(L)) + '). Sağdaki sütun türün sevdiği su: yeşil uygun, mavi soğuk, kırmızı sıcak.</p>' : '<p class="note">Su sıcaklığı deniz noktası seçilince gelir.</p>') +
+    '<div class="tcal">' + head + rows + '</div>' +
+    '<div class="tcal-leg"><span><i class="c c1"></i>az</span><span><i class="c c2"></i>iyi</span><span><i class="c c3"></i>en iyi</span><span class="note">Bu ay: ' + MON_LONG[month - 1] + '. Türe dokun: takım planı.</span></div></div>';
 }
 
 // ---------------------------------------------------------------- 80 · bulut yedek (GitHub, uçtan uca şifreli)
@@ -6417,6 +6760,8 @@ function bindEvents(){
     if (d.lkind) { const [id, k] = d.lkind.split('|'); setLocKind(id, k); return; }
     if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
     if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
+    if (d.fb) { fbAct(d.fb, d); return; }
+    if (d.tcal) { ui.calAll = d.tcal === 'all'; openMore('turtakvim', true); return; }
     if (d.goto) { show(d.goto); return; }
     if (d.calday) { ui.hday = d.calday; show('bugun'); renderHourly(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
     if (d.use) { S.active = d.use; persist(); WX = null; renderAll(); loadWeather(); if (ui.sheet === 'konumlar') openMore('konumlar', true); toast('Konum değişti'); return; }
@@ -6550,7 +6895,8 @@ function bindEvents(){
 if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), activity, windows, bestWindows, driftAt, leadFor, leadExtra, startOffset, recommend, rigs: () => RIG_LIST,
   state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc(),
   items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
-  cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig};
+  cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
+  spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns};
 (async () => {
   loadState();
   pkgLoadCached();

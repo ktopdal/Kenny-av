@@ -2,7 +2,7 @@
 // En az 5 av kaydı birikince öneriler senin sonuçlarına göre ayarlanır:
 //   bir rigle tuttuğun balık sayısı, özellikle benzer koşullarda (gece/gündüz, akıntı, ay, mevsim, aynı nokta)
 //   bir türü bu dönemde tuttuysan o türe kurulan rigler öne çıkar.
-// Yalnızca yakaladığın avlar bilinir (avsız çıkışlar kaydedilmiyor); bu yüzden etki sınırlı tutulur ve her öneride nedeni yazılır.
+// Avsız çıkışlar "Bağladım → Tutmadı" ile bilinir (56-feedback.js); etkiler sınırlı tutulur ve her öneride nedeni yazılır.
 const LEARN_MIN = 5;
 let LEARN = null;
 const curB = v => v == null ? null : v < 0.3 ? 0 : v < 0.7 ? 1 : 2;
@@ -27,6 +27,11 @@ function learnBase(){
 const rigMatch = (c, rg) => !!c.rig && (c.rig === rg.id || (rg.sys === 'ozel' && rg.code && c.rig === rg.code));
 // ctx: {night, cur (kn), illum (%), month, L}
 function learnRig(rg, ctx){
+  const c = learnRigCatch(rg, ctx), f = learnFb(rg, ctx);   // 56-feedback.js: bağladım → tuttu / tutmadı
+  if (!c && !f) return null;
+  return {bonus: (c ? c.bonus : 0) + (f ? f.bonus : 0), why: (c ? c.why : []).concat(f ? f.why : []), all: c ? c.all : 0, simN: c ? c.simN : 0};
+}
+function learnRigCatch(rg, ctx){
   const B = learnBase(); if (!B.on) return null;
   let all = 0, here = 0, sim = 0, simN = 0;
   const cb0 = curB(ctx.cur), mb0 = moonB(ctx.illum);

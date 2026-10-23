@@ -27,6 +27,7 @@ function renderFishing(){
   // kara noktası: balık, rig ve sürüklenme yok; deniz ya da kıyı noktası seçtirilir
   const land = !!L && locKind(L) === 'kara';
   $('v-fishing').classList.toggle('isLand', land);
+  const ask = !land && L ? fbAskHtml() : ''; $('fAsk').hidden = !ask; $('fAsk').innerHTML = ask;
   if (land) { $('fNoLoc').hidden = false; $('fNoLoc').innerHTML = landPanel(); return; }
   const empty = !L || !ds.length;
   $('fNoLoc').hidden = !empty;
@@ -50,7 +51,8 @@ function renderFishing(){
   $('fSum').innerHTML = '<div class="fsrow"><b class="mono">' + hhmm(A) + ' – ' + hhmm(B) + (part === 'gece' ? ' <small>(ertesi sabah)</small>' : '') + '</b>' +
     (cls ? '<span class="chip ' + cls + '">deniz ' + cls + ' · ' + esc(CLS_TXT[cls]) + '</span>' : '') + '</div>' +
     '<p class="note">' + [bs.length ? 'rüzgâr ' + spanTxt(Math.min(...bs), Math.max(...bs), 'Bft') : '', wv.length ? 'dalga en çok ' + f1(Math.max(...wv)) + ' m' : '',
-      hs.some(x => x.cur != null) ? 'akıntı en çok ' + f1(Math.max(...hs.map(x => x.cur || 0))) + ' kn' : ''].filter(Boolean).join(' · ') + '</p>' +
+      hs.some(x => x.cur != null) ? 'akıntı en çok ' + f1(Math.max(...hs.map(x => x.cur || 0))) + ' kn' : '', dd.sst != null ? 'su ' + tempTxt(dd.sst, true) : ''].filter(Boolean).join(' · ') + '</p>' +
+    seasonLine(dd) +
     (past ? '<div class="banner">Bugünün gündüzü bitti. <button class="btn small" type="button" data-fpart="gece">Bu gece</button> ' +
       (ds[ds.indexOf(dd) + 1] ? '<button class="btn small" type="button" data-fday="' + ds[ds.indexOf(dd) + 1].key + '">Yarın sabah</button>' : '') + '</div>' : '');
   // solunar: o günün ayı ve bu bölümün en iyi pencereleri
@@ -62,13 +64,20 @@ function renderFishing(){
   fRecs(dd, part, from, past);
   fDrift(dd, part);
 }
+// ---- bu ay ve bu suda mevsiminde olan türler (tür takvimi, 52-tune.js)
+function seasonLine(dd){
+  const month = dd.date.getMonth() + 1, list = seasonNow(month, dd.sst, 6);
+  if (!list.length) return '';
+  return '<div class="fseason"><b>Mevsiminde</b>' + list.map(x => '<button type="button" class="sz" data-tur="' + esc(x.id) + '">' + esc(spName(x.id)) + calDots(x.m) + (x.tf != null && tempWord(dd.sst, KB.CAL[x.id][1]) !== 'ideal' ? '<em>' + esc(tempWord(dd.sst, KB.CAL[x.id][1])) + '</em>' : '') + '</button>').join('') +
+    '<button type="button" class="btn small" data-open="turtakvim">Tür takvimi</button></div>';
+}
 // ---- Bunu bağla: yalnızca seçili bölüm, en uygun 3 rig (kafa karışmasın); kalanlar kapalı listede ad olarak
 function fRecs(dd, part, from, past){
   const L = loc();
   const offSys = Object.values(S.systems).filter(sy => sy.active === false && (sy.source !== 'paket' || pkgOn()));
   const offNote = offSys.length ? '<div class="banner">' + offSys.map(sy => esc(sy.name) + ' kapalı ' + '<button class="btn small" type="button" data-systool="toggle" data-sid="' + esc(sy.id) + '">Aç</button>').join(' · ') + '</div>' : '';
   $('recHead').textContent = 'Bunu bağla' + (dd ? ' · ' + PART_TXT[part] : '');
-  $('recMoreW').hidden = true; $('recMore').innerHTML = '';
+  $('recMoreW').hidden = true; $('recMore').innerHTML = ''; $('fTarget').innerHTML = '';
   if (!RIG_LIST.length) {
     $('recNote').textContent = '';
     $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
@@ -84,6 +93,7 @@ function fRecs(dd, part, from, past){
   $('recBlockedW').hidden = false;
   if (!dd) { $('recNote').textContent = 'Hava verisi gelince öneriler hazırlanır.'; $('recList').innerHTML = offNote; $('recBlocked').innerHTML = ''; return; }
   const night = part === 'gece';
+  $('fTarget').innerHTML = '<span class="note">Hedef boy</span>' + segBtns('ftarget', [['', 'Hepsi'], ['porsiyon', 'Porsiyon'], ['trofe', 'Trofe']], S.settings.ftarget || '');
   const R = recommend(dd, night, past ? null : from);
   const ok = R.filter(x => x.ok), top = ok.slice(0, F_TOP), more = ok.slice(F_TOP, F_TOP + 6);
   const lb = learnBase();
@@ -95,7 +105,8 @@ function fRecs(dd, part, from, past){
     pcls === 'C' ? '<div class="banner">Dikkat: ' + PART_TXT[part].toLowerCase() + ' deniz C, rüzgârlı.</div>' : '';
   const flow = R.dr && R.dr.known && R.dr.line >= 0.7 ? '<div class="banner">' + (R.dr.anchored ? 'Akıntı güçlü: ağır kurşun.' : 'Sürüklenme hızlı: paraşüt çapa ya da demir.') + '</div>' : '';
   const wTxt = R.win ? '<div class="meta why">En iyi pencere ' + winTxt(R.win) + ' · balık %' + R.win.pct + (R.win.cls ? ' · deniz ' + R.win.cls : '') + '</div>' : '';
-  $('recList').innerHTML = offNote + warn + flow + (top.length ? top.map((x, i) => '<div class="rank">' + (i + 1) + '</div>' + rigCard(x.rg, dd, x.why, wTxt, null, R.x)).join('') :
+  $('recList').innerHTML = offNote + warn + flow + (top.length ? top.map((x, i) => '<div class="rank">' + (i + 1) + '</div>' +
+    rigCard(x.rg, dd, x.why, wTxt, null, R.x, {tune: tuneRig(x.rg, dd, R.x, R.win, night, R.month), foot: past ? '' : fbRow(x.rg)})).join('') :
     '<div class="empty">' + PART_TXT[part] + ' için uygun ve tamamlanmış rig yok.</div>');
   $('recMoreW').hidden = !more.length;
   $('recMoreS').textContent = 'Diğer uygun rigler (' + more.length + ')';
@@ -146,7 +157,7 @@ function fDrift(dd, part){
     const lead = s.extra ? 'kurşun <b>+' + s.extra + ' g</b>' : 'kurşun artışı yok';
     const txt = anch ? 'Demirli: ' + cur + ' · ' + wind + '. İpe binen akış ' + f1(s.lineHi) + ' kn → ' + lead + '.' :
       'Tekne ~' + f1(s.sog) + ' kn ile ' + (s.dir != null ? dir8(s.dir) + ' yönüne' : '') + ' sürüklenir (' + wind + ', ' + cur + ').' + trend +
-      ' İpe binen akış ' + (f1(s.lineLo) === f1(s.lineHi) ? f1(s.lineHi) : f1(s.lineLo) + '–' + f1(s.lineHi)) + ' kn → ' + lead + (s.lineHi >= 0.4 ? ', hırsız köstek %20 kısa' : '') + '.' +
+      ' İpe binen akış ' + (f1(s.lineLo) === f1(s.lineHi) ? f1(s.lineHi) : f1(s.lineLo) + '–' + f1(s.lineHi)) + ' kn → ' + lead + (s.lineHi >= 0.7 ? ', hırsız köstek %30 kısa' : s.lineHi >= 0.4 ? ', hırsız köstek %20 kısa' : '') + '.' +
       (s.off ? ' Noktanın ~' + s.off.m + ' m ' + dir8(s.off.from) + ' tarafından başla.' : '');
     return '<div class="fblock">' + head + '<p>' + txt + '</p></div>';
   });
