@@ -19,7 +19,7 @@ DIST = os.path.join(APP, 'dist')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.19.0'
+VERSION = '0.20.0'
 NAME, SHORT = 'Alyssa by Barbossa App', 'Alyssa'
 THEME = '#0B6B7C'
 
@@ -195,7 +195,8 @@ def main():
         'Uygulama boş açılır. Kişisel rig sistemi `paket/ozel.enc.json` içinde şifrelidir (AES-GCM). '
         'Bulut yedekleri kullanıcının kendi GitHub deposunda uçtan uca şifreli tutulur. Hava ve deniz verisi Open-Meteo üzerinden gelir.\n'
         'Güneş ve ay hesapları için [SunCalc](https://github.com/mourner/suncalc) (BSD-2), harita için [Leaflet](https://leafletjs.com) (BSD-2), hesap ve bulut için [Firebase JS SDK](https://github.com/firebase/firebase-js-sdk) (Apache-2.0) kullanılır.\n'
-        'Harita verileri: © OpenStreetMap katkıcıları (Nominatim, Overpass), OpenSeaMap, EMODnet Bathymetry ve Geology, Esri uydu görüntüsü.\n' % NAME)
+        'Harita verileri: © OpenStreetMap katkıcıları (Nominatim, Overpass), OpenSeaMap, EMODnet Bathymetry, Geology ve Seabed Habitats (EUSeaMap), Esri uydu görüntüsü.\n'
+        '“Usta’ya sor”, kullanıcının kendi Claude API anahtarıyla doğrudan Anthropic’e sorar; anahtar yalnız kullanıcının cihazında durur.\n' % NAME)
     shutil.copy(os.path.join(APP, 'vendor/LICENSE'), os.path.join(DIST, 'LICENSE-suncalc.txt'))
     # harita kütüphanesi (Leaflet, BSD-2): harita ilk açıldığında yüklenir
     os.makedirs(os.path.join(DIST, 'vendor', 'firebase'), exist_ok=True)

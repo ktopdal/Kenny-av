@@ -673,6 +673,27 @@ button.tcal-r:hover{background:var(--surface-2)}
 .tcal-leg span{display:inline-flex;align-items:center;gap:5px}
 .tcal-leg .c{width:16px;height:12px}
 @media (max-width:360px){.tcal-r{grid-template-columns:minmax(58px,1.5fr) repeat(12,minmax(10px,1fr)) 40px}.tcal-r .nm{font-size:12px}}
+/* v0.20 · deniz tabanı lejantı, Usta'ya sor */
+.hableg{margin-top:6px}
+.hableg img{display:block;max-width:100%;max-height:260px;object-fit:contain;object-position:left top;margin-top:6px;background:#fff;border-radius:6px}
+.fusta{display:flex;align-items:center;gap:4px 10px;flex-wrap:wrap;width:100%;margin-top:14px;padding:12px 14px;border:1px solid var(--fish);border-radius:12px;background:var(--fish-soft);color:var(--ink);cursor:pointer;text-align:left;font:inherit}
+.fusta b{color:var(--fish-ink);font-size:15px}
+.fusta span{flex:1 1 180px;min-width:0;font-size:13px;color:var(--ink-2)}
+.fusta i{font-style:normal;font-size:22px;color:var(--fish-ink);margin-left:auto}
+.usta .uctx{margin-top:0}
+.umsgs{display:flex;flex-direction:column;gap:8px}
+.umsg{padding:10px 12px;border-radius:12px;font-size:14.5px;line-height:1.45;max-width:100%;overflow-wrap:anywhere}
+.umsg p{margin:0 0 6px}.umsg p:last-child{margin-bottom:0}
+.umsg ul{margin:4px 0 6px;padding-left:20px}.umsg li{margin:2px 0}
+.umsg.q{align-self:flex-end;background:var(--brand-soft);border:1px solid var(--brand);max-width:88%}
+.umsg.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line)}
+.umsg.a small{display:block;margin-top:6px;font:500 11px var(--mono);color:var(--muted)}
+.umsg.fail{opacity:.6}
+.umsg.busy{color:var(--muted);font-style:italic}
+.uq{display:flex;flex-wrap:wrap;gap:6px}
+.uq .bchip{text-align:left}
+.usta textarea{width:100%;min-height:70px;resize:vertical;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.ukey .seg{margin-top:6px}
 
 </style>
 <style id="userTheme"></style></head><body>
@@ -745,6 +766,7 @@ button.tcal-r:hover{background:var(--surface-2)}
     <div class="stack" id="recList" style="margin-top:10px"></div>
     <details style="margin-top:10px" id="recMoreW" hidden><summary class="note" style="cursor:pointer" id="recMoreS">Diğer uygun rigler</summary><div class="stack" id="recMore" style="margin-top:8px"></div></details>
     <details style="margin-top:10px" id="recBlockedW"><summary class="note" style="cursor:pointer">Eksik kalem yüzünden bekleyen iyi rigler</summary><div class="stack" id="recBlocked" style="margin-top:8px"></div></details>
+    <button class="fusta" type="button" data-open="usta" id="ustaBtn"><b>Usta’ya sor</b><span>Bugünkü koşullara ve riglerine göre Claude’a sor</span><i aria-hidden="true">›</i></button>
     <div class="panel drift" style="margin-top:16px" id="driftPanel" hidden></div>
   </section>
 
@@ -1133,9 +1155,13 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.19.0';
+const APP_VERSION = '0.20.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.20.0', notes: [
+    'Usta’ya sor: Fishing’den Claude’a sor; bugünkü hava, deniz, solunar ve önerilen riglerin bağlam olarak gider (kendi Claude API anahtarınla; anahtar yalnız bu cihazda, koordinat gitmez)',
+    'Deniz tabanı haritası: Harita → Katmanlar → Deniz tabanı (EUSeaMap, bütün Akdeniz; kaya, kum, çamur, çayır). Noktaya dokununca tabanın sınıfı kartta',
+    'Dibi bilinmeyen konumda taban tahmini önerilerde yarım ağırlıkla sayılır; Konumlar ve konum kartından “dip olarak yaz”']},
   {v: '0.19.0', notes: [
     'Tür takvimi (Ege): her türün ay ay oltaya gelmesi ve sevdiği su sıcaklığı; öneriler bu ayı ve bugünkü suyu hesaba katar (Daha → Tür takvimi)',
     'Fishing: “Mevsiminde” satırı (bu ay ve bu suda en uygun türler) ve hedef boy seçimi (Hepsi / Porsiyon / Trofe)',
@@ -3427,8 +3453,13 @@ function recommend(dd, night, from){
     if (rg.klass === 'trofe' && cls === 'D') return;
     const why = []; let sc = 0;
     if (rg.core) { sc += 3; why.push('12 ay geçerli'); }
-    const bm = bottomMatch(rg, L && L.bottom);
-    sc += bm; if (bm >= 2) why.push('dip uyumu: ' + (BOTTOM_TXT[L.bottom] || '')); else if (L && !L.bottom && bm > 0) why.push('dip bilinmiyor, keşif rigi');
+    // dip: seçilen dip; yoksa EUSeaMap tahmini (yarım ağırlık, keşif rigleri de önde kalır)
+    const est = L && !L.bottom && L.bottomEst ? L.bottomEst : null, bE = est ? bottomMatch(rg, est) : null;
+    const bm = est ? Math.round((0.5 * bottomMatch(rg, null) + 0.6 * bE) * 10) / 10 : bottomMatch(rg, L && L.bottom);
+    sc += bm;
+    if (est && bE >= 2) why.push('taban tahmini: ' + (BOTTOM_TXT[est] || '') + ' (EUSeaMap)');
+    else if (!est && bm >= 2) why.push('dip uyumu: ' + (BOTTOM_TXT[L.bottom] || ''));
+    else if (L && !L.bottom && bottomMatch(rg, null) > 0) why.push('dip bilinmiyor, keşif rigi');
     if (rg.klass === 'trofe') {
       if (w && w.pct >= 70 && (cls === 'A' || cls === 'B')) { sc += 1.5; why.push('pencere %' + w.pct + ', sakin deniz'); }
       if (cls === 'C') { sc -= 2; why.push('rüzgâr C sınıfı'); }
@@ -3533,7 +3564,7 @@ const mmT = mm => { let t = (Math.round(mm * 1000) / 1000).toFixed(3); if (t.end
 // rig için bugünkü ayar satırları: [{k, t}]
 function tuneRig(rg, dd, x, w, night, month){
   const out = []; if (!rg || !dd) return out;
-  const L = loc(); const rock = !!(L && (L.bottom === 'kayalik' || L.bottom === 'saf-kayalik'));
+  const L = loc(), bot = L ? L.bottom || L.bottomEst : null, rock = bot === 'kayalik' || bot === 'saf-kayalik';
   const sl = leaderSlot(rg), mm = sl ? slotMm(sl, 'envanter') : null;
   // dişli tür: bu ay mevsimindeyse ve rig ona uygunsa köstek uyarısı (ışık ayarından önce gelir)
   const pred = ['sirti', 'spin', 'canli', 'lrf'].includes(rg.tech) || /sardalya|kalamar|istavrit|canlı/i.test([rg.baitText || ''].concat(rg.baits && rg.baits.ana ? [rg.baits.ana.envanter || rg.baits.ana.turkiye || ''] : []).join(' '));
@@ -3740,6 +3771,154 @@ function fbAct(a, d){
   if (a === 'sorma') { fbSet(f.id, 'bilinmiyor'); fbRedraw(); return; }
   if (a === 'geri') { fbUndo(f.id); fbRedraw(); return; }
   if (a === 'av') { catchForm(null, {rig: f.rig}); return; }
+}
+
+// ---------------------------------------------------------------- 58 · Usta'ya sor (v0.20): Claude ile bugünkü koşullar ve riglerin hakkında soru
+// Kullanıcının kendi Claude API anahtarıyla doğrudan Anthropic'e sorulur (tarayıcıdan; sunucu yok). Anahtar yalnız bu cihazda
+// (localStorage) durur: profile, buluta, yedeğe, paylaşıma ve Düzenim koduna girmez. Soruyla birlikte Fishing'deki gün ve bölümün
+// özeti gider: konum adı ve türü, dip, derinlik, 3 saatlik hava/deniz, solunar pencereleri, mevsimindeki türler, önerilen rigler
+// (malzeme, takım, bugünkü ayar), son bildirimler ve avlar. Koordinat gitmez.
+const USTA_API = 'https://api.anthropic.com/v1/messages';
+const USTA_MODELS = [['claude-sonnet-5-5', 'Sonnet 5.5', 'en iyi cevap · soru başına ≈ 1–2 cent', 2, 10], ['claude-haiku-5-5', 'Haiku 5.5', 'hızlı ve ucuz · soru başına ≈ 0,1 cent', 0.1, 0.5]];
+const LSU = {key: 'alyssa-ak', model: 'alyssa-am'};
+const USTA = {msgs: [], busy: false, err: null};
+const ustaKey = () => (lsGet(LSU.key) || '').trim();
+const ustaModel = () => { const m = lsGet(LSU.model); return USTA_MODELS.find(x => x[0] === m) || USTA_MODELS[0]; };
+const USTA_Q = ['Bugün hangi rigi bağlayayım?', 'Kurşun ve köstek ne olsun?', 'Hangi saatte, nasıl avlanayım?', 'Yem olarak ne kullanayım?', 'Bu hava çıkmaya uygun mu?'];
+const USTA_SYS = 'Sen Ege’de (İzmir–Seferihisar) tekneden ve kıyıdan olta balıkçılığında uzun yıllar deneyimli bir ustasın. Alyssa uygulamasını kullanan, kendi rig sistemi olan ' +
+  'deneyimli bir amatör balıkçıya bugünkü koşullara göre kısa, net ve uygulanabilir cevap veriyorsun.\n' +
+  'Kurallar:\n- Önce BAĞLAM’daki verilere dayan (hava, deniz, solunar, sürüklenme, rigler, envanter, bildirimler, avlar). Bağlamda olmayan bir şey söylüyorsan genel bilgi olduğunu belirt.\n' +
+  '- Rig önerirken uygulamanın rig kodlarını ve adlarını kullan. Envanterde olmayan bir şey önerirsen “alınacak” de.\n' +
+  '- Güvenlik önce gelir: deniz sınıfı C ya da D, kuvvetli hamle ya da yüksek dalga varsa açıkça uyar; D’de çıkmamasını söyle.\n' +
+  '- Av yasağı ve boy sınırı için kesin bilgi verme; güncel tebliğe bakmasını söyle.\n' +
+  '- Türkçe yaz; en fazla 180 kelime; gerekirse kısa maddeler. Giriş cümlesi kurma, doğrudan cevap ver.';
+const stripTags = h => String(h || '').replace(/<[^>]+>/g, '');
+// bağlam: Fishing'de seçili gün ve bölüm (yoksa bugün, gündüz)
+function ustaContext(){
+  const L = loc(); if (!L) return 'Konum seçilmemiş.';
+  const k = locKind(L), out = [];
+  out.push('Konum: ' + locLabel(L) + ' · tür: ' + KIND_TXT[k] + (k === 'kara' ? '' : ' · dip: ' + (L.bottom ? BOTTOM_TXT[L.bottom] : L.bottomEst ? 'tahmini ' + (L.bottomEstTxt || BOTTOM_TXT[L.bottomEst]) + ' (EUSeaMap)' : 'bilinmiyor') +
+    ' · derinlik: ' + (L.depth ? L.depth + ' m' : 'bilinmiyor') + ' · av: ' + (modeNow() === 'kiyi' ? 'kıyıdan' : 'tekneden' + (S.settings.anchor === 'demir' ? ', demirli' : ', sürüklenerek'))));
+  const ds = WX ? days() : []; if (!ds.length) { out.push('Hava ve deniz verisi yok.'); return out.join('\n'); }
+  const dd = ds.find(d => d.key === ui.fday) || ds[0], part = ui.fpart || 'gun', night = part === 'gece', [A, B] = partRange(dd, part);
+  out.push('Gün: ' + dd.date.getDate() + ' ' + MON_LONG[dd.date.getMonth()] + ' ' + dd.date.getFullYear() + ' · bölüm: ' + (night ? 'gece' : 'gündüz') + ' ' + hhmm(A) + '–' + hhmm(B) + (k === 'kara' ? '' : ' · deniz sınıfı ' + ((night ? dd.clsN : dd.clsD) || '?')));
+  if (k === 'kara') out.push('Bu nokta karada: yalnız hava durumu var.');
+  const depth = locDepth();
+  fBlocks(dd, part).forEach(b => { const s = blockStats(b, depth), xs = b.xs;
+    const g = xs.map(x => bft(x.gust)).filter(v => v != null), tp = xs.map(x => x.temp).filter(v => v != null), pr = xs.map(x => x.press).filter(v => v != null);
+    out.push('  ' + hhmm(b.a) + '–' + hhmm(b.b) + ': rüzgâr ' + (s.wdir != null ? windName(s.wdir) + ' ' : '') + spanTxt(s.bLo, s.bHi, 'Bft') + (g.length ? ', hamle ' + Math.max(...g) + ' Bft' : '') +
+      (k === 'kara' ? '' : (s.wave != null ? ', dalga ' + f1(s.wave) + ' m' : '') + (s.cur != null ? ', akıntı ' + f1(s.cur) + ' kn' + (s.curDir != null ? ' ' + dir8(s.curDir) + ' yönüne' : '') : '') + (s.cls ? ', deniz ' + s.cls : '') +
+        (s.known ? ', ' + (s.anch ? 'ipe akış ' + f1(s.lineHi) : 'sürüklenme ' + f1(s.sog) + ' kn ' + (s.dir != null ? dir8(s.dir) + ' yönüne' : '')) + (s.extra ? ', kurşun +' + s.extra + ' g' : '') : '')) +
+      (tp.length ? ', hava ' + (f0(Math.min(...tp)) === f0(Math.max(...tp)) ? f0(tp[0]) : f0(Math.min(...tp)) + '–' + f0(Math.max(...tp))) + ' °C' : '') + (pr.length ? ', basınç ' + Math.round(pr[0]) + ' hPa' : '') + (xs.some(x => (x.rain || 0) >= 0.2) ? ', yağış var' : ''));
+  });
+  if (k === 'kara') return out.join('\n');
+  if (dd.sst != null) out.push('Su sıcaklığı: ' + f1(dd.sst) + ' °C');
+  out.push('Ay: ' + dd.sol.name + ' (aydınlık %' + Math.round(dd.sol.illum * 100) + ') · gün doğumu ' + hm(dd.sol.sunrise) + ', batımı ' + hm(dd.sol.sunset));
+  bestWindows(dd, part, 2).forEach(w => out.push('  Pencere ' + winTxt(w) + ': balık %' + w.pct + (w.cls ? ', deniz ' + w.cls : '') + (w.kinds.length ? ' (' + w.kinds.join(', ') + ')' : '')));
+  const month = dd.date.getMonth() + 1, sn = seasonNow(month, dd.sst, 8);
+  if (sn.length) out.push('Mevsiminde (Ege takvimi + su): ' + sn.map(x => spName(x.id) + ' ' + CAL_TXT[x.m]).join(', '));
+  const R = recommend(dd, night, null), ok = R.filter(x => x.ok);
+  if (S.settings.ftarget) out.push('Hedef boy: ' + S.settings.ftarget);
+  out.push('Uygulamanın önerdiği rigler:');
+  ok.slice(0, 3).forEach((x, i) => { const rg = x.rg, ld = leadFor(rg, dd, R.x);
+    out.push((i + 1) + ') ' + (rg.code ? rg.code + ' · ' : '') + rg.name + ' — ' + (rg.groupName || '') + '; hedef: ' + (rg.target || '-') + '; neden: ' + x.why.join(', '));
+    out.push('   malzeme: ' + rg.slots.map(sl => { const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item]; return sl.label + ': ' + (it ? it.name : e.name || '-') + (e.size ? ' ' + e.size : ''); }).join('; '));
+    const bt = stripTags(baitHtml(rg, 'envanter')); if (bt) out.push('   yem: ' + bt);
+    if (ld && lengthsTxt(ld)) out.push('   takım: ' + stripTags(lengthsTxt(ld)));
+    const tn = tuneRig(rg, dd, R.x, R.win, night, month); if (tn.length) out.push('   bugünkü ayar: ' + tn.map(t => t.k + ': ' + t.t).join(' | '));
+  });
+  if (!ok.length) out.push('  (bu bölüm için hazır rig yok)');
+  const more = ok.slice(3, 10).map(x => (x.rg.code ? x.rg.code + ' ' : '') + x.rg.name); if (more.length) out.push('Diğer hazır rigler: ' + more.join(', '));
+  const bl = R.filter(x => !x.ok).slice(0, 3).map(x => (x.rg.code || x.rg.name) + ' (eksik: ' + missingOf(x.rg).map(sl => sl.label).join(', ') + ')'); if (bl.length) out.push('Eksik yüzünden bekleyen: ' + bl.join('; '));
+  const fbs = fbAll().filter(f => f.res === 'tuttu' || f.res === 'tutmadi').sort((a, b) => (a.t < b.t ? 1 : -1)).slice(0, 8)
+    .map(f => (f.code || f.name) + ' ' + (f.res === 'tuttu' ? 'tuttu' : 'tutmadı') + ' (' + f.t.slice(0, 10) + (f.night ? ', gece' : ', gündüz') + (f.loc ? ', ' + f.loc.name : '') + ')');
+  if (fbs.length) out.push('Son "bağladım" bildirimleri: ' + fbs.join('; '));
+  const cs = CATCHES.slice(0, 8).map(c => catchLine(c).sp + (c.count > 1 ? ' ×' + c.count : '') + (c.kg ? ' ' + fmtNum(c.kg, 2) + ' kg' : '') + (c.rig ? ' · ' + rigShort(c.rig) : '') + (c.bait ? ' · ' + c.bait : '') + ' · ' + (c.t || '').slice(0, 10));
+  if (cs.length) out.push('Son avlar: ' + cs.join('; '));
+  return out.join('\n');
+}
+function ustaErr(st, j){
+  const m = ((j && j.error && j.error.message) || '') + '';
+  if (st === 401) return 'API anahtarı geçersiz. Claude Console’da API keys → Create key ile yeni anahtar oluşturup buraya yapıştır.';
+  if (/credit|balance|billing/i.test(m)) return 'Hesapta kredi yok: Claude Console’da Billing → Buy credits ile kredi yükle.';
+  if (/workspace/i.test(m)) return 'Anahtar bir workspace’e bağlı değil: Create key’de workspace olarak Default Workspace’i seçip yeni anahtar oluştur.';
+  if (st === 403) return 'Bu anahtarın bu işe izni yok (' + m.slice(0, 80) + ').';
+  if (st === 404) return 'Model bulunamadı: aşağıdan diğer modeli seç.';
+  if (st === 413) return 'Soru çok uzun.';
+  if (st === 429) return 'Çok sık soruldu ya da limit doldu; biraz bekleyip tekrar dene.';
+  if (st >= 500) return 'Claude şu an yoğun; birazdan tekrar dene.';
+  return 'Hata ' + st + (m ? ': ' + m.slice(0, 120) : '');
+}
+async function ustaCall(q){
+  const key = ustaKey(); if (!key) throw new Error('Önce API anahtarını gir.');
+  const md = ustaModel();
+  const hist = USTA.msgs.slice(0, -1).filter(m => m.ok).slice(-8); while (hist.length && hist[0].role !== 'user') hist.shift();   // son mesaj şimdiki soru
+  const body = {model: md[0], max_tokens: 1500, output_config: {effort: 'low'},
+    system: [{type: 'text', text: USTA_SYS}, {type: 'text', text: 'BAĞLAM (Alyssa uygulamasından, ' + new Date().toLocaleString('tr-TR') + '):\n' + ustaContext()}],
+    messages: hist.map(m => ({role: m.role, content: m.text})).concat([{role: 'user', content: q}])};
+  const send = ver => fetchT(USTA_API, {method: 'POST', headers: {'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': ver, 'anthropic-dangerous-direct-browser-access': 'true'}, body: JSON.stringify(body)}, 90000);
+  let r = await send('2023-06-01'), j = await r.json().catch(() => ({}));
+  if (r.status === 400 && /anthropic-version/i.test(JSON.stringify(j))) { r = await send('2026-10-21'); j = await r.json().catch(() => ({})); }
+  if (r.status === 400 && /output_config|effort/i.test(JSON.stringify(j))) { delete body.output_config; r = await send('2023-06-01'); j = await r.json().catch(() => ({})); }   // eski model ya da sürüm effort'u tanımazsa
+  if (!r.ok) throw new Error(ustaErr(r.status, j));
+  const text = (j.content || []).filter(c => c && c.type === 'text').map(c => c.text).join('\n').trim();
+  if (!text) throw new Error('Boş cevap geldi; tekrar dene.');
+  const u = j.usage || {}, cost = ((u.input_tokens || 0) * md[3] + (u.output_tokens || 0) * md[4]) / 1e6;
+  return {text, model: md[1], cost, tok: (u.input_tokens || 0) + (u.output_tokens || 0)};
+}
+async function ustaAsk(q){
+  q = String(q || '').trim(); if (!q || USTA.busy) return;
+  USTA.err = null; USTA.busy = true; USTA.msgs.push({role: 'user', text: q, ok: true}); ustaRedraw();
+  try { const a = await ustaCall(q); USTA.msgs.push({role: 'assistant', text: a.text, ok: true, meta: a.model + ' · ≈ $' + (a.cost < 0.001 ? a.cost.toFixed(4) : a.cost.toFixed(3)).replace('.', ',')}); }
+  catch (e) { USTA.msgs[USTA.msgs.length - 1].ok = false; USTA.err = e && e.name === 'AbortError' ? 'Cevap gecikti (90 sn); bağlantıyı kontrol edip tekrar dene.' : (e && e.message) || String(e); }
+  finally { USTA.busy = false; ustaRedraw(true); }
+}
+function ustaRedraw(end){ if (ui.sheet !== 'usta') return; openMore('usta', true); if (end) { const sh = $('sheet'); const last = sh && sh.querySelector('.umsg:last-of-type'); if (last) last.scrollIntoView({block: 'start'}); } }
+// cevaptaki basit biçim: **kalın**, maddeler, paragraflar
+function mdLite(t){
+  const inl = s => s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/^#{1,4}\s*/, '');
+  let out = '', ul = false;
+  esc(t).split(/\n/).forEach(l => { const m = l.match(/^\s*(?:[-•*]|\d+[.)])\s+(.*)$/);
+    if (m) { if (!ul) { out += '<ul>'; ul = true; } out += '<li>' + inl(m[1]) + '</li>'; }
+    else { if (ul) { out += '</ul>'; ul = false; } if (l.trim()) out += '<p>' + inl(l) + '</p>'; } });
+  return out + (ul ? '</ul>' : '');
+}
+function ustaKeyBox(first){
+  const md = ustaModel();
+  return '<section class="set ukey"><h4>' + (first ? 'Usta’ya sormak için Claude API anahtarı' : 'Anahtar ve model') + '</h4>' +
+    (first ? '<p class="note">Anahtarı bir kez gir; yalnız bu cihazda saklanır (hesaba, yedeğe, paylaşıma girmez). Anahtar almak için Claude Console’da: <b>platform.claude.com/settings/keys</b> → <b>Create key</b> (workspace: <b>Default Workspace</b>) → anahtarı kopyala (bir kez gösterilir). ' +
+      'Kredi için: <b>Billing</b> sayfası (platform.claude.com/settings/billing) → <b>Buy credits</b>. Sonnet 5.5 ile soru başına ≈ 1–2 cent, Haiku 5.5 ile ≈ 0,1 cent.</p>' : '') +
+    '<label class="f wide">API anahtarı<input id="ak-key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="' + (ustaKey() ? '•••• kayıtlı · değiştirmek için yapıştır' : 'sk-ant-…') + '"></label>' +
+    '<div class="seg wrapseg">' + USTA_MODELS.map(m => '<button class="btn small" type="button" data-ustam="' + m[0] + '" aria-pressed="' + (m[0] === md[0]) + '">' + esc(m[1]) + '</button>').join('') + '</div>' +
+    '<p class="note">' + esc(md[1] + ': ' + md[2]) + '</p>' +
+    '<div class="row"><button class="btn primary small" type="button" data-usta="savekey">Kaydet</button>' + (ustaKey() ? '<button class="btn small" type="button" data-usta="delkey">Anahtarı sil</button>' : '') + '</div></section>';
+}
+function sheetUsta(){
+  const L = loc(), has = !!ustaKey();
+  const ds = WX && L ? days() : [], dd = ds.find(d => d.key === ui.fday) || ds[0], part = ui.fpart || 'gun';
+  const ctx = L ? [locLabel(L), dd ? dayLabel(dd.date, ds.indexOf(dd), dateKey(new Date())) + ' ' + (part === 'gece' ? 'gece' : 'gündüz') : '', dd && locKind(L) !== 'kara' ? 'deniz ' + ((part === 'gece' ? dd.clsN : dd.clsD) || '?') : '', dd && dd.sst != null && locKind(L) !== 'kara' ? 'su ' + tempTxt(dd.sst, true) : ''].filter(Boolean).join(' · ') : 'Konum yok';
+  const msgs = USTA.msgs.map(m => '<div class="umsg ' + (m.role === 'user' ? 'q' : 'a') + (m.ok === false ? ' fail' : '') + '">' + (m.role === 'user' ? '<p>' + esc(m.text) + '</p>' : mdLite(m.text) + (m.meta ? '<small>' + esc(m.meta) + '</small>' : '')) + '</div>').join('');
+  return sheetBar('Usta’ya sor', USTA.msgs.length ? '<button class="btn" type="button" data-usta="clear">Temizle</button>' : '') + '<div class="stack usta">' +
+    '<p class="note uctx">' + esc(ctx) + ' · <button class="linkbtn" type="button" data-usta="fishing">Fishing’de gün/bölüm seç</button></p>' +
+    (!has ? ustaKeyBox(true) :
+      (msgs ? '<div class="umsgs">' + msgs + '</div>' : '<p class="sub">Bugünkü hava, deniz, solunar ve önerilen riglerin Claude’a gider; usta bunlara bakarak cevap verir.</p>') +
+      (USTA.busy ? '<div class="umsg a busy"><p>Usta düşünüyor…</p></div>' : '') +
+      (USTA.err ? '<div class="banner bad">' + esc(USTA.err) + '</div>' : '') +
+      '<div class="uq">' + USTA_Q.map(q => '<button class="bchip" type="button" data-usta="q" data-q="' + esc(q) + '"' + (USTA.busy ? ' disabled' : '') + '>' + esc(q) + '</button>').join('') + '</div>' +
+      '<label class="f wide">Sorun<textarea id="ustaQ" rows="3" placeholder="Ör. Akşam 3 saatim var; Sığacık’ta hangi rigle başlayayım?"' + (USTA.busy ? ' disabled' : '') + '></textarea></label>' +
+      '<div class="row"><button class="btn primary" type="button" data-usta="ask"' + (USTA.busy ? ' disabled' : '') + '>Sor</button></div>' +
+      '<p class="note">Giden: konum adı, dip, derinlik, seçili gün ve bölümün hava/deniz özeti, solunar, önerilen riglerin ve malzemen, son bildirim ve avların. Koordinat gitmez. Cevap genel tavsiyedir; denize çıkma kararı senin.</p>' +
+      '<details><summary class="note">Anahtar ve model</summary>' + ustaKeyBox(false) + '</details>') + '</div>';
+}
+function ustaAct(a, d){
+  if (a === 'q') { ustaAsk(d.q); return; }
+  if (a === 'ask') { const el = $('ustaQ'); const q = el ? el.value : ''; if (!q.trim()) { toast('Sorunu yaz'); return; } ustaAsk(q); return; }
+  if (a === 'fishing') { closeSheet(); show('fishing'); return; }
+  if (a === 'clear') { USTA.msgs = []; USTA.err = null; ustaRedraw(); return; }
+  if (a === 'savekey') { const v = ($('ak-key') || {}).value || ''; if (!v.trim()) { toast(ustaKey() ? 'Anahtar aynı kaldı' : 'Anahtarı yapıştır'); return; }
+    if (!/^sk-ant-/.test(v.trim())) { toast('Anahtar “sk-ant-” ile başlamalı'); return; }
+    lsSet(LSU.key, v.trim()); toast('Anahtar bu cihaza kaydedildi'); ustaRedraw(); return; }
+  if (a === 'delkey') { lsDel(LSU.key); toast('Anahtar silindi'); ustaRedraw(); return; }
 }
 
 // ---------------------------------------------------------------- 60 · ortak çizim parçaları
@@ -4564,7 +4743,7 @@ function fRecs(dd, part, from, past){
   const R = recommend(dd, night, past ? null : from);
   const ok = R.filter(x => x.ok), top = ok.slice(0, F_TOP), more = ok.slice(F_TOP, F_TOP + 6);
   const lb = learnBase();
-  $('recNote').textContent = (L && L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · en uygun ' + F_TOP + ' rig · yalnızca tamamlanmış rigler' +
+  $('recNote').textContent = (L && L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : L && L.bottomEst ? 'Taban tahmini: ' + (L.bottomEstTxt || BOTTOM_TXT[L.bottomEst]) + ' (EUSeaMap); keşif rigleri de önde' : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · en uygun ' + F_TOP + ' rig · yalnızca tamamlanmış rigler' +
     (lb.on ? ' · avlarına göre ayarlı' : lb.total ? ' · avlardan öğrenme ' + lb.total + '/' + LEARN_MIN : '') + '.';
   // uyarı, üstteki özetle aynı sınıfa bakar (bölümün en kötü saatleri)
   const pcls = night ? dd.clsN : dd.clsD;
@@ -4973,7 +5152,7 @@ function openMore(name, keep){
   ui.sheet = name;
   if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, usta: sheetUsta, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -4997,6 +5176,7 @@ function sheetSettings(){
     '<p class="note">Rüzgâr, hızının %3 / %4,5 / %6’sı kadar sürüklenme ekler. Plotterdeki gerçek sürüklenmen hesaplanandan hızlıysa bir üst, yavaşsa bir alt seçeneği seç.</p></section>' +
     '<section class="set"><h4>Envanter</h4><p class="note">İğneleri nasıl sayarsın? Her kalemin üstünden ayrı ayrı da seçebilirsin.</p>' + segBtns('hookUnit', [['durum', 'Yalnız var / yok'], ['adet', 'Adet'], ['paket', 'Paket']], st.hookUnit || 'durum') +
       '<p class="note">Makine, kamış, ip, terminal, kurşun ve yemde adet sorulmaz: var, alınacak ya da yok. Jig ve zokada istersen adet.</p></section>' +
+    '<section class="set"><h4>Usta’ya sor (Claude)</h4><p class="note">' + (ustaKey() ? 'Anahtar bu cihazda kayıtlı · model ' + esc(ustaModel()[1]) + '.' : 'Claude API anahtarı girilmemiş. Anahtar yalnız bu cihazda durur.') + '</p><button class="btn small" type="button" data-open="usta">' + (ustaKey() ? 'Usta’ya sor' : 'Anahtarı gir') + '</button></section>' +
     '<section class="set"><h4>Harita</h4><label class="f wide">Google Maps API anahtarı (isteğe bağlı)<input id="gkey" data-setk="gkey" value="' + esc(st.gkey || '') + '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="AIza…"></label>' +
     '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>https://ktopdal.github.io/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
     '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
@@ -5099,7 +5279,8 @@ function sheetLocations(){
       (L.sea && L.sea.lat != null ? '<div class="sp">Deniz verisi ' + f1(L.sea.km) + ' km ' + dir8(L.sea.dir) + ' yönündeki noktadan</div>' : '') + '</div>' +
       (S.active === L.id ? '<span class="chip A">Seçili</span>' : '<button class="btn small" type="button" data-use="' + esc(L.id) + '">Seç</button>') + '</div>' + kindBtns(L) +
       (locKind(L) === 'kara' ? '' : '<div class="fields"><label class="f">Dip<select data-lk="' + esc(L.id) + '" data-f="bottom">' + BOTTOM.map(([k, t]) => '<option value="' + k + '"' + (k === (L.bottom || '') ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>' +
-      '<label class="f">Derinlik (m)<input data-lk="' + esc(L.id) + '" data-f="depth" inputmode="decimal" value="' + esc(L.depth || '') + '" placeholder="—"></label></div>') +
+      '<label class="f">Derinlik (m)<input data-lk="' + esc(L.id) + '" data-f="depth" inputmode="decimal" value="' + esc(L.depth || '') + '" placeholder="—"></label></div>' +
+      (!L.bottom && L.bottomEst ? '<p class="note">Taban tahmini (EUSeaMap): <b>' + esc(L.bottomEstTxt || BOTTOM_TXT[L.bottomEst]) + '</b>. Öneride yarım ağırlıkla sayılır; biliyorsan Dip’i seç.</p>' : '')) +
       (list.length > 1 ? '<div><button class="btn small" type="button" data-del="' + esc(L.id) + '">Sil</button></div>' : '') + '</div>').join('') : '<div class="empty">Henüz konum yok.</div>') +
     '<form class="panel" id="locForm" novalidate><h4 style="font-size:16px">Yeni konum</h4><div class="fields" style="margin-top:8px">' +
     '<label class="f wide">Ad<input id="nl-name" placeholder="Ör. Sığacık açığı"></label>' +
@@ -5243,7 +5424,7 @@ function duzenApply(code){
 // Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
 // Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
 // Yer adı: OpenStreetMap Nominatim (karada) ve Overpass (denizde en yakın yer, koy, kıyıya uzaklık) · Derinlik: EMODnet Bathymetry
-const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, substrate: false, locs: true, catches: true, grup: true};
+const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, habitat: false, substrate: false, locs: true, catches: true, grup: true};
 const mapCfg = () => Object.assign({}, MAP_DEF, S.settings.map || {});
 const NOMI = 'https://nominatim.openstreetmap.org/reverse';
 // Overpass: ana sunucu sık sık yoğun; iki sunucuya birden sorulur, ilk yanıt alınır
@@ -5285,6 +5466,40 @@ async function depthAt(lat, lon){
   const j = await fetchJ(EMOD_DEPTH + '?geom=' + encodeURIComponent('POINT(' + lon.toFixed(5) + ' ' + lat.toFixed(5) + ')'), null, 8000);
   const v = j && (j.avg != null ? j.avg : j.smoothed);
   return v == null || !isFinite(v) ? null : Number(v);
+}
+// v0.20 · deniz tabanı (EMODnet Seabed Habitats, EUSeaMap 2025): bütün Akdeniz için modelle üretilmiş taban haritası (yaklaşık 100 m).
+// Noktaya dokununca o yerin sınıfı sorulur (GetFeatureInfo); açıklamadaki kelimelerden dip türü çıkarılır. Tahmindir: konumun dibi
+// kullanıcı seçmedikçe "tahmini" kalır, öneride yarım ağırlıkla sayılır. Servis yanıt vermezse (bağlantı, izin) sessizce atlanır.
+const HAB_WMS = 'https://ows.emodnet-seabedhabitats.eu/geoserver/emodnet_view/wms', HAB_LAYER = 'eusm_eunis2019_group';
+const HAB_TXT = {kayalik: 'Kaya', 'kum-kayalik': 'İri taneli (çakıl, kaba kum)', karma: 'Karışık', kum: 'Kum', camur: 'Çamur'};
+function habitatClass(txt){
+  const t = String(txt || '').toLowerCase();
+  if (!t.trim()) return null;
+  let zone = /bathyal|abyssal/.test(t) ? 'derin (batiyal)' : /offshore circalittoral/.test(t) ? 'açık sirkalitoral (derin kıta sahanlığı)' : /circalittoral/.test(t) ? 'sirkalitoral (ışığın azaldığı derinlik)' : /infralittoral/.test(t) ? 'infralitoral (ışıklı sığ su)' : '';
+  let bottom = null, label = null;
+  if (/posidonia|seagrass|cymodocea|zostera|caulerpa/.test(t)) { bottom = 'karma'; label = 'Posidonia / deniz çayırı'; }
+  else if (/\brock|hard substrat|reef|coralligen|biogenic/.test(t)) bottom = 'kayalik';
+  else if (/coarse/.test(t)) bottom = 'kum-kayalik';
+  else if (/mixed/.test(t)) bottom = 'karma';
+  else if (/muddy sand/.test(t)) bottom = 'kum';
+  else if (/\bmud\b|sandy mud|\bmuds?\b/.test(t)) bottom = 'camur';
+  else if (/sand/.test(t)) bottom = 'kum';
+  // yalnız EUNIS 2019 kodu geldiyse (ör. MB55, MC15): 2. harf derinlik kuşağı, 3. hane taban (1 kaya · 2 biyojenik · 3 iri · 4 karışık · 5 kum · 6 çamur)
+  const c = !bottom ? String(txt || '').match(/\bM([A-G])([1-6])/) : null;
+  if (c) { bottom = {1: 'kayalik', 2: 'karma', 3: 'kum-kayalik', 4: 'karma', 5: 'kum', 6: 'camur'}[c[2]]; if (c[2] === '2') label = 'Biyojenik (çayır ya da resif)';
+    if (!zone) zone = {A: 'kıyı (gelgit kuşağı)', B: 'infralitoral (ışıklı sığ su)', C: 'sirkalitoral (ışığın azaldığı derinlik)', D: 'açık sirkalitoral (derin kıta sahanlığı)', E: 'derin (batiyal)', F: 'derin (batiyal)', G: 'çok derin (abisal)'}[c[1]]; }
+  if (!bottom && !zone) return null;
+  return {bottom, label: label || (bottom ? HAB_TXT[bottom] : 'Bilinmiyor'), zone};
+}
+async function seabedAt(lat, lon){
+  const d = 0.0006, q = 'service=WMS&version=1.1.1&request=GetFeatureInfo&layers=' + HAB_LAYER + '&query_layers=' + HAB_LAYER + '&styles=&srs=EPSG:4326&bbox=' +
+    [lon - d, lat - d, lon + d, lat + d].map(v => v.toFixed(5)).join(',') + '&width=11&height=11&x=5&y=5&info_format=application/json&feature_count=3';
+  const j = await fetchJ(HAB_WMS + '?' + q, null, 9000);
+  const f = (j && j.features || []).find(x => x && x.properties) || null; if (!f) return null;
+  const vals = Object.values(f.properties).filter(v => typeof v === 'string');
+  const r = habitatClass(vals.join(' | ')); if (!r) return null;
+  const desc = vals.filter(v => /[a-z]{4}/i.test(v) && v.length > 6).sort((a, b) => b.length - a.length)[0] || '';
+  return Object.assign(r, {raw: desc.slice(0, 120)});
 }
 // Google (isteğe bağlı): anahtar varsa yer adları Maps JavaScript API'nin Geocoder'ından, altlık olarak Google haritası ve uydu.
 // Google bir isteği reddederse sebebi GERR'e yazılır ve kullanıcıya Google Cloud'daki adıyla (İngilizce) gösterilir.
@@ -5504,7 +5719,7 @@ function initMap(){
   LL.control.zoom({position: 'topright'}).addTo(MAP);
   MAP.attributionControl.setPrefix(false);
   MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), grup: LL.layerGroup(), pick: null};
-  const cfg = mapCfg(); setBase(cfg.base); ['seamark', 'depth', 'contours', 'substrate'].forEach(k => setOver(k, cfg[k]));
+  const cfg = mapCfg(); setBase(cfg.base); ['seamark', 'depth', 'contours', 'habitat', 'substrate'].forEach(k => setOver(k, cfg[k]));
   drawLocs(); drawCatches();
   if (cfg.locs) MAPL.locs.addTo(MAP); if (cfg.catches) MAPL.catches.addTo(MAP);
   if (cfg.grup && grpOn()) { MAPL.grup.addTo(MAP); drawGroup(); grpFetch().then(drawGroup); }
@@ -5522,9 +5737,10 @@ const OVERS = {
   seamark: () => LF().tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {maxZoom: 18, attribution: 'Deniz işaretleri © <a href="https://www.openseamap.org" target="_blank" rel="noopener">OpenSeaMap</a>'}),
   depth: () => LF().tileLayer.wms('https://ows.emodnet-bathymetry.eu/wms', {layers: 'emodnet:mean_multicolour', format: 'image/png', transparent: true, opacity: 0.55, attribution: 'Derinlik © EMODnet Bathymetry'}),
   contours: () => LF().tileLayer.wms('https://ows.emodnet-bathymetry.eu/wms', {layers: 'emodnet:contours', format: 'image/png', transparent: true, attribution: 'Derinlik eğrileri © EMODnet Bathymetry'}),
+  habitat: () => LF().tileLayer.wms(HAB_WMS, {layers: HAB_LAYER, format: 'image/png', transparent: true, opacity: 0.55, attribution: 'Deniz tabanı © EMODnet Seabed Habitats (EUSeaMap)'}),
   substrate: () => LF().tileLayer.wms('https://drive.emodnet-geology.eu/geoserver/wms', {layers: 'cp_wp3_seabed_substrate_folk_7', format: 'image/png', transparent: true, opacity: 0.6, attribution: 'Dip türü © EMODnet Geology'}),
 };
-const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', substrate: 'Dip türü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
+const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', habitat: 'Deniz tabanı (EUSeaMap: kaya, kum, çamur, çayır; bütün Akdeniz, tahmini)', substrate: 'Dip türü ölçümü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
 function setBase(k){
   if (!MAP) return; if (MAPL.base) { MAP.removeLayer(MAPL.base); MAPL.base = null; }
   if (G_TYPES[k] && S.settings.gkey) { setGoogleBase(k); return; }
@@ -5568,7 +5784,8 @@ function renderLayers(){
   el.innerHTML = '<b>Altlık</b><div class="seg wrapseg">' + bases.map(([v, t]) => '<button class="btn small" type="button" data-mapbase="' + v + '" aria-pressed="' + (cfg.base === v) + '">' + t + '</button>').join('') + '</div>' +
     (G_TYPES[cfg.base] && GERR ? '<p class="note mc-g">Google kullanılamadı: ' + esc(GERR) + '</p>' : '') + (!S.settings.gkey ? '<p class="note">Google haritası için Ayarlar → Harita’ya Google anahtarını yaz.</p>' : '') +
     '<b>Katmanlar</b>' + Object.keys(OVER_TXT).filter(k => k !== 'grup' || grpOn()).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
-    '<p class="note">Derinlik ve dip türü EMODnet verisidir; seyir için resmî harita yerine geçmez.</p>';
+    (cfg.habitat ? '<details class="hableg"><summary class="note">Deniz tabanı lejantı (EUSeaMap)</summary><img alt="EUSeaMap lejantı" loading="lazy" src="' + HAB_WMS + '?service=WMS&amp;version=1.1.1&amp;request=GetLegendGraphic&amp;format=image/png&amp;layer=' + HAB_LAYER + '" onerror="this.replaceWith(document.createTextNode(\'Lejant alınamadı; noktaya dokun, sınıfı yazılır.\'))"></details><p class="note">Noktaya dokununca tabanın sınıfı kartta yazılır (kaya, kum, çamur, çayır).</p>' : '') +
+    '<p class="note">Derinlik ve deniz tabanı EMODnet verisidir (taban modelle tahmin); seyir için resmî harita yerine geçmez.</p>';
 }
 function mapLayerSet(k, v){ const cfg = mapCfg(); cfg[k] = v; S.settings.map = cfg; persistQuiet(); if (k === 'base') setBase(v); else setOver(k, v); renderLayers(); }
 // ---- işaretler
@@ -5606,6 +5823,7 @@ async function pickPoint(lat, lon){
   if (MAPL.pick) MAPL.pick.setLatLng([lat, lon]); else MAPL.pick = LF().marker([lat, lon], {icon: pinIcon('pick'), keyboard: false}).addTo(MAP);
   const my = ++PICK_ID; MPICK = {lat, lon, busy: true};
   $('mapLayers').hidden = true; renderPick();
+  seabedAt(lat, lon).then(bed => { if (my === PICK_ID && MPICK && bed) { MPICK.bed = bed; renderPick(); } }, () => {});
   const info = await placeInfo(lat, lon, part => { if (my === PICK_ID && MPICK) { Object.assign(MPICK, part, {busy: true}); renderPick(); } }).catch(() => null);
   if (my !== PICK_ID || !MPICK) return;
   Object.assign(MPICK, info || {}, {busy: false, failed: !info || !info.ok}); renderPick();
@@ -5618,7 +5836,7 @@ const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=
 function renderPick(){
   const p = MPICK, el = $('mapCard'); if (!el || !p) return;
   const facts = [p.kind ? KIND_TXT[p.kind] : '', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + kmTxt(p.coastKm)) : p.sea && p.coastChecked ? 'kıyı 6 km’den uzak' : '',
-    p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.sea === false && p.elev != null && p.elev >= 1 ? 'yükselti ≈ ' + p.elev + ' m' : '',
+    p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.bed && p.sea !== false ? 'taban ≈ ' + p.bed.label + ' (EUSeaMap)' : '', p.sea === false && p.elev != null && p.elev >= 1 ? 'yükselti ≈ ' + p.elev + ' m' : '',
     p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean);
   const kNote = !p.busy && p.kind === 'kara' ? '<div class="mc-k">Kara noktası: yalnız hava durumu (balık, rig ve deniz verisi yok).</div>' :
     !p.busy && p.kind === 'kiyi' ? '<div class="mc-k">Kıyı noktası: kıyıdan av; deniz verisi en yakın deniz noktasından.</div>' : '';
@@ -5638,12 +5856,14 @@ async function locCard(id){
   const draw = dep => {
     el.innerHTML = '<div class="mc-h"><b>' + esc(locLabel(Lc)) + '</b>' + (S.active === id ? '<span class="chip A">Seçili</span>' : '') + '<button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
       coordBlock(Lc.lat, Lc.lon) + (k === 'kara' ? '<div class="mc-i">Kara · yalnız hava durumu' + (Lc.elev != null ? ' · yükselti ≈ ' + Lc.elev + ' m' : '') + '</div>' : '<div class="mc-i">' + KIND_TXT[k] + ' · dip: ' + esc(BOTTOM_TXT[Lc.bottom || ''] || 'bilinmiyor') + ' · derinlik: ' + (Lc.depth ? esc(Lc.depth) + ' m' : 'yazılmamış') +
-      (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') + '</div>') +
+      (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') +
+      (!Lc.bottom && Lc.bottomEst ? ' · taban tahmini: ' + esc(Lc.bottomEstTxt || BOTTOM_TXT[Lc.bottomEst]) + ' <button class="linkbtn" type="button" data-mapact="setbed">dip olarak yaz</button>' : '') + '</div>') +
       '<div class="row">' + (S.active === id ? '<button class="btn primary" type="button" data-mapact="today">Tahmine dön</button>' : '<button class="btn primary" type="button" data-mapact="use">' + (k === 'kara' ? 'Seç · hava durumu' : 'Seç ve tahmin') + '</button>') +
       '<a class="btn" href="' + gmapsUrl(Lc.lat, Lc.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
     el.hidden = false;
   };
   draw(null);
+  if (!Lc.bottom && !Lc.bottomEst && k !== 'kara') seabedAt(Lc.lat, Lc.lon).then(bed => { if (bed && bed.bottom && S.locations[id] && !Lc.bottom) { setBedEst(Lc, bed); persistQuiet(); if (MPICK && MPICK.id === id) draw(null); } }, () => {});
   if (!Lc.depth && k !== 'kara') { const d = await depthAt(Lc.lat, Lc.lon).catch(() => null); if (MPICK && MPICK.id === id && d != null && d > 0.5) draw(Math.round(d)); }
 }
 async function mapAct(a, b){
@@ -5663,6 +5883,7 @@ async function mapAct(a, b){
     try { await navigator.clipboard.writeText(txt); toast('Kopyalandı: ' + txt); } catch (e) { toast(txt); }
     return;
   }
+  if (a === 'setbed' && p.id && S.locations[p.id]) { const Lc = S.locations[p.id]; if (Lc.bottomEst) { Lc.bottom = Lc.bottomEst; persist(); indexAll(); renderAll(); locCard(p.id); toast('Dip: ' + BOTTOM_TXT[Lc.bottom]); } return; }
   if (a === 'setdepth' && p.id && S.locations[p.id]) { S.locations[p.id].depth = String(b.dataset.dep); persist(); renderAll(); locCard(p.id); toast('Derinlik kaydedildi'); return; }
   if (a === 'use' && p.id) { S.active = p.id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast('Konum değişti'); return; }
   if (a === 'today') { closeSheet(); show('bugun'); return; }
@@ -5673,6 +5894,7 @@ async function mapAct(a, b){
       const NL = S.locations[id];
       if (p.kind && !p.busy) applyKind(NL, p); else NL.kindTried = null;   // tür biliniyorsa hemen; yoksa arka planda bulunur
       if (p.facing != null && (NL.facing == null || NL.facing === '')) NL.facing = String(p.facing);
+      if (p.bed && p.bed.bottom && p.sea !== false) setBedEst(NL, p.bed);
       if (!NL.kind) setTimeout(ensureKinds, 50);
     }
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
@@ -5680,6 +5902,8 @@ async function mapAct(a, b){
     locCard(id);
   }
 }
+// konumun taban tahmini (EUSeaMap): dip seçilmemişse öneride yarım ağırlıkla kullanılır
+function setBedEst(L, bed){ L.bottomEst = bed.bottom; L.bottomEstTxt = bed.label + (bed.zone ? ', ' + bed.zone : ''); L.bottomEstAt = Date.now(); }
 
 // ---------------------------------------------------------------- 78 · Rig Atölyesi sihirbazı (sıfırdan rig sistemi kurulumu)
 let WZ = null;
@@ -6761,6 +6985,8 @@ function bindEvents(){
     if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
     if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
     if (d.fb) { fbAct(d.fb, d); return; }
+    if (d.usta) { ustaAct(d.usta, d); return; }
+    if (d.ustam) { lsSet(LSU.model, d.ustam); ustaRedraw(); return; }
     if (d.tcal) { ui.calAll = d.tcal === 'all'; openMore('turtakvim', true); return; }
     if (d.goto) { show(d.goto); return; }
     if (d.calday) { ui.hday = d.calday; show('bugun'); renderHourly(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
@@ -6896,7 +7122,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc(),
   items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
-  spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns};
+  spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA};
 (async () => {
   loadState();
   pkgLoadCached();

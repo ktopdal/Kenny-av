@@ -97,7 +97,7 @@ function fRecs(dd, part, from, past){
   const R = recommend(dd, night, past ? null : from);
   const ok = R.filter(x => x.ok), top = ok.slice(0, F_TOP), more = ok.slice(F_TOP, F_TOP + 6);
   const lb = learnBase();
-  $('recNote').textContent = (L && L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · en uygun ' + F_TOP + ' rig · yalnızca tamamlanmış rigler' +
+  $('recNote').textContent = (L && L.bottom ? 'Dip: ' + BOTTOM_TXT[L.bottom] : L && L.bottomEst ? 'Taban tahmini: ' + (L.bottomEstTxt || BOTTOM_TXT[L.bottomEst]) + ' (EUSeaMap); keşif rigleri de önde' : 'Dip bilinmiyor; keşif riglerine öncelik verildi') + ' · en uygun ' + F_TOP + ' rig · yalnızca tamamlanmış rigler' +
     (lb.on ? ' · avlarına göre ayarlı' : lb.total ? ' · avlardan öğrenme ' + lb.total + '/' + LEARN_MIN : '') + '.';
   // uyarı, üstteki özetle aynı sınıfa bakar (bölümün en kötü saatleri)
   const pcls = night ? dd.clsN : dd.clsD;

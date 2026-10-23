@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.19 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v19_check.py
+"""Alyssa v0.3–v0.20 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v20_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v19'
+SHOTS = ROOT + '/qa/v20'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8784
+PORT = 8785
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -152,6 +152,45 @@ async def mock_geo(route):
         return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'min': 53.1, 'max': 55.2, 'avg': 54.3, 'smoothed': 54.0}))
     return await route.fulfill(status=404, headers=CORS, body='{}')
 
+# ---- sahte EUSeaMap (EMODnet Seabed Habitats WMS): GetFeatureInfo noktaya göre, diğerleri resim
+HAB_LOG = []
+HAB_FAIL = lambda lat, lon: 38.27 < lat < 38.28 and 26.62 < lon < 26.63   # servis yanıt vermiyor (CORS/bağlantı)
+async def mock_hab(route):
+    u = route.request.url; HAB_LOG.append(u)
+    if 'GetFeatureInfo' not in u:
+        return await route.fulfill(status=200, content_type='image/png', body=PNG1, headers=CORS)
+    q = urllib.parse.parse_qs(urllib.parse.urlparse(u).query)
+    x0, y0, x1, y1 = [float(v) for v in q['bbox'][0].split(',')]; lat, lon = (y0 + y1) / 2, (x0 + x1) / 2
+    if HAB_FAIL(lat, lon): return await route.abort()
+    feats = []
+    if LAND(lat, lon) or LAND2(lat, lon) or KIYI(lat, lon): feats = []
+    elif 38.24 < lat < 38.26 and 26.64 < lon < 26.66:
+        feats = [{'type': 'Feature', 'properties': {'eunis2019c': 'MB252', 'eunis2019d': 'Posidonia oceanica meadows', 'biozone': 'Infralittoral', 'substrate': 'Seabed'}}]
+    elif 38.21 < lat < 38.22 and 26.60 < lon < 26.62:
+        feats = [{'type': 'Feature', 'properties': {'eunis2019c': 'MC15', 'eunis2019d': 'Circalittoral rock', 'biozone': 'Circalittoral', 'substrate': 'Rock or other hard substrata'}}]
+    else:
+        feats = [{'type': 'Feature', 'properties': {'eunis2019c': 'MB52', 'eunis2019d': 'Mediterranean infralittoral sand', 'biozone': 'Infralittoral', 'substrate': 'Sand', 'energy': 'Low energy'}}]
+    return await route.fulfill(status=200, content_type='application/json', headers=CORS, body=json.dumps({'type': 'FeatureCollection', 'features': feats}))
+
+# ---- sahte Claude API (Usta'ya sor)
+CLAUDE_LOG = []
+async def mock_claude(route):
+    req = route.request
+    hdr = {'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,x-api-key,authorization,anthropic-version,anthropic-dangerous-direct-browser-access,anthropic-workspace-id', 'Access-Control-Allow-Methods': 'POST,OPTIONS'}
+    if req.method == 'OPTIONS': return await route.fulfill(status=204, headers=hdr)
+    body = json.loads(req.post_data or '{}'); CLAUDE_LOG.append({'h': dict(req.headers), 'b': body})
+    key = req.headers.get('x-api-key')
+    if key == 'sk-ant-test-nocredit':
+        return await route.fulfill(status=400, headers=hdr, content_type='application/json', body=json.dumps({'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}}))
+    if key == 'sk-ant-test-noeffort' and 'output_config' in body:
+        return await route.fulfill(status=400, headers=hdr, content_type='application/json', body=json.dumps({'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'output_config: Extra inputs are not permitted'}}))
+    if key not in ('sk-ant-test-good', 'sk-ant-test-noeffort'):
+        return await route.fulfill(status=401, headers=hdr, content_type='application/json', body=json.dumps({'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}))
+    n = len([m for m in body.get('messages', []) if m['role'] == 'user'])
+    txt = '**Önce en üstteki rigi bağla.**\n- Kurşun: kartta yazan kadar\n- Köstek: 0,40 mm\nGüvenlik: deniz D ise çıkma.' if n == 1 else 'İkinci cevap: akşam penceresini bekle.'
+    return await route.fulfill(status=200, headers=hdr, content_type='application/json', body=json.dumps({'id': 'msg_test', 'type': 'message', 'role': 'assistant', 'model': body.get('model'),
+        'content': [{'type': 'thinking', 'thinking': 'GİZLİ DÜŞÜNCE', 'signature': 'x'}, {'type': 'text', 'text': txt}], 'stop_reason': 'end_turn', 'usage': {'input_tokens': 3200, 'output_tokens': 420}}))
+
 async def new_ctx(b, storage=None, w=390):
     ctx = await b.new_context(viewport={'width': w, 'height': 860}, timezone_id='Europe/Istanbul', device_scale_factor=2, permissions=['geolocation'], geolocation={'latitude': 38.30, 'longitude': 26.80})
     await ctx.add_init_script(FAKE_NOW)
@@ -165,6 +204,7 @@ async def new_ctx(b, storage=None, w=390):
     for pat in ['https://nominatim.openstreetmap.org/**', 'https://overpass-api.de/**', 'https://overpass.kumi.systems/**', 'https://rest.emodnet-bathymetry.eu/**']:
         await ctx.route(pat, mock_geo)
     await ctx.route('https://wa.me/**', lambda route: route.fulfill(status=200, content_type='text/html', body='<p>wa</p>'))
+    await ctx.route('https://ows.emodnet-seabedhabitats.eu/**', mock_hab); await ctx.route('https://api.anthropic.com/**', mock_claude)
     pg = await ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
     pg.on('console', lambda m: errs.append('console: ' + m.text) if m.type == 'error' and 'fonts' not in m.text and 'ERR_' not in m.text and 'Failed to load resource' not in m.text else None)
@@ -1576,6 +1616,7 @@ async def main():
             await c.route('https://api.open-meteo.com/**', mock_meteo); await c.route('https://marine-api.open-meteo.com/**', mock_meteo)
             await fbmock.install(c)
             for pat in ['https://nominatim.openstreetmap.org/**', 'https://overpass-api.de/**', 'https://overpass.kumi.systems/**', 'https://rest.emodnet-bathymetry.eu/**']: await c.route(pat, mock_geo)
+            await c.route('https://ows.emodnet-seabedhabitats.eu/**', mock_hab); await c.route('https://api.anthropic.com/**', mock_claude)
             p = await c.new_page(); e = []
             p.on('pageerror', lambda x: e.append('pageerror: ' + str(x)))
             p.on('console', lambda m: e.append('console: ' + m.text) if m.type == 'error' and 'fonts' not in m.text and 'ERR_' not in m.text and 'Failed to load resource' not in m.text else None)
@@ -1812,6 +1853,114 @@ async def main():
         check(await pg.inner_text('#sheetTitle') == 'Lüfer' and re.search(r'en iyi (Eki|Kas)–Ara', sh) and 'ideal' in sh, 'Z: türe dokununca takım planı: ne zaman ve su')
         await pg.locator('#sheet .bar .btn').first.click(); await pg.wait_for_timeout(200)
         print('Z errors:', errs); check(not errs, 'Z: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== AA) v0.20: deniz tabanı (EUSeaMap) ve Usta'ya sor (Claude)
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        # 1) taban sınıflandırma (birim)
+        hc = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; return ['Mediterranean infralittoral sand', 'Posidonia oceanica meadows', 'Circalittoral rock and biogenic reef', 'Infralittoral coarse sediment',
+          'Circalittoral mud', 'Offshore circalittoral muddy sand', 'Infralittoral mixed sediment', '', 'Seabed', 'MC15', 'MB55 | x', 'MB252'].map(t => Q.habitatClass(t)); }""")
+        print('   taban:', json.dumps(hc, ensure_ascii=False)[:500])
+        check(hc[0]['bottom'] == 'kum' and 'infralitoral' in hc[0]['zone'] and hc[1]['bottom'] == 'karma' and 'Posidonia' in hc[1]['label'] and hc[2]['bottom'] == 'kayalik' and hc[3]['bottom'] == 'kum-kayalik', 'AA: taban sınıfı: kum, çayır, kaya, iri taneli')
+        check(hc[4]['bottom'] == 'camur' and hc[5]['bottom'] == 'kum' and 'açık sirkalitoral' in hc[5]['zone'] and hc[6]['bottom'] == 'karma' and hc[7] is None and hc[8] is None, 'AA: çamur, çamurlu kum = kum, karışık; boş ve "Seabed" → bilinmiyor')
+        check(hc[9]['bottom'] == 'kayalik' and 'sirkalitoral' in hc[9]['zone'] and hc[10]['bottom'] == 'kum' and 'infralitoral' in hc[10]['zone'] and hc[11]['bottom'] == 'karma' and 'Biyojenik' in hc[11]['label'], 'AA: yalnız EUNIS kodu gelirse koddan (MC15 kaya, MB55 kum, MB252 biyojenik)')
+        # 2) harita: katman, noktaya dokununca taban, kaydedince tahmini dip
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="harita"]'); await pg.wait_for_timeout(1500)
+        await pg.click('button[data-mapact="layers"]'); await pg.wait_for_timeout(200)
+        lay = await pg.inner_text('#mapLayers')
+        check('Deniz tabanı (EUSeaMap' in lay and await pg.locator('#mapLayers input[data-maplayer="habitat"]').count() == 1, 'AA: Katmanlar’da “Deniz tabanı (EUSeaMap)”')
+        n0 = len([u for u in HAB_LOG if 'GetMap' in u])
+        await pg.click('#mapLayers input[data-maplayer="habitat"]'); await pg.wait_for_timeout(1200)
+        tiles = [u for u in HAB_LOG if 'GetMap' in u]
+        check(len(tiles) > n0 and all('eusm_eunis2019_group' in u for u in tiles[n0:]), 'AA: taban katmanı açılınca EUSeaMap karoları istendi (%d)' % (len(tiles) - n0))
+        check(await pg.locator('#mapLayers .hableg img').count() == 1, 'AA: lejant (sunucunun lejant resmi)')
+        st = await state(pg); check(st['settings']['map']['habitat'] is True, 'AA: katman seçimi kaydedildi')
+        await pg.click('button[data-mapact="layers"]'); await pg.wait_for_timeout(200)
+        await pg.evaluate('() => { window.ALYSSA_QA.pickPoint(38.20, 26.75); }'); await pg.wait_for_timeout(3500)
+        card = await pg.inner_text('#mapCard'); print('   kart:', card.replace('\n', ' | ')[:300])
+        check('taban ≈ Kum (EUSeaMap)' in card, 'AA: nokta kartında taban tahmini')
+        await pg.click('#mapCard button[data-mapact="save"]'); await pg.wait_for_timeout(600)
+        st = await state(pg); NL = [l for l in st['locations'].values() if abs(l['lat'] - 38.20) < 1e-6 and abs(l['lon'] - 26.75) < 1e-6][0]
+        check(NL.get('bottomEst') == 'kum' and not NL.get('bottom') and 'infralitoral' in (NL.get('bottomEstTxt') or ''), 'AA: kaydedilen konumda dip boş, taban tahmini kum')
+        lc = await pg.inner_text('#mapCard')
+        check('taban tahmini: Kum' in lc and await pg.locator('#mapCard button[data-mapact="setbed"]').count() == 1, 'AA: konum kartında “dip olarak yaz”')
+        # öneride yarım ağırlık ve neden
+        rr = await pg.evaluate("""(id) => { const Q = window.ALYSSA_QA, S = Q.state(); const old = S.active; S.active = id;
+          const ds = Q.days(); const dd = ds[0]; const R = Q.recommend(dd, false, null); S.active = old;
+          return R.slice(0, 12).map(x => x.why.join(' | ')); }""", NL['id'])
+        check(any('taban tahmini: Kum (EUSeaMap)' in w for w in rr), 'AA: önerilerde “taban tahmini: Kum (EUSeaMap)”')
+        await pg.click('#mapCard button[data-mapact="setbed"]'); await pg.wait_for_timeout(400)
+        st = await state(pg); check(st['locations'][NL['id']]['bottom'] == 'kum', 'AA: “dip olarak yaz” → konumun dibi kum')
+        # çayır ve kaya noktaları; karada taban yok; servis yanıt vermezse sessiz
+        await pg.evaluate('() => { window.ALYSSA_QA.pickPoint(38.25, 26.65); }'); await pg.wait_for_timeout(3000)
+        check('Posidonia' in await pg.inner_text('#mapCard'), 'AA: Posidonia çayırı noktası')
+        await pg.evaluate('() => { window.ALYSSA_QA.pickPoint(38.215, 26.61); }'); await pg.wait_for_timeout(3000)
+        check('taban ≈ Kaya' in await pg.inner_text('#mapCard'), 'AA: kaya noktası')
+        await pg.evaluate('() => { window.ALYSSA_QA.pickPoint(38.45, 27.20); }'); await pg.wait_for_timeout(4000)
+        check('taban' not in await pg.inner_text('#mapCard'), 'AA: karada taban yazılmaz')
+        await pg.evaluate('() => { window.ALYSSA_QA.pickPoint(38.275, 26.625); }'); await pg.wait_for_timeout(3500)
+        c5 = await pg.inner_text('#mapCard'); check('taban' not in c5 and 'Kaydet' in c5, 'AA: taban servisi yanıt vermezse kart yine çalışır')
+        await pg.screenshot(path=SHOTS + '/aa_harita.png')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(300)
+        # 3) Usta'ya sor: anahtar yok → kurulum
+        await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(400)
+        check(await pg.is_visible('#ustaBtn'), 'AA: Fishing’de “Usta’ya sor”')
+        await pg.click('#ustaBtn'); await pg.wait_for_timeout(300)
+        sh = await pg.inner_text('#sheet')
+        check(await pg.inner_text('#sheetTitle') == 'Usta’ya sor' and 'platform.claude.com' in sh and 'Create key' in sh and await pg.is_visible('#ak-key'), 'AA: anahtar yokken kurulum (Console → API keys → Create key)')
+        await pg.fill('#ak-key', 'yanlis-anahtar'); await pg.click('#sheet button[data-usta="savekey"]'); await pg.wait_for_timeout(200)
+        check('sk-ant-' in await pg.inner_text('#toast') and not await pg.evaluate('localStorage.getItem("alyssa-ak")'), 'AA: biçimi yanlış anahtar kaydedilmez')
+        await pg.fill('#ak-key', 'sk-ant-test-bad'); await pg.click('#sheet button[data-usta="savekey"]'); await pg.wait_for_timeout(300)
+        check(await pg.evaluate('localStorage.getItem("alyssa-ak")') == 'sk-ant-test-bad', 'AA: anahtar cihaza kaydedildi')
+        await pg.click('#sheet button[data-usta="q"]'); await pg.wait_for_timeout(1200)
+        check('API anahtarı geçersiz' in await pg.inner_text('#sheet'), 'AA: geçersiz anahtar → açık hata')
+        # doğru anahtar
+        await pg.click('#sheet details summary'); await pg.fill('#ak-key', 'sk-ant-test-good'); await pg.click('#sheet button[data-usta="savekey"]'); await pg.wait_for_timeout(300)
+        nlog = len(CLAUDE_LOG)
+        await pg.click('#sheet button[data-usta="q"][data-q="Bugün hangi rigi bağlayayım?"]'); await pg.wait_for_timeout(1500)
+        sh = await pg.inner_text('#sheet'); html = await pg.inner_html('#sheet')
+        check('Önce en üstteki rigi bağla.' in sh and '<b>Önce en üstteki rigi bağla.</b>' in html and '<li>' in html and 'GİZLİ DÜŞÜNCE' not in sh, 'AA: cevap geldi (kalın, maddeler; düşünce bloğu gösterilmez)')
+        check('Sonnet 5.5 · ≈ $0,' in sh, 'AA: cevabın altında model ve yaklaşık maliyet')
+        req = CLAUDE_LOG[-1]; h = req['h']; bd = req['b']; ctxt = bd['system'][1]['text']
+        print('   bağlam:', ctxt[:700].replace('\n', ' ¶ '))
+        check(h.get('anthropic-dangerous-direct-browser-access') == 'true' and h.get('x-api-key') == 'sk-ant-test-good' and h.get('anthropic-version'), 'AA: istek başlıkları (tarayıcıdan doğrudan, anahtar, sürüm)')
+        check(bd['model'] == 'claude-sonnet-5-5' and bd['output_config']['effort'] == 'low' and bd['messages'][-1]['content'] == 'Bugün hangi rigi bağlayayım?', 'AA: model Sonnet 5.5, effort low, soru')
+        top = await pg.evaluate("""() => { const Q = window.ALYSSA_QA; const dd = Q.days()[0]; const R = Q.recommend(dd, false, null).filter(x => x.ok); return R[0] ? (R[0].rg.code || R[0].rg.name) : ''; }""")
+        check('BAĞLAM' in ctxt and 'Konum:' in ctxt and 'Uygulamanın önerdiği rigler' in ctxt and top in ctxt and 'Pencere' in ctxt and 'Mevsiminde' in ctxt, 'AA: bağlamda konum, pencere, mevsim ve önerilen rigler (%s)' % top)
+        st = await state(pg); coords = []
+        for l in st['locations'].values(): coords += ['%.4f' % l['lat'], '%.4f' % l['lon'], '%.3f' % l['lat'], '%.3f' % l['lon']]
+        raw = json.dumps(bd, ensure_ascii=False)
+        check(not any(c in raw for c in coords) and 'sk-ant-test-good' not in raw, 'AA: istekte koordinat ve anahtar yok')
+        # ikinci soru: geçmiş gider
+        await pg.fill('#ustaQ', 'Akşam hangi saatte başlayayım?'); await pg.click('#sheet button[data-usta="ask"]'); await pg.wait_for_timeout(1500)
+        bd2 = CLAUDE_LOG[-1]['b']
+        check([m['role'] for m in bd2['messages']] == ['user', 'assistant', 'user'] and 'İkinci cevap' in await pg.inner_text('#sheet'), 'AA: ikinci soruda önceki konuşma gider')
+        # model Haiku
+        await pg.click('#sheet details summary'); await pg.click('#sheet button[data-ustam="claude-haiku-5-5"]'); await pg.wait_for_timeout(200)
+        await pg.click('#sheet button[data-usta="q"][data-q="Bu hava çıkmaya uygun mu?"]'); await pg.wait_for_timeout(1500)
+        check(CLAUDE_LOG[-1]['b']['model'] == 'claude-haiku-5-5' and await pg.evaluate('localStorage.getItem("alyssa-am")') == 'claude-haiku-5-5', 'AA: Haiku 5.5 seçilince onunla soruldu')
+        await pg.screenshot(path=SHOTS + '/aa_usta.png')
+        await pg.evaluate("document.querySelector('#sheet').scrollTop = 99999"); await pg.wait_for_timeout(200); await pg.screenshot(path=SHOTS + '/aa_usta2.png')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'AA %d px Usta' % w)
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        # anahtar profile, buluta, yedeğe girmez
+        check('sk-ant' not in await pg.evaluate('localStorage.getItem("alyssa-v1")') and 'sk-ant' not in await pg.evaluate('JSON.stringify(window.ALYSSA_QA.state())'), 'AA: anahtar profilde (eşitleme, yedek) yok')
+        await pg.click('#sheet button[data-usta="clear"]'); await pg.wait_for_timeout(200)
+        check(await pg.locator('#sheet .umsg').count() == 0, 'AA: Temizle')
+        # kredi yoksa
+        await pg.evaluate('localStorage.setItem("alyssa-ak", "sk-ant-test-nocredit")'); await pg.click('#sheet button[data-usta="q"]'); await pg.wait_for_timeout(1200)
+        check('Billing' in await pg.inner_text('#sheet'), 'AA: kredi yoksa Billing’e yönlendirir')
+        await pg.evaluate('localStorage.setItem("alyssa-ak", "sk-ant-test-noeffort")'); n1 = len(CLAUDE_LOG); await pg.click('#sheet button[data-usta="q"]'); await pg.wait_for_timeout(1500)
+        check(len(CLAUDE_LOG) == n1 + 2 and 'output_config' not in CLAUDE_LOG[-1]['b'] and 'Önce en üstteki rigi bağla.' in await pg.inner_text('#sheet'), 'AA: effort tanınmazsa effort’suz yeniden soruldu')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        # Ayarlar'da durum
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="ayarlar"]'); await pg.wait_for_timeout(300)
+        check('Usta’ya sor (Claude)' in await pg.inner_text('#sheet') and 'Anahtar bu cihazda kayıtlı' in await pg.inner_text('#sheet'), 'AA: Ayarlar’da Usta’ya sor durumu')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        print('AA errors:', errs); check(not errs, 'AA: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== E) önizleme

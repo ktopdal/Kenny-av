@@ -80,7 +80,7 @@ const mmT = mm => { let t = (Math.round(mm * 1000) / 1000).toFixed(3); if (t.end
 // rig için bugünkü ayar satırları: [{k, t}]
 function tuneRig(rg, dd, x, w, night, month){
   const out = []; if (!rg || !dd) return out;
-  const L = loc(); const rock = !!(L && (L.bottom === 'kayalik' || L.bottom === 'saf-kayalik'));
+  const L = loc(), bot = L ? L.bottom || L.bottomEst : null, rock = bot === 'kayalik' || bot === 'saf-kayalik';
   const sl = leaderSlot(rg), mm = sl ? slotMm(sl, 'envanter') : null;
   // dişli tür: bu ay mevsimindeyse ve rig ona uygunsa köstek uyarısı (ışık ayarından önce gelir)
   const pred = ['sirti', 'spin', 'canli', 'lrf'].includes(rg.tech) || /sardalya|kalamar|istavrit|canlı/i.test([rg.baitText || ''].concat(rg.baits && rg.baits.ana ? [rg.baits.ana.envanter || rg.baits.ana.turkiye || ''] : []).join(' '));

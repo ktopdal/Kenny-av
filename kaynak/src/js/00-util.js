@@ -3,6 +3,10 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.20.0', notes: [
+    'Usta’ya sor: Fishing’den Claude’a sor; bugünkü hava, deniz, solunar ve önerilen riglerin bağlam olarak gider (kendi Claude API anahtarınla; anahtar yalnız bu cihazda, koordinat gitmez)',
+    'Deniz tabanı haritası: Harita → Katmanlar → Deniz tabanı (EUSeaMap, bütün Akdeniz; kaya, kum, çamur, çayır). Noktaya dokununca tabanın sınıfı kartta',
+    'Dibi bilinmeyen konumda taban tahmini önerilerde yarım ağırlıkla sayılır; Konumlar ve konum kartından “dip olarak yaz”']},
   {v: '0.19.0', notes: [
     'Tür takvimi (Ege): her türün ay ay oltaya gelmesi ve sevdiği su sıcaklığı; öneriler bu ayı ve bugünkü suyu hesaba katar (Daha → Tür takvimi)',
     'Fishing: “Mevsiminde” satırı (bu ay ve bu suda en uygun türler) ve hedef boy seçimi (Hepsi / Porsiyon / Trofe)',

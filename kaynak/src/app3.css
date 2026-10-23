@@ -421,3 +421,24 @@ button.tcal-r:hover{background:var(--surface-2)}
 .tcal-leg span{display:inline-flex;align-items:center;gap:5px}
 .tcal-leg .c{width:16px;height:12px}
 @media (max-width:360px){.tcal-r{grid-template-columns:minmax(58px,1.5fr) repeat(12,minmax(10px,1fr)) 40px}.tcal-r .nm{font-size:12px}}
+/* v0.20 · deniz tabanı lejantı, Usta'ya sor */
+.hableg{margin-top:6px}
+.hableg img{display:block;max-width:100%;max-height:260px;object-fit:contain;object-position:left top;margin-top:6px;background:#fff;border-radius:6px}
+.fusta{display:flex;align-items:center;gap:4px 10px;flex-wrap:wrap;width:100%;margin-top:14px;padding:12px 14px;border:1px solid var(--fish);border-radius:12px;background:var(--fish-soft);color:var(--ink);cursor:pointer;text-align:left;font:inherit}
+.fusta b{color:var(--fish-ink);font-size:15px}
+.fusta span{flex:1 1 180px;min-width:0;font-size:13px;color:var(--ink-2)}
+.fusta i{font-style:normal;font-size:22px;color:var(--fish-ink);margin-left:auto}
+.usta .uctx{margin-top:0}
+.umsgs{display:flex;flex-direction:column;gap:8px}
+.umsg{padding:10px 12px;border-radius:12px;font-size:14.5px;line-height:1.45;max-width:100%;overflow-wrap:anywhere}
+.umsg p{margin:0 0 6px}.umsg p:last-child{margin-bottom:0}
+.umsg ul{margin:4px 0 6px;padding-left:20px}.umsg li{margin:2px 0}
+.umsg.q{align-self:flex-end;background:var(--brand-soft);border:1px solid var(--brand);max-width:88%}
+.umsg.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line)}
+.umsg.a small{display:block;margin-top:6px;font:500 11px var(--mono);color:var(--muted)}
+.umsg.fail{opacity:.6}
+.umsg.busy{color:var(--muted);font-style:italic}
+.uq{display:flex;flex-wrap:wrap;gap:6px}
+.uq .bchip{text-align:left}
+.usta textarea{width:100%;min-height:70px;resize:vertical;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.ukey .seg{margin-top:6px}

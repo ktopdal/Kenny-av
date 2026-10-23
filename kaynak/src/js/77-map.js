@@ -2,7 +2,7 @@
 // Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
 // Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
 // Yer adı: OpenStreetMap Nominatim (karada) ve Overpass (denizde en yakın yer, koy, kıyıya uzaklık) · Derinlik: EMODnet Bathymetry
-const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, substrate: false, locs: true, catches: true, grup: true};
+const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, habitat: false, substrate: false, locs: true, catches: true, grup: true};
 const mapCfg = () => Object.assign({}, MAP_DEF, S.settings.map || {});
 const NOMI = 'https://nominatim.openstreetmap.org/reverse';
 // Overpass: ana sunucu sık sık yoğun; iki sunucuya birden sorulur, ilk yanıt alınır
@@ -44,6 +44,40 @@ async function depthAt(lat, lon){
   const j = await fetchJ(EMOD_DEPTH + '?geom=' + encodeURIComponent('POINT(' + lon.toFixed(5) + ' ' + lat.toFixed(5) + ')'), null, 8000);
   const v = j && (j.avg != null ? j.avg : j.smoothed);
   return v == null || !isFinite(v) ? null : Number(v);
+}
+// v0.20 · deniz tabanı (EMODnet Seabed Habitats, EUSeaMap 2025): bütün Akdeniz için modelle üretilmiş taban haritası (yaklaşık 100 m).
+// Noktaya dokununca o yerin sınıfı sorulur (GetFeatureInfo); açıklamadaki kelimelerden dip türü çıkarılır. Tahmindir: konumun dibi
+// kullanıcı seçmedikçe "tahmini" kalır, öneride yarım ağırlıkla sayılır. Servis yanıt vermezse (bağlantı, izin) sessizce atlanır.
+const HAB_WMS = 'https://ows.emodnet-seabedhabitats.eu/geoserver/emodnet_view/wms', HAB_LAYER = 'eusm_eunis2019_group';
+const HAB_TXT = {kayalik: 'Kaya', 'kum-kayalik': 'İri taneli (çakıl, kaba kum)', karma: 'Karışık', kum: 'Kum', camur: 'Çamur'};
+function habitatClass(txt){
+  const t = String(txt || '').toLowerCase();
+  if (!t.trim()) return null;
+  let zone = /bathyal|abyssal/.test(t) ? 'derin (batiyal)' : /offshore circalittoral/.test(t) ? 'açık sirkalitoral (derin kıta sahanlığı)' : /circalittoral/.test(t) ? 'sirkalitoral (ışığın azaldığı derinlik)' : /infralittoral/.test(t) ? 'infralitoral (ışıklı sığ su)' : '';
+  let bottom = null, label = null;
+  if (/posidonia|seagrass|cymodocea|zostera|caulerpa/.test(t)) { bottom = 'karma'; label = 'Posidonia / deniz çayırı'; }
+  else if (/\brock|hard substrat|reef|coralligen|biogenic/.test(t)) bottom = 'kayalik';
+  else if (/coarse/.test(t)) bottom = 'kum-kayalik';
+  else if (/mixed/.test(t)) bottom = 'karma';
+  else if (/muddy sand/.test(t)) bottom = 'kum';
+  else if (/\bmud\b|sandy mud|\bmuds?\b/.test(t)) bottom = 'camur';
+  else if (/sand/.test(t)) bottom = 'kum';
+  // yalnız EUNIS 2019 kodu geldiyse (ör. MB55, MC15): 2. harf derinlik kuşağı, 3. hane taban (1 kaya · 2 biyojenik · 3 iri · 4 karışık · 5 kum · 6 çamur)
+  const c = !bottom ? String(txt || '').match(/\bM([A-G])([1-6])/) : null;
+  if (c) { bottom = {1: 'kayalik', 2: 'karma', 3: 'kum-kayalik', 4: 'karma', 5: 'kum', 6: 'camur'}[c[2]]; if (c[2] === '2') label = 'Biyojenik (çayır ya da resif)';
+    if (!zone) zone = {A: 'kıyı (gelgit kuşağı)', B: 'infralitoral (ışıklı sığ su)', C: 'sirkalitoral (ışığın azaldığı derinlik)', D: 'açık sirkalitoral (derin kıta sahanlığı)', E: 'derin (batiyal)', F: 'derin (batiyal)', G: 'çok derin (abisal)'}[c[1]]; }
+  if (!bottom && !zone) return null;
+  return {bottom, label: label || (bottom ? HAB_TXT[bottom] : 'Bilinmiyor'), zone};
+}
+async function seabedAt(lat, lon){
+  const d = 0.0006, q = 'service=WMS&version=1.1.1&request=GetFeatureInfo&layers=' + HAB_LAYER + '&query_layers=' + HAB_LAYER + '&styles=&srs=EPSG:4326&bbox=' +
+    [lon - d, lat - d, lon + d, lat + d].map(v => v.toFixed(5)).join(',') + '&width=11&height=11&x=5&y=5&info_format=application/json&feature_count=3';
+  const j = await fetchJ(HAB_WMS + '?' + q, null, 9000);
+  const f = (j && j.features || []).find(x => x && x.properties) || null; if (!f) return null;
+  const vals = Object.values(f.properties).filter(v => typeof v === 'string');
+  const r = habitatClass(vals.join(' | ')); if (!r) return null;
+  const desc = vals.filter(v => /[a-z]{4}/i.test(v) && v.length > 6).sort((a, b) => b.length - a.length)[0] || '';
+  return Object.assign(r, {raw: desc.slice(0, 120)});
 }
 // Google (isteğe bağlı): anahtar varsa yer adları Maps JavaScript API'nin Geocoder'ından, altlık olarak Google haritası ve uydu.
 // Google bir isteği reddederse sebebi GERR'e yazılır ve kullanıcıya Google Cloud'daki adıyla (İngilizce) gösterilir.
@@ -263,7 +297,7 @@ function initMap(){
   LL.control.zoom({position: 'topright'}).addTo(MAP);
   MAP.attributionControl.setPrefix(false);
   MAPL = {base: null, over: {}, locs: LL.layerGroup(), catches: LL.layerGroup(), grup: LL.layerGroup(), pick: null};
-  const cfg = mapCfg(); setBase(cfg.base); ['seamark', 'depth', 'contours', 'substrate'].forEach(k => setOver(k, cfg[k]));
+  const cfg = mapCfg(); setBase(cfg.base); ['seamark', 'depth', 'contours', 'habitat', 'substrate'].forEach(k => setOver(k, cfg[k]));
   drawLocs(); drawCatches();
   if (cfg.locs) MAPL.locs.addTo(MAP); if (cfg.catches) MAPL.catches.addTo(MAP);
   if (cfg.grup && grpOn()) { MAPL.grup.addTo(MAP); drawGroup(); grpFetch().then(drawGroup); }
@@ -281,9 +315,10 @@ const OVERS = {
   seamark: () => LF().tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {maxZoom: 18, attribution: 'Deniz işaretleri © <a href="https://www.openseamap.org" target="_blank" rel="noopener">OpenSeaMap</a>'}),
   depth: () => LF().tileLayer.wms('https://ows.emodnet-bathymetry.eu/wms', {layers: 'emodnet:mean_multicolour', format: 'image/png', transparent: true, opacity: 0.55, attribution: 'Derinlik © EMODnet Bathymetry'}),
   contours: () => LF().tileLayer.wms('https://ows.emodnet-bathymetry.eu/wms', {layers: 'emodnet:contours', format: 'image/png', transparent: true, attribution: 'Derinlik eğrileri © EMODnet Bathymetry'}),
+  habitat: () => LF().tileLayer.wms(HAB_WMS, {layers: HAB_LAYER, format: 'image/png', transparent: true, opacity: 0.55, attribution: 'Deniz tabanı © EMODnet Seabed Habitats (EUSeaMap)'}),
   substrate: () => LF().tileLayer.wms('https://drive.emodnet-geology.eu/geoserver/wms', {layers: 'cp_wp3_seabed_substrate_folk_7', format: 'image/png', transparent: true, opacity: 0.6, attribution: 'Dip türü © EMODnet Geology'}),
 };
-const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', substrate: 'Dip türü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
+const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', habitat: 'Deniz tabanı (EUSeaMap: kaya, kum, çamur, çayır; bütün Akdeniz, tahmini)', substrate: 'Dip türü ölçümü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
 function setBase(k){
   if (!MAP) return; if (MAPL.base) { MAP.removeLayer(MAPL.base); MAPL.base = null; }
   if (G_TYPES[k] && S.settings.gkey) { setGoogleBase(k); return; }
@@ -327,7 +362,8 @@ function renderLayers(){
   el.innerHTML = '<b>Altlık</b><div class="seg wrapseg">' + bases.map(([v, t]) => '<button class="btn small" type="button" data-mapbase="' + v + '" aria-pressed="' + (cfg.base === v) + '">' + t + '</button>').join('') + '</div>' +
     (G_TYPES[cfg.base] && GERR ? '<p class="note mc-g">Google kullanılamadı: ' + esc(GERR) + '</p>' : '') + (!S.settings.gkey ? '<p class="note">Google haritası için Ayarlar → Harita’ya Google anahtarını yaz.</p>' : '') +
     '<b>Katmanlar</b>' + Object.keys(OVER_TXT).filter(k => k !== 'grup' || grpOn()).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
-    '<p class="note">Derinlik ve dip türü EMODnet verisidir; seyir için resmî harita yerine geçmez.</p>';
+    (cfg.habitat ? '<details class="hableg"><summary class="note">Deniz tabanı lejantı (EUSeaMap)</summary><img alt="EUSeaMap lejantı" loading="lazy" src="' + HAB_WMS + '?service=WMS&amp;version=1.1.1&amp;request=GetLegendGraphic&amp;format=image/png&amp;layer=' + HAB_LAYER + '" onerror="this.replaceWith(document.createTextNode(\'Lejant alınamadı; noktaya dokun, sınıfı yazılır.\'))"></details><p class="note">Noktaya dokununca tabanın sınıfı kartta yazılır (kaya, kum, çamur, çayır).</p>' : '') +
+    '<p class="note">Derinlik ve deniz tabanı EMODnet verisidir (taban modelle tahmin); seyir için resmî harita yerine geçmez.</p>';
 }
 function mapLayerSet(k, v){ const cfg = mapCfg(); cfg[k] = v; S.settings.map = cfg; persistQuiet(); if (k === 'base') setBase(v); else setOver(k, v); renderLayers(); }
 // ---- işaretler
@@ -365,6 +401,7 @@ async function pickPoint(lat, lon){
   if (MAPL.pick) MAPL.pick.setLatLng([lat, lon]); else MAPL.pick = LF().marker([lat, lon], {icon: pinIcon('pick'), keyboard: false}).addTo(MAP);
   const my = ++PICK_ID; MPICK = {lat, lon, busy: true};
   $('mapLayers').hidden = true; renderPick();
+  seabedAt(lat, lon).then(bed => { if (my === PICK_ID && MPICK && bed) { MPICK.bed = bed; renderPick(); } }, () => {});
   const info = await placeInfo(lat, lon, part => { if (my === PICK_ID && MPICK) { Object.assign(MPICK, part, {busy: true}); renderPick(); } }).catch(() => null);
   if (my !== PICK_ID || !MPICK) return;
   Object.assign(MPICK, info || {}, {busy: false, failed: !info || !info.ok}); renderPick();
@@ -377,7 +414,7 @@ const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=
 function renderPick(){
   const p = MPICK, el = $('mapCard'); if (!el || !p) return;
   const facts = [p.kind ? KIND_TXT[p.kind] : '', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + kmTxt(p.coastKm)) : p.sea && p.coastChecked ? 'kıyı 6 km’den uzak' : '',
-    p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.sea === false && p.elev != null && p.elev >= 1 ? 'yükselti ≈ ' + p.elev + ' m' : '',
+    p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.bed && p.sea !== false ? 'taban ≈ ' + p.bed.label + ' (EUSeaMap)' : '', p.sea === false && p.elev != null && p.elev >= 1 ? 'yükselti ≈ ' + p.elev + ' m' : '',
     p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean);
   const kNote = !p.busy && p.kind === 'kara' ? '<div class="mc-k">Kara noktası: yalnız hava durumu (balık, rig ve deniz verisi yok).</div>' :
     !p.busy && p.kind === 'kiyi' ? '<div class="mc-k">Kıyı noktası: kıyıdan av; deniz verisi en yakın deniz noktasından.</div>' : '';
@@ -397,12 +434,14 @@ async function locCard(id){
   const draw = dep => {
     el.innerHTML = '<div class="mc-h"><b>' + esc(locLabel(Lc)) + '</b>' + (S.active === id ? '<span class="chip A">Seçili</span>' : '') + '<button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
       coordBlock(Lc.lat, Lc.lon) + (k === 'kara' ? '<div class="mc-i">Kara · yalnız hava durumu' + (Lc.elev != null ? ' · yükselti ≈ ' + Lc.elev + ' m' : '') + '</div>' : '<div class="mc-i">' + KIND_TXT[k] + ' · dip: ' + esc(BOTTOM_TXT[Lc.bottom || ''] || 'bilinmiyor') + ' · derinlik: ' + (Lc.depth ? esc(Lc.depth) + ' m' : 'yazılmamış') +
-      (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') + '</div>') +
+      (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') +
+      (!Lc.bottom && Lc.bottomEst ? ' · taban tahmini: ' + esc(Lc.bottomEstTxt || BOTTOM_TXT[Lc.bottomEst]) + ' <button class="linkbtn" type="button" data-mapact="setbed">dip olarak yaz</button>' : '') + '</div>') +
       '<div class="row">' + (S.active === id ? '<button class="btn primary" type="button" data-mapact="today">Tahmine dön</button>' : '<button class="btn primary" type="button" data-mapact="use">' + (k === 'kara' ? 'Seç · hava durumu' : 'Seç ve tahmin') + '</button>') +
       '<a class="btn" href="' + gmapsUrl(Lc.lat, Lc.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
     el.hidden = false;
   };
   draw(null);
+  if (!Lc.bottom && !Lc.bottomEst && k !== 'kara') seabedAt(Lc.lat, Lc.lon).then(bed => { if (bed && bed.bottom && S.locations[id] && !Lc.bottom) { setBedEst(Lc, bed); persistQuiet(); if (MPICK && MPICK.id === id) draw(null); } }, () => {});
   if (!Lc.depth && k !== 'kara') { const d = await depthAt(Lc.lat, Lc.lon).catch(() => null); if (MPICK && MPICK.id === id && d != null && d > 0.5) draw(Math.round(d)); }
 }
 async function mapAct(a, b){
@@ -422,6 +461,7 @@ async function mapAct(a, b){
     try { await navigator.clipboard.writeText(txt); toast('Kopyalandı: ' + txt); } catch (e) { toast(txt); }
     return;
   }
+  if (a === 'setbed' && p.id && S.locations[p.id]) { const Lc = S.locations[p.id]; if (Lc.bottomEst) { Lc.bottom = Lc.bottomEst; persist(); indexAll(); renderAll(); locCard(p.id); toast('Dip: ' + BOTTOM_TXT[Lc.bottom]); } return; }
   if (a === 'setdepth' && p.id && S.locations[p.id]) { S.locations[p.id].depth = String(b.dataset.dep); persist(); renderAll(); locCard(p.id); toast('Derinlik kaydedildi'); return; }
   if (a === 'use' && p.id) { S.active = p.id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast('Konum değişti'); return; }
   if (a === 'today') { closeSheet(); show('bugun'); return; }
@@ -432,6 +472,7 @@ async function mapAct(a, b){
       const NL = S.locations[id];
       if (p.kind && !p.busy) applyKind(NL, p); else NL.kindTried = null;   // tür biliniyorsa hemen; yoksa arka planda bulunur
       if (p.facing != null && (NL.facing == null || NL.facing === '')) NL.facing = String(p.facing);
+      if (p.bed && p.bed.bottom && p.sea !== false) setBedEst(NL, p.bed);
       if (!NL.kind) setTimeout(ensureKinds, 50);
     }
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
@@ -439,3 +480,5 @@ async function mapAct(a, b){
     locCard(id);
   }
 }
+// konumun taban tahmini (EUSeaMap): dip seçilmemişse öneride yarım ağırlıkla kullanılır
+function setBedEst(L, bed){ L.bottomEst = bed.bottom; L.bottomEstTxt = bed.label + (bed.zone ? ', ' + bed.zone : ''); L.bottomEstAt = Date.now(); }
