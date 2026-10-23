@@ -105,6 +105,8 @@ function bindEvents(){
     if (d.fb) { fbAct(d.fb, d); return; }
     if (d.usta) { ustaAct(d.usta, d); return; }
     if (d.ustam) { lsSet(LSU.model, d.ustam); ustaRedraw(); return; }
+    if (d.alloc) { toggleAlertLoc(d.alloc); return; }
+    if (d.avgo) { openAvLink(d.avgo); return; }
     if (d.tcal) { ui.calAll = d.tcal === 'all'; openMore('turtakvim', true); return; }
     if (d.goto) { show(d.goto); return; }
     if (d.calday) { ui.hday = d.calday; show('bugun'); renderHourly(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
@@ -121,7 +123,7 @@ function bindEvents(){
       const a = d.act;
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
       if (a === 'gpsloc') { gpsToLocation(); return; }
-      if (a === 'icsAll') { const list = alertMatches(); if (!list.length) return; const r = await deliverFile('alyssa-av-pencereleri.ics', 'text/calendar', buildIcs(list)); if (r !== 'abort') toast(list.length + ' pencere takvim dosyasına yazıldı'); return; }
+      if (a === 'icsAll') { await alertExport(); return; }
       if (a === 'safety') { saveSafety(); const tel = (S.settings.safety || {}).tel; window.open('https://wa.me/' + (tel || '') + '?text=' + encodeURIComponent(safetyText()), '_blank', 'noopener'); return; }
       if (a === 'safetyShare') { saveSafety(); try { await navigator.share({text: safetyText()}); } catch (e) {} return; }
       if (a === 'ckReset') { S.check = {date: dateKey(new Date()), done: {}}; persist(); openMore('liste', true); return; }
@@ -200,7 +202,7 @@ function bindEvents(){
     if (el.dataset.grpshare) { setCatchShare(el.dataset.grpshare, {on: el.checked}); return; }
     if (el.dataset.grpopt) { setCatchShare(el.dataset.cid, {[el.dataset.grpopt]: Number(el.value)}); return; }
     if (el.dataset.grpdef) { S.settings.grpDef = Object.assign(grpDef(), {[el.dataset.grpdef]: Number(el.value)}); persist(); toast('Kaydedildi'); return; }
-    if (el.dataset.alert) { const c = alertCfg(); const v = el.value; c[el.dataset.alert] = el.dataset.alert === 'part' ? v : Number(v); S.settings.alert = c; persist(); openMore('uyari', true); return; }
+    if (el.dataset.alert) { const c = alertCfg(), k = el.dataset.alert, v = el.value; c[k] = k === 'part' || k === 'sp' ? v : v === '' ? '' : Number(v); S.settings.alert = c; persist(); openMore('uyari', true); return; }
     if (el.dataset.ck) { if (!S.check || S.check.date !== dateKey(new Date())) S.check = {date: dateKey(new Date()), done: {}}; if (el.checked) S.check.done[el.dataset.ck] = 1; else delete S.check.done[el.dataset.ck]; persistQuiet(); return; }
     if (el.id === 'sf-ret' || el.id === 'sf-tel' || el.id === 'sf-not') { saveSafety(); return; }
     if (el.dataset.maplayer) { mapLayerSet(el.dataset.maplayer, el.checked); return; }
@@ -229,7 +231,7 @@ function bindEvents(){
   $('hTable').addEventListener('click', e => { if (!e.target.closest('th.lbl')) return; S.settings.hFull = !S.settings.hFull; persistQuiet(); $('hScroll').classList.toggle('compact', !S.settings.hFull); });
   // açılır bölümlerin (hazır liste) açık/kapalı hâli yeniden çizimde korunur
   document.addEventListener('toggle', e => { const el = e.target; if (el && el.dataset && el.dataset.dk) { ui.open = ui.open || {}; ui.open[el.dataset.dk] = el.open; } }, true);
-  window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); });
+  window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); else if (h.indexOf('av=') === 0) openAvLink(h.slice(3)); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { if (BK.dirty && S.backup.auto && bkReady()) backupNow(false); if (CLOUD.user && CLOUD.dirty) pushNow(); return; }
     loadWeather(); pkgCheck(false); if (CLOUD.user && !CLOUD.busy && !CLOUD.ask) cloudSync(false);
@@ -240,7 +242,8 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   state: () => S, winTxt, winLabel, evChip, hm, windName, orderedRows, map: () => MAP, pickPoint, grpFetch, grpCatches, learnBase, learnSummary, solunar, curve, fishN, loc: () => loc(),
   items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
-  spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA};
+  spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
+  alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats};
 (async () => {
   loadState();
   pkgLoadCached();
@@ -248,13 +251,14 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   applyTheme();
   indexAll(); bindEvents();
   const h = (location.hash || '').slice(1);
-  const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null, grpRaw = h.indexOf('grup=') === 0 ? h.slice(5) : null;
+  const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null, grpRaw = h.indexOf('grup=') === 0 ? h.slice(5) : null, avRaw = h.indexOf('av=') === 0 ? h.slice(3) : null;
   show(VIEWS.includes(h) ? h : 'bugun');
   if (S.wx) WX = buildWx();
   await loadCatches();
   renderAll();
   if (shareRaw) openShareLink(shareRaw);
   else if (grpRaw) openGroupInvite(grpRaw);
+  else if (avRaw && S.onboarded) openAvLink(avRaw);
   else if (!PREVIEW && !S.onboarded && !hasProfileData()) showWelcome();
   else if (!S.onboarded) { S.onboarded = true; persistQuiet(); }
   if (CATCHES.length) { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }

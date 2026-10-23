@@ -442,3 +442,10 @@ button.tcal-r:hover{background:var(--surface-2)}
 .uq .bchip{text-align:left}
 .usta textarea{width:100%;min-height:70px;resize:vertical;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
 .ukey .seg{margin-top:6px}
+/* v0.21 · takvim uyarısı: noktalar, değişiklikler, pencere kartı, akşam özeti */
+.achg{border-left:3px solid var(--C);padding-left:10px}
+.achg .sp{margin:3px 0}
+.aslot .sp{margin-top:4px;overflow-wrap:anywhere}
+.aslot details{margin-top:4px}
+.aslot .chip{font-size:11px;padding:1px 7px}
+.asum{background:var(--surface-2);border-radius:10px;padding:10px 12px}

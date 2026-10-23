@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.20 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v20_check.py
+"""Alyssa v0.3–v0.21 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v21_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,13 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v20'
+SHOTS = ROOT + '/qa/v21'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
 prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8785
+PORT = 8787
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -718,12 +718,12 @@ async def main():
         await pg.select_option('#sheet select[data-alert="bft"]', '6'); await pg.wait_for_timeout(200)
         await pg.select_option('#sheet select[data-alert="wave"]', '1.5'); await pg.wait_for_timeout(200)
         await pg.select_option('#sheet select[data-alert="fish"]', '3'); await pg.wait_for_timeout(300)
-        nmatch = await pg.locator('#sheet .item').count(); check(nmatch >= 2, 'L: kurala uyan pencereler (%d)' % nmatch)
+        nmatch = await pg.locator('#sheet .item.aslot').count(); check(nmatch >= 2, 'L: kurala uyan pencereler (%d)' % nmatch)
         await pg.screenshot(path=SHOTS + '/l_uyari.png')
         async with pg.expect_download() as dl_info:
             await pg.click('#sheet button[data-act="icsAll"]')
         dl = await dl_info.value; ics = open(await dl.path(), encoding='utf-8', newline='').read()
-        check(dl.suggested_filename.endswith('.ics') and ics.count('BEGIN:VEVENT') == nmatch and 'BEGIN:VALARM' in ics and 'TRIGGER:-PT120M' in ics and ics.startswith('BEGIN:VCALENDAR'), 'L: takvim dosyası (%d etkinlik, alarm 2 sa önce)' % ics.count('BEGIN:VEVENT'))
+        check(dl.suggested_filename.endswith('.ics') and ics.count('UID:av-') == nmatch and 'BEGIN:VALARM' in ics and 'TRIGGER:-PT120M' in ics and ics.startswith('BEGIN:VCALENDAR'), 'L: takvim dosyası (%d pencere, alarm 2 sa önce)' % ics.count('UID:av-'))
         check(all(len(l.encode()) <= 75 for l in ics.split('\r\n')), 'L: .ics satırları 75 baytı aşmıyor')
         await pg.click('#sheet [data-close]'); await pg.wait_for_timeout(200)
         # çıkış listesi
@@ -1961,6 +1961,109 @@ async def main():
         check('Usta’ya sor (Claude)' in await pg.inner_text('#sheet') and 'Anahtar bu cihazda kayıtlı' in await pg.inner_text('#sheet'), 'AA: Ayarlar’da Usta’ya sor durumu')
         await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
         print('AA errors:', errs); check(not errs, 'AA: sayfa hatası yok')
+        await ctx.close()
+
+        # ================================================== AB) v0.21: takvim uyarısı — çoklu nokta, genişletilmiş kural, hazırlık, akşam özeti, bağlantı, bozulan pencere, alarmlar
+        ctx, pg, errs = await new_ctx(b)
+        await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
+        await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(250)
+        await pg.fill('#nl-name', 'Sığacık açığı'); await pg.fill('#nl-lat', '38.20'); await pg.fill('#nl-lon', '26.75'); await pg.click('#locForm button[type="submit"]'); await pg.wait_for_timeout(300)
+        await pg.fill('#nl-name', 'Ev'); await pg.fill('#nl-lat', '38.3648'); await pg.fill('#nl-lon', '26.8732'); await pg.click('#locForm button[type="submit"]'); await pg.wait_for_timeout(300)
+        await pg.click('#sheet button[data-use="1"]'); await pg.wait_for_timeout(300); await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(4000)
+        st = await state(pg); ids = {l['name']: l['id'] for l in st['locations'].values()}; sig = ids['Sığacık açığı']; ev = ids['Ev']
+        # 1) noktalar ve kural
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="uyari"]'); await pg.wait_for_timeout(400)
+        check(await pg.locator('#sheet button[data-alloc]').count() == 3, 'AB: uyarıda nokta seçici (3 nokta)')
+        await pg.click('#sheet button[data-alloc="%s"]' % sig); await pg.wait_for_timeout(300)
+        await pg.click('#sheet button[data-alloc="%s"]' % ev); await pg.wait_for_timeout(3000)
+        for k, v in [('bft', '6'), ('wave', '1.5'), ('fish', '3')]:
+            await pg.select_option('#sheet select[data-alert="%s"]' % k, v); await pg.wait_for_timeout(300)
+        await pg.wait_for_timeout(1500)
+        sh = await pg.inner_text('#sheet'); st = await state(pg)
+        print('   uyarı:', sh.replace('\n', ' | ')[:500])
+        check(sorted(st['settings']['alert']['locs']) == sorted(['1', sig, ev]) and 'Kara noktasında av penceresi yok: Ev' in sh, 'AB: 3 nokta seçili; kara noktası (Ev) için not')
+        nsl = await pg.locator('#sheet .item.aslot').count(); nbest = await pg.locator('#sheet .item.aslot .besttag').count()
+        check(nsl >= 2 and nbest >= 1, 'AB: pencereler (%d), aynı saatte iki noktada olanlarda “En iyi” (%d)' % (nsl, nbest))
+        prep = await pg.locator('#sheet .item.aslot details .sp').first.text_content()
+        check('Rigler:' in prep and ('Kurşun:' in prep or 'Hazır rig yok' in prep), 'AB: pencerede hazırlık (rigler, kurşun): ' + prep.replace('\n', ' / ')[:120])
+        check('Akşam özeti' in sh and 'Yarın' in sh, 'AB: akşam özeti önizlemesi')
+        for w in [390, 320]:
+            await pg.set_viewport_size({'width': w, 'height': 760}); await pg.wait_for_timeout(150); await overflow(pg, 'AB %d px uyarı' % w)
+        await pg.set_viewport_size({'width': 390, 'height': 860})
+        await pg.screenshot(path=SHOTS + '/ab_uyari.png')
+        await pg.evaluate("document.querySelector('#sheet .item.aslot').scrollIntoView()"); await pg.wait_for_timeout(150); await pg.screenshot(path=SHOTS + '/ab_uyari2.png')
+        await pg.evaluate("document.querySelector('#sheet').scrollTop = 1e6"); await pg.wait_for_timeout(150); await pg.screenshot(path=SHOTS + '/ab_uyari3.png')
+        # 2) kural birimleri: tür, yıldız, akıntı, su
+        rf = await pg.evaluate("""() => { const Q = window.ALYSSA_QA, dd = Q.days()[0]; const base = {bft: 6, wave: 1.5, fish: 1, sp: '', suMin: '', suMax: '', star: '', curMin: '', curMax: ''};
+          const w = {fish: 4}, st = {bft: 3, wave: 0.4, cur: 0.5, sst: 21};
+          const f = o => Q.ruleFail(Object.assign({}, base, o), dd, w, st);
+          return {ok: f({}), star: f({star: 5}), cmin: f({curMin: 0.6}), cmax: f({curMax: 0.4}), cfine: f({curMin: 0.4, curMax: 0.6}), su1: f({suMin: 22}), su2: f({suMax: 20}), sufine: f({suMin: 16, suMax: 22}),
+            akya: f({sp: 'akya'}), lufer: f({sp: 'lufer'}), nocur: Q.ruleFail(Object.assign({}, base, {curMin: 0.2}), dd, w, {bft: 3, wave: 0.4, cur: null, sst: 21}), stars: dd.sol.stars}; }""")
+        print('   kural:', json.dumps(rf, ensure_ascii=False)[:500])
+        check(rf['ok'] == [] and rf['cfine'] == [] and rf['sufine'] == [] and rf['lufer'] == [], 'AB: kurala uyan koşullar boş döner (akıntı 0,4–0,6, su 16–22, lüfer)')
+        check((rf['star'] != []) == (rf['stars'] < 5) and rf['cmin'] and rf['cmax'] and rf['su1'] and rf['su2'], 'AB: yıldız, akıntı ve su sınırları')
+        check(rf['akya'] and 'mevsimi değil' in rf['akya'][0] and rf['nocur'] == ['akıntı verisi yok'], 'AB: akya Ekim’de mevsimi değil; akıntı verisi yoksa “akıntı en az” sağlanmaz')
+        await pg.select_option('#sheet select[data-alert="sp"]', 'akya'); await pg.wait_for_timeout(800)
+        check(await pg.locator('#sheet .item.aslot').count() == 0 and 'ek koşulları kaldır' in await pg.inner_text('#sheet'), 'AB: hedef tür akya (mevsimi değil) → pencere yok')
+        await pg.select_option('#sheet select[data-alert="sp"]', 'lufer'); await pg.wait_for_timeout(800)
+        n_l = await pg.locator('#sheet .item.aslot').count()
+        check(n_l >= 1 and 'Lüfer' in await pg.inner_text('#sheet'), 'AB: hedef tür lüfer (mevsiminde) → pencereler (%d)' % n_l)
+        await pg.select_option('#sheet select[data-alert="sp"]', ''); await pg.wait_for_timeout(500)
+        st = await state(pg); check(st['settings']['alert']['sp'] == '' and st['settings']['alert']['curMin'] == '' and st['settings']['alert']['prep'] == 18, 'AB: boş seçimler boş kalır (0 olmaz)')
+        # 3) takvim dosyası: pencereler, özetler, alarmlar, bağlantı
+        nsl = await pg.locator('#sheet .item.aslot').count()
+        async with pg.expect_download() as dl_info:
+            await pg.click('#sheet button[data-act="icsAll"]')
+        dl = await dl_info.value; ics = open(await dl.path(), encoding='utf-8', newline='').read()
+        un = lambda t: re.sub(r'\r\n ', '', t)   # katlanmış satırları aç
+        icu = un(ics)
+        print('   ics:', ics.count('BEGIN:VEVENT'), 'etkinlik ·', icu.count('UID:av-'), 'pencere ·', icu.count('UID:ozet-'), 'özet')
+        check(icu.count('UID:av-') == nsl and icu.count('UID:ozet-') >= 3, 'AB: .ics: her pencere bir etkinlik, akşam özetleri ayrı')
+        check('TRIGGER:-PT120M' in icu and 'TRIGGER;VALUE=DATE-TIME:' in icu and 'Hazırlık · ' in icu and 'Son hava kontrolü' in icu, 'AB: alarmlar: son hava kontrolü ve bir gün önce hazırlık')
+        check(re.search(r'UID:ozet-\d{8}-[^\r\n]+\r\n[^\r]*\r\nSEQUENCE:1\r\nDTSTART:\d{8}T170000Z', icu) is not None and 'TRIGGER:PT0M' in icu, 'AB: akşam özeti 20:00’da (UTC 17:00), açılınca alarm')
+        check('URL:http://127.0.0.1:%d/dist/#av=' % PORT in icu and 'Uygulamada aç:' in icu and 'Rigler:' in icu, 'AB: etkinlikte uygulama bağlantısı ve hazırlık notu')
+        check(all(len(l.encode()) <= 75 for l in ics.split('\r\n')), 'AB: .ics satırları 75 baytı aşmıyor')
+        als = await pg.evaluate('JSON.parse(localStorage.getItem("alyssa-als"))')
+        check(als and len(als['ids']) == nsl and all(e['set'] for e in als['ids'].values()), 'AB: eklenen pencereler bu cihazda saklandı (%d)' % len(als['ids']))
+        check('Takvim uyarısı değişti' not in await pg.inner_text('#banners'), 'AB: ekledikten sonra “değişti” bildirimi yok')
+        # 4) bozulan pencere: takvimde olup artık kurala uymayan (rüzgârlı gündüz) bir pencere
+        await pg.evaluate("""() => { const a = JSON.parse(localStorage.getItem('alyssa-als')); const e = Object.values(a.ids)[0];
+          a.ids['av-20261017-ogle-x@alyssa'] = {a: new Date('2026-10-17T10:00:00+03:00').getTime(), b: new Date('2026-10-17T11:30:00+03:00').getTime(), title: 'Gündüz av penceresi · Konum 1', loc: '1', date: '2026-10-17', part: 'gun', set: e.set};
+          const k = Object.keys(a.ids)[0]; a.ids[k].a -= 3 * 3600000; a.ids[k].b -= 3 * 3600000;   // bir pencere kaymış olsun
+          localStorage.setItem('alyssa-als', JSON.stringify(a)); }""")
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        await pg.evaluate('() => { window.ALYSSA_QA.state().settings.zoom = 0; }')
+        await pg.click('.tabbar button[data-v="bugun"]'); await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="ayarlar"]'); await pg.wait_for_timeout(200)
+        await pg.click('#sheet button[data-set="zoom"][data-val="0"]'); await pg.wait_for_timeout(500)   # yeniden çizim
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(300)
+        bn = await pg.inner_text('#banners'); print('   bildirim:', bn.replace('\n', ' | ')[:300])
+        check('Takvim uyarısı değişti' in bn and re.search(r'bozuldu \((balık|rüzgâr|dalga|solunar|akıntı|su)', bn) and 'kaydı' in bn, 'AB: üstte “Takvim uyarısı değişti: bozuldu (neden), kaydı”')
+        await pg.click('#banners button[data-open="uyari"]'); await pg.wait_for_timeout(600)
+        sh = await pg.inner_text('#sheet')
+        check('İPTAL' in sh and 'Değişti' in sh and 'Takvimi güncelle (' in sh, 'AB: uyarı sayfasında İPTAL ve Değişti satırları, “Takvimi güncelle”')
+        async with pg.expect_download() as dl_info:
+            await pg.click('#sheet button[data-act="icsAll"]')
+        dl = await dl_info.value; ics2 = un(open(await dl.path(), encoding='utf-8', newline='').read())
+        check('UID:av-20261017-ogle-x@alyssa' in ics2 and 'STATUS:CANCELLED' in ics2 and 'SUMMARY:İPTAL · ' in ics2 and 'SEQUENCE:2' in ics2, 'AB: güncelleme dosyasında iptal ve aynı kimlikle yeni sürüm (SEQUENCE 2)')
+        als = await pg.evaluate('JSON.parse(localStorage.getItem("alyssa-als"))')
+        check('av-20261017-ogle-x@alyssa' not in als['ids'] and 'Takvim uyarısı değişti' not in await pg.inner_text('#banners'), 'AB: iptal bir kez gönderildi; bildirim kalktı')
+        # 5) bağlantı: Fishing o gün, bölüm ve noktayla açılır
+        await pg.click('#sheet .item.aslot button[data-avgo]'); await pg.wait_for_timeout(800)
+        check(await pg.is_visible('#v-fishing') and await pg.locator('#sheet').is_hidden(), 'AB: “Fishing’de aç” → Fishing')
+        await pg.goto(BASE + '/dist/?qa=1#av=2026-10-18.gece.' + sig); await pg.wait_for_timeout(2500)
+        st = await state(pg)
+        check(await pg.is_visible('#v-fishing') and st['active'] == sig and await pg.get_attribute('#fDays button[aria-pressed="true"]', 'data-fday') == '2026-10-18' and await pg.get_attribute('#fParts button[aria-pressed="true"]', 'data-fpart') == 'gece', 'AB: #av= bağlantısıyla açılış: nokta, gün ve gece seçili')
+        check(await pg.evaluate('location.hash') == '#fishing', 'AB: bağlantı adresten temizlendi')
+        await pg.evaluate("location.hash = '#av=2026-10-19.gun.1'"); await pg.wait_for_timeout(1500)
+        st = await state(pg)
+        check(st['active'] == '1' and await pg.get_attribute('#fDays button[aria-pressed="true"]', 'data-fday') == '2026-10-19' and await pg.get_attribute('#fParts button[aria-pressed="true"]', 'data-fpart') == 'gun', 'AB: açıkken gelen bağlantı da çalışır')
+        # 6) yalnız kara noktası
+        await pg.evaluate("(ev) => { const S = window.ALYSSA_QA.state(); S.settings.alert.locs = [ev]; }", ev)
+        await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="uyari"]'); await pg.wait_for_timeout(500)
+        check('Seçili noktalar karada' in await pg.inner_text('#sheet'), 'AB: yalnız kara noktası → av penceresi hesaplanmaz')
+        await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
+        print('AB errors:', errs); check(not errs, 'AB: sayfa hatası yok')
         await ctx.close()
 
         # ================================================== E) önizleme

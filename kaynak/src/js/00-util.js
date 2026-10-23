@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.21.0', notes: [
+    'Takvim uyarısı en çok 3 noktaya bakar; aynı saatte birden çok noktada pencere varsa en iyisini yazar',
+    'Kurala hedef tür (mevsiminde ve suyu uygun), su sıcaklığı aralığı, solunar yıldızı ve akıntı aralığı eklendi',
+    'Takvim etkinliğinin notunda hazırlık: 3 rig, kurşun, yem ve eksikler; bağlantıya dokununca uygulama o gün ve bölümle Fishing’de açılır',
+    'Her akşam ertesi günün özeti tek bir takvim notu olarak (saat seçilebilir)',
+    'Alarmlar: çıkıştan önce son hava kontrolü ve bir gün önce hazırlık (yem, eksikler)',
+    'Takvime eklenen pencere bozulursa (rüzgâr arttı…) uygulama açılınca üstte söyler; güncelleyince bozulan “İPTAL” olur, kayan pencere yeni saatine taşınır']},
   {v: '0.20.0', notes: [
     'Usta’ya sor: Fishing’den Claude’a sor; bugünkü hava, deniz, solunar ve önerilen riglerin bağlam olarak gider (kendi Claude API anahtarınla; anahtar yalnız bu cihazda, koordinat gitmez)',
     'Deniz tabanı haritası: Harita → Katmanlar → Deniz tabanı (EUSeaMap, bütün Akdeniz; kaya, kum, çamur, çayır). Noktaya dokununca tabanın sınıfı kartta',

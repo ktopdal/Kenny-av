@@ -7,7 +7,7 @@ const MORE = [
   ['paket', 'Özel paket', () => S.pkg.need ? '⚠ Güncellendi, yeni şifreyle aç' : pkgOn() ? 'Açık · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem' : 'Kapalı'],
   ['harita', 'Harita', () => 'Nokta seç: yer adı, derece-dakika koordinat, derinlik, deniz işaretleri'],
   ['liste', 'Çıkış listesi ve güvenlik', () => 'Bugünün rigleri, ' + (shoreMode() ? 'kıyı ekipmanı' : 'tekne güvenliği') + ', WhatsApp güvenlik mesajı'],
-  ['uyari', 'Takvim uyarısı', () => { const c = alertCfg(); return 'Rüzgâr ≤ ' + c.bft + ' Bft, dalga ≤ ' + fmtNum(c.wave, 1) + ' m, balık ≥ ' + c.fish + ' → telefon takvimine'; }],
+  ['uyari', 'Takvim uyarısı', () => { const c = alertCfg(), n = alertLocs(c).length; return 'Rüzgâr ≤ ' + c.bft + ' Bft, dalga ≤ ' + fmtNum(c.wave, 1) + ' m, balık ≥ ' + c.fish + (c.sp ? ', ' + spName(c.sp) : '') + (n > 1 ? ' · ' + n + ' nokta' : '') + ' → telefon takvimine'; }],
   ['paylas', 'Paylaş ve geri bildirim', () => 'Envanterini ya da rig sistemini bağlantıyla paylaş'],
   ['grup', 'Ortak av haritası', () => { const g = grpCfg(); return g ? g.group + ' · ' + (GROUP.members.length ? GROUP.members.length + ' üye' : 'grup açık') : 'Kapalı · arkadaşlarınla şifreli ortak harita'; }],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
@@ -31,6 +31,7 @@ function renderNewVersion(){
     out.push('<div class="newver"><b>' + APP_SHORT + ' güncellendi · v' + APP_VERSION + '</b><ul>' + notes.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul><div><button class="btn small" type="button" id="seenVer">Tamam</button></div></div>');
   }
   const br = backupReminder(); if (br) out.push(br);
+  const ab = alertBanner(); if (ab) out.push(ab);   // takvime eklenen pencereler değişti (83-plan.js)
   // iki cihaz için: hesap varken girilmemişse bir kez hatırlat (kapatılabilir)
   if (cloudOn() && CLOUD.resolved && !CLOUD.user && hasProfileData() && !S.settings.syncHintOff)
     out.push('<div class="newver"><b>Tablet ve telefonda aynı veri</b><span class="note">İki cihazda da aynı hesapla giriş yaparsan rigler, envanter, konumlar ve avlar kendiliğinden eşitlenir.</span><div class="row"><button class="btn small primary" type="button" data-open="hesap">Giriş yap</button><button class="btn small" type="button" data-act="syncHintOff">Gerek yok</button></div></div>');
