@@ -3,6 +3,13 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.23.0', notes: [
+    'Takvimde hamle de gündüz/gece iki değer; 2–3 nokta seçiliyken de hamle görünür',
+    'Takvimin altında değerlerin ne olduğu: rüzgâr/hamle gündüz ve gecenin en yükseği, dalga ve akıntı günün en yükseği, su ve basınç ortalama',
+    'Saatlik tabloda bir sütuna dokun: o saat mavi işaretlenir (şu anki saat kırmızı kalır)',
+    'Rig kartında parçaya dokun: envanterdeki durumu, kaç rigde kullanıldığı, elindeki yedekler (“bu rigde kullan” / bütün riglerde) ve bulamazsan yerine alınacaklar',
+    '“Notlar ve diğer seviyeler”: envanterdeki parçayı “Türkiye’de en iyi” diye yazmaz; kamış, makine, fırdöndü, kurşun orada yazılmaz',
+    'Rigler ekranında “Rigleri envantere göre güncelle”; envanter değişince hangi rigin hazır olduğu / eksik kaldığı gösterilir']},
   {v: '0.22.0', notes: [
     'Nokta hafızası: her noktada hangi rigin ve türün tuttuğunu öğrenir; o noktanın en iyi 3 rigi öne çıkar ve Fishing’de yazar',
     'Saat saat plan: bölüm içinde ne zaman rig ya da kurşun değiştireceğin, en iyi pencereler ve alacakaranlık/şafak geçişi',

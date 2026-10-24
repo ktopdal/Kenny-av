@@ -208,7 +208,7 @@ function days(){
     const wd = maxOf(day, 'wind'), wn = maxOf(night, 'wind'), wv = maxOf(hs, 'wave');
     const d = new Date(k + 'T12:00:00');
     const models = [...new Set(hs.map(x => x.wm).filter(Boolean))];
-    return {key: k, date: d, idx, hs, wd, wn, gust: maxOf(hs, 'gust'), wave: wv, per: maxOf(hs, 'per'), cur: maxOf(hs, 'cur'), curMean: meanOf(hs, 'cur'),
+    return {key: k, date: d, idx, hs, wd, wn, gust: maxOf(hs, 'gust'), gD: maxOf(day, 'gust'), gN: maxOf(night, 'gust'), wave: wv, per: maxOf(hs, 'per'), cur: maxOf(hs, 'cur'), curMean: meanOf(hs, 'cur'),
       sst: meanOf(hs, 'sst'), tmax: maxOf(hs, 'temp'), tmin: minOf(hs, 'temp'), pmean: meanOf(hs, 'press'), pop: maxOf(hs, 'pop'),
       pdelta: hs.length > 1 && hs[hs.length - 1].press != null && hs[0].press != null ? hs[hs.length - 1].press - hs[0].press : 0,
       rain: hs.reduce((a, x) => a + (x.rain || 0), 0), models,

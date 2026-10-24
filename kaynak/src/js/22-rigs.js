@@ -33,6 +33,11 @@ function pkgRigs(){
 function allRigs(){
   let out = pkgRigs();
   Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => resolveRig(Object.assign({sys: sy.id}, r)))); });
+  // v0.23: rig parçası sayfasından seçilen değişim (S.rigOv["rigId|yuva"] = {item, size}); kalem envanterden silinmişse yok sayılır
+  const ov = S.rigOv || {};
+  out.forEach(rg => rg.slots.forEach(sl => { const o = ov[rg.id + '|' + sl.k]; if (!o || !ITEMS[o.item]) return;
+    const e = sl.t.envanter || {}; sl.orig = {item: e.item || null, size: e.size || null, name: e.name || null};
+    sl.t.envanter = Object.assign({}, e, {item: o.item, size: o.size && o.size !== '-' ? o.size : null, name: null}); sl.ov = true; }));
   return out;
 }
 function indexAll(){

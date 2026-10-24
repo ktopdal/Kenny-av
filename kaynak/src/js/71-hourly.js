@@ -110,7 +110,7 @@ function renderHourly(){
   const isToday = dd.key === todayKey, nowH = now.getHours();
   const sol = dd.sol, sr = sol.sunrise.getTime(), ss = sol.sunset.getTime();
   const nightH = x => x.t.getTime() < sr - 20 * 60000 || x.t.getTime() > ss + 20 * 60000;
-  const cls = (x, extra) => 'c' + (nightH(x) ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (extra ? ' ' + extra : '');
+  const cls = (x, extra) => 'c' + (nightH(x) ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (ui.hsel === dd.key + '|' + x.h ? ' selh' : '') + (extra ? ' ' + extra : '');
   // bilgi alanı: açıkken tam ad + alt satır, kapalıyken kısa ad (sh = [üst, alt]); yalnız dokununca açılır/kapanır
   const short = (label, sh) => sh ? esc(sh[0]) + (sh[1] ? '<em>' + esc(sh[1]) + '</em>' : '') : esc(H_SHORT[label] || label.slice(0, 4));
   const row = (label, sub, cells, trc, sh) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b>' + (Array.isArray(sub) ? sub : [sub]).filter(Boolean).map(t => '<small>' + t + '</small>').join('') + '<i class="sh" aria-hidden="true">' + short(label, sh) + '</i></th>' + cells + '</tr>';

@@ -464,3 +464,20 @@ button.tcal-r:hover{background:var(--surface-2)}
 .subrow .v{color:var(--B)}
 .mdstart span{display:inline-block;background:#DC143C;color:#fff;font:700 12px/22px var(--body);padding:0 8px;border-radius:12px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap}
 .mdarrow{background:none;border:0}
+/* v0.23: saatlik tabloda seçili saat (mavi); şu anki saat kırmızı */
+.htab td.selh{box-shadow:inset 2px 0 0 #2F6BD8,inset -2px 0 0 #2F6BD8}
+.htab tr.hours td.selh{background:#2F6BD8;color:#fff;font-weight:700}
+.htab tr.hours td.curh.selh{background:var(--accent);color:var(--on-accent,#fff);box-shadow:inset 0 -4px 0 #2F6BD8}
+.htab td{cursor:pointer}
+.callegend{margin:10px 2px 4px;line-height:1.45}
+/* v0.23: rig parçası */
+button.crow.tap{width:100%;background:none;border:0;border-top:1px solid var(--line-2);color:inherit;font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
+button.crow.tap:active{background:var(--surface-2)}
+button.crow.tap .v{text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent);text-underline-offset:3px}
+.crow .chev{font-style:normal;color:var(--muted);font-size:15px;margin-left:2px}
+.crow .ovt{font:500 11px var(--mono);color:var(--accent)}
+.altrow{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line-2)}
+.altrow .v{min-width:0;flex:1 1 200px}
+.altrow .row{gap:6px}
+.rigref{gap:8px 12px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.rigch{margin:8px 0;font-size:13px;display:flex;flex-direction:column;gap:4px}

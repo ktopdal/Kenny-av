@@ -25,8 +25,9 @@ function compRow(rg, sl, tier){
     const st = slotStock(sl);
     const u = it ? unitOf(it) : 'durum'; const q = e.item && u !== 'durum' ? qtyOf(e.item + '|' + (e.size || '-')) : null;
     const nm = it ? it.name : (e.name || (sl.t.turkiye && sl.t.turkiye.name ? '— (envanterde yok)' : '—'));
-    return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') +
-      '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q != null && q > 0 ? ' · ' + q + ' ' + (u === 'paket' ? 'paket' : 'adet') : '') + '</span></div>';
+    // v0.23: satıra dokununca parça sayfası (55-part.js): envanter, yedekler, yerine alınabilecekler
+    return '<button type="button" class="crow tap" data-part="' + esc(rg.id + '|' + sl.k) + '"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') + (sl.ov ? ' <small class="ovt">değiştirildi</small>' : '') +
+      '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q != null && q > 0 ? ' · ' + q + ' ' + (u === 'paket' ? 'paket' : 'adet') : '') + '<i class="chev" aria-hidden="true">›</i></span></button>';
   }
   const t = sl.t[tier] || {};
   const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.name || '—');
@@ -68,7 +69,16 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
   if (rg.mode === 'kiyi') chips.push('<span class="chip">Kıyı</span>');
   const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
   const other = TIERS.filter(x => x !== tier && x !== 'dunya');   // Notlar ve diğer seviyeler: dünyanın en iyisi gösterilmez
-  const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + other.map(x => { const t = sl.t[x] || {}; const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.raw || [t.name, t.size].filter(Boolean).join(' ')); return esc(TIER_TXT[x]) + ': ' + esc(nm || '—') + (t.item && x !== 'envanter' ? ' ✓' : ''); }).join(' · ') + '</span>').join('');
+  // v0.23: kamış, makine ve terminal (fırdöndü, boncuk, kurşun) burada yazılmaz: elindekidir, "en iyisi" yoktur.
+  // "Türkiye'de en iyi" envanterdeki kalemi gösteriyorsa (aynı ürün) yazılmaz; envanterdeki başka uygun kalemse "Envanterinde uygun", mağaza ürünüyse "Türkiye'de bulunur".
+  const nrm = v => trLower(v).replace(/[^\p{L}\p{N}\/.,:]+/gu, ' ').trim();
+  const tName = t => t.item && ITEMS[t.item] ? ITEMS[t.item].name + (t.size ? ' ' + t.size : '') : (t.raw || [t.name, t.size].filter(Boolean).join(' '));
+  const alt = rg.slots.filter(sl => !['rod', 'reel', 'term'].includes(sl.kind)).map(sl => {
+    const mine = tName(sl.t.envanter || {});
+    const parts = other.map(x => { const t = sl.t[x] || {}; const nm = tName(t); if (!nm || nrm(nm) === nrm(mine) && x !== 'envanter') return '';
+      if (x === 'envanter') return 'Envanterimden: ' + esc(nm);
+      return (t.item ? 'Envanterinde uygun: ' : 'Türkiye’de bulunur: ') + esc(nm) + (t.store && !t.raw ? ' · mağaza ' + esc(t.store) : ''); }).filter(Boolean);
+    return parts.length ? '<span><b>' + esc(sl.label) + ':</b> ' + parts.join(' · ') + '</span>' : ''; }).join('');
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
   const bait = baitHtml(rg, tier);
   const succ = rg.success && rg.success[tier] ? 'başarı %' + rg.success[tier] : '';

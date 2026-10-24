@@ -29,7 +29,10 @@ function show(v){
   try { history.replaceState(history.state, '', '#' + v); } catch (e) {}
 }
 // envanter değişince rigler yeniden çözülür (yuvaya en uygun kalem değişmiş olabilir)
-function invChanged(){ persist(); indexAll(); renderAll(); }
+function invChanged(){
+  persist(); indexAll(); noteRigChanges();
+  renderAll(); if (ui.sheet === 'parca' && ui.sheetArg) { const [r, k] = ui.sheetArg.split('|'); openPart(r, k, true); }
+}
 function setQty(k, v){ setQtyVal(k, v); invChanged(); }
 // adet/paket satırındaki "Alınacak": işaretliyse kaldırır (0 sayısı da silinir), değilse alınacak listesine koyar
 function alkToggle(k){
@@ -102,6 +105,11 @@ function bindEvents(){
     if (d.lkind) { const [id, k] = d.lkind.split('|'); setLocKind(id, k); return; }
     if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
     if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
+    if (d.part) { const [r, k] = d.part.split('|'); openPart(r, k); return; }
+    if (d.partuse) { partAct('use', d.partuse); return; }
+    if (d.partall) { partAct('all', d.partall); return; }
+    if (d.partorig) { partAct('orig', d.partorig); return; }
+    if (d.partbuy) { partAct('buy', d.partbuy); return; }
     if (d.fb) { fbAct(d.fb, d); return; }
     if (d.usta) { ustaAct(d.usta, d); return; }
     if (d.ustam) { lsSet(LSU.model, d.ustam); ustaRedraw(); return; }
@@ -125,6 +133,8 @@ function bindEvents(){
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
       if (a === 'gpsloc') { gpsToLocation(); return; }
       if (a === 'icsAll') { await alertExport(); return; }
+      if (a === 'rigRefresh') { rigRefresh(); return; }
+      if (a === 'rigChClose') { ui.rigCh = null; renderRigs(); return; }
       if (a === 'driftmap') { ui.mapDrift = true; const c = mapCfg(); if (!c.drift) { c.drift = true; S.settings.map = c; persistQuiet(); } openMore('harita'); return; }
       if (a === 'baitShop') { const ds = days(), dd = ds.find(x => x.key === ui.fday) || ds[0], part = ui.fpart || 'gun', now = new Date(); if (!dd) return;
         const R = recommend(dd, part === 'gece', dd.key === dateKey(now) ? now : null), p = baitPlan(dd, part, R); if (!p || p.none || !p.items.length) { toast('Yem gerekmiyor'); return; }
@@ -233,7 +243,17 @@ function bindEvents(){
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
   // saatlik tablo: kaydırınca satır adları kısalır; ada dokununca tam açılır / kapanır
   // bilgi alanı (satır adları): yalnız dokununca açılır/kapanır; kaydırma, bekleme ya da model seçimi değiştirmez
-  $('hTable').addEventListener('click', e => { if (!e.target.closest('th.lbl')) return; S.settings.hFull = !S.settings.hFull; persistQuiet(); $('hScroll').classList.toggle('compact', !S.settings.hFull); });
+  $('hTable').addEventListener('click', e => {
+    if (e.target.closest('th.lbl')) { S.settings.hFull = !S.settings.hFull; persistQuiet(); $('hScroll').classList.toggle('compact', !S.settings.hFull); return; }
+    // saat seçimi: bir sütuna dokun, o saat mavi işaretlenir (tekrar dokununca kalkar); şu anki saat kırmızı kalır
+    const td = e.target.closest('td'); if (!td || td.classList.contains('graph')) return;
+    const hrow = $('hTable').querySelector('tr.hours'); if (!hrow) return;
+    const ci = td.cellIndex, hc = hrow.cells[ci]; if (!hc || hc.tagName !== 'TD') return;
+    const key = ui.hday + '|' + parseInt(hc.textContent, 10), off = ui.hsel === key;
+    ui.hsel = off ? null : key;
+    $('hTable').querySelectorAll('td.selh').forEach(c => c.classList.remove('selh'));
+    if (!off) $('hTable').querySelectorAll('tr').forEach(tr => { const c = tr.cells[ci]; if (c && c.tagName === 'TD' && !c.classList.contains('graph') && tr.cells.length === hrow.cells.length) c.classList.add('selh'); });
+  });
   // açılır bölümlerin (hazır liste) açık/kapalı hâli yeniden çizimde korunur
   document.addEventListener('toggle', e => { const el = e.target; if (el && el.dataset && el.dataset.dk) { ui.open = ui.open || {}; ui.open[el.dataset.dk] = el.open; } }, true);
   window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); else if (h.indexOf('av=') === 0) openAvLink(h.slice(3)); });
@@ -249,7 +269,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
-  spotMemory, subFor, subSlot, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
+  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
   loadState();
   pkgLoadCached();

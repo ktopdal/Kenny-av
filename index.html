@@ -716,6 +716,23 @@ button.tcal-r:hover{background:var(--surface-2)}
 .subrow .v{color:var(--B)}
 .mdstart span{display:inline-block;background:#DC143C;color:#fff;font:700 12px/22px var(--body);padding:0 8px;border-radius:12px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap}
 .mdarrow{background:none;border:0}
+/* v0.23: saatlik tabloda seçili saat (mavi); şu anki saat kırmızı */
+.htab td.selh{box-shadow:inset 2px 0 0 #2F6BD8,inset -2px 0 0 #2F6BD8}
+.htab tr.hours td.selh{background:#2F6BD8;color:#fff;font-weight:700}
+.htab tr.hours td.curh.selh{background:var(--accent);color:var(--on-accent,#fff);box-shadow:inset 0 -4px 0 #2F6BD8}
+.htab td{cursor:pointer}
+.callegend{margin:10px 2px 4px;line-height:1.45}
+/* v0.23: rig parçası */
+button.crow.tap{width:100%;background:none;border:0;border-top:1px solid var(--line-2);color:inherit;font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
+button.crow.tap:active{background:var(--surface-2)}
+button.crow.tap .v{text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent);text-underline-offset:3px}
+.crow .chev{font-style:normal;color:var(--muted);font-size:15px;margin-left:2px}
+.crow .ovt{font:500 11px var(--mono);color:var(--accent)}
+.altrow{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line-2)}
+.altrow .v{min-width:0;flex:1 1 200px}
+.altrow .row{gap:6px}
+.rigref{gap:8px 12px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.rigch{margin:8px 0;font-size:13px;display:flex;flex-direction:column;gap:4px}
 
 </style>
 <style id="userTheme"></style></head><body>
@@ -1180,9 +1197,16 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.22.0';
+const APP_VERSION = '0.23.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.23.0', notes: [
+    'Takvimde hamle de gündüz/gece iki değer; 2–3 nokta seçiliyken de hamle görünür',
+    'Takvimin altında değerlerin ne olduğu: rüzgâr/hamle gündüz ve gecenin en yükseği, dalga ve akıntı günün en yükseği, su ve basınç ortalama',
+    'Saatlik tabloda bir sütuna dokun: o saat mavi işaretlenir (şu anki saat kırmızı kalır)',
+    'Rig kartında parçaya dokun: envanterdeki durumu, kaç rigde kullanıldığı, elindeki yedekler (“bu rigde kullan” / bütün riglerde) ve bulamazsan yerine alınacaklar',
+    '“Notlar ve diğer seviyeler”: envanterdeki parçayı “Türkiye’de en iyi” diye yazmaz; kamış, makine, fırdöndü, kurşun orada yazılmaz',
+    'Rigler ekranında “Rigleri envantere göre güncelle”; envanter değişince hangi rigin hazır olduğu / eksik kaldığı gösterilir']},
   {v: '0.22.0', notes: [
     'Nokta hafızası: her noktada hangi rigin ve türün tuttuğunu öğrenir; o noktanın en iyi 3 rigi öne çıkar ve Fishing’de yazar',
     'Saat saat plan: bölüm içinde ne zaman rig ya da kurşun değiştireceğin, en iyi pencereler ve alacakaranlık/şafak geçişi',
@@ -1841,7 +1865,7 @@ function newState(){
     settings: {scheme: 'auto', preset: 'deniz', brand: '', accent: '', zoom: 0, bft: null, hideCoords: false, coord: 'dd', tier: 'envanter', anchor: 'surukle', leeway: 'orta',
       model: 'karma', windUnit: 'bft', pressUnit: 'hpa', windNames: 'yerel', hrows: null, cards: null, calrows: null, map: null, mapView: null, gkey: '', alert: null, safety: null, bkSnooze: null, hookUnit: 'durum', tempUnit: 'c', windUnit2: '', hFull: false, hrv: 16, ftarget: ''},
     inv: {items: {}, qty: {}, status: {}, unit: {}, v: 2},
-    systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {}, fb: {},
+    systems: {}, locations: {}, active: null, wx: null, targets: [], shopX: {}, fb: {}, rigOv: {},
     pkg: {unlocked: false, version: null, need: false, locs: []},
     backup: {repo: '', name: '', auto: true, photosOn: true, lastAt: null, sha: null, photos: {}, salt: null, err: null}};
 }
@@ -2238,6 +2262,11 @@ function pkgRigs(){
 function allRigs(){
   let out = pkgRigs();
   Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => resolveRig(Object.assign({sys: sy.id}, r)))); });
+  // v0.23: rig parçası sayfasından seçilen değişim (S.rigOv["rigId|yuva"] = {item, size}); kalem envanterden silinmişse yok sayılır
+  const ov = S.rigOv || {};
+  out.forEach(rg => rg.slots.forEach(sl => { const o = ov[rg.id + '|' + sl.k]; if (!o || !ITEMS[o.item]) return;
+    const e = sl.t.envanter || {}; sl.orig = {item: e.item || null, size: e.size || null, name: e.name || null};
+    sl.t.envanter = Object.assign({}, e, {item: o.item, size: o.size && o.size !== '-' ? o.size : null, name: null}); sl.ov = true; }));
   return out;
 }
 function indexAll(){
@@ -3121,7 +3150,7 @@ function days(){
     const wd = maxOf(day, 'wind'), wn = maxOf(night, 'wind'), wv = maxOf(hs, 'wave');
     const d = new Date(k + 'T12:00:00');
     const models = [...new Set(hs.map(x => x.wm).filter(Boolean))];
-    return {key: k, date: d, idx, hs, wd, wn, gust: maxOf(hs, 'gust'), wave: wv, per: maxOf(hs, 'per'), cur: maxOf(hs, 'cur'), curMean: meanOf(hs, 'cur'),
+    return {key: k, date: d, idx, hs, wd, wn, gust: maxOf(hs, 'gust'), gD: maxOf(day, 'gust'), gN: maxOf(night, 'gust'), wave: wv, per: maxOf(hs, 'per'), cur: maxOf(hs, 'cur'), curMean: meanOf(hs, 'cur'),
       sst: meanOf(hs, 'sst'), tmax: maxOf(hs, 'temp'), tmin: minOf(hs, 'temp'), pmean: meanOf(hs, 'press'), pop: maxOf(hs, 'pop'),
       pdelta: hs.length > 1 && hs[hs.length - 1].press != null && hs[0].press != null ? hs[hs.length - 1].press - hs[0].press : 0,
       rain: hs.reduce((a, x) => a + (x.rain || 0), 0), models,
@@ -3720,43 +3749,56 @@ function spotLine(L){
 }
 // ---- R3 · envanterden yedek
 let SUB_C = {};
-function subSlot(sl){
+// yuvaya elde olan uyumlu yedekler (en iyi önce): iğnede aynı/uyumlu desen ±1 boy, ipte aynı tür (fc ↔ misina) çap ±%12
+function slotIsHook(sl){ const e = sl.t.envanter || {}, it0 = e.item && ITEMS[e.item];
+  return sl.kind === 'hook' || sl.kind === 'hook+' || (it0 && it0.cat === 'hook') || (sl.sp && sl.sp.kind === 'hook' && sl.sp.p && !['assist', 'jighead', 'sabiki', 'treble'].includes(sl.sp.p[0])); }
+function slotIsLine(sl){ const e = sl.t.envanter || {}, it0 = e.item && ITEMS[e.item];
+  return sl.kind === 'line' || ['braid', 'beden', 'kostek', 'sok', 'mono'].includes(sl.kind) || (it0 && ['fc', 'mono', 'braid'].includes(it0.cat)) || (sl.sp && sl.sp.kind === 'line'); }
+// yuvanın istediği: iğnede {p0 desen, h0 {sc, v}}, ipte {mm0, cats}
+function slotNeed(sl){
   const e = sl.t.envanter || {}, it0 = e.item && ITEMS[e.item];
-  const isHook = sl.kind === 'hook' || sl.kind === 'hook+' || (it0 && it0.cat === 'hook') || (sl.sp && sl.sp.kind === 'hook' && sl.sp.p && !['assist', 'jighead', 'sabiki', 'treble'].includes(sl.sp.p[0]));
-  const isLine = sl.kind === 'line' || ['braid', 'beden', 'kostek', 'sok', 'mono'].includes(sl.kind) || (it0 && ['fc', 'mono', 'braid'].includes(it0.cat)) || (sl.sp && sl.sp.kind === 'line');
-  if (isHook) {
+  if (slotIsHook(sl)) {
     const p0 = it0 ? patOf(it0) : sl.sp && sl.sp.p ? sl.sp.p[0] : null;
     const h0 = e.size ? hookIdx(e.size) : sl.sp && sl.sp.sc ? {sc: sl.sp.sc, v: Math.round((sl.sp.lo + sl.sp.hi) / 2)} : null;
-    if (!p0 || !h0) return null;
-    let best = null;
-    Object.values(ITEMS).forEach(it => {
-      if (it.cat !== 'hook') return; const p = patOf(it); if (!p) return;
-      const same = p === p0; if (!same && !KB.COMPAT.some(g => g.includes(p) && g.includes(p0))) return;
-      sizesOf(it).forEach(sz => {
-        if (it.id === e.item && sz === e.size) return;
-        const h = hookIdx(sz); if (!h || h.sc !== h0.sc) return; const dv = h.v - h0.v; if (Math.abs(dv) > 1) return;
-        if (!usable(stockOf(it.id, sz))) return;
-        const sc = Math.abs(dv) * 2 + (same ? 0 : 1) + (dv < 0 ? 0.2 : 0);
-        if (!best || sc < best.sc) best = {sc, item: it.id, name: it.name, size: sz, dv, same};
-      });
-    });
-    return best ? {sl, to: best, txt: sl.label + ': ' + best.name + ' ' + best.size + (best.dv ? ' (bir boy ' + (best.dv > 0 ? 'büyük' : 'küçük') + ')' : best.same ? '' : ' (benzer desen)')} : null;
+    return p0 && h0 ? {hook: true, p0, h0, e} : null;
   }
-  if (isLine) {
+  if (slotIsLine(sl)) {
     const mm0 = it0 ? lineMm(it0) : e.size ? lineMm({name: e.size}) : sl.sp && sl.sp.lo ? (sl.sp.lo + sl.sp.hi) / 2 : null;
     if (!mm0) return null;
     const cats = it0 ? (it0.cat === 'braid' ? ['braid'] : [it0.cat, it0.cat === 'fc' ? 'mono' : 'fc']) : sl.sp && sl.sp.cats ? sl.sp.cats : ['fc', 'mono'];
-    let best = null;
-    Object.values(ITEMS).forEach(it => {
-      if (!cats.includes(it.cat) || it.id === e.item) return; const mm = lineMm(it); if (!mm) return;
-      const d = (mm - mm0) / mm0; if (Math.abs(d) > 0.12) return;
-      if (!usable(stockOf(it.id, '-'))) return;
-      const sc = Math.abs(d) * 10 + cats.indexOf(it.cat) * 0.6 + (d < 0 ? 0.2 : 0);
-      if (!best || sc < best.sc) best = {sc, item: it.id, name: it.name, mm, d};
-    });
-    return best ? {sl, to: best, txt: sl.label + ': ' + best.name + (best.name.indexOf(String(best.mm).replace('.', ',')) < 0 && best.name.indexOf(String(best.mm)) < 0 ? ' ' + mmTxt(best.mm) : '') + (Math.abs(best.d) >= 0.03 ? ' (' + (best.d > 0 ? 'biraz kalın' : 'biraz ince') + ')' : '')} : null;
+    return {line: true, mm0, cats, e};
   }
   return null;
+}
+const patCompat = (p, p0) => p === p0 || KB.COMPAT.some(g => g.includes(p) && g.includes(p0));
+function subCands(sl, n){
+  const nd = slotNeed(sl); if (!nd) return [];
+  const out = [];
+  if (nd.hook) {
+    Object.values(ITEMS).forEach(it => {
+      if (it.cat !== 'hook') return; const p = patOf(it); if (!p || !patCompat(p, nd.p0)) return; const same = p === nd.p0;
+      sizesOf(it).forEach(sz => {
+        if (it.id === nd.e.item && sz === nd.e.size) return;
+        const h = hookIdx(sz); if (!h || h.sc !== nd.h0.sc) return; const dv = h.v - nd.h0.v; if (Math.abs(dv) > 1) return;
+        if (!usable(stockOf(it.id, sz))) return;
+        out.push({sc: Math.abs(dv) * 2 + (same ? 0 : 1) + (dv < 0 ? 0.2 : 0), item: it.id, name: it.name, size: sz, dv, same,
+          txt: it.name + ' ' + sz + (dv ? ' (bir boy ' + (dv > 0 ? 'büyük' : 'küçük') + ')' : same ? '' : ' (benzer desen)')});
+      });
+    });
+  } else {
+    Object.values(ITEMS).forEach(it => {
+      if (!nd.cats.includes(it.cat) || it.id === nd.e.item) return; const mm = lineMm(it); if (!mm) return;
+      const d = (mm - nd.mm0) / nd.mm0; if (Math.abs(d) > 0.12) return;
+      if (!usable(stockOf(it.id, '-'))) return;
+      out.push({sc: Math.abs(d) * 10 + nd.cats.indexOf(it.cat) * 0.6 + (d < 0 ? 0.2 : 0), item: it.id, name: it.name, size: '-', mm, d,
+        txt: it.name + (it.name.indexOf(String(mm).replace('.', ',')) < 0 && it.name.indexOf(String(mm)) < 0 ? ' ' + mmTxt(mm) : '') + (Math.abs(d) >= 0.03 ? ' (' + (d > 0 ? 'biraz kalın' : 'biraz ince') + ')' : '')});
+    });
+  }
+  return out.sort((a, b) => a.sc - b.sc).slice(0, n || 99);
+}
+function subSlot(sl){
+  const c = subCands(sl, 1)[0];
+  return c ? {sl, to: c, txt: sl.label + ': ' + c.txt} : null;
 }
 function subFor(rg){
   if (Object.prototype.hasOwnProperty.call(SUB_C, rg.id)) return SUB_C[rg.id];
@@ -3932,6 +3974,119 @@ function learnSummary0(B){
     const sp = solSpan(new Date(t.getFullYear(), t.getMonth(), t.getDate()), {lat: c.loc.lat, lon: c.loc.lon});
     const v = solV(t, sp.ev, sp.pfAt(t.getTime())).v; tot += o.n; if (v >= 0.41) hit += o.n; });
   return {on: true, rigs: topRigs, hours: topH, model: tot ? Math.round(hit / tot * 100) : null, total: B.total};
+}
+
+// ---------------------------------------------------------------- 55 · rig parçası sayfası (v0.23)
+// Rig kartında iğne / ip / kamış satırına dokununca açılır: envanterdeki durumu (var/yok, adet), bu parçanın kaç rigde kullanıldığı,
+// elindeki uyumlu yedekler ("bu rigde kullan" / "bu parçayı kullanan bütün riglerde kullan"), bulunamazsa yerine alınabilecek ürünler.
+// Değişim S.rigOv["rigId|yuva"] = {item, size} olarak saklanır (22-rigs.js allRigs uygular; senkronla öteki cihaza da gider).
+function partSlot(rid, k){ const rg = RIGS[rid]; return rg ? {rg, sl: rg.slots.find(s => s.k === k)} : {}; }
+// bu kalemi (aynı boy) kullanan rigler
+function partUsers(item, size){
+  if (!item) return [];
+  return RIG_LIST.filter(r => r.slots.some(s => { const e = s.t.envanter || {}; return e.item === item && (!size || !e.size || e.size === size); }));
+}
+// yerine alınabilecekler (katalog): iğnede aynı/uyumlu desen aynı boy, ipte aynı tür aynı çap
+function partBuyAlts(sl){
+  const nd = slotNeed(sl); if (!nd) return [];
+  const cur = nd.e.item && ITEMS[nd.e.item] ? trLower(ITEMS[nd.e.item].name) : '';
+  if (nd.hook) {
+    const size = nd.e.size || hookFmt(nd.h0.sc, nd.h0.v);
+    return CATALOG.filter(c => c.cat === 'hook' && c.pattern).map(c => ({c, p: Object.keys(KB.PAT).find(p => KB.PAT[p].name === c.pattern)}))
+      .filter(x => x.p && patCompat(x.p, nd.p0) && trLower(x.c.name) !== cur && cur.indexOf(trLower(x.c.model)) < 0)
+      .sort((a, b) => (a.p === nd.p0 ? 0 : 1) - (b.p === nd.p0 ? 0 : 1)).slice(0, 4)
+      .map(x => ({name: x.c.name, size, same: x.p === nd.p0, sp: {kind: 'hook', p: [x.p], sc: nd.h0.sc, lo: nd.h0.v, hi: nd.h0.v}}));
+  }
+  const mm = Math.round(nd.mm0 * 1000) / 1000;
+  return CATALOG.filter(c => nd.cats.includes(c.cat) && cur.indexOf(trLower(c.model)) < 0).sort((a, b) => nd.cats.indexOf(a.cat) - nd.cats.indexOf(b.cat)).slice(0, 4)
+    .map(c => ({name: c.name, size: mmTxt(mm), cat: c.cat, sp: {kind: 'line', cats: [c.cat], lo: mm * 0.95, hi: mm * 1.05}}));
+}
+function openPart(rid, k, keep){
+  const {rg, sl} = partSlot(rid, k); if (!rg || !sl) { toast('Parça bulunamadı'); return; }
+  ui.sheet = 'parca'; ui.sheetArg = rid + '|' + k;
+  const e = sl.t.envanter || {}, it = e.item && ITEMS[e.item], st = slotStock(sl);
+  const tk = sl.t.turkiye || {};
+  const need = sl.sp ? specTxt(sl.sp) : '';
+  const users = partUsers(e.item, e.size);
+  const cands = ['hook', 'hook+', 'line', 'braid', 'beden', 'kostek', 'sok', 'mono'].includes(sl.kind) || slotIsHook(sl) || slotIsLine(sl) ? subCands(sl, 6) : [];
+  const buy = usable(st) ? [] : partBuyAlts(sl);
+  const ov = (S.rigOv || {})[rid + '|' + k];
+  const same = users.filter(r => r.id !== rid).length;
+  const head = (rg.code ? rg.code + ' · ' : '') + rg.name;
+  const sec = (t, body) => '<section class="set"><h4>' + t + '</h4>' + body + '</section>';
+  openSheet(sheetBar(sl.label) + '<div class="stack">' +
+    '<p class="sub">' + esc(head) + '</p>' +
+    sec('Bu rigde', '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(it ? it.name : (e.name || tk.name || '—')) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') + '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + '</span></div>' +
+      (need ? '<p class="note">Rigin istediği ölçü: ' + esc(need) + '</p>' : '') +
+      (ov && sl.orig ? '<p class="note">Bu rig için değiştirdin; asıl parça: ' + esc((sl.orig.item && ITEMS[sl.orig.item] ? ITEMS[sl.orig.item].name : sl.orig.name || '—') + (sl.orig.size ? ' ' + sl.orig.size : '')) + '. <button class="linkbtn" type="button" data-partorig="' + esc(rid + '|' + k) + '">Asıl parçaya dön</button></p>' : '')) +
+    (it ? sec('Envanterde', itemCard(it) + (it.src === 'paket' || it.std ? '<p class="note">' + (it.std ? 'Hazır listeden' : 'Özel paketten') + ' gelen kalem: silinmez; “Yok” yapabilirsin.</p>' : '') +
+      (users.length ? '<p class="note">Bu parça ' + users.length + ' rigde: ' + esc(users.slice(0, 12).map(r => r.code || r.name).join(', ')) + (users.length > 12 ? '…' : '') + '</p>' : '')) : '') +
+    sec('Elindeki yedekler', cands.length ? '<p class="note">Envanterinde var olan uyumlu parçalar' + (slotIsHook(sl) ? ' (aynı ya da benzer desen, en çok bir boy fark)' : ' (aynı tür, çap ±%12)') + '.</p>' +
+      cands.map(c => '<div class="altrow"><span class="v">' + esc(c.txt) + '</span><span class="row"><button class="btn small" type="button" data-partuse="' + esc(rid + '|' + k + '|' + c.item + '|' + c.size) + '">Bu rigde kullan</button>' +
+        (same ? '<button class="btn small" type="button" data-partall="' + esc(rid + '|' + k + '|' + c.item + '|' + c.size) + '">' + (same + 1) + ' rigde kullan</button>' : '') + '</span></div>').join('')
+      : '<p class="note">' + (slotNeed(sl) ? 'Envanterinde buna uyan başka bir parça yok.' : 'Bu parça için yedek aranmaz (kamış, makine, fırdöndü ve kurşun elindekidir).') + '</p>') +
+    (buy.length ? sec('Bulamazsan yerine alınabilecekler', '<p class="note">Aynı iş görür; mağazada stok yoksa bunlardan birini al. Listeye eklersen aldığında “Aldım, envantere ekle” der.</p>' +
+      buy.map((b, i) => '<div class="altrow"><span class="v">' + esc(b.name) + ' <b>' + esc(b.size) + '</b>' + (b.same === false ? ' <small>(benzer desen)</small>' : '') + '</span><button class="btn small" type="button" data-partbuy="' + esc(rid + '|' + k + '|' + i) + '">Listeye ekle</button></div>').join('')) : '') +
+    (tk.name && !tk.item && trLower(tk.name) !== trLower(it ? it.name : '') ? '<p class="note">Türkiye’de bulunur: ' + esc(tk.name + (tk.size ? ' ' + tk.size : '')) + (tk.store ? ' · mağaza ' + esc(tk.store) : '') + '</p>' : '') +
+    '</div>', keep);
+}
+function specTxt(sp){
+  if (sp.kind === 'hook' && sp.sc) return (sp.p || []).map(p => KB.PAT[p] ? KB.PAT[p].name : p).join(' / ') + ' ' + (sp.lo === sp.hi ? hookFmt(sp.sc, sp.lo) : hookFmt(sp.sc, sp.lo) + '–' + hookFmt(sp.sc, sp.hi));
+  if (sp.kind === 'line' && sp.lo) return (sp.cats || []).map(c => CAT_TXT[c] || c).join(' / ') + ' ' + mmTxt(sp.lo) + '–' + mmTxt(sp.hi);
+  return '';
+}
+function partAct(kind, val){
+  const [rid, k, item, size] = val.split('|');
+  S.rigOv = S.rigOv || {};
+  if (kind === 'use' || kind === 'all') {
+    const {sl} = partSlot(rid, k); const e = sl && sl.t.envanter || {};
+    const list = kind === 'all' ? partUsers(e.item, e.size) : [RIGS[rid]];
+    let n = 0;
+    list.forEach(r => r.slots.forEach(s => { const x = s.t.envanter || {}; if ((r.id === rid && s.k === k) || (kind === 'all' && e.item && x.item === e.item && (!e.size || !x.size || x.size === e.size))) { S.rigOv[r.id + '|' + s.k] = {item, size}; n++; } }));
+    invChanged(); openPart(rid, k, true); toast(n > 1 ? n + ' rigde değiştirildi' : 'Bu rigde değiştirildi'); return;
+  }
+  if (kind === 'orig') { delete S.rigOv[rid + '|' + k]; invChanged(); openPart(rid, k, true); toast('Asıl parçaya dönüldü'); return; }
+  if (kind === 'buy') {
+    const {rg, sl} = partSlot(rid, k); const b = partBuyAlts(sl)[+item]; if (!b) return;
+    S.shopX = S.shopX || {};
+    const key = 'alt:' + slugTR(b.name + '-' + b.size);
+    S.shopX[key] = {k: key, item: null, size: b.size, name: b.name, store: null, kind: b.sp.kind, sp: b.sp, for: [(rg.code || rg.name) + ' yedeği'], added: new Date().toISOString()};
+    persist(); renderAll(); toast('Alışveriş listesine eklendi');
+  }
+}
+// ---- envanter değişince rigler: ne değişti? (hazır oldu / eksik kaldı / parça değişti)
+const LSR = 'alyssa-rsnap';
+let RSNAP = null;   // son görülen rig durumu (envanter değişikliğini karşılaştırmak için)
+function rigSnap(){ const o = {}; RIG_LIST.forEach(r => { o[r.id] = {r: ready(r) ? 2 : subFor(r) ? 1 : 0, s: r.slots.map(s => { const e = s.t.envanter || {}; return (e.item || '') + ':' + (e.size || ''); }).join(',')}; }); return o; }
+function rigDiff(a, b){
+  const up = [], down = [], sw = [];
+  Object.keys(b).forEach(id => { const x = a[id], y = b[id]; if (!x) return; const nm = (RIGS[id] && (RIGS[id].code || RIGS[id].name)) || id;
+    if (x.r !== y.r) (y.r > x.r ? up : down).push(nm + (y.r === 1 ? ' (yedekle hazır)' : '')); else if (x.s !== y.s) sw.push(nm); });
+  return {up, down, sw, n: up.length + down.length + sw.length};
+}
+// indexAll'dan sonra çağrılır: önceki görülen duruma göre ne değişti (panel + kısa bildirim)
+function noteRigChanges(quiet){
+  const b = rigSnap(), a = RSNAP; RSNAP = b; lsSet(LSR, JSON.stringify(b));
+  if (!a) return null;
+  const d = rigDiff(a, b); if (!d.n) return d;
+  ui.rigCh = d; if (!quiet && (d.up.length || d.down.length)) toast('Rigler güncellendi: ' + rigDiffTxt(d));
+  return d;
+}
+const rigDiffTxt = d => [d.up.length ? d.up.length + ' rig hazır oldu' : '', d.down.length ? d.down.length + ' rig eksik kaldı' : '', d.sw.length ? d.sw.length + ' rigde parça değişti' : ''].filter(Boolean).join(', ');
+function rigChangesHtml(){
+  const d = ui.rigCh; if (!d || !d.n) return '';
+  const L = (t, a) => a.length ? '<div><b>' + t + ':</b> ' + esc(a.slice(0, 16).join(', ')) + (a.length > 16 ? '…' : '') + '</div>' : '';
+  return '<div class="panel rigch"><div class="row" style="justify-content:space-between"><b>Rigler envantere göre güncellendi</b><button class="linkbtn" type="button" data-act="rigChClose">Kapat</button></div>' +
+    L('Hazır oldu', d.up) + L('Eksik kaldı', d.down) + L('Parçası değişti', d.sw) + '</div>';
+}
+// "Rigleri envantere göre güncelle": son güncellemeden (ya da son basıştan) bu yana ne değiştiyse gösterir
+function rigRefresh(){
+  let prev = null; try { prev = JSON.parse(lsGet(LSR) || 'null'); } catch (e) {}
+  indexAll(); const now = rigSnap(); lsSet(LSR, JSON.stringify(now)); RSNAP = now;
+  const d = prev ? rigDiff(prev, now) : {up: [], down: [], sw: [], n: 0};
+  ui.rigCh = d.n ? d : null; renderAll();
+  const nR = RIG_LIST.filter(ready).length, nS = RIG_LIST.filter(r => !ready(r) && subFor(r)).length;
+  toast(RIG_LIST.length + ' rig: ' + nR + ' hazır' + (nS ? ', ' + nS + ' yedekle hazır' : '') + ', ' + (RIG_LIST.length - nR - nS) + ' eksik' + (d.n ? ' · ' + rigDiffTxt(d) : ' · değişiklik yok'));
 }
 
 // ---------------------------------------------------------------- 56 · "Bağladım → tuttu / tutmadı" (v0.19)
@@ -4199,8 +4354,9 @@ function compRow(rg, sl, tier){
     const st = slotStock(sl);
     const u = it ? unitOf(it) : 'durum'; const q = e.item && u !== 'durum' ? qtyOf(e.item + '|' + (e.size || '-')) : null;
     const nm = it ? it.name : (e.name || (sl.t.turkiye && sl.t.turkiye.name ? '— (envanterde yok)' : '—'));
-    return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') +
-      '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q != null && q > 0 ? ' · ' + q + ' ' + (u === 'paket' ? 'paket' : 'adet') : '') + '</span></div>';
+    // v0.23: satıra dokununca parça sayfası (55-part.js): envanter, yedekler, yerine alınabilecekler
+    return '<button type="button" class="crow tap" data-part="' + esc(rg.id + '|' + sl.k) + '"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') + (sl.ov ? ' <small class="ovt">değiştirildi</small>' : '') +
+      '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q != null && q > 0 ? ' · ' + q + ' ' + (u === 'paket' ? 'paket' : 'adet') : '') + '<i class="chev" aria-hidden="true">›</i></span></button>';
   }
   const t = sl.t[tier] || {};
   const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.name || '—');
@@ -4242,7 +4398,16 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
   if (rg.mode === 'kiyi') chips.push('<span class="chip">Kıyı</span>');
   const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
   const other = TIERS.filter(x => x !== tier && x !== 'dunya');   // Notlar ve diğer seviyeler: dünyanın en iyisi gösterilmez
-  const alt = rg.slots.map(sl => '<span><b>' + esc(sl.label) + ':</b> ' + other.map(x => { const t = sl.t[x] || {}; const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.raw || [t.name, t.size].filter(Boolean).join(' ')); return esc(TIER_TXT[x]) + ': ' + esc(nm || '—') + (t.item && x !== 'envanter' ? ' ✓' : ''); }).join(' · ') + '</span>').join('');
+  // v0.23: kamış, makine ve terminal (fırdöndü, boncuk, kurşun) burada yazılmaz: elindekidir, "en iyisi" yoktur.
+  // "Türkiye'de en iyi" envanterdeki kalemi gösteriyorsa (aynı ürün) yazılmaz; envanterdeki başka uygun kalemse "Envanterinde uygun", mağaza ürünüyse "Türkiye'de bulunur".
+  const nrm = v => trLower(v).replace(/[^\p{L}\p{N}\/.,:]+/gu, ' ').trim();
+  const tName = t => t.item && ITEMS[t.item] ? ITEMS[t.item].name + (t.size ? ' ' + t.size : '') : (t.raw || [t.name, t.size].filter(Boolean).join(' '));
+  const alt = rg.slots.filter(sl => !['rod', 'reel', 'term'].includes(sl.kind)).map(sl => {
+    const mine = tName(sl.t.envanter || {});
+    const parts = other.map(x => { const t = sl.t[x] || {}; const nm = tName(t); if (!nm || nrm(nm) === nrm(mine) && x !== 'envanter') return '';
+      if (x === 'envanter') return 'Envanterimden: ' + esc(nm);
+      return (t.item ? 'Envanterinde uygun: ' : 'Türkiye’de bulunur: ') + esc(nm) + (t.store && !t.raw ? ' · mağaza ' + esc(t.store) : ''); }).filter(Boolean);
+    return parts.length ? '<span><b>' + esc(sl.label) + ':</b> ' + parts.join(' · ') + '</span>' : ''; }).join('');
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
   const bait = baitHtml(rg, tier);
   const succ = rg.success && rg.success[tier] ? 'başarı %' + rg.success[tier] : '';
@@ -4368,6 +4533,12 @@ function withLoc(L, w, fn){
   finally { S.active = sv.a; S.wx = sv.wx; WX = sv.WX; DAYS_CACHE = sv.DC; }
 }
 const CAL_SUM = {};
+// takvim değerlerinin ne olduğu (takvim altına)
+function calLegend(){
+  const m = S.settings.model || 'karma';
+  const src = m === 'karma' ? 'Karma: rüzgâr ICON-EU (yoksa ECMWF), hamle GFS' : 'model ' + (SRC[m] ? SRC[m].short : m);
+  return '<p class="note callegend">Rüzgâr ve hamle: gündüz (07–18) / gece (19–06) en yüksek değer · ' + esc(src) + '. Dalga ve akıntı: günün en yükseği · su ve basınç: gün ortalaması · hava: en düşük–en yüksek · yağış: günün en yüksek ihtimali.</p>';
+}
 function locSummary(L){
   const w = L.id === S.active ? S.wx : MWX[L.id];
   if (!w || !w.raw) return null;
@@ -4377,7 +4548,7 @@ function locSummary(L){
     const land = locKind(L) === 'kara', win = land ? null : windows(dd)[0] || null;
     const worst = [dd.clsD, dd.clsN].filter(Boolean).sort().pop() || null;
     const score = land || !win ? 0 : win.pct * (SEA_F[win.cls || worst] || 0.5);
-    return {key: dd.key, date: dd.date, idx: dd.idx, wd: dd.wd, wn: dd.wn, gust: dd.gust, wave: dd.wave, clsD: dd.clsD, clsN: dd.clsN, tmin: dd.tmin, tmax: dd.tmax, pop: dd.pop, rain: dd.rain,
+    return {key: dd.key, date: dd.date, idx: dd.idx, wd: dd.wd, wn: dd.wn, gust: dd.gust, gD: dd.gD, gN: dd.gN, wave: dd.wave, clsD: dd.clsD, clsN: dd.clsN, tmin: dd.tmin, tmax: dd.tmax, pop: dd.pop, rain: dd.rain,
       land, win: win ? {pct: win.pct, fish: win.fish, a: win.a, b: win.b, cls: win.cls} : null, score};
   });
   const out = L.id === S.active ? make() : withLoc(L, w, make);
@@ -4410,10 +4581,11 @@ function renderCalCompare(ids){
       rows.map(({L, d}) => '<button class="crow2' + (best && best.L === L ? ' best' : '') + '" type="button" data-calpick="' + esc(L.id) + '|' + k + '"><span class="nm">' + esc(locLabel(L)) + (best && best.L === L ? ' <em class="besttag">En iyi</em>' : '') + '</span>' +
         (!d ? '<span class="note">yükleniyor…</span>' : '<span class="chips">' + (d.land ? '' : cls(d.clsD, 'Gündüz') + cls(d.clsN, 'Gece')) +
           '<span><em>rüzgâr</em> ' + bftBadge(bft(d.wd)) + '/' + bftBadge(bft(d.wn)) + ' Bft</span>' +
+          (d.gD != null || d.gN != null ? '<span><em>hamle</em> ' + bftBadge(bft(d.gD)) + '/' + bftBadge(bft(d.gN)) + ' Bft</span>' : '') +
           (d.land ? '<span><em>hava</em> ' + tempV(d.tmin) + '–' + tempV(d.tmax) + ' ' + TU() + '</span>' + (d.pop != null ? '<span><em>yağış</em> %' + Math.round(d.pop) + '</span>' : '') :
             (d.wave != null ? '<span><em>dalga</em> ' + f1(d.wave) + ' m</span>' : '') + (d.win ? '<span class="cw">' + fishHtml(d.win.fish) + ' <b>%' + d.win.pct + '</b> ' + hm(d.win.a) + '–' + hm(d.win.b) + '</span>' : '')) + '</span>') +
         '</button>').join('') + '</div></div>';
-  }).join('');
+  }).join('') + calLegend();
 }
 function renderCalendar(){
   renderCalPick();
@@ -4433,7 +4605,7 @@ function renderCalendar(){
     return '<button class="day' + (dd.idx >= 10 ? ' low' : '') + '" data-calday="' + dd.key + '" style="text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%">' +
       '<div class="d"><b>' + dd.date.getDate() + '</b><span>' + MON3[dd.date.getMonth()] + ' ' + DOW[dd.date.getDay()] + '</span></div>' +
       '<div class="body">' + (land ? '' : '<div class="chips">' + (dd.clsD ? '<span class="chip ' + dd.clsD + '">Gündüz ' + dd.clsD + '</span>' : '') + (dd.clsN ? '<span class="chip ' + dd.clsN + '">Gece ' + dd.clsN + '</span>' : '') + starsHtml(dd.sol.stars) + '</div>') +
-      '<div class="vals">' + V('ruzgar', '<span><em>rüzgâr</em> ' + bftBadge(bft(dd.wd)) + '/' + bftBadge(bft(dd.wn)) + ' Bft</span>') + V('hamle', '<span><em>hamle</em> ' + bftBadge(bft(dd.gust)) + ' Bft</span>') +
+      '<div class="vals">' + V('ruzgar', '<span><em>rüzgâr</em> ' + bftBadge(bft(dd.wd)) + '/' + bftBadge(bft(dd.wn)) + ' Bft</span>') + V('hamle', '<span><em>hamle</em> ' + bftBadge(bft(dd.gD)) + '/' + bftBadge(bft(dd.gN)) + ' Bft</span>') +
       V('dalga', '<span><em>dalga</em> ' + f1(dd.wave) + ' m</span>') + V('akinti', dd.cur != null ? '<span><em>akıntı</em> ' + f1(dd.cur) + ' kn</span>' : '') + V('su', dd.sst != null ? '<span><em>su</em> ' + tempTxt(dd.sst, true) + '</span>' : '') +
       V('hava', '<span><em>hava</em> ' + tempV(dd.tmin) + '–' + tempV(dd.tmax) + ' ' + TU() + '</span>') + V('basinc', '<span><em>basınç</em> ' + pressTxt(dd.pmean) + (dd.pdelta > 1 ? ' ↑' : dd.pdelta < -1 ? ' ↓' : '') + '</span>') +
       V('yagis', dd.pop != null ? '<span><em>yağış</em> %' + Math.round(dd.pop) + (dd.rain >= 0.5 ? ' · ' + f1(dd.rain) + ' mm' : '') + '</span>' : '') +
@@ -4441,7 +4613,7 @@ function renderCalendar(){
       V('pencere', w ? '<div class="calwin">' + fishHtml(w.fish) + '<span><b>%' + w.pct + '</b> en iyi pencere <b>' + winTxt(w) + '</b>' + (w.cls ? ' · deniz ' + w.cls : '') + ' · ' + esc(w.evs.map(e => e.k).join(' + ')) + '</span></div>' +
         (w.skipped ? '<div class="note">' + skipTxt(w.skipped) + '</div>' : '') : '') +
       V('guven', '<div class="note">güven ' + dd.conf + ' · ' + esc(dd.models.join(', ')) + '</div>') + '</div></button>';
-  }).join('');
+  }).join('') + calLegend();
 }
 
 // ---------------------------------------------------------------- 71 · saatlik tablo (Windy düzeni; satırlar, birimler ve model seçilebilir)
@@ -4556,7 +4728,7 @@ function renderHourly(){
   const isToday = dd.key === todayKey, nowH = now.getHours();
   const sol = dd.sol, sr = sol.sunrise.getTime(), ss = sol.sunset.getTime();
   const nightH = x => x.t.getTime() < sr - 20 * 60000 || x.t.getTime() > ss + 20 * 60000;
-  const cls = (x, extra) => 'c' + (nightH(x) ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (extra ? ' ' + extra : '');
+  const cls = (x, extra) => 'c' + (nightH(x) ? ' night' : '') + (isToday && x.h === nowH ? ' curh' : '') + (ui.hsel === dd.key + '|' + x.h ? ' selh' : '') + (extra ? ' ' + extra : '');
   // bilgi alanı: açıkken tam ad + alt satır, kapalıyken kısa ad (sh = [üst, alt]); yalnız dokununca açılır/kapanır
   const short = (label, sh) => sh ? esc(sh[0]) + (sh[1] ? '<em>' + esc(sh[1]) + '</em>' : '') : esc(H_SHORT[label] || label.slice(0, 4));
   const row = (label, sub, cells, trc, sh) => '<tr' + (trc ? ' class="' + trc + '"' : '') + '><th class="lbl" scope="row"><b>' + label + '</b>' + (Array.isArray(sub) ? sub : [sub]).filter(Boolean).map(t => '<small>' + t + '</small>').join('') + '<i class="sh" aria-hidden="true">' + short(label, sh) + '</i></th>' + cells + '</tr>';
@@ -4658,6 +4830,7 @@ function compassTxt(x){
 
 // ---------------------------------------------------------------- 72 · Rigler ve Envanter
 function renderRigs(){
+  if (!RSNAP && RIG_LIST.length) RSNAP = rigSnap();
   const sys = Object.values(S.systems);
   const all = RIG_LIST; const n = all.filter(ready).length;
   $('rigEyebrow').textContent = sys.length ? sys.length + ' sistem · ' + all.length + ' rig' : 'Rig sistemi yok';
@@ -4672,6 +4845,7 @@ function renderRigs(){
       (one.source === 'sihirbaz' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
       '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
       (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
+    (sys.length ? '<div class="row rigref"><button class="btn small" type="button" data-act="rigRefresh">Rigleri envantere göre güncelle</button><span class="note">Rig satırına dokun: parça, stok ve yedekler.</span></div>' + rigChangesHtml() : '') +
     (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().filter(t => t !== 'dunya' || wOk).map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
   if (!all.length) {
     $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
@@ -4854,13 +5028,13 @@ function saveItem(){
   (sizes.length ? sizes : ['-']).forEach(sz => { const k = id + '|' + sz;
     if (old && changed) { delete S.inv.qty[k]; delete S.inv.status[k]; }
     if (changed && cat === 'bait' && st === 'var') S.inv.status[k] = 'var'; });
-  persist(); indexAll(); closeSheet(); ui.inv = INV_SEG.find(([k]) => INV_CATS[k].includes(cat))[0]; renderAll(); toast('Kalem kaydedildi');
+  persist(); indexAll(); noteRigChanges(); closeSheet(); ui.inv = INV_SEG.find(([k]) => INV_CATS[k].includes(cat))[0]; renderAll(); toast('Kalem kaydedildi');
 }
 function deleteItem(id){
   delete S.inv.items[id]; delete S.inv.unit[id];
   Object.keys(S.inv.qty).forEach(k => { if (k.split('|')[0] === id) delete S.inv.qty[k]; });
   Object.keys(S.inv.status).forEach(k => { if (k.split('|')[0] === id) delete S.inv.status[k]; });
-  persist(); indexAll(); closeSheet(); renderAll(); toast('Kalem silindi');
+  persist(); indexAll(); noteRigChanges(true); closeSheet(); renderAll(); toast('Kalem silindi');
 }
 function catalogSearch(q){
   q = trLower(q.trim()); const el = $('itCat'); if (!el) return;
@@ -4893,7 +5067,7 @@ function buyAdd(key){
   const id = 'u-' + (slugTR(nm).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6);
   S.inv.items[id] = Object.assign({id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()}, extra);
   if (S.shopX) delete S.shopX[key];
-  persist(); indexAll(); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
+  persist(); indexAll(); noteRigChanges(true); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
 }
 
 // ---------------------------------------------------------------- 73 · Fishing sekmesi (uygulamanın asıl yeri)
@@ -7475,7 +7649,10 @@ function show(v){
   try { history.replaceState(history.state, '', '#' + v); } catch (e) {}
 }
 // envanter değişince rigler yeniden çözülür (yuvaya en uygun kalem değişmiş olabilir)
-function invChanged(){ persist(); indexAll(); renderAll(); }
+function invChanged(){
+  persist(); indexAll(); noteRigChanges();
+  renderAll(); if (ui.sheet === 'parca' && ui.sheetArg) { const [r, k] = ui.sheetArg.split('|'); openPart(r, k, true); }
+}
 function setQty(k, v){ setQtyVal(k, v); invChanged(); }
 // adet/paket satırındaki "Alınacak": işaretliyse kaldırır (0 sayısı da silinir), değilse alınacak listesine koyar
 function alkToggle(k){
@@ -7548,6 +7725,11 @@ function bindEvents(){
     if (d.lkind) { const [id, k] = d.lkind.split('|'); setLocKind(id, k); return; }
     if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
     if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
+    if (d.part) { const [r, k] = d.part.split('|'); openPart(r, k); return; }
+    if (d.partuse) { partAct('use', d.partuse); return; }
+    if (d.partall) { partAct('all', d.partall); return; }
+    if (d.partorig) { partAct('orig', d.partorig); return; }
+    if (d.partbuy) { partAct('buy', d.partbuy); return; }
     if (d.fb) { fbAct(d.fb, d); return; }
     if (d.usta) { ustaAct(d.usta, d); return; }
     if (d.ustam) { lsSet(LSU.model, d.ustam); ustaRedraw(); return; }
@@ -7571,6 +7753,8 @@ function bindEvents(){
       if (a === 'wizard') { if (typeof startWizard === 'function') startWizard(); else toast('Rig Atölyesi bir sonraki sürümde geliyor'); return; }
       if (a === 'gpsloc') { gpsToLocation(); return; }
       if (a === 'icsAll') { await alertExport(); return; }
+      if (a === 'rigRefresh') { rigRefresh(); return; }
+      if (a === 'rigChClose') { ui.rigCh = null; renderRigs(); return; }
       if (a === 'driftmap') { ui.mapDrift = true; const c = mapCfg(); if (!c.drift) { c.drift = true; S.settings.map = c; persistQuiet(); } openMore('harita'); return; }
       if (a === 'baitShop') { const ds = days(), dd = ds.find(x => x.key === ui.fday) || ds[0], part = ui.fpart || 'gun', now = new Date(); if (!dd) return;
         const R = recommend(dd, part === 'gece', dd.key === dateKey(now) ? now : null), p = baitPlan(dd, part, R); if (!p || p.none || !p.items.length) { toast('Yem gerekmiyor'); return; }
@@ -7679,7 +7863,17 @@ function bindEvents(){
   $('rigSearch').addEventListener('input', e => { ui.q = e.target.value; renderRigs(); });
   // saatlik tablo: kaydırınca satır adları kısalır; ada dokununca tam açılır / kapanır
   // bilgi alanı (satır adları): yalnız dokununca açılır/kapanır; kaydırma, bekleme ya da model seçimi değiştirmez
-  $('hTable').addEventListener('click', e => { if (!e.target.closest('th.lbl')) return; S.settings.hFull = !S.settings.hFull; persistQuiet(); $('hScroll').classList.toggle('compact', !S.settings.hFull); });
+  $('hTable').addEventListener('click', e => {
+    if (e.target.closest('th.lbl')) { S.settings.hFull = !S.settings.hFull; persistQuiet(); $('hScroll').classList.toggle('compact', !S.settings.hFull); return; }
+    // saat seçimi: bir sütuna dokun, o saat mavi işaretlenir (tekrar dokununca kalkar); şu anki saat kırmızı kalır
+    const td = e.target.closest('td'); if (!td || td.classList.contains('graph')) return;
+    const hrow = $('hTable').querySelector('tr.hours'); if (!hrow) return;
+    const ci = td.cellIndex, hc = hrow.cells[ci]; if (!hc || hc.tagName !== 'TD') return;
+    const key = ui.hday + '|' + parseInt(hc.textContent, 10), off = ui.hsel === key;
+    ui.hsel = off ? null : key;
+    $('hTable').querySelectorAll('td.selh').forEach(c => c.classList.remove('selh'));
+    if (!off) $('hTable').querySelectorAll('tr').forEach(tr => { const c = tr.cells[ci]; if (c && c.tagName === 'TD' && !c.classList.contains('graph') && tr.cells.length === hrow.cells.length) c.classList.add('selh'); });
+  });
   // açılır bölümlerin (hazır liste) açık/kapalı hâli yeniden çizimde korunur
   document.addEventListener('toggle', e => { const el = e.target; if (el && el.dataset && el.dataset.dk) { ui.open = ui.open || {}; ui.open[el.dataset.dk] = el.open; } }, true);
   window.addEventListener('hashchange', () => { const h = (location.hash || '').slice(1); if (h.indexOf('al=') === 0) openShareLink(h.slice(3)); else if (h.indexOf('grup=') === 0) openGroupInvite(h.slice(5)); else if (h.indexOf('av=') === 0) openAvLink(h.slice(3)); });
@@ -7695,7 +7889,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
-  spotMemory, subFor, subSlot, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
+  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
   loadState();
   pkgLoadCached();

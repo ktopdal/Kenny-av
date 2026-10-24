@@ -103,6 +103,12 @@ function withLoc(L, w, fn){
   finally { S.active = sv.a; S.wx = sv.wx; WX = sv.WX; DAYS_CACHE = sv.DC; }
 }
 const CAL_SUM = {};
+// takvim değerlerinin ne olduğu (takvim altına)
+function calLegend(){
+  const m = S.settings.model || 'karma';
+  const src = m === 'karma' ? 'Karma: rüzgâr ICON-EU (yoksa ECMWF), hamle GFS' : 'model ' + (SRC[m] ? SRC[m].short : m);
+  return '<p class="note callegend">Rüzgâr ve hamle: gündüz (07–18) / gece (19–06) en yüksek değer · ' + esc(src) + '. Dalga ve akıntı: günün en yükseği · su ve basınç: gün ortalaması · hava: en düşük–en yüksek · yağış: günün en yüksek ihtimali.</p>';
+}
 function locSummary(L){
   const w = L.id === S.active ? S.wx : MWX[L.id];
   if (!w || !w.raw) return null;
@@ -112,7 +118,7 @@ function locSummary(L){
     const land = locKind(L) === 'kara', win = land ? null : windows(dd)[0] || null;
     const worst = [dd.clsD, dd.clsN].filter(Boolean).sort().pop() || null;
     const score = land || !win ? 0 : win.pct * (SEA_F[win.cls || worst] || 0.5);
-    return {key: dd.key, date: dd.date, idx: dd.idx, wd: dd.wd, wn: dd.wn, gust: dd.gust, wave: dd.wave, clsD: dd.clsD, clsN: dd.clsN, tmin: dd.tmin, tmax: dd.tmax, pop: dd.pop, rain: dd.rain,
+    return {key: dd.key, date: dd.date, idx: dd.idx, wd: dd.wd, wn: dd.wn, gust: dd.gust, gD: dd.gD, gN: dd.gN, wave: dd.wave, clsD: dd.clsD, clsN: dd.clsN, tmin: dd.tmin, tmax: dd.tmax, pop: dd.pop, rain: dd.rain,
       land, win: win ? {pct: win.pct, fish: win.fish, a: win.a, b: win.b, cls: win.cls} : null, score};
   });
   const out = L.id === S.active ? make() : withLoc(L, w, make);
@@ -145,10 +151,11 @@ function renderCalCompare(ids){
       rows.map(({L, d}) => '<button class="crow2' + (best && best.L === L ? ' best' : '') + '" type="button" data-calpick="' + esc(L.id) + '|' + k + '"><span class="nm">' + esc(locLabel(L)) + (best && best.L === L ? ' <em class="besttag">En iyi</em>' : '') + '</span>' +
         (!d ? '<span class="note">yükleniyor…</span>' : '<span class="chips">' + (d.land ? '' : cls(d.clsD, 'Gündüz') + cls(d.clsN, 'Gece')) +
           '<span><em>rüzgâr</em> ' + bftBadge(bft(d.wd)) + '/' + bftBadge(bft(d.wn)) + ' Bft</span>' +
+          (d.gD != null || d.gN != null ? '<span><em>hamle</em> ' + bftBadge(bft(d.gD)) + '/' + bftBadge(bft(d.gN)) + ' Bft</span>' : '') +
           (d.land ? '<span><em>hava</em> ' + tempV(d.tmin) + '–' + tempV(d.tmax) + ' ' + TU() + '</span>' + (d.pop != null ? '<span><em>yağış</em> %' + Math.round(d.pop) + '</span>' : '') :
             (d.wave != null ? '<span><em>dalga</em> ' + f1(d.wave) + ' m</span>' : '') + (d.win ? '<span class="cw">' + fishHtml(d.win.fish) + ' <b>%' + d.win.pct + '</b> ' + hm(d.win.a) + '–' + hm(d.win.b) + '</span>' : '')) + '</span>') +
         '</button>').join('') + '</div></div>';
-  }).join('');
+  }).join('') + calLegend();
 }
 function renderCalendar(){
   renderCalPick();
@@ -168,7 +175,7 @@ function renderCalendar(){
     return '<button class="day' + (dd.idx >= 10 ? ' low' : '') + '" data-calday="' + dd.key + '" style="text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%">' +
       '<div class="d"><b>' + dd.date.getDate() + '</b><span>' + MON3[dd.date.getMonth()] + ' ' + DOW[dd.date.getDay()] + '</span></div>' +
       '<div class="body">' + (land ? '' : '<div class="chips">' + (dd.clsD ? '<span class="chip ' + dd.clsD + '">Gündüz ' + dd.clsD + '</span>' : '') + (dd.clsN ? '<span class="chip ' + dd.clsN + '">Gece ' + dd.clsN + '</span>' : '') + starsHtml(dd.sol.stars) + '</div>') +
-      '<div class="vals">' + V('ruzgar', '<span><em>rüzgâr</em> ' + bftBadge(bft(dd.wd)) + '/' + bftBadge(bft(dd.wn)) + ' Bft</span>') + V('hamle', '<span><em>hamle</em> ' + bftBadge(bft(dd.gust)) + ' Bft</span>') +
+      '<div class="vals">' + V('ruzgar', '<span><em>rüzgâr</em> ' + bftBadge(bft(dd.wd)) + '/' + bftBadge(bft(dd.wn)) + ' Bft</span>') + V('hamle', '<span><em>hamle</em> ' + bftBadge(bft(dd.gD)) + '/' + bftBadge(bft(dd.gN)) + ' Bft</span>') +
       V('dalga', '<span><em>dalga</em> ' + f1(dd.wave) + ' m</span>') + V('akinti', dd.cur != null ? '<span><em>akıntı</em> ' + f1(dd.cur) + ' kn</span>' : '') + V('su', dd.sst != null ? '<span><em>su</em> ' + tempTxt(dd.sst, true) + '</span>' : '') +
       V('hava', '<span><em>hava</em> ' + tempV(dd.tmin) + '–' + tempV(dd.tmax) + ' ' + TU() + '</span>') + V('basinc', '<span><em>basınç</em> ' + pressTxt(dd.pmean) + (dd.pdelta > 1 ? ' ↑' : dd.pdelta < -1 ? ' ↓' : '') + '</span>') +
       V('yagis', dd.pop != null ? '<span><em>yağış</em> %' + Math.round(dd.pop) + (dd.rain >= 0.5 ? ' · ' + f1(dd.rain) + ' mm' : '') + '</span>' : '') +
@@ -176,5 +183,5 @@ function renderCalendar(){
       V('pencere', w ? '<div class="calwin">' + fishHtml(w.fish) + '<span><b>%' + w.pct + '</b> en iyi pencere <b>' + winTxt(w) + '</b>' + (w.cls ? ' · deniz ' + w.cls : '') + ' · ' + esc(w.evs.map(e => e.k).join(' + ')) + '</span></div>' +
         (w.skipped ? '<div class="note">' + skipTxt(w.skipped) + '</div>' : '') : '') +
       V('guven', '<div class="note">güven ' + dd.conf + ' · ' + esc(dd.models.join(', ')) + '</div>') + '</div></button>';
-  }).join('');
+  }).join('') + calLegend();
 }

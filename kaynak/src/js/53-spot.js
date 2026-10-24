@@ -33,43 +33,56 @@ function spotLine(L){
 }
 // ---- R3 · envanterden yedek
 let SUB_C = {};
-function subSlot(sl){
+// yuvaya elde olan uyumlu yedekler (en iyi önce): iğnede aynı/uyumlu desen ±1 boy, ipte aynı tür (fc ↔ misina) çap ±%12
+function slotIsHook(sl){ const e = sl.t.envanter || {}, it0 = e.item && ITEMS[e.item];
+  return sl.kind === 'hook' || sl.kind === 'hook+' || (it0 && it0.cat === 'hook') || (sl.sp && sl.sp.kind === 'hook' && sl.sp.p && !['assist', 'jighead', 'sabiki', 'treble'].includes(sl.sp.p[0])); }
+function slotIsLine(sl){ const e = sl.t.envanter || {}, it0 = e.item && ITEMS[e.item];
+  return sl.kind === 'line' || ['braid', 'beden', 'kostek', 'sok', 'mono'].includes(sl.kind) || (it0 && ['fc', 'mono', 'braid'].includes(it0.cat)) || (sl.sp && sl.sp.kind === 'line'); }
+// yuvanın istediği: iğnede {p0 desen, h0 {sc, v}}, ipte {mm0, cats}
+function slotNeed(sl){
   const e = sl.t.envanter || {}, it0 = e.item && ITEMS[e.item];
-  const isHook = sl.kind === 'hook' || sl.kind === 'hook+' || (it0 && it0.cat === 'hook') || (sl.sp && sl.sp.kind === 'hook' && sl.sp.p && !['assist', 'jighead', 'sabiki', 'treble'].includes(sl.sp.p[0]));
-  const isLine = sl.kind === 'line' || ['braid', 'beden', 'kostek', 'sok', 'mono'].includes(sl.kind) || (it0 && ['fc', 'mono', 'braid'].includes(it0.cat)) || (sl.sp && sl.sp.kind === 'line');
-  if (isHook) {
+  if (slotIsHook(sl)) {
     const p0 = it0 ? patOf(it0) : sl.sp && sl.sp.p ? sl.sp.p[0] : null;
     const h0 = e.size ? hookIdx(e.size) : sl.sp && sl.sp.sc ? {sc: sl.sp.sc, v: Math.round((sl.sp.lo + sl.sp.hi) / 2)} : null;
-    if (!p0 || !h0) return null;
-    let best = null;
-    Object.values(ITEMS).forEach(it => {
-      if (it.cat !== 'hook') return; const p = patOf(it); if (!p) return;
-      const same = p === p0; if (!same && !KB.COMPAT.some(g => g.includes(p) && g.includes(p0))) return;
-      sizesOf(it).forEach(sz => {
-        if (it.id === e.item && sz === e.size) return;
-        const h = hookIdx(sz); if (!h || h.sc !== h0.sc) return; const dv = h.v - h0.v; if (Math.abs(dv) > 1) return;
-        if (!usable(stockOf(it.id, sz))) return;
-        const sc = Math.abs(dv) * 2 + (same ? 0 : 1) + (dv < 0 ? 0.2 : 0);
-        if (!best || sc < best.sc) best = {sc, item: it.id, name: it.name, size: sz, dv, same};
-      });
-    });
-    return best ? {sl, to: best, txt: sl.label + ': ' + best.name + ' ' + best.size + (best.dv ? ' (bir boy ' + (best.dv > 0 ? 'büyük' : 'küçük') + ')' : best.same ? '' : ' (benzer desen)')} : null;
+    return p0 && h0 ? {hook: true, p0, h0, e} : null;
   }
-  if (isLine) {
+  if (slotIsLine(sl)) {
     const mm0 = it0 ? lineMm(it0) : e.size ? lineMm({name: e.size}) : sl.sp && sl.sp.lo ? (sl.sp.lo + sl.sp.hi) / 2 : null;
     if (!mm0) return null;
     const cats = it0 ? (it0.cat === 'braid' ? ['braid'] : [it0.cat, it0.cat === 'fc' ? 'mono' : 'fc']) : sl.sp && sl.sp.cats ? sl.sp.cats : ['fc', 'mono'];
-    let best = null;
-    Object.values(ITEMS).forEach(it => {
-      if (!cats.includes(it.cat) || it.id === e.item) return; const mm = lineMm(it); if (!mm) return;
-      const d = (mm - mm0) / mm0; if (Math.abs(d) > 0.12) return;
-      if (!usable(stockOf(it.id, '-'))) return;
-      const sc = Math.abs(d) * 10 + cats.indexOf(it.cat) * 0.6 + (d < 0 ? 0.2 : 0);
-      if (!best || sc < best.sc) best = {sc, item: it.id, name: it.name, mm, d};
-    });
-    return best ? {sl, to: best, txt: sl.label + ': ' + best.name + (best.name.indexOf(String(best.mm).replace('.', ',')) < 0 && best.name.indexOf(String(best.mm)) < 0 ? ' ' + mmTxt(best.mm) : '') + (Math.abs(best.d) >= 0.03 ? ' (' + (best.d > 0 ? 'biraz kalın' : 'biraz ince') + ')' : '')} : null;
+    return {line: true, mm0, cats, e};
   }
   return null;
+}
+const patCompat = (p, p0) => p === p0 || KB.COMPAT.some(g => g.includes(p) && g.includes(p0));
+function subCands(sl, n){
+  const nd = slotNeed(sl); if (!nd) return [];
+  const out = [];
+  if (nd.hook) {
+    Object.values(ITEMS).forEach(it => {
+      if (it.cat !== 'hook') return; const p = patOf(it); if (!p || !patCompat(p, nd.p0)) return; const same = p === nd.p0;
+      sizesOf(it).forEach(sz => {
+        if (it.id === nd.e.item && sz === nd.e.size) return;
+        const h = hookIdx(sz); if (!h || h.sc !== nd.h0.sc) return; const dv = h.v - nd.h0.v; if (Math.abs(dv) > 1) return;
+        if (!usable(stockOf(it.id, sz))) return;
+        out.push({sc: Math.abs(dv) * 2 + (same ? 0 : 1) + (dv < 0 ? 0.2 : 0), item: it.id, name: it.name, size: sz, dv, same,
+          txt: it.name + ' ' + sz + (dv ? ' (bir boy ' + (dv > 0 ? 'büyük' : 'küçük') + ')' : same ? '' : ' (benzer desen)')});
+      });
+    });
+  } else {
+    Object.values(ITEMS).forEach(it => {
+      if (!nd.cats.includes(it.cat) || it.id === nd.e.item) return; const mm = lineMm(it); if (!mm) return;
+      const d = (mm - nd.mm0) / nd.mm0; if (Math.abs(d) > 0.12) return;
+      if (!usable(stockOf(it.id, '-'))) return;
+      out.push({sc: Math.abs(d) * 10 + nd.cats.indexOf(it.cat) * 0.6 + (d < 0 ? 0.2 : 0), item: it.id, name: it.name, size: '-', mm, d,
+        txt: it.name + (it.name.indexOf(String(mm).replace('.', ',')) < 0 && it.name.indexOf(String(mm)) < 0 ? ' ' + mmTxt(mm) : '') + (Math.abs(d) >= 0.03 ? ' (' + (d > 0 ? 'biraz kalın' : 'biraz ince') + ')' : '')});
+    });
+  }
+  return out.sort((a, b) => a.sc - b.sc).slice(0, n || 99);
+}
+function subSlot(sl){
+  const c = subCands(sl, 1)[0];
+  return c ? {sl, to: c, txt: sl.label + ': ' + c.txt} : null;
 }
 function subFor(rg){
   if (Object.prototype.hasOwnProperty.call(SUB_C, rg.id)) return SUB_C[rg.id];

@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------- 72 · Rigler ve Envanter
 function renderRigs(){
+  if (!RSNAP && RIG_LIST.length) RSNAP = rigSnap();
   const sys = Object.values(S.systems);
   const all = RIG_LIST; const n = all.filter(ready).length;
   $('rigEyebrow').textContent = sys.length ? sys.length + ' sistem · ' + all.length + ' rig' : 'Rig sistemi yok';
@@ -14,6 +15,7 @@ function renderRigs(){
       (one.source === 'sihirbaz' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
       '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
       (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
+    (sys.length ? '<div class="row rigref"><button class="btn small" type="button" data-act="rigRefresh">Rigleri envantere göre güncelle</button><span class="note">Rig satırına dokun: parça, stok ve yedekler.</span></div>' + rigChangesHtml() : '') +
     (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().filter(t => t !== 'dunya' || wOk).map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
   if (!all.length) {
     $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
@@ -196,13 +198,13 @@ function saveItem(){
   (sizes.length ? sizes : ['-']).forEach(sz => { const k = id + '|' + sz;
     if (old && changed) { delete S.inv.qty[k]; delete S.inv.status[k]; }
     if (changed && cat === 'bait' && st === 'var') S.inv.status[k] = 'var'; });
-  persist(); indexAll(); closeSheet(); ui.inv = INV_SEG.find(([k]) => INV_CATS[k].includes(cat))[0]; renderAll(); toast('Kalem kaydedildi');
+  persist(); indexAll(); noteRigChanges(); closeSheet(); ui.inv = INV_SEG.find(([k]) => INV_CATS[k].includes(cat))[0]; renderAll(); toast('Kalem kaydedildi');
 }
 function deleteItem(id){
   delete S.inv.items[id]; delete S.inv.unit[id];
   Object.keys(S.inv.qty).forEach(k => { if (k.split('|')[0] === id) delete S.inv.qty[k]; });
   Object.keys(S.inv.status).forEach(k => { if (k.split('|')[0] === id) delete S.inv.status[k]; });
-  persist(); indexAll(); closeSheet(); renderAll(); toast('Kalem silindi');
+  persist(); indexAll(); noteRigChanges(true); closeSheet(); renderAll(); toast('Kalem silindi');
 }
 function catalogSearch(q){
   q = trLower(q.trim()); const el = $('itCat'); if (!el) return;
@@ -235,5 +237,5 @@ function buyAdd(key){
   const id = 'u-' + (slugTR(nm).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6);
   S.inv.items[id] = Object.assign({id, cat, brand: parts[0], model: parts[1], name: nm, pattern, spec, note: 'Alışveriş listesinden', sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, 'var'])), src: 'kullanici', created: new Date().toISOString()}, extra);
   if (S.shopX) delete S.shopX[key];
-  persist(); indexAll(); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
+  persist(); indexAll(); noteRigChanges(true); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
 }
