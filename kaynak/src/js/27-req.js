@@ -60,7 +60,8 @@ function rodInfo(it){
   const ln = t.match(/(\d+(?:\.\d+)?)\s*m\b/);
   const type = /slow/.test(t) ? 'slowjig' : /lrf|ultra ?light/.test(t) ? 'lrf' : /surf/.test(t) ? 'surf' : /\begi|eging/.test(t) ? 'egi' : /bolo|şamandıra|samandira/.test(t) ? 'samandira' :
     /troll|sırtı/.test(t) ? 'sirti' : /stand.?up|big game|büyük oyun/.test(t) ? 'buyuk' : /boat|tekne|quiver|dip/.test(t) ? 'tekne' : /\bjig/.test(t) ? 'jig' : /spin/.test(t) ? 'spin' : null;
-  return {type, max: mx ? Number(mx[2] || mx[1]) : null, len: ln ? Number(ln[1]) : null, pe: null};
+  const pe = t.match(/\bpe\s*#?\s*(\d+(?:\.\d+)?)/);
+  return {type, max: mx ? Number(mx[2] || mx[1]) : null, len: ln ? Number(ln[1]) : null, pe: pe ? Number(pe[1]) : null};
 }
 function reelInfo(it){
   if (it.reel) return it.reel;
@@ -96,6 +97,7 @@ function resolveGear(sp, it, take){
     if (clsOk === false) return;                          // gücü bu işe uymuyor
     if (typeOk === false) return;                         // tipi başka iş için (tipini "Diğer" seçersen yalnızca gücüne bakılır)
     if (sp.minLen && inf.len && inf.len < sp.minLen - 0.2) return;
+    if (sp.minG && inf.max != null && inf.max < sp.minG) return;   // alışveriş: rigin kurşununu taşıyacak güçte kamış (28-gear.js)
     const ok = usable(stockOf(it.id, '-'));
     // aynı uygunlukta: tekniğin asıl kamış tipi (listede önce gelen) ve işe en yakın güç öne
     const ti = typeOk ? sp.types.indexOf(inf.type) * 0.1 : 1;

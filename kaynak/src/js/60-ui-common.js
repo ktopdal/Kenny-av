@@ -21,6 +21,7 @@ const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 
 function compRow(rg, sl, tier){
   tier = tier || 'envanter';
   if (tier === 'envanter') {
+    if ((sl.kind === 'rod' || sl.kind === 'reel') && rg.gear) return gearRow(rg, sl);   // v0.24: kamış ve makine (28-gear.js)
     const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item];
     const st = slotStock(sl);
     const u = it ? unitOf(it) : 'durum'; const q = e.item && u !== 'durum' ? qtyOf(e.item + '|' + (e.size || '-')) : null;
@@ -39,6 +40,7 @@ function lengthsTxt(ld){
   const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %' + (ld.short === true ? 20 : ld.short) + ' kısa)' : ''));
   if (ld.kursun && ld.shore) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g ' + ld.shoreWhy.join(' ve ') + ' için, çapalı kurşun)' : '') + (ld.over ? ' · <b class="warn">atış sınırı ' + ld.max + ' g: daha korunaklı bir nokta seç</b>' : ''));
   else if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
+    (ld.rodCap && !ld.over ? ' · kamışın en fazla ' + ld.max + ' g taşır' : '') +
     (ld.over ? ' · <b class="warn">gereken ≈ ' + ld.need + ' g, kamış sınırı ' + ld.max + ' g: paraşüt çapa at, motorla karşıla ya da demirle</b>' : ''));
   return parts.join(' · ');
 }
@@ -67,6 +69,7 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
   if (rg.current) chips.push('<span class="chip">Akıntıda</span>');
   if (rg.window) chips.push('<span class="chip">' + rg.window.join('–') + '</span>');
   if (rg.mode === 'kiyi') chips.push('<span class="chip">Kıyı</span>');
+  gearIssues(rg).forEach(g => chips.push('<span class="chip ' + (g.bad ? 'gbad' : 'gwarn') + '">' + esc(g.txt) + '</span>'));
   const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
   const other = TIERS.filter(x => x !== tier && x !== 'dunya');   // Notlar ve diğer seviyeler: dünyanın en iyisi gösterilmez
   // v0.23: kamış, makine ve terminal (fırdöndü, boncuk, kurşun) burada yazılmaz: elindekidir, "en iyisi" yoktur.

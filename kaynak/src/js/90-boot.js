@@ -32,7 +32,11 @@ function show(v){
 function invChanged(){
   persist(); indexAll(); noteRigChanges();
   renderAll(); if (ui.sheet === 'parca' && ui.sheetArg) { const [r, k] = ui.sheetArg.split('|'); openPart(r, k, true); }
+  else if (ui.sheet === 'gear' && ui.sheetArg) openGear(ui.sheetArg, true);
+  else if (ui.sheet === 'rig' && ui.sheetArg) openRigSheet(ui.sheetArg, true);
 }
+// rig sayfasından (Fishing'deki diğer rigler) parça/kamış sayfasına geçilince "Geri" rig sayfasına döner
+function backTo(){ if (ui.sheet === 'rig' && ui.sheetArg) { const a = ui.sheetArg; ui.back = () => openRigSheet(a, true); } else if (ui.sheet !== 'parca' && ui.sheet !== 'gear') ui.back = null; }
 function setQty(k, v){ setQtyVal(k, v); invChanged(); }
 // adet/paket satırındaki "Alınacak": işaretliyse kaldırır (0 sayısı da silinir), değilse alınacak listesine koyar
 function alkToggle(k){
@@ -64,7 +68,7 @@ function bindEvents(){
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
     if (d.acc) { e.preventDefault(); accAct(d.acc, b); return; }
-    if (WZ && (d.wzm || d.wzr || d.wzt || d.wzs || d.wzsadd || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
+    if (WZ && ui.sheet === 'wizard' && (d.wzloc || d.wzmap || d.wzcoord || d.wzm || d.wzr || d.wzt || d.wzs || d.wzsadd || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
     if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
     if (d.systool) {
       const sy = S.systems[d.sid]; if (!sy) return;
@@ -105,7 +109,14 @@ function bindEvents(){
     if (d.lkind) { const [id, k] = d.lkind.split('|'); setLocKind(id, k); return; }
     if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
     if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
-    if (d.part) { const [r, k] = d.part.split('|'); openPart(r, k); return; }
+    if (d.part) { backTo(); const [r, k] = d.part.split('|'); openPart(r, k); return; }
+    if (d.gear) { backTo(); openGear(d.gear); return; }
+    if (d.gearuse) { gearAct('use', d.gearuse); return; }
+    if (d.gearall) { gearAct('all', d.gearall); return; }
+    if (d.gearauto) { gearAct('auto', d.gearauto); return; }
+    if (d.gearbuy) { gearAct('buy', d.gearbuy); return; }
+    if (d.newitem) { ui.back = null; itemForm(null, d.newitem); return; }
+    if (d.rigopen) { ui.back = null; openRigSheet(d.rigopen); return; }
     if (d.partuse) { partAct('use', d.partuse); return; }
     if (d.partall) { partAct('all', d.partall); return; }
     if (d.partorig) { partAct('orig', d.partorig); return; }
@@ -165,7 +176,7 @@ function bindEvents(){
     }
     if (b.id === 'seenVer') { S.seenVersion = APP_VERSION; persist(); renderNewVersion(); return; }
     if (d.catch) { catchDetail(d.catch); return; }
-    if (b.hasAttribute('data-close')) { closeSheet(); return; }
+    if (b.hasAttribute('data-close')) { if (ui.back) { const f = ui.back; ui.back = null; f(); return; } closeSheet(); return; }
     if (d.editcatch) { const c = CATCHES.find(x => x.id === d.editcatch); if (c) catchForm(c); return; }
     if (d.delCatch) { if (d.armed) deleteCatch(d.delCatch); else { d.armed = '1'; b.textContent = 'Silmek için tekrar dokun'; } return; }
     if (d.edititem) { itemForm(d.edititem); return; }
@@ -269,7 +280,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
-  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
+  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
   loadState();
   pkgLoadCached();

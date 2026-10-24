@@ -112,11 +112,28 @@ function fRecs(dd, part, from, past){
     '<div class="empty">' + PART_TXT[part] + ' için uygun ve tamamlanmış rig yok.</div>');
   $('recMoreW').hidden = !more.length;
   $('recMoreS').textContent = 'Diğer uygun rigler (' + more.length + ')';
-  $('recMore').innerHTML = more.map(x => '<div class="rec"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + esc(x.rg.code || '') + '</span></div><div class="why">' + esc(x.why.slice(0, 3).join(' · ')) + '</div></div>').join('');
+  // v0.24: satıra dokununca rigin tam kartı açılır (parça ve kamış satırları da dokunulabilir)
+  const recBtn = (x, body) => '<button type="button" class="rec tap" data-rigopen="' + esc(x.rg.id) + '"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + esc(x.rg.code || '') + '<i class="chev" aria-hidden="true">›</i></span></div><div class="why">' + body + '</div></button>';
+  $('recMore').innerHTML = more.map(x => recBtn(x, esc(x.why.slice(0, 3).join(' · ')))).join('');
   const blocked = R.filter(x => !x.ok).slice(0, 3);
-  $('recBlocked').innerHTML = blocked.map(x => '<div class="rec"><div class="h"><b>' + esc(x.rg.name) + '</b><span class="code">' + esc(x.rg.code || '') + '</span></div><div class="why">Eksik: ' +
-    esc(missingOf(x.rg).map(sl => { const e = sl.t.envanter || {}; return (e.item && ITEMS[e.item] ? ITEMS[e.item].name : (e.name || sl.label)) + ' ' + (e.size || ''); }).join(', ')) + '</div></div>').join('') || '<p class="note">Yok.</p>';
+  $('recBlocked').innerHTML = blocked.map(x => recBtn(x, 'Eksik: ' + esc(missTxt(x.rg)))).join('') || '<p class="note">Yok.</p>';
   return R;
+}
+// eksik parçaların kısa yazısı (uymayan kamış/makine: "Kamış uygun değil")
+const missTxt = rg => missingOf(rg).map(sl => { const e = sl.t.envanter || {}; if (slotBad(sl)) return sl.label + ' uygun değil (' + (e.item && ITEMS[e.item] ? ITEMS[e.item].name : '') + ')';
+  return (e.item && ITEMS[e.item] ? ITEMS[e.item].name : (e.name || sl.label)) + (e.size ? ' ' + e.size : ''); }).join(', ');
+// Fishing'deki "diğer uygun" ve "eksik bekleyen" rig satırı: rigin tam kartı (seçili gün ve bölümün koşullarıyla)
+function openRigSheet(rid, keep){
+  const rg = RIGS[rid]; if (!rg) { toast('Rig bulunamadı'); return; }
+  ui.sheet = 'rig'; ui.sheetArg = rid;
+  const ds = days(), now = new Date(), dd = ds.find(d => d.key === ui.fday) || ds[0] || null, part = ui.fpart || 'gun', night = part === 'gece';
+  let R = null, x = null;
+  if (dd) { R = recommend(dd, night, dd.key === dateKey(now) ? now : null); x = R.find(r => r.rg.id === rid) || null; }
+  const miss = missingOf(rg);
+  const top = (miss.length && !(x && x.sub) ? '<div class="banner">Eksik: ' + esc(missTxt(rg)) + '. Satırına dokun: envanterdeki durumu, yedekler ve yerine alınabilecekler.</div>' : '') +
+    (dd && !x ? '<p class="note">Bu rig ' + PART_TXT[part].toLowerCase() + ' için önerilere girmiyor (saat, mevsim ya da tekne/kıyı modu uymuyor).</p>' : '');
+  openSheet(sheetBar((rg.code ? rg.code + ' · ' : '') + 'Rig') + '<div class="stack">' + top +
+    rigCard(rg, dd, x ? x.why : null, null, null, R ? R.x : null, {tune: dd && x && R ? tuneRig(rg, dd, R.x, R.win, night, R.month) : null, sub: x ? x.sub : null}) + '</div>', keep);
 }
 // ---- R2 · saat saat plan (54-trip.js)
 function fPlan(dd, part, past){

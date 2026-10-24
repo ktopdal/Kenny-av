@@ -28,6 +28,13 @@ function pkgRigs(){
       sinker: st.kursun_g ? {g: st.kursun_g.slice(), max: st.kursun_max_g} : null,
       success: rg.success ? {dunya: rg.success.dunya, turkiye: rg.success.magaza, envanter: rg.success.envanter} : null,
       notes: [].concat(rg.v2_change ? [{k: 'v2', t: rg.v2_change}] : [], (rg.warnings || []).filter(w => !/mevsimi/.test(w)).map(w => ({k: 'Not', t: w})), (rg.v1_notes || []).map(w => ({k: 'v1', t: w})))};
+  }).map(rg => {
+    // v0.24: kamış ve makine yuvaları (kurulumdaki takım önce; envanterdeki en uygun çift, 28-gear.js)
+    const su = setups[rg.group] || {};
+    const gs = (k, label, kind, o, txt) => ({k, label, kind, sp: {kind, types: o.types, cls: o.cls, minLen: o.minLen || null},
+      t: {dunya: {name: txt || o.name}, turkiye: {name: o.name, size: o.spec}, envanter: {item: null, name: txt || '', size: null}}});
+    rg.slots.push(gs('kamis', 'Kamış', 'rod', DIP_GEAR.rod, su.rods_text), gs('makine', 'Makine', 'reel', DIP_GEAR.reel, su.reel_text));
+    return applyGear(rg);
   });
 }
 function allRigs(){
@@ -35,7 +42,7 @@ function allRigs(){
   Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => resolveRig(Object.assign({sys: sy.id}, r)))); });
   // v0.23: rig parçası sayfasından seçilen değişim (S.rigOv["rigId|yuva"] = {item, size}); kalem envanterden silinmişse yok sayılır
   const ov = S.rigOv || {};
-  out.forEach(rg => rg.slots.forEach(sl => { const o = ov[rg.id + '|' + sl.k]; if (!o || !ITEMS[o.item]) return;
+  out.forEach(rg => rg.slots.forEach(sl => { const o = ov[rg.id + '|' + sl.k]; if (!o || !ITEMS[o.item] || sl.kind === 'rod' || sl.kind === 'reel') return;   // kamış/makine: applyGear
     const e = sl.t.envanter || {}; sl.orig = {item: e.item || null, size: e.size || null, name: e.name || null};
     sl.t.envanter = Object.assign({}, e, {item: o.item, size: o.size && o.size !== '-' ? o.size : null, name: null}); sl.ov = true; }));
   return out;
@@ -79,7 +86,9 @@ function importPackage(d){
 }
 // ---- hazır olma (envanter seviyesine göre)
 function slotStock(sl){ const e = sl.t && sl.t.envanter; return e && e.item ? stockOf(e.item, e.size) : 'yok'; }
-const missingOf = rg => rg.slots.filter(sl => !usable(slotStock(sl)));
+// kamış/makine envanterden girildi ama rige uymuyorsa (ve bilerek seçilmediyse) eksik sayılır (28-gear.js)
+const slotBad = sl => sl.fit === 'bad' && !sl.user;
+const missingOf = rg => rg.slots.filter(sl => !usable(slotStock(sl)) || slotBad(sl));
 const ready = rg => missingOf(rg).length === 0;
 const sysName = id => (S.systems[id] && S.systems[id].name) || id;
 // alışveriş: rigleri tamamlamak için eksik yuvalar (kaleme göre, aynı rig bir kez) + bitti / alınacak işaretli kalemler (rigde olmasa da; yemler hariç)
@@ -87,9 +96,11 @@ function shoppingList(){
   const need = {};
   const add = (k, o) => need[k] = need[k] || Object.assign({k, rigs: [], why: []}, o);
   RIG_LIST.forEach(rg => missingOf(rg).forEach(sl => {
-    const e = sl.t.envanter || {}; const tk = sl.t.turkiye || {};
+    const e0 = sl.t.envanter || {}; const tk = sl.t.turkiye || {};
+    const e = slotBad(sl) ? {} : e0;   // uymayan kamış/makine: o kalem değil, gereken ölçü alınır
     const k = e.item ? e.item + '|' + (e.size || '-') : 'x|' + (tk.name || e.name || sl.label) + '|' + (tk.size || '');
-    const n = add(k, {item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, kind: sl.kind, sp: sl.sp || null});
+    const sp = sl.sp && slotBad(sl) && sl.kind === 'rod' && rg.gear && rg.gear.need.g ? Object.assign({}, sl.sp, {minG: rg.gear.need.g[1]}) : sl.sp || null;
+    const n = add(k, {item: e.item || null, size: e.item ? e.size : tk.size, name: e.item ? null : (tk.name || e.name), store: tk.store || null, kind: sl.kind, sp});
     if (!n.why.includes('rig')) n.why.push('rig');
     if (!n.rigs.includes(rg.code || rg.name)) n.rigs.push(rg.code || rg.name);
   }));

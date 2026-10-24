@@ -92,7 +92,7 @@ function resolveRig(rg){
     return Object.assign({}, sl, {t});
   });
   const baits = rg.baits ? {ana: noW(rg.baits.ana), alt: noW(rg.baits.alt)} : rg.baits;
-  return Object.assign({}, rg, {slots, baits});
+  return applyGear(Object.assign({}, rg, {slots, baits}));   // kamış + makine çifti (28-gear.js)
 }
 // ---- yuva ölçüsü ve ürün önerisi
 function hookSpec(spec, plus){

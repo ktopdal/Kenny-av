@@ -423,7 +423,8 @@ function renderPick(){
   const gNote = !p.busy && S.settings.gkey && GERR ? '<div class="mc-g">Google kullanılamadı: ' + esc(GERR) + '</div>' : '';
   el.innerHTML = '<div class="mc-h"><b>' + esc(p.name || 'Seçilen nokta') + (p.busy && p.name ? ' …' : '') + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
     coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' + kNote + gNote +
-    '<div class="row"><button class="btn primary" type="button" data-mapact="forecast">' + (p.kind === 'kara' ? 'Bu noktanın hava durumu' : 'Bu noktanın tahmini') + '</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
+    (ui.mapFor === 'wizard' && WZ ? '<div class="row"><button class="btn primary" type="button" data-mapact="wzuse">Rig Atölyesinde kullan</button></div>' : '') +
+    '<div class="row"><button class="btn' + (ui.mapFor === 'wizard' ? '' : ' primary') + '" type="button" data-mapact="forecast">' + (p.kind === 'kara' ? 'Bu noktanın hava durumu' : 'Bu noktanın tahmini') + '</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
     '<a class="btn" href="' + gmapsUrl(p.lat, p.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
   el.hidden = false;
 }
@@ -437,6 +438,7 @@ async function locCard(id){
       coordBlock(Lc.lat, Lc.lon) + (k === 'kara' ? '<div class="mc-i">Kara · yalnız hava durumu' + (Lc.elev != null ? ' · yükselti ≈ ' + Lc.elev + ' m' : '') + '</div>' : '<div class="mc-i">' + KIND_TXT[k] + ' · dip: ' + esc(BOTTOM_TXT[Lc.bottom || ''] || 'bilinmiyor') + ' · derinlik: ' + (Lc.depth ? esc(Lc.depth) + ' m' : 'yazılmamış') +
       (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') +
       (!Lc.bottom && Lc.bottomEst ? ' · taban tahmini: ' + esc(Lc.bottomEstTxt || BOTTOM_TXT[Lc.bottomEst]) + ' <button class="linkbtn" type="button" data-mapact="setbed">dip olarak yaz</button>' : '') + '</div>') +
+      (ui.mapFor === 'wizard' && WZ && k !== 'kara' ? '<div class="row"><button class="btn primary" type="button" data-mapact="wzuse">Rig Atölyesinde kullan</button></div>' : '') +
       '<div class="row">' + (S.active === id ? '<button class="btn primary" type="button" data-mapact="today">Tahmine dön</button>' : '<button class="btn primary" type="button" data-mapact="use">' + (k === 'kara' ? 'Seç · hava durumu' : 'Seç ve tahmin') + '</button>') +
       '<a class="btn" href="' + gmapsUrl(Lc.lat, Lc.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
     el.hidden = false;
@@ -466,20 +468,33 @@ async function mapAct(a, b){
   if (a === 'setdepth' && p.id && S.locations[p.id]) { S.locations[p.id].depth = String(b.dataset.dep); persist(); renderAll(); locCard(p.id); toast('Derinlik kaydedildi'); return; }
   if (a === 'use' && p.id) { S.active = p.id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast('Konum değişti'); return; }
   if (a === 'today') { closeSheet(); show('bugun'); return; }
+  // v0.24: Rig Atölyesi'nden açıldıysa noktayı kaydet ve sihirbaza dön
+  if (a === 'wzuse') {
+    if (p.kind === 'kara' && !p.id) { toast('Kara noktası: denizde bir nokta seç'); return; }
+    const id = p.id || mapSavePoint(p, false);
+    ui.mapFor = null; ui.back = null;
+    if (!WZ) { closeSheet(); return; }
+    wzUseLoc(id); persist(); ui.sheet = 'wizard'; renderWizard(); toast(locLabel(S.locations[id]) + ' · Rig Atölyesi'); return;
+  }
   if (a === 'save' || a === 'forecast') {
-    const n = nearestLoc(p); let id = n && n.d <= 0.2 ? n.L.id : null;
-    if (!id) {
-      id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', a === 'forecast', true);
-      const NL = S.locations[id];
-      if (p.kind && !p.busy) applyKind(NL, p); else NL.kindTried = null;   // tür biliniyorsa hemen; yoksa arka planda bulunur
-      if (p.facing != null && (NL.facing == null || NL.facing === '')) NL.facing = String(p.facing);
-      if (p.bed && p.bed.bottom && p.sea !== false) setBedEst(NL, p.bed);
-      if (!NL.kind) setTimeout(ensureKinds, 50);
-    }
+    const id = mapSavePoint(p, a === 'forecast');
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
     persist(); drawLocs(); renderAll(); toast('Konumlarına kaydedildi: ' + S.locations[id].name);
     locCard(id);
   }
+}
+// haritada seçilen noktayı konumlara kaydet (0,2 km içinde kayıtlı nokta varsa o kullanılır)
+function mapSavePoint(p, activate){
+  const n = nearestLoc(p); let id = n && n.d <= 0.2 ? n.L.id : null;
+  if (!id) {
+    id = addLocation(p.name || 'Harita noktası', +p.lat.toFixed(6), +p.lon.toFixed(6), '', p.depth != null ? String(p.depth) : '', activate, true);
+    const NL = S.locations[id];
+    if (p.kind && !p.busy) applyKind(NL, p); else NL.kindTried = null;   // tür biliniyorsa hemen; yoksa arka planda bulunur
+    if (p.facing != null && (NL.facing == null || NL.facing === '')) NL.facing = String(p.facing);
+    if (p.bed && p.bed.bottom && p.sea !== false) setBedEst(NL, p.bed);
+    if (!NL.kind) setTimeout(ensureKinds, 50);
+  }
+  return id;
 }
 // konumun taban tahmini (EUSeaMap): dip seçilmemişse öneride yarım ağırlıkla kullanılır
 function setBedEst(L, bed){ L.bottomEst = bed.bottom; L.bottomEstTxt = bed.label + (bed.zone ? ', ' + bed.zone : ''); L.bottomEstAt = Date.now(); }

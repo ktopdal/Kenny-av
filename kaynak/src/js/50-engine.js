@@ -74,6 +74,8 @@ function recommend(dd, night, from, at){
     // R6 mevsime göre derinlik
     const rd = rigDepth(rg, month, depth); if (rd) { sc += rd.d; why.push(rd.why); }
     // R3 eksik iğne/ip envanterden yedekle tamamlanabiliyorsa öneriye girer
+    // v0.24 kamış/makine: elindeki takım sınırda ya da (bilerek seçilmiş) uygun değilse puan düşer (28-gear.js)
+    const gi = gearIssues(rg); if (gi.length) { const bad = gi.some(g => g.bad); sc -= bad ? 2 : 0.3; why.push(gi.map(g => trLower(g.txt)).join(', ')); }
     const okR = ready(rg), sub = okR ? null : subFor(rg);
     if (sub) { sc -= 0.5; why.push('yedekle hazır (' + sub.list.length + ' parça)'); }
     out.push({rg, sc, why, ok: okR || !!sub, sub, learned: !!(lr || ls)});

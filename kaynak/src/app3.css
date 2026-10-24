@@ -481,3 +481,27 @@ button.crow.tap .v{text-decoration:underline;text-decoration-color:color-mix(in 
 .altrow .row{gap:6px}
 .rigref{gap:8px 12px;align-items:center;flex-wrap:wrap;margin:8px 0}
 .rigch{margin:8px 0;font-size:13px;display:flex;flex-direction:column;gap:4px}
+/* v0.24: kamış ve makine */
+.crow.gear .v{display:flex;flex-direction:column;gap:2px;text-decoration:none}
+.crow.gear .v small{font:500 11.5px var(--body);line-height:1.35}
+.crow.gear .gspec{color:var(--muted)}
+.crow.gear .fitwhy.bad{color:var(--D);font-weight:600}
+.crow.gear .fitwhy.warn{color:var(--C);font-weight:600}
+.crow.gear .gsug{color:var(--accent)}
+.chip.gbad{background:var(--D-bg);color:var(--D);border-color:transparent}
+.chip.gwarn{background:var(--C-bg);color:var(--C);border-color:transparent}
+.gcard{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
+.gcard.cur{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.gcard .gh{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.gcard .gh b{font:600 14.5px var(--body);margin-right:auto;min-width:0;overflow-wrap:anywhere}
+.gcard .gst{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.gcard .gwhy{margin:0;padding-left:18px;font-size:12.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:2px}
+.gcard .row{gap:6px;flex-wrap:wrap}
+.fitb{font:600 11.5px var(--mono);padding:2px 8px;border-radius:999px}
+.fitb.ok{background:var(--A-bg);color:var(--A)}.fitb.warn{background:var(--C-bg);color:var(--C)}.fitb.bad{background:var(--D-bg);color:var(--D)}
+.gbuy{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.gbuy summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.gbuy .row{gap:6px;flex-wrap:wrap;margin-top:6px}
+button.rec.tap{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+button.rec.tap:active{background:var(--surface-2)}
+.rec .chev{font-style:normal;margin-left:6px;color:var(--muted)}

@@ -146,8 +146,9 @@ function renderHourly(){
       const grid = [20, 40, 60, 80].map(v => '<line x1="0" x2="' + W + '" y1="' + (H - 2 - v / 100 * (H - 6)).toFixed(1) + '" y2="' + (H - 2 - v / 100 * (H - 6)).toFixed(1) + '" class="gl"/>').join('');
       return row('Balık eğrisi', 'saat · 10 dk', span('<svg class="spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' + grid + bars + '<polyline points="' + line + '" class="fl"/></svg>'));
     },
-    yagis: () => row('Yağış %', '', hs.map(x => '<td class="' + cls(x, (x.pop || 0) < 10 ? 'p0' : '') + '" style="' + (x.pop >= 10 ? tint('#3D7DD8', Math.min(60, 10 + x.pop * 0.5)) : '') + '">' + (x.pop == null ? '–' : '%' + Math.round(x.pop)) + '</td>').join(''), 'slim', ['Yağ.', '%']),
-    yagismm: () => row('Yağış mm', '', hs.map(x => '<td class="' + cls(x, (x.rain || 0) < 0.1 ? 'p0' : '') + '" style="' + ((x.rain || 0) >= 0.1 ? tint('#2F6BC7', Math.min(70, 25 + x.rain * 12)) : '') + '">' + (x.rain == null ? '–' : x.rain < 0.1 ? '0' : f1(x.rain)) + '</td>').join(''), 'slim', ['Yağ.', 'mm']),
+    // v0.24: yağış 0 iken hücre boş (veri yoksa –)
+    yagis: () => row('Yağış %', '', hs.map(x => '<td class="' + cls(x, (x.pop || 0) < 10 ? 'p0' : '') + '" style="' + (x.pop >= 10 ? tint('#3D7DD8', Math.min(60, 10 + x.pop * 0.5)) : '') + '">' + (x.pop == null ? '–' : Math.round(x.pop) === 0 ? '' : '%' + Math.round(x.pop)) + '</td>').join(''), 'slim', ['Yağ.', '%']),
+    yagismm: () => row('Yağış mm', '', hs.map(x => '<td class="' + cls(x, (x.rain || 0) < 0.1 ? 'p0' : '') + '" style="' + ((x.rain || 0) >= 0.1 ? tint('#2F6BC7', Math.min(70, 25 + x.rain * 12)) : '') + '">' + (x.rain == null ? '–' : x.rain < 0.05 ? '' : f1(x.rain)) + '</td>').join(''), 'slim', ['Yağ.', 'mm']),
     sicaklik: () => row('Hava sıcaklığı', TU(), hs.map(x => '<td class="' + cls(x, 'tc') + '" style="' + tint(scaleColor(TEMP_STOPS, x.temp)) + '">' + degHtml(x.temp) + '</td>').join(''), '', ['Sıc.', TU()]),
     // Karma satırı: Karma seçiliyken ICON-EU, tek model seçiliyken o model; yedeğe geçmez, model bitince –
     ruzgar: () => row(mSel === 'karma' ? 'Rüzgâr · Karma' : 'Rüzgâr · Seçili', UT + ' ' + mBadge(SRC[kId].short), hs.map(x => wcell(x, x.wk)).join(''), 'krow', ['Rüz.', WU_UP[u] + ' ' + (mSel === 'karma' ? 'KRM' : SRC[kId].ab)]),

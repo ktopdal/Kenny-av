@@ -51,7 +51,7 @@ const INV_HINT = {hook: 'Hazır listeden elindeki iğneleri işaretle. Boya doku
   jig: 'Hazır listeden işaretle ya da kendi jig ve zokalarını ekle. İstersen adetle say.', terminal: 'Terminalde adet yok, yalnızca var mı yok mu. Kurşunda elindeki gramajlara dokun.',
   ekip: 'Pense, kepçe, lamba gibi ekipmanın.'};
 function gearMeta(it){
-  if (it.cat === 'rod' && it.rod) { const r = it.rod; return [(ROD_T.find(x => x[0] === r.type) || [0, ''])[1], r.len ? fmtNum(r.len, 2) + ' m' : '', r.max ? 'max ' + r.max + ' g' : '', r.pe ? 'PE ' + fmtNum(r.pe, 1) : ''].filter(Boolean).join(' · '); }
+  if (it.cat === 'rod' && it.rod) { const r = it.rod; return [(ROD_T.find(x => x[0] === r.type) || [0, ''])[1], r.len ? fmtNum(r.len, 2) + ' m' : '', r.max ? 'max ' + r.max + ' g' : '', r.pe ? 'PE ' + fmtNum(r.pe, 1) : '', r.seat ? SEAT_TXT[r.seat] : ''].filter(Boolean).join(' · '); }
   if (it.cat === 'reel' && it.reel) { const r = it.reel; return [(REEL_T.find(x => x[0] === r.type) || [0, ''])[1], r.size ? 'boy ' + r.size : ''].filter(Boolean).join(' · '); }
   return '';
 }
@@ -165,7 +165,8 @@ function itemForm(id, cat0){
     '<div class="fields wide" id="it-rodw"' + (c.cat === 'rod' ? '' : ' hidden') + '><label class="f wide">Kamış tipi<select id="it-rodt">' + opt(ROD_T, r.type || 'tekne') + '</select></label>' +
       '<label class="f">Boy (m)<input id="it-rodl" inputmode="decimal" value="' + esc(r.len ? fmtNum(r.len, 2) : '') + '" placeholder="Ör. 2,10"></label>' +
       '<label class="f">En fazla (g)<input id="it-rodm" inputmode="numeric" value="' + esc(r.max || '') + '" placeholder="Ör. 150"></label>' +
-      '<label class="f">PE<input id="it-rodp" inputmode="decimal" value="' + esc(r.pe ? fmtNum(r.pe, 1) : '') + '" placeholder="Ör. 2"></label></div>' +
+      '<label class="f">PE<input id="it-rodp" inputmode="decimal" value="' + esc(r.pe ? fmtNum(r.pe, 1) : '') + '" placeholder="Ör. 2"></label>' +
+      '<label class="f wide">Makara yuvası<select id="it-rods">' + opt([['', 'Bilmiyorum'], ['spin', 'Tetiksiz: spinning makine takılır'], ['cast', 'Tetikli: çıkrık takılır']], r.seat || '') + '</select></label></div>' +
     '<div class="fields wide" id="it-reelw"' + (c.cat === 'reel' ? '' : ' hidden') + '><label class="f wide">Makine tipi<select id="it-reelt">' + opt(REEL_T, m.type || 'spin') + '</select></label>' +
       '<label class="f">Boy<input id="it-reels" inputmode="numeric" value="' + esc(m.size || '') + '" placeholder="Ör. 4000"></label></div>' +
     '<label class="f wide">Özellik<input id="it-spec" value="' + esc(c.spec || '') + '" placeholder="Ör. 0,26 mm · PE 1,5 · 120 g · siyah nikel"></label>' +
@@ -190,7 +191,7 @@ function saveItem(){
   const stB = document.querySelector('#it-st button[aria-pressed="true"]'); const st = stB ? stB.dataset.itst : 'var';
   const it = {id, cat, brand, model, name: [brand, model].filter(Boolean).join(' '), pattern: cat === 'hook' ? $('it-pat').value : '', spec: g('it-spec'), note: g('it-note'),
     sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, st === 'yok' ? 'yok' : st])), src: 'kullanici', created: old ? old.created : new Date().toISOString()};
-  if (cat === 'rod') it.rod = {type: $('it-rodt').value, len: num(g('it-rodl')), max: num(g('it-rodm')), pe: num(g('it-rodp'))};
+  if (cat === 'rod') { it.rod = {type: $('it-rodt').value, len: num(g('it-rodl')), max: num(g('it-rodm')), pe: num(g('it-rodp'))}; const seat = $('it-rods') ? $('it-rods').value : ''; if (seat) it.rod.seat = seat; }
   if (cat === 'reel') it.reel = {type: $('it-reelt').value, size: num(g('it-reels'))};
   S.inv.items[id] = it;
   // düzenlemede durum seçimi değiştiyse eski işaretler (adetler dahil) yeni seçime uyar; değişmediyse boy boy işaretler korunur
@@ -229,7 +230,7 @@ function buyAdd(key){
   let cat = 'hook', pattern = '', sizes = [], spec = '', extra = {};
   if (sp.kind === 'hook') { pattern = KB.PAT[sp.p[0]] ? KB.PAT[sp.p[0]].name : ''; sizes = n.size ? [n.size] : []; }
   else if (sp.kind === 'line') { cat = sp.cats[0]; spec = n.size || ''; }
-  else if (sp.kind === 'rod') { cat = 'rod'; spec = n.size || ''; extra.rod = {type: sp.types[0], len: null, max: CLS_REP.rod[sp.cls[0]] || null, pe: null}; }
+  else if (sp.kind === 'rod') { cat = 'rod'; spec = n.size || ''; extra.rod = {type: sp.types[0], len: null, max: Math.max(CLS_REP.rod[sp.cls[0]] || 0, sp.minG || 0) || null, pe: null}; }
   else if (sp.kind === 'reel') { cat = 'reel'; spec = n.size || ''; extra.reel = {type: sp.types[0], size: CLS_REP.reel[sp.cls[0]] || null}; }
   else if (sp.kind === 'term') { const k = sp.tts[0]; cat = k.indexOf('k-') === 0 ? 'sinker' : 'terminal'; spec = n.size || ''; }
   else { cat = /jig|egi|inchiku|rubber|çapari|zoka/i.test(nm) ? 'jig' : 'lure'; spec = n.size || ''; }

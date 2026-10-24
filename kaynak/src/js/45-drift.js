@@ -49,13 +49,14 @@ function leadFor(rg, dd, x){
   const k = Object.assign({}, rg.lengths || {});
   if (dr && dr.line >= 0.4 && !rg.own && k.hirsiz) { k.short = dr.line >= 0.7 ? 30 : 20; k.hirsiz = Math.round(k.hirsiz * (1 - k.short / 100)); }
   if (!rg.sinker || !rg.sinker.g) return rg.lengths ? Object.assign(k, {kursun: null, drift: dr}) : null;
-  let [lo, hi] = rg.sinker.g; const max = rg.sinker.max || hi;
+  let [lo, hi] = rg.sinker.g; const rodMax = rigRodMax(rg), max = Math.min(rg.sinker.max || hi, rodMax || Infinity);   // v0.24: rigdeki kamışın taşıdığı en fazla gram
   if ((depth || 0) > 80) lo = hi;
   const extra = leadExtra(dr, depth);
   const need = lo + extra;                 // en az gereken
   lo = Math.min(need, max); hi = Math.min(hi + extra, max);
   const over = need > max;                 // en hafif kurşun bile kamışı aşıyor
-  return Object.assign(k, {kursun: lo === hi ? lo + ' g' : lo + '–' + hi + ' g', max, extra, over, need, capped: !over && hi === max && extra > 0, drift: dr, depth, at: x ? x.t : null});
+  return Object.assign(k, {kursun: lo === hi ? lo + ' g' : lo + '–' + hi + ' g', max, extra, over, need, capped: !over && hi === max && extra > 0, drift: dr, depth, at: x ? x.t : null,
+    rodCap: !!rodMax && rodMax < (rg.sinker.max || rg.sinker.g[1])});
 }
 function driftSentence(dr){
   if (!dr || !dr.known) return 'Rüzgâr ve akıntı verisi yok; sürüklenme hesaplanamadı.';

@@ -3,6 +3,15 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.24.0', notes: [
+    'Kamış ve makine bütün rig kartlarında: her rig için envanterindeki en uygun kamış + makine çifti (kurşun gramı, kamışın taşıdığı gram, kamış tipi, makara yuvası, makine boyu)',
+    'Elindeki takım rige uymuyorsa “envanterden girildi ama uygun değil” ve nedeni yazar; uygun olanı ya da gereken ölçüyü önerir',
+    'Kamış ve makine sayfası: elindeki bütün kamış ve makineler bu rige göre (uygun / sınırda / uygun değil); “Bu rigde kullan”, “Gruptaki riglerde kullan”; uygun yoksa aranacak ölçü ve örnek seriler, alışveriş listesine ekle',
+    'Kurşun hesabı rigdeki kamışın taşıdığı en fazla gramla sınırlı',
+    'Kamış formunda makara yuvası: tetiksiz (spinning) ya da tetikli (çıkrık)',
+    'Fishing: “Diğer uygun rigler” ve “Eksik kalem yüzünden bekleyen rigler” satırına dokununca rigin tam kartı açılır',
+    'Saatlik tabloda yağış % ve yağış mm 0 iken hücre boş',
+    'Rig Atölyesi: “Hangi denizde?” yerine nokta: kayıtlı konum, haritadan ya da koordinatla; bölge, dip ve derinlik noktadan alınır']},
   {v: '0.23.0', notes: [
     'Takvimde hamle de gündüz/gece iki değer; 2–3 nokta seçiliyken de hamle görünür',
     'Takvimin altında değerlerin ne olduğu: rüzgâr/hamle gündüz ve gecenin en yükseği, dalga ve akıntı günün en yükseği, su ve basınç ortalama',

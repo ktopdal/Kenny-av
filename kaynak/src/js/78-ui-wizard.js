@@ -7,14 +7,50 @@ const LAY_DESC = {
   chunking: 'Parça yem ve circle iğne', popping: 'Popper ve stickbait, kalın lider', agirjig: '200–400 g jig', agirsirti: 'Büyük sırtı yemi, kalın mono',
   paternoster: '2 iğne, piramit kurşun', egi: 'Kalamar ve mürekkep zokası', ahtapot: 'Ahtapot zokası',
 };
+// v0.24: "Hangi denizde?" yerine nokta: kayıtlı konumlardan, haritadan ya da koordinatla. Deniz bölgesi (türler buna göre süzülür),
+// dip ve derinlik noktadan alınır.
+const wzLocs = () => Object.values(S.locations).filter(L => locKind(L) !== 'kara');
+function wzDefLoc(region){
+  const A = loc(); if (A && locKind(A) !== 'kara' && (!region || regionOf(A) === region)) return A;
+  return wzLocs().find(L => !region || regionOf(L) === region) || null;
+}
+const WZ_BOTTOM = {kum: 'kum', 'kum-kayalik': 'kum-kayalik', kayalik: 'kayalik', 'saf-kayalik': 'kayalik', karma: 'karma', camur: 'camur'};
+function wzUseLoc(id){
+  const a = WZ.ans, L = S.locations[id]; if (!L) return;
+  a.locId = id; a.region = regionOf(L);
+  const b = WZ_BOTTOM[L.bottom || L.bottomEst || ''];
+  if (b && (!a.bottoms.length || a.bottomsAuto)) { a.bottoms = [b]; a.bottomsAuto = true; }
+}
 function wzDefaults(){
-  return {mode: S.mode || 'tekne', region: regionOf(loc()), techs: [], species: [], baits: (S.profile.baits || []).slice(), lay: {}, klass: 'ikisi', time: 'ikisi', bottoms: [], size: 'dengeli', rodMax: '', name: ''};
+  const L = wzDefLoc();
+  const a = {mode: S.mode || 'tekne', region: regionOf(L || loc()), locId: L ? L.id : null, techs: [], species: [], baits: (S.profile.baits || []).slice(), lay: {}, klass: 'ikisi', time: 'ikisi', bottoms: [], size: 'dengeli', rodMax: '', name: ''};
+  return a;
 }
 function startWizard(editId){
   const sy = editId && S.systems[editId];
   WZ = {step: 0, ans: sy && sy.answers ? JSON.parse(JSON.stringify(sy.answers)) : wzDefaults(), editId: sy ? editId : null};
   if (!Array.isArray(WZ.ans.baits)) WZ.ans.baits = (S.profile.baits || []).slice();
+  if (!WZ.ans.locId || !S.locations[WZ.ans.locId]) { const L = wzDefLoc(WZ.ans.region); WZ.ans.locId = L ? L.id : null; }
   ui.sheet = 'wizard'; renderWizard();
+}
+// koordinat: "38,1292" ya da "38.1292"; derece-dakika (38°07,754') da olur
+function wzParseCoord(v){
+  v = String(v || '').trim().replace(/,/g, '.'); if (!v) return null;
+  const m = v.match(/^(-?\d+(?:\.\d+)?)\s*°?\s*(?:(\d+(?:\.\d+)?)\s*['’′]?)?/); if (!m) return null;
+  const d = +m[1], mi = m[2] != null ? +m[2] : 0; if (isNaN(d)) return null;
+  return d < 0 ? d - mi / 60 : d + mi / 60;
+}
+function wzLocStep(a){
+  const Ls = wzLocs(), L = a.locId && S.locations[a.locId];
+  const reg = (KB.REGIONS.find(r => r[0] === a.region) || [0, 'Ege'])[1];
+  const sub = x => [(KB.REGIONS.find(r => r[0] === regionOf(x)) || [0, ''])[1], x.depth ? x.depth + ' m' : '', x.bottom ? BOTTOM_TXT[x.bottom] : x.bottomEst ? 'tahmini ' + trLower(BOTTOM_TXT[x.bottomEst] || '') : '', locKind(x) === 'kiyi' ? 'kıyı' : ''].filter(Boolean).join(' · ');
+  return '<h3>Hangi noktada avlanıyorsun?</h3><p class="note">Deniz bölgesi, dip ve derinlik noktadan alınır; türler bölgeye göre süzülür.</p>' +
+    (Ls.length ? '<div class="opts">' + Ls.map(x => optBtn('data-wzloc', x.id, a.locId === x.id, locLabel(x), sub(x))).join('') + '</div>' : '<p class="note">Kayıtlı deniz noktan yok.</p>') +
+    '<div class="row wzlocb"><button class="btn small" type="button" data-wzmap="1">Haritadan yeni nokta seç</button></div>' +
+    '<details class="wzmore"><summary>Koordinatla gir</summary><div class="fields"><label class="f">Enlem (K)<input id="wz-lat" inputmode="decimal" placeholder="Ör. 38,1234"></label><label class="f">Boylam (D)<input id="wz-lon" inputmode="decimal" placeholder="Ör. 26,6543"></label></div>' +
+    '<div class="row"><button class="btn small" type="button" data-wzcoord="1">Noktayı ekle</button></div></details>' +
+    '<div class="panel stack wzreg"><b>' + (L ? esc(locLabel(L)) + ' · ' + esc(reg) : 'Nokta seçilmedi · ' + esc(reg) + ' varsayıldı') + '</b>' +
+    (L ? '<span class="note">' + esc([L.depth ? 'derinlik ' + L.depth + ' m' : 'derinlik yazılmamış', L.bottom ? 'dip: ' + trLower(BOTTOM_TXT[L.bottom]) : L.bottomEst ? 'taban tahmini: ' + (L.bottomEstTxt || trLower(BOTTOM_TXT[L.bottomEst])) : 'dip bilinmiyor'].join(' · ')) + '</span>' : '<span class="note">Nokta seçmezsen türler ' + esc(reg) + ' için gelir.</span>') + '</div>';
 }
 const wzTechs = () => Object.keys(KB.TECH).filter(id => WZ.ans.mode === 'ikisi' || KB.TECH[id].modes.includes(WZ.ans.mode));
 function wzFams(){ const f = new Set(); WZ.ans.techs.forEach(t => KB.TECH[t].fams.forEach(x => f.add(x))); return f; }
@@ -31,7 +67,8 @@ function wzSummary(){
   const sps = a.species.map(id => (KB.SPECIES.find(s => s.id === id) || {}).name).filter(Boolean).join(', ');
   const kl = {porsiyon: 'porsiyonluk', trofe: 'trofe', ikisi: 'porsiyonluk ve trofe'}[a.klass], tm = {gunduz: 'gündüz', gece: 'gece', ikisi: 'gündüz ve gece'}[a.time];
   const yem = (a.baits || []).map(k => (STD_BAITS.find(b => b.key === k) || {}).name).filter(Boolean);
-  return [mode + ' · ' + reg, techs, sps, yem.length ? 'Yem: ' + yem.join(', ') : '', kl + ' · ' + tm, a.bottoms.length ? 'Dip: ' + a.bottoms.map(b => BOTTOM_TXT[b]).join(', ') : 'Dip: bilinmiyor (keşif)'].filter(Boolean).join(' · ');
+  const L = a.locId && S.locations[a.locId];
+  return [mode + ' · ' + (L ? locLabel(L) + ' (' + reg + ')' : reg), techs, sps, yem.length ? 'Yem: ' + yem.join(', ') : '', kl + ' · ' + tm, a.bottoms.length ? 'Dip: ' + a.bottoms.map(b => BOTTOM_TXT[b]).join(', ') : 'Dip: bilinmiyor (keşif)'].filter(Boolean).join(' · ');
 }
 function wzValid(){
   const a = WZ.ans, st = WZ.step;
@@ -56,14 +93,14 @@ function wzBaitStep(a){
 function renderWizard(keep){
   const a = WZ.ans; const st = WZ.step; let body = '';
   if (st === 0) {
-    body = '<h3>Nerede avlanıyorsun?</h3><div class="opts">' + [['tekne', 'Tekneden', 'Dip, jig, sırtı, canlı yem, orkinos'], ['kiyi', 'Kıyıdan', 'Surf, LRF, spin, şamandıra'], ['ikisi', 'İkisinden de', 'Bütün teknikler']].map(([v, t, s]) => optBtn('data-wzm', v, a.mode === v, t, s)).join('') + '</div>' +
-      '<h3>Hangi denizde?</h3><div class="seg wrapseg">' + KB.REGIONS.map(([v, t]) => '<button class="btn small" type="button" data-wzr="' + v + '" aria-pressed="' + (a.region === v) + '">' + t + '</button>').join('') + '</div>' +
-      '<p class="note">Seçili konumuna göre tahmin edildi. Türler bölgeye göre süzülür.</p>';
+    body = '<h3>Nereden avlanıyorsun?</h3><div class="opts">' + [['tekne', 'Tekneden', 'Dip, jig, sırtı, canlı yem, orkinos'], ['kiyi', 'Kıyıdan', 'Surf, LRF, spin, şamandıra'], ['ikisi', 'İkisinden de', 'Bütün teknikler']].map(([v, t, s]) => optBtn('data-wzm', v, a.mode === v, t, s)).join('') + '</div>' +
+      wzLocStep(a);
   } else if (st === 1) {
     body = '<h3>Nasıl avlanıyorsun?</h3><p class="note">Birden çok seçebilirsin; her teknik için ayrı rigler kurulur.</p><div class="opts">' + wzTechs().map(id => optBtn('data-wzt', id, a.techs.includes(id), KB.TECH[id].name, KB.TECH[id].desc)).join('') + '</div>';
   } else if (st === 2) {
     const by = {}; wzSpecies().forEach(s => { (by[s.fam] = by[s.fam] || []).push(s); });
-    body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve bölgene uyan türler. Altlarındaki aylar genel bilgidir.</p>' +
+    const rg0 = (KB.REGIONS.find(r => r[0] === a.region) || [0, ''])[1];
+    body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve noktanın bölgesine (' + esc(rg0) + ') uyan türler. Altlarındaki aylar genel bilgidir.</p>' +
       (Object.keys(by).map(f => '<div class="famgrp"><div class="row" style="justify-content:space-between"><span class="eyebrow">' + esc((KB.FAM[f] || {}).name || f) + '</span><button class="linkbtn" type="button" data-wzall="' + f + '">Hepsini seç</button></div><div class="opts sp">' +
         by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>') +
       (a.species.filter(id => !wzSpecies().some(s => s.id === id)).length ? '<p class="note">Aramadan eklenenler: ' + esc(a.species.filter(id => !wzSpecies().some(s => s.id === id)).map(id => (spById(id) || {}).name).filter(Boolean).join(', ')) + '</p>' : '') +
@@ -75,10 +112,12 @@ function renderWizard(keep){
     body = multi.map(t => '<h3>' + esc(KB.TECH[t].name) + ': takım düzeni</h3><p class="note">Birden çok seçebilirsin.</p><div class="opts">' + KB.TECH[t].lay.map(l => optBtn('data-wzl', t + '|' + l, (a.lay[t] || []).includes(l), KB.LAY[l].name, LAY_DESC[l] || '')).join('') + '</div>').join('') +
       '<h3>Balık boyu</h3>' + segWz('klass', [['porsiyon', 'Porsiyonluk'], ['trofe', 'Trofe (iri)'], ['ikisi', 'İkisi de']], a.klass) +
       '<h3>Ne zaman?</h3>' + segWz('time', [['gunduz', 'Gündüz'], ['gece', 'Gece'], ['ikisi', 'İkisi de']], a.time) +
-      '<h3>Hangi diplerde?</h3><p class="note">Bilmiyorsan boş bırak; keşif rigleri de kurulur.</p><div class="seg wrapseg">' + [['kum', 'Kum'], ['kum-kayalik', 'Kum–kayalık'], ['kayalik', 'Kayalık'], ['karma', 'Karma'], ['camur', 'Çamur']].map(([v, t]) => '<button class="btn small" type="button" data-wzb="' + v + '" aria-pressed="' + a.bottoms.includes(v) + '">' + t + '</button>').join('') + '</div>';
+      '<h3>Hangi diplerde?</h3><p class="note">' + (a.bottomsAuto && a.bottoms.length ? 'Noktanın dibinden seçildi; değiştirebilirsin. ' : '') + 'Bilmiyorsan boş bırak; keşif rigleri de kurulur.</p><div class="seg wrapseg">' + [['kum', 'Kum'], ['kum-kayalik', 'Kum–kayalık'], ['kayalik', 'Kayalık'], ['karma', 'Karma'], ['camur', 'Çamur']].map(([v, t]) => '<button class="btn small" type="button" data-wzb="' + v + '" aria-pressed="' + a.bottoms.includes(v) + '">' + t + '</button>').join('') + '</div>';
   } else {
     const n = a.techs.length && a.species.length ? genSystem(a).length : 0;
-    body = '<h3>Takımın</h3><div class="fields"><label class="f wide">' + (a.mode === 'kiyi' ? 'Kamışının atış ağırlığı üst sınırı (g, biliyorsan)' : 'Kamışının kurşun sınırı (g, biliyorsan)') + '<input id="wz-rod" inputmode="numeric" value="' + esc(a.rodMax || '') + '" placeholder="' + (a.mode === 'kiyi' ? 'Ör. 100' : 'Ör. 150') + '"></label></div>' +
+    const nRod = Object.values(ITEMS).filter(i => i.cat === 'rod' && usable(stockOf(i.id, '-'))).length, nReel = Object.values(ITEMS).filter(i => i.cat === 'reel' && usable(stockOf(i.id, '-'))).length;
+    body = '<h3>Takımın</h3><p class="note">' + (nRod || nReel ? 'Her rig için envanterindeki ' + nRod + ' kamış ve ' + nReel + ' makineden en uygun çift kendiliğinden seçilir; uymayanlar rig kartında yazar.' : 'Envanterinde kamış ve makine yok; ekleyince her rig için en uygun çift seçilir.') + '</p>' +
+      '<div class="fields"><label class="f wide">' + (a.mode === 'kiyi' ? 'Kamışının atış ağırlığı üst sınırı (g, biliyorsan)' : 'Kamışının kurşun sınırı (g, biliyorsan)') + '<input id="wz-rod" inputmode="numeric" value="' + esc(a.rodMax || '') + '" placeholder="' + (a.mode === 'kiyi' ? 'Ör. 100' : 'Ör. 150') + '"></label></div>' +
       '<h3>Sistem ne kadar ayrıntılı olsun?</h3><div class="opts">' + [['sade', 'Sade', 'Her tür grubu için tek rig'], ['dengeli', 'Dengeli', 'Boya, gündüz/geceye ve takım düzenine göre ayrı rigler'], ['tam', 'Tam', 'Dengeli + kayalık ve keşif rigleri']].map(([v, t, s]) => optBtn('data-wzz', v, a.size === v, t, s)).join('') + '</div>' +
       '<h3>Sistemin adı</h3><div class="fields"><label class="f wide">Ad<input id="wz-name" value="' + esc(a.name || '') + '" placeholder="Ör. Benim dip sistemim"></label></div>' +
       '<div class="panel stack"><b id="wzCount">' + n + ' rig kurulacak</b><span class="note">' + esc(wzSummary()) + '</span>' +
@@ -96,6 +135,14 @@ function wzClick(d){
   const a = WZ.ans;
   if (d.wzm) { a.mode = d.wzm; a.techs = a.techs.filter(t => wzTechs().includes(t)); }
   else if (d.wzr) { a.region = d.wzr; }
+  else if (d.wzloc) { wzUseLoc(d.wzloc); }
+  else if (d.wzmap) { ui.mapFor = 'wizard'; ui.back = () => { ui.mapFor = null; if (WZ) { ui.sheet = 'wizard'; renderWizard(); } else closeSheet(); }; openMap(); return; }
+  else if (d.wzcoord) {
+    const lat = wzParseCoord($('wz-lat') && $('wz-lat').value), lon = wzParseCoord($('wz-lon') && $('wz-lon').value);
+    if (lat == null || lon == null || Math.abs(lat) > 90 || Math.abs(lon) > 180) { toast('Enlem ve boylamı yaz (ör. 38,1234 ve 26,6543)'); return; }
+    const n = nearestLoc({lat, lon}); const id = n && n.d <= 0.2 ? n.L.id : addLocation('Rig noktası ' + lat.toFixed(3) + ', ' + lon.toFixed(3), +lat.toFixed(6), +lon.toFixed(6), '', '', false);
+    wzUseLoc(id); toast(locLabel(S.locations[id]) + ' seçildi');
+  }
   else if (d.wzt) { wzToggle(a.techs, d.wzt); if (a.techs.includes(d.wzt) && !(a.lay[d.wzt] || []).length) a.lay[d.wzt] = [KB.TECH[d.wzt].lay[0]]; }
   else if (d.wzs) { wzToggle(a.species, d.wzs); }
   else if (d.wzsadd) {   // aramadan tür: uygun tekniği de ekle
@@ -109,7 +156,7 @@ function wzClick(d){
   else if (d.wzall) { const ids = wzSpecies().filter(s => s.fam === d.wzall).map(s => s.id); const all = ids.every(i => a.species.includes(i)); ids.forEach(i => { const k = a.species.indexOf(i); if (all && k >= 0) a.species.splice(k, 1); if (!all && k < 0) a.species.push(i); }); }
   else if (d.wzl) { const [t, l] = d.wzl.split('|'); a.lay[t] = a.lay[t] || []; wzToggle(a.lay[t], l); }
   else if (d.wzset) { a[d.wzset] = d.val; }
-  else if (d.wzb) { wzToggle(a.bottoms, d.wzb); }
+  else if (d.wzb) { if (a.bottomsAuto) { a.bottomsAuto = false; } wzToggle(a.bottoms, d.wzb); }
   else if (d.wzz) { a.size = d.wzz; }
   else if (d.wz === 'back') { WZ.step = Math.max(0, WZ.step - 1); renderWizard(); return; }
   else if (d.wz === 'next') {

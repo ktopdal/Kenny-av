@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.22 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v22_check.py
+"""Alyssa v0.3–v0.24 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v24_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   
 
 ROOT = '/home/claude/fishapp'
 WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v22'
+SHOTS = ROOT + '/qa/v24'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
@@ -826,7 +826,9 @@ async def main():
         await pg.goto(BASE + '/dist/'); await pg.wait_for_timeout(1000)
         await pg.click('button[data-wel="kur"]'); await pg.wait_for_timeout(300)
         check('Rig Atölyesi' in await pg.inner_text('#sheet'), 'F: sihirbaz açıldı')
-        await pg.click('button[data-wzm="tekne"]'); await pg.click('button[data-wzr="ege"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        # v0.24: "Hangi denizde?" yerine nokta (yeni kullanıcıda kayıtlı nokta yok: harita / koordinat, bölge Ege varsayılır)
+        check('Hangi noktada' in await pg.inner_text('#sheet') and await pg.locator('#sheet button[data-wzr]').count() == 0 and 'Ege varsayıldı' in await pg.inner_text('#sheet'), 'F: sihirbaz deniz yerine nokta soruyor')
+        await pg.click('button[data-wzm="tekne"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         check(await pg.is_disabled('button[data-wz="next"]'), 'F: teknik seçmeden ilerlenemez')
         await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wzt="orkinos"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         for sp in ['karagoz', 'mercan', 'orkinos']: await pg.click(f'button[data-wzs="{sp}"]')
