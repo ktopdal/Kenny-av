@@ -35,9 +35,11 @@ function compRow(rg, sl, tier){
   const right = tier === 'turkiye' ? (t.item ? '<span class="dot var"></span>Envanterde' : t.store ? '<span class="dot alinacak"></span>Mağaza ' + esc(t.store) : '<span class="dot alinacak"></span>Alınacak') : '';
   return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (t.size ? ' <b>' + esc(t.size) + '</b>' : '') + '</span><span class="s">' + right + '</span></div>';
 }
-function lengthsTxt(ld){
+function lengthsTxt(ld, rg){
   if (!ld) return '';
-  const parts = Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %' + (ld.short === true ? 20 : ld.short) + ' kısa)' : ''));
+  // Rig Atölyem rigleri: köstekler kendi listesinden (59-rigedit.js)
+  const parts = rg && rg.legs ? rg.legs.map((l, i) => { const cm = l.trail && ld.short && ld.hirsiz != null ? ld.hirsiz : l.cm, t = trLower(l.label) + ' ' + cm + ' cm' + (l.trail && ld.short ? ' (akış için %' + (ld.short === true ? 20 : ld.short) + ' kısa)' : ''); return i === 0 ? t.charAt(0).toLocaleUpperCase('tr') + t.slice(1) : t; }).concat(rg.legs.length > 1 && ld.ara ? ['köstek arası ' + ld.ara + ' cm'] : [])
+    : Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %' + (ld.short === true ? 20 : ld.short) + ' kısa)' : ''));
   if (ld.kursun && ld.shore) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g ' + ld.shoreWhy.join(' ve ') + ' için, çapalı kurşun)' : '') + (ld.over ? ' · <b class="warn">atış sınırı ' + ld.max + ' g: daha korunaklı bir nokta seç</b>' : ''));
   else if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
     (ld.rodCap && !ld.over ? ' · kamışın en fazla ' + ld.max + ' g taşır' : '') +
@@ -70,6 +72,7 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
   if (rg.window) chips.push('<span class="chip">' + rg.window.join('–') + '</span>');
   if (rg.mode === 'kiyi') chips.push('<span class="chip">Kıyı</span>');
   gearIssues(rg).forEach(g => chips.push('<span class="chip ' + (g.bad ? 'gbad' : 'gwarn') + '">' + esc(g.txt) + '</span>'));
+  if (rigPh(rg.id).length) chips.push('<span class="chip">Fotoğraf ' + rigPh(rg.id).length + '</span>');
   const notes = (rg.notes || []).map(n => '<span><b>' + esc(n.k) + ':</b> ' + esc(n.t) + '</span>');
   const other = TIERS.filter(x => x !== tier && x !== 'dunya');   // Notlar ve diğer seviyeler: dünyanın en iyisi gösterilmez
   // v0.23: kamış, makine ve terminal (fırdöndü, boncuk, kurşun) burada yazılmaz: elindekidir, "en iyisi" yoktur.
@@ -95,7 +98,7 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
     (sub ? '<div class="crow subrow"><span class="k">Yedek</span><span class="v">' + sub.list.map(c => esc(c.txt)).join('<br>') + '</span><span class="s"><span class="dot var"></span>elinde</span></div>' : '') +
     (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
     // v0.25: Takım satırı → şema, düğümler ve hazırlama (59-prep.js)
-    '<button type="button" class="crow tap takim" data-prep="' + esc(rg.id) + '"><span class="k">Takım</span><span class="v">' + (ld && lengthsTxt(ld) ? lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') : 'Şema, düğümler ve hazırlama') + '</span><span class="s">Şema<i class="chev" aria-hidden="true">›</i></span></button>' +
+    '<button type="button" class="crow tap takim" data-prep="' + esc(rg.id) + '"><span class="k">Takım</span><span class="v">' + (ld && lengthsTxt(ld, rg) ? lengthsTxt(ld, rg) + (rg.own ? ' (kayalık, kısa)' : '') : 'Şema, düğümler ve hazırlama') + '</span><span class="s">Şema<i class="chev" aria-hidden="true">›</i></span></button>' +
     (opt.tune && opt.tune.length ? '<div class="tune"><b class="tuneh">Bugünkü ayar</b>' + opt.tune.map(t => '<div class="tl' + (t.warn ? ' warn' : '') + '"><span class="k">' + esc(t.k) + '</span><span class="v">' + esc(t.t) + '</span></div>').join('') + '</div>' : '') +
     '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details>' + (opt.foot || '') + '</article>';
 }

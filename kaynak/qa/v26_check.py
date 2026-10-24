@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.25 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v25_check.py
+"""Alyssa v0.3–v0.26 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v26_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse

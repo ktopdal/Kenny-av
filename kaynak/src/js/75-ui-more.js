@@ -262,7 +262,7 @@ async function exportBackup(){
   const withPhotos = $('bkPhotos') && $('bkPhotos').checked;
   const st = JSON.parse(JSON.stringify(S)); st.wx = null;
   const out = {app: 'alyssa', version: APP_VERSION, exported: new Date().toISOString(), state: st, catches: CATCHES};
-  if (withPhotos) { out.photos = {}; for (const c of CATCHES) for (const pid of (c.photos || [])) { const p = await IDB.get('photos', pid); if (p) out.photos[pid] = {big: await blobToDataUrl(p.big), thumb: await blobToDataUrl(p.thumb)}; } }
+  if (withPhotos) { out.photos = {}; for (const pid of allPhotoIds()) { const p = await IDB.get('photos', pid); if (p) out.photos[pid] = {big: await blobToDataUrl(p.big), thumb: await blobToDataUrl(p.thumb)}; } }
   const blob = new Blob([JSON.stringify(out)], {type: 'application/json'});
   const name = 'alyssa-yedek-' + new Date().toISOString().slice(0, 10) + '.json';
   try {

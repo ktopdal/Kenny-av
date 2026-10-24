@@ -50,7 +50,7 @@ function ustaContext(){
     out.push('   malzeme: ' + rg.slots.map(sl => { const e = sl.t.envanter || {}; const it = e.item && ITEMS[e.item]; return sl.label + ': ' + (it ? it.name : e.name || '-') + (e.size ? ' ' + e.size : ''); }).join('; '));
     if (x.sub) out.push('   envanterden yedek: ' + x.sub.list.map(c => c.txt).join('; '));
     const bt = stripTags(baitHtml(rg, 'envanter')); if (bt) out.push('   yem: ' + bt);
-    if (ld && lengthsTxt(ld)) out.push('   takım: ' + stripTags(lengthsTxt(ld)));
+    if (ld && lengthsTxt(ld, rg)) out.push('   takım: ' + stripTags(lengthsTxt(ld, rg)));
     const tn = tuneRig(rg, dd, R.x, R.win, night, month); if (tn.length) out.push('   bugünkü ayar: ' + tn.map(t => t.k + ': ' + t.t).join(' | '));
   });
   if (!ok.length) out.push('  (bu bölüm için hazır rig yok)');

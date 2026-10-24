@@ -539,3 +539,25 @@ button.crow.takim .v{text-decoration:none}
 .kncard b{display:block;font:600 15px var(--body)}
 .kncard .note{display:block;margin:2px 0 6px}
 @media (max-width:360px){.kncard{grid-template-columns:96px minmax(0,1fr)}}
+/* v0.26: rig editörü, rig hazırladım, rig fotoğrafı */
+.edit .f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-2)}
+.edit .f input{font:inherit;font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.edleg{border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:8px 0;background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.edlh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.edlr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.edlr>.note{min-width:62px}
+.edstep{display:inline-flex;align-items:center;gap:6px}
+.edstep b{font:600 14px var(--mono);min-width:58px;text-align:center}
+.edsel{font:inherit;font-size:14px;max-width:100%;min-width:0;flex:1 1 180px;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.edwarn{margin:4px 0}
+.okline{color:var(--A)}
+.prepbtns{gap:8px;flex-wrap:wrap}
+.rphotos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.rph{padding:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-2);aspect-ratio:1;cursor:pointer}
+.rph img{width:100%;height:100%;object-fit:cover;display:block}
+.rpadd{position:relative;margin-top:8px;display:inline-flex}
+.rphbig{width:100%;height:auto;border-radius:12px}
+.mats.done small{display:block;font-size:12px;color:var(--ink-2);margin-top:2px}
+.mats.done small.warnt{color:var(--D);font-weight:600}
+.mats .pk input{width:64px;font:inherit;padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.mats.done input:checked+span{text-decoration:none;color:inherit}

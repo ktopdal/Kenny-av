@@ -89,7 +89,7 @@ function itemCard(it){
   const units = UNITS[it.cat] ? '<span class="useg" role="group" aria-label="Sayım">' + UNITS[it.cat].map(x => '<button type="button" data-unit="' + esc(it.id) + '" data-u="' + x + '" aria-pressed="' + (u === x) + '">' + UNIT_TXT[x] + '</button>').join('') + '</span>' : '';
   return '<div class="item"><div class="ih"><div class="nm">' + esc(it.name) + (used ? ' <span class="chip">' + used + ' rigde</span>' : '') + (it.store ? ' <span class="store">Mağaza ' + esc(it.store) + '</span>' : '') +
     (it.std ? ' <span class="chip">Hazır liste</span>' : '') + (it.src === 'paket' || it.std ? '' : ' <button class="linkbtn" type="button" data-edititem="' + esc(it.id) + '">Düzenle</button>') + '</div>' +
-    (meta ? '<div class="sp">' + esc(meta) + '</div>' : '') + '</div>' + units + ctl + '</div>';
+    (meta ? '<div class="sp">' + esc(meta) + '</div>' : '') + '</div>' + units + ctl + lowNote(it) + '</div>';
 }
 // hazır listedeki işaretlenmemiş kalem: kısa satır, boyları çip
 function stdRow(it){

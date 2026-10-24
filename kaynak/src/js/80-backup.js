@@ -53,7 +53,7 @@ async function backupNow(manual){
   BK.busy = true; clearTimeout(BK.timer); setBkStatus();
   try {
     if (S.backup.photosOn !== false) {
-      for (const ct of CATCHES) for (const pid of (ct.photos || [])) {
+      for (const pid of allPhotoIds()) {   // av ve rig fotoğrafları
         if (S.backup.photos[pid]) continue;
         const p = await IDB.get('photos', pid); if (!p) continue;
         const path = ghPath(c, 'foto/' + pid + '.bin');
@@ -135,7 +135,7 @@ async function restoreNow(pass){
   pkgLoadCached(); indexAll(); applyTheme(); renderAll(); loadWeather(true);
   // fotoğraflar arka planda
   let n = 0;
-  for (const ct of CATCHES) for (const pid of (ct.photos || [])) {
+  for (const pid of allPhotoIds()) {
     try {
       if (await IDB.get('photos', pid)) continue;
       const r = await gh('GET', c, ghPath(c, 'foto/' + pid + '.bin'), null, true);

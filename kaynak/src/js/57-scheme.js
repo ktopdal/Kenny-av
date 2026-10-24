@@ -18,7 +18,7 @@ function slotLine(sl){
   const e = sl.t.envanter || {}, it = e.item && ITEMS[e.item];
   const cat = it ? it.cat : sl.sp && sl.sp.cats ? sl.sp.cats[0] : sl.k === 'braid' ? 'braid' : 'fc';
   const mm = it ? lineMm(it) : sl.sp && sl.sp.lo ? (sl.sp.lo + sl.sp.hi) / 2 : lineMm({name: [e.name, e.size, (sl.t.turkiye || {}).name].join(' ')});
-  return {mat: cat === 'braid' ? 'braid' : cat === 'mono' ? 'mono' : 'fc', mm, name: it ? it.name : e.name || (sl.t.turkiye || {}).name || '',
+  return {mat: cat === 'braid' ? 'braid' : cat === 'mono' ? 'mono' : 'fc', mm, item: it ? it.id : null, name: it ? it.name : e.name || (sl.t.turkiye || {}).name || '',
     txt: cat === 'braid' ? (mm ? 'PE ' + fmtNum(peOf(mm), 1) + ' · ' + mmS(mm) : 'örgü') : (mm ? mmS(mm) + ' ' : '') + (cat === 'mono' ? 'misina' : 'FC')};
 }
 function slotHook(sl){
@@ -40,13 +40,20 @@ function rigChain(rg, ld){
   const short = ld && ld.short ? (ld.short === true ? 20 : ld.short) : 0;
   const tee = (k, label, cm, extra) => add(Object.assign({t: 'tee', k, label, cm, hook: slotHook(sl(k)), line: kostek}, extra || {}));
   const top = (mat) => { add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 34}); add({t: 'knot', k: anaKnot('swivel'), where: 'Ana ip → fırdöndü'}); add({t: 'swivel', label: 'Fırdöndü'}); add({t: 'knot', k: 'uni', where: 'Beden → fırdöndü'}); };
-  const dipEnd = (hk, hlabel) => {
-    const H = hk ? {cm: len[hk] || len.hirsiz || 80, short} : null;
-    if (H && hirsizPos() === 'alt') { add({t: 'gap', cm: null, l: beden, h: 26}); add({t: 'sinker', g: kursun, ring2: true}); add({t: 'trail', k: hk, label: hlabel, cm: H.cm, short, hook: slotHook(sl(hk)), line: kostek, from: 'sinker'}); }
+  const dipEnd = (hk, hlabel, cm0) => {
+    const H = hk ? {cm: cm0 || len[hk] || len.hirsiz || 80, short} : null;
+    if (H && hirsizPos() === 'alt' && /hırsız/i.test(hlabel)) { add({t: 'gap', cm: null, l: beden, h: 26}); add({t: 'sinker', g: kursun, ring2: true}); add({t: 'trail', k: hk, label: hlabel, cm: H.cm, short, hook: slotHook(sl(hk)), line: kostek, from: 'sinker'}); }
     else { if (H) add({t: 'trailTee', k: hk, label: hlabel, cm: H.cm, short, hook: slotHook(sl(hk)), line: kostek}); add({t: 'gap', cm: null, l: beden, h: 24}); add({t: 'sinker', g: kursun}); }
     add({t: 'bed'});
   };
-  if (lay === 'hirsizli' || lay === 'iki') {
+  if (rg.legs && rg.legs.length) {
+    // Rig Atölyem (59-rigedit.js): köstek sayısı ve boyları rigin kendi listesinden
+    top(); add({t: 'gap', cm: null, l: beden, h: 22, lab: 'Beden'});
+    const reg = rg.legs.filter(l => !l.trail), tr = rg.legs.find(l => l.trail);
+    reg.forEach((l, i) => { tee(l.k, l.label, l.cm); if (i < reg.length - 1 || tr) add({t: 'gap', cm: len.ara || 50, l: beden}); });
+    if (tr) dipEnd(tr.k, tr.label, ld && ld.short && ld.hirsiz != null ? ld.hirsiz : tr.cm);
+    else { add({t: 'gap', cm: null, l: beden, h: 24}); add({t: 'sinker', g: kursun}); add({t: 'bed'}); }
+  } else if (lay === 'hirsizli' || lay === 'iki') {
     top();
     add({t: 'gap', cm: null, l: beden, h: 22, lab: 'Beden'});
     tee('ust', 'Üst köstek', len.ust || 25);

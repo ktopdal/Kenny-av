@@ -3,6 +3,11 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.26.0', notes: [
+    'Rig editörü: hazırlama sayfasında “Kopyasını düzenle”: köstek ekle/çıkar, boy ve iğne değiştir, köstek arası, ipler, kurşun; şema canlı değişir; dolaşma, kalınlık, akış ve kamış sınırı uyarıları. Kaydedince “Rig Atölyem” sisteminde kendi rigin olur (asıl rig ve envanter değişmez)',
+    '“Rig hazırladım”: iğneler (adet ya da paketle sayılıyorsa) envanterden düşer, iplerin kullanılan metresi kaydedilir; azalan iğnenin hangi rigleri etkileyeceği önceden yazılır; “Geri al”',
+    'Envanterde azalan iğne: bitince hangi rigler eksik kalır',
+    'Rig fotoğrafı: bağladığın takımın fotoğrafı rige eklenir (en çok 4); hazırlama resmine de girer, bulut yedeğine dahil']},
   {v: '0.25.0', notes: [
     'Rig şeması: her rigin şeması kendi verisinden çizilir (ana ip, fırdöndü, beden, köstekler cm, iğneler, kurşun g); bugünkü ayar (akışta kısalan hırsız, kurşun) şemaya yansır',
     'Rig kartında “Takım” satırına dokun: şema, bu rigdeki düğümler, malzeme listesi (ne kadar ip, kaç iğne, kaç T-fırdöndü), ölçülü adım adım hazırlama ve kontroller',

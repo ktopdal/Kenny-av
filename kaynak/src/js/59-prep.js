@@ -17,16 +17,16 @@ function rigMaterials(rg, ch){
   const tees = N.filter(n => n.t === 'tee' || n.t === 'trailTee'), trails = N.filter(n => n.t === 'trail'), legs = tees.concat(trails);
   const ana = N.find(n => n.t === 'line' && n.role === 'ana'), lead = N.find(n => n.t === 'leader');
   const bed = N.find(n => n.t === 'gap' && n.l);
-  if (ana && ana.l) out.push({k: 'ana', t: 'Ana ip', v: lineNm(ana.l), q: 'makarada'});
-  const sok = N.find(n => n.t === 'line' && n.role === 'sok'); if (sok && sok.l) out.push({k: 'sok', t: 'Şok lider', v: lineNm(sok.l), q: '≈ 10 m'});
+  if (ana && ana.l) out.push({k: 'ana', t: 'Ana ip', v: lineNm(ana.l), q: 'makarada', item: ana.l.item});
+  const sok = N.find(n => n.t === 'line' && n.role === 'sok'); if (sok && sok.l) out.push({k: 'sok', t: 'Şok lider', v: lineNm(sok.l), q: '≈ 10 m', item: sok.l.item, cm: 1000});
   if (bed && tees.length && (ch.lay === 'hirsizli' || ch.lay === 'iki' || ch.lay === 'tek' || ch.lay === 'canli' || ch.lay === 'paternoster')) {
     const gaps = N.filter(n => n.t === 'gap' && n.cm).reduce((a, n) => a + n.cm, 0);
     const cm = PREP_TOP + gaps + PREP_BOT + PREP_KNOT * (tees.length + 2);
-    out.push({k: 'beden', t: ch.lay === 'paternoster' ? 'Beden (şok lider)' : 'Beden', v: lineNm(bed.l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm});
+    out.push({k: 'beden', t: ch.lay === 'paternoster' ? 'Beden (şok lider)' : 'Beden', v: lineNm(bed.l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm, item: bed.l.item});
   }
   if (legs.length) { const cm = legs.reduce((a, n) => a + n.cm + PREP_KNOT, 0), l = legs[0].line;
-    out.push({k: 'kostek', t: 'Köstek', v: lineNm(l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm}); }
-  if (lead) out.push({k: 'lider', t: lead.label, v: lineNm(lead.l), q: fmtNum((lead.cm + 20) / 100, 1) + ' m', cm: lead.cm + 20});
+    out.push({k: 'kostek', t: 'Köstek', v: lineNm(l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm, item: l ? l.item : null}); }
+  if (lead) out.push({k: 'lider', t: lead.label, v: lineNm(lead.l), q: fmtNum((lead.cm + 20) / 100, 1) + ' m', cm: lead.cm + 20, item: lead.l ? lead.l.item : null});
   const hooks = {};
   legs.forEach(n => { const h = hookTxt(n.hook); if (h) { hooks[h] = hooks[h] || {n: 0, item: n.hook.item, size: n.hook.size}; hooks[h].n++; } });
   N.filter(n => n.t === 'leader' && n.end && n.end.hook).forEach(n => { const h = hookTxt(n.end.hook); if (h) { hooks[h] = hooks[h] || {n: 0, item: n.end.hook.item, size: n.end.hook.size}; hooks[h].n++; } });
@@ -128,8 +128,13 @@ function openPrep(rid, keep){
       '<p class="note">Beden boyu öneridir: fırdöndüden ilk T’ye ' + PREP_TOP + ' cm, son T’den kurşuna ' + PREP_BOT + ' cm ve her bağa ' + PREP_KNOT + ' cm pay. <button class="linkbtn" type="button" data-prepreset="' + esc(rid) + '">İşaretleri sıfırla</button></p>') +
     sec('Adım adım', '<ol class="psteps">' + steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol>') +
     sec('Kontrol', '<ul class="pchecks">' + checks.map(x => '<li class="' + (x.bad ? 'bad' : 'ok') + '">' + (x.bad ? '⚠ ' : '✓ ') + esc(x.t) + '</li>').join('') + '</ul>') +
-    '<div class="row"><button class="btn primary" type="button" data-prepimg="' + esc(rid) + '">Resim olarak kaydet</button><button class="btn" type="button" data-gear="' + esc(rid) + '">Kamış ve makine</button></div>' +
+    rigPhotoHtml(rid) +
+    '<div class="row prepbtns"><button class="btn primary" type="button" data-done="' + esc(rid) + '">Rig hazırladım</button><button class="btn" type="button" data-prepimg="' + esc(rid) + '">Resim olarak kaydet</button>' +
+      (edOk(rg) ? '<button class="btn" type="button" data-redit="' + esc(rid) + '">' + (rg.sys === 'atolye' ? 'Düzenle' : 'Kopyasını düzenle') + '</button>' : '') +
+      '<button class="btn" type="button" data-gear="' + esc(rid) + '">Kamış ve makine</button></div>' +
+    '<p class="note">“Rig hazırladım” iğneleri envanterden düşer; “Kopyasını düzenle” bu rigden kendi rigini yapar (asıl rig değişmez).</p>' +
     '</div>', keep);
+  fillRigPhotos($('sheet'));
 }
 function prepCheck(val, on){
   const [rid, k] = val.split('|'); const all = prepGet(); all[rid] = all[rid] || {};
@@ -138,7 +143,7 @@ function prepCheck(val, on){
 }
 // ---- resim olarak kaydet: şema + adımlar + malzeme (açık renk, beyaz zemin)
 function wrapTxt(s, n){ const w = String(s).split(' '), out = []; let l = ''; w.forEach(x => { if ((l + ' ' + x).trim().length > n) { if (l) out.push(l); l = x; } else l = (l + ' ' + x).trim(); }); if (l) out.push(l); return out; }
-function prepImageSvg(rid){
+function prepImageSvg(rid, photo){
   const c = prepCtx(rid); if (!c) return null;
   const {rg, ld} = c, sc = schemeSvg(rg, {ld, pal: 'print'}), ch = sc.chain, P = SC_PAL.print;
   const W = 720, pad = 24, txt = [];
@@ -148,8 +153,9 @@ function prepImageSvg(rid){
   T([rg.groupName, ld && ld.kursun ? 'kurşun ' + stripTags(ld.kursun) : '', ld && ld.short ? 'hırsız %' + (ld.short === true ? 20 : ld.short) + ' kısa' : ''].filter(Boolean).join(' · '), {c: P.mut, fs: 14}); y += 10;
   const sw = 340, sh = sc.h * (sw / sc.w);
   const scheme = '<svg x="' + pad + '" y="' + y + '" width="' + sw + '" height="' + sh.toFixed(0) + '" viewBox="0 0 ' + sc.w + ' ' + sc.h + '">' + sc.svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '') + '</svg>';
-  // sağ sütun: malzeme
+  // sağ sütun: (fotoğraf) + malzeme
   let ry = y + 18; const rx = pad + sw + 18, right = [];
+  if (photo) { right.push('<image x="' + rx + '" y="' + (ry - 10) + '" width="' + (W - rx - pad) + '" height="210" preserveAspectRatio="xMidYMid slice" href="' + photo + '"/>'); ry += 214; }
   const R = (s, o) => { right.push('<text x="' + rx + '" y="' + ry + '" style="font:' + (o && o.w || 400) + ' ' + (o && o.fs || 13) + 'px system-ui,-apple-system,sans-serif;fill:' + (o && o.c || P.txt) + '">' + esc(s) + '</text>'); ry += (o && o.lh) || 18; };
   R('Malzeme', {w: 700, fs: 15, lh: 22});
   rigMaterials(rg, ch).forEach(m => wrapTxt('☐ ' + m.t + ': ' + (m.v || '') + (m.q ? ' (' + m.q + ')' : ''), 40).forEach((l, i) => R(l, {fs: 12.5, c: i ? P.mut : P.txt, lh: 17})));
@@ -180,7 +186,7 @@ async function shareImage(blob, name, title){
   return 'download';
 }
 async function prepImage(rid){
-  const r = prepImageSvg(rid); if (!r) return;
+  const r = prepImageSvg(rid, await rigPhotoData(rid)); if (!r) return;
   try { const b = await svgToPngBlob(r.svg, r.w, r.h, 2); const rg = RIGS[rid]; const how = await shareImage(b, slugTR((rg.code || 'rig') + '-' + rg.name).slice(0, 40) + '.png', rg.name);
     if (how === 'download') toast('Resim indirildi'); }
   catch (e) { toast('Resim hazırlanamadı'); }

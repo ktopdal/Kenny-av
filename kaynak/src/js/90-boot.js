@@ -132,6 +132,13 @@ function bindEvents(){
     if (d.newitem) { ui.back = null; itemForm(null, d.newitem); return; }
     if (d.rigopen) { ui.back = null; openRigSheet(d.rigopen); return; }
     if (d.prep) { backTo(); openPrep(d.prep); return; }
+    if (d.done) { backTo(); openDone(d.done); return; }
+    if (d.prepdone) { applyDone(d.prepdone); return; }
+    if (d.undoprep) { undoDone(d.undoprep); return; }
+    if (d.redit) { backTo(); openEditor(d.redit); return; }
+    if (d.ed) { const i = d.ed.indexOf('|'); edAct(d.ed.slice(0, i), d.ed.slice(i + 1), b); return; }
+    if (d.rphoto) { openRigPhoto(d.rphoto); return; }
+    if (d.rphdel) { if (!armOnce(b, 'Silmek için tekrar dokun')) return; delRigPhoto(d.rphdel); return; }
     if (d.knot) { knotFrom(d.knot, d.kwhere ? d.kwhere.split('|') : null); return; }
     if (d.prepreset) { const all = prepGet(); delete all[d.prepreset]; lsSet(LSP, JSON.stringify(all)); openPrep(d.prepreset, true); return; }
     if (d.prepimg) { b.disabled = true; await prepImage(d.prepimg); b.disabled = false; return; }
@@ -223,11 +230,15 @@ function bindEvents(){
     if (el.id === 'wz-spq' && WZ) { wzSpSearch(el.value); return; }
     if (el.id === 'wz-rod' && WZ) { WZ.ans.rodMax = el.value.trim(); return; }
     if (el.id === 'wz-name' && WZ) { WZ.ans.name = el.value; return; }
+    if (el.id === 'ed-name' && RED) { RED.name = el.value; return; }
     if (el.id === 'cf-t') { const v = el.value ? new Date(el.value) : null; if (v && !isNaN(v)) $('cf-tlbl').textContent = fmtDT(v); return; }
   });
   document.addEventListener('change', e => {
     const el = e.target;
     if (el.dataset && el.dataset.prepchk) { prepCheck(el.dataset.prepchk, el.checked); return; }
+    if (el.dataset && el.dataset.rpfile) { addRigPhotos(el.dataset.rpfile, el.files); el.value = ''; return; }
+    if (el.dataset && el.dataset.edsel != null && RED) { edSel_(el.dataset.edsel, el.value); return; }
+    if (el.dataset && el.dataset.edchk === 'trail' && RED) { const l = RED.legs[RED.legs.length - 1]; l.trail = el.checked; edRelabel(RED); renderEditor(true); return; }
     if (el.id === 'cfCam' || el.id === 'cfGal') { addFiles(el.files); el.value = ''; return; }
     if (el.id === 'cf-sp') { $('cf-sp2w').hidden = el.value !== 'diger'; return; }
     if (el.id === 'cf-bot') { if (FORM) FORM.botTouched = true; return; }
@@ -299,7 +310,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
-  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
+  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, prepUse, openDone, applyDone, undoDone, rigToDraft, draftToRig, edWarn, openEditor, rigPh, allPhotoIds, addRigPhotos, red: () => RED, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
   loadState();
   pkgLoadCached();

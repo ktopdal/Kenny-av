@@ -31,7 +31,7 @@ function gearNeed(rg){
   const lure = rg.slots.find(s => s.kind === 'lure' && s.sp && s.sp.g);
   const sk = rg.sinker && rg.sinker.g ? rg.sinker.g.slice() : null;
   return {key, rod: G.rod, reel: G.reel, g: sk || (lure ? lure.sp.g.slice() : null), isLure: !sk && !!lure, max: rg.sinker && rg.sinker.max || null,
-    setup: rg.sys === 'ozel' && SETUPS[rg.group] ? SETUPS[rg.group] : null};
+    setup: (rg.sys === 'ozel' ? SETUPS[rg.group] : rg.setupId ? SETUPS[rg.setupId] : null) || null};   // Rig Atölyem kopyası kaynağın kurulumunu korur
 }
 const clsSpan = (kind, list) => { const ix = list.map(c => GEAR_CLS[kind].indexOf(c)); return [Math.min(...ix), Math.max(...ix)]; };
 // kamış bu rige uyuyor mu: {fit: ok | warn | bad, why (uymama nedenleri), warn (sınırda notları), sc (küçük iyi)}
@@ -71,7 +71,7 @@ function reelFit(it, need, rodIt){
   const bad = why.length > 0;
   let sc = (bad ? 300 : 0) + (have ? 0 : 100) + warn.length * 5 + (inf.type ? need.reel.types.indexOf(inf.type) * 0.1 : 0.6) + (ci < 0 ? 0.5 : 0);
   if (need.setup && need.setup.reel === it.id) sc -= 3;
-  if (rodIt && pairHint(rodIt, it)) sc -= 1;
+  if (rodIt && pairHint(rodIt, it)) sc -= 0.3;   // yalnız aynı kamışa makine seçerken öne alır; kamış seçimini değiştirmez
   return {it, kind: 'reel', inf, st, have, why, warn, bad, sc, fit: bad ? 'bad' : warn.length ? 'warn' : 'ok'};
 }
 // en iyi çift (fixRod / fixReel: kullanıcının bu rig için seçtiği)
