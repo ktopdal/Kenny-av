@@ -11,8 +11,8 @@ WWW = ROOT + '/qa/www_e'
 SHOTS = ROOT + '/qa/v24e'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
-shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
-prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
+shutil.copytree(os.environ.get('ALYSSA_DIST', ROOT + '/app/dist'), WWW + '/dist')   # ALYSSA_DIST: sabitlenmiş bir derlemeyi test etmek için
+prev = open(os.environ.get('ALYSSA_PREV', ROOT + '/app/preview/alyssa_onizleme.html'), encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
 PORT = 8792
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

@@ -757,6 +757,40 @@ button.crow.tap .v{text-decoration:underline;text-decoration-color:color-mix(in 
 button.rec.tap{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
 button.rec.tap:active{background:var(--surface-2)}
 .rec .chev{font-style:normal;margin-left:6px;color:var(--muted)}
+/* v0.25: rig şeması, düğümler, hazırlama */
+:root{--sc-braid:#C8642F;--sc-fc:#3B8FC4;--sc-mono:#8E9AA0;--sc-metal:#5D666C;--sc-lead:#7D858A;--sc-bed:#EFE6CC;--sc-bed2:#CDBB8C;--sc-lure:#3F7FA8;--sc-hook:#2E3438}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sc-braid:#F08A4B;--sc-fc:#6CB8E8;--sc-mono:#A9B6BB;--sc-metal:#A5AFB5;--sc-lead:#9AA2A7;--sc-bed:#2E2A20;--sc-bed2:#5A4D35;--sc-lure:#6CB8E8;--sc-hook:#D5DDE2}}
+:root[data-theme="dark"]{--sc-braid:#F08A4B;--sc-fc:#6CB8E8;--sc-mono:#A9B6BB;--sc-metal:#A5AFB5;--sc-lead:#9AA2A7;--sc-bed:#2E2A20;--sc-bed2:#5A4D35;--sc-lure:#6CB8E8;--sc-hook:#D5DDE2}
+.schemewrap{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 6px;display:flex;justify-content:center}
+.schemewrap svg{display:block;height:auto}
+.rigsvg .kn{cursor:pointer}
+.rigsvg .kn:focus{outline:none}.rigsvg .kn:focus circle:last-of-type{stroke-width:3}
+.hpos{gap:8px;align-items:center;flex-wrap:wrap}
+.knrow{display:flex;flex-wrap:wrap;gap:6px}
+.knrow small{font:500 11px var(--mono);color:var(--muted)}
+.mats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mats li{border-top:1px solid var(--line-2)}
+.mats label{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:start;padding:7px 2px;font-size:13.5px;cursor:pointer}
+.mats input{margin-top:3px;width:16px;height:16px}
+.mats span{min-width:0;overflow-wrap:anywhere}
+.mats em{font:500 12px var(--mono);font-style:normal;color:var(--ink-2);white-space:nowrap}
+.mats input:checked+span{text-decoration:line-through;color:var(--muted)}
+.psteps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.45}
+.pchecks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13.5px;line-height:1.4}
+.pchecks li.bad{color:var(--D);font-weight:600}
+.pchecks li.ok{color:var(--ink-2)}
+button.crow.takim .v{text-decoration:none}
+.knsteps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.knsteps li{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--surface)}
+.knsteps p{margin:6px 0 0;font-size:14px;line-height:1.45}
+.knfig{background:var(--surface-2);border-radius:10px;padding:4px}
+.knfig svg{display:block;width:100%;height:auto}
+.knmeta{gap:6px;flex-wrap:wrap}
+.kntips{margin:0;padding-left:18px;font-size:13.5px;line-height:1.45;display:flex;flex-direction:column;gap:4px}
+.kncard{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--surface);color:inherit;font:inherit;cursor:pointer}
+.kncard b{display:block;font:600 15px var(--body)}
+.kncard .note{display:block;margin:2px 0 6px}
+@media (max-width:360px){.kncard{grid-template-columns:96px minmax(0,1fr)}}
 
 </style>
 <style id="userTheme"></style></head><body>
@@ -1221,9 +1255,15 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.24.0';
+const APP_VERSION = '0.25.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.25.0', notes: [
+    'Rig şeması: her rigin şeması kendi verisinden çizilir (ana ip, fırdöndü, beden, köstekler cm, iğneler, kurşun g); bugünkü ayar (akışta kısalan hırsız, kurşun) şemaya yansır',
+    'Rig kartında “Takım” satırına dokun: şema, bu rigdeki düğümler, malzeme listesi (ne kadar ip, kaç iğne, kaç T-fırdöndü), ölçülü adım adım hazırlama ve kontroller',
+    'Düğüm kütüphanesi (Daha → Düğüm kütüphanesi): Palomar, FG, Uni, Snell, köstek halkası, çift uni; adım adım çizim, hangi ipe, yaklaşık dayanım. Şemadaki noktaya dokununca o düğüm açılır',
+    'Hazırlama kartı tek resim olarak kaydedilir ya da paylaşılır',
+    'Hırsızın yeri seçilebilir: kurşunun üstünde ya da altında']},
   {v: '0.24.0', notes: [
     'Kamış ve makine bütün rig kartlarında: her rig için envanterindeki en uygun kamış + makine çifti (kurşun gramı, kamışın taşıdığı gram, kamış tipi, makara yuvası, makine boyu)',
     'Elindeki takım rige uymuyorsa “envanterden girildi ama uygun değil” ve nedeni yazar; uygun olanı ya da gereken ölçüyü önerir',
@@ -4462,6 +4502,236 @@ function fbAct(a, d){
   if (a === 'av') { catchForm(null, {rig: f.rig}); return; }
 }
 
+// ---------------------------------------------------------------- 57 · rig şeması (B1) · v0.25
+// Her rigin şeması kendi verisinden çizilir: ana ip, fırdöndü, beden, köstekler (cm), iğne boyları, kurşun (g), sahte yem.
+// "Bugünkü ayar" (akışta hırsızın kısalması, kurşun gramı, kamış sınırı) şemaya yansır. Şemadaki düğüm noktasına dokununca o düğüm
+// adım adım açılır (58-knots.js). Ekranda tema renkleri, resim olarak kaydederken açık renkler kullanılır.
+const SC_PAL = {
+  screen: {braid: 'var(--sc-braid)', fc: 'var(--sc-fc)', mono: 'var(--sc-mono)', metal: 'var(--sc-metal)', lead: 'var(--sc-lead)', knot: 'var(--accent)', bed: 'var(--sc-bed)', bed2: 'var(--sc-bed2)',
+    lure: 'var(--sc-lure)', hook: 'var(--sc-hook)', txt: 'var(--ink)', mut: 'var(--muted)', bg: 'var(--surface)', warn: 'var(--D)', float: '#D9483B'},
+  print: {braid: '#C8642F', fc: '#3B8FC4', mono: '#8E9AA0', metal: '#5D666C', lead: '#7D858A', knot: '#C23C14', bed: '#EFE6CC', bed2: '#CDBB8C',
+    lure: '#3F7FA8', hook: '#2E3438', txt: '#10202A', mut: '#5B6B73', bg: '#FFFFFF', warn: '#B02A20', float: '#D9483B'},
+};
+const SC_W = 360, SC_X0 = 120;
+const mmS = mm => mmT(mm) + ' mm';
+// ip adı ölçüsünü zaten içeriyorsa yalnız ad, değilse ad + ölçü
+const lineNm = l => !l ? '' : !l.name ? l.txt : /\d\s*mm|\bpe\s*\d/i.test(l.name) ? l.name : l.name + ' · ' + l.txt;
+// yuvanın ip çapı ve türü: envanterdeki kalemden ya da ölçüden
+function slotLine(sl){
+  if (!sl) return null;
+  const e = sl.t.envanter || {}, it = e.item && ITEMS[e.item];
+  const cat = it ? it.cat : sl.sp && sl.sp.cats ? sl.sp.cats[0] : sl.k === 'braid' ? 'braid' : 'fc';
+  const mm = it ? lineMm(it) : sl.sp && sl.sp.lo ? (sl.sp.lo + sl.sp.hi) / 2 : lineMm({name: [e.name, e.size, (sl.t.turkiye || {}).name].join(' ')});
+  return {mat: cat === 'braid' ? 'braid' : cat === 'mono' ? 'mono' : 'fc', mm, name: it ? it.name : e.name || (sl.t.turkiye || {}).name || '',
+    txt: cat === 'braid' ? (mm ? 'PE ' + fmtNum(peOf(mm), 1) + ' · ' + mmS(mm) : 'örgü') : (mm ? mmS(mm) + ' ' : '') + (cat === 'mono' ? 'misina' : 'FC')};
+}
+function slotHook(sl){
+  if (!sl) return null;
+  const e = sl.t.envanter || {}, it = e.item && ITEMS[e.item];
+  return {k: sl.k, name: it ? it.name : e.name || (sl.t.turkiye || {}).name || '', size: e.size || (sl.t.turkiye || {}).size || '', item: e.item || null};
+}
+const hirsizPos = () => S.settings.hirsizPos === 'alt' ? 'alt' : 'ust';
+// rigin yukarıdan aşağı parçaları (düğüm noktalarıyla)
+function rigChain(rg, ld){
+  const lay = rg.sys === 'ozel' ? 'hirsizli' : rg.lay || 'hirsizli';
+  const sl = k => rg.slots.find(s => s.k === k);
+  const len = Object.assign({}, rg.lengths || {}); if (ld) ['ust', 'orta', 'hirsiz', 'ara', 'kostek', 'lider', 'sok'].forEach(k => { if (ld[k] != null) len[k] = ld[k]; });
+  const kursun = ld && ld.kursun ? ld.kursun : rg.sinker && rg.sinker.g ? rg.sinker.g[0] + '–' + rg.sinker.g[1] + ' g' : '';
+  const ana = slotLine(sl('braid') || sl('ana') || sl('mono')), beden = slotLine(sl('beden')), kostek = slotLine(sl('kostek') || sl('lider')), sok = slotLine(sl('sok'));
+  const lureSl = rg.slots.find(s => s.kind === 'lure'), lure = lureSl ? {lt: lureSl.sp && lureSl.sp.lt || 'generic', name: slotHook(lureSl).name, size: slotHook(lureSl).size, g: lureSl.sp && lureSl.sp.g ? lureSl.sp.g[0] + '–' + lureSl.sp.g[1] + ' g' : ''} : null;
+  const N = [], add = o => N.push(o);
+  const anaKnot = to => ana && ana.mat === 'braid' ? (to === 'leader' ? 'fg' : 'palomar') : to === 'leader' ? 'ciftuni' : 'uni';
+  const short = ld && ld.short ? (ld.short === true ? 20 : ld.short) : 0;
+  const tee = (k, label, cm, extra) => add(Object.assign({t: 'tee', k, label, cm, hook: slotHook(sl(k)), line: kostek}, extra || {}));
+  const top = (mat) => { add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 34}); add({t: 'knot', k: anaKnot('swivel'), where: 'Ana ip → fırdöndü'}); add({t: 'swivel', label: 'Fırdöndü'}); add({t: 'knot', k: 'uni', where: 'Beden → fırdöndü'}); };
+  const dipEnd = (hk, hlabel) => {
+    const H = hk ? {cm: len[hk] || len.hirsiz || 80, short} : null;
+    if (H && hirsizPos() === 'alt') { add({t: 'gap', cm: null, l: beden, h: 26}); add({t: 'sinker', g: kursun, ring2: true}); add({t: 'trail', k: hk, label: hlabel, cm: H.cm, short, hook: slotHook(sl(hk)), line: kostek, from: 'sinker'}); }
+    else { if (H) add({t: 'trailTee', k: hk, label: hlabel, cm: H.cm, short, hook: slotHook(sl(hk)), line: kostek}); add({t: 'gap', cm: null, l: beden, h: 24}); add({t: 'sinker', g: kursun}); }
+    add({t: 'bed'});
+  };
+  if (lay === 'hirsizli' || lay === 'iki') {
+    top();
+    add({t: 'gap', cm: null, l: beden, h: 22, lab: 'Beden'});
+    tee('ust', 'Üst köstek', len.ust || 25);
+    add({t: 'gap', cm: len.ara || 50, l: beden});
+    if (lay === 'hirsizli') { tee('orta', 'Orta köstek', len.orta || 30); add({t: 'gap', cm: len.ara || 50, l: beden}); }
+    dipEnd('hirsiz', lay === 'iki' ? 'Alt (hırsız)' : 'Hırsız');
+  } else if (lay === 'tek' || lay === 'canli') {
+    top(); add({t: 'gap', cm: null, l: beden, h: 22, lab: 'Beden'});
+    add({t: 'trailTee', k: 'igne', label: lay === 'canli' ? 'Canlı yem kösteği' : 'Köstek', cm: len.kostek || 100, short: 0, hook: slotHook(sl('igne')), line: kostek});
+    add({t: 'gap', cm: null, l: beden, h: 24}); add({t: 'sinker', g: kursun}); add({t: 'bed'});
+  } else if (lay === 'kaydirmali') {
+    add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 30});
+    add({t: 'slide', g: kursun}); add({t: 'bead', label: 'Stop boncuk'});
+    add({t: 'knot', k: anaKnot('swivel'), where: 'Ana ip → fırdöndü'}); add({t: 'swivel', label: 'Fırdöndü'}); add({t: 'knot', k: 'uni', where: 'Köstek → fırdöndü'});
+    add({t: 'leader', label: 'Köstek', cm: len.kostek || 80, l: kostek, end: {t: 'hook', hook: slotHook(sl('igne'))}, bed: true}); add({t: 'bed'});
+  } else if (lay === 'paternoster') {
+    add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 30}); add({t: 'knot', k: 'ciftuni', where: 'Ana ip → şok lider'});
+    add({t: 'line', role: 'sok', label: 'Şok lider', l: sok, h: 30});
+    tee('ust', 'Üst iğne', len.kostek || 35, {line: kostek}); add({t: 'gap', cm: len.ara || 60, l: sok});
+    tee('alt', 'Alt iğne', len.kostek || 35, {line: kostek}); add({t: 'gap', cm: null, l: sok, h: 22});
+    add({t: 'sinker', g: kursun, shape: 'piramit'}); add({t: 'bed'});
+  } else if (lay === 'capari') {
+    add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 34}); add({t: 'knot', k: anaKnot('swivel'), where: 'Ana ip → klipsli fırdöndü'}); add({t: 'swivel', label: 'Klipsli fırdöndü'});
+    add({t: 'sabiki', label: lure ? lure.name : 'Çapari', size: lure ? lure.size : ''}); add({t: 'swivel', label: 'Klips'}); add({t: 'sinker', g: kursun}); add({t: 'bed'});
+  } else if (lay === 'samandira') {
+    add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 24}); add({t: 'bead', label: 'Stop'}); add({t: 'float', label: 'Şamandıra'});
+    add({t: 'line', role: 'ana', label: '', l: ana, h: 24}); add({t: 'slide', g: 'saçma', small: true}); add({t: 'knot', k: 'uni', where: 'Ana ip → fırdöndü'}); add({t: 'swivel', label: 'Fırdöndü'}); add({t: 'knot', k: 'uni', where: 'Köstek → fırdöndü'});
+    add({t: 'leader', label: 'Köstek', cm: len.kostek || 50, l: kostek, end: {t: 'hook', hook: slotHook(sl('igne'))}});
+  } else if (lay === 'chunking') {
+    add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 34}); add({t: 'knot', k: 'ciftuni', where: 'Ana ip → lider'});
+    add({t: 'leader', label: 'Lider', cm: len.lider || 400, l: kostek, end: {t: 'hook', hook: slotHook(sl('igne'))}});
+  } else {
+    // sahte yem: örgü → FG → lider → halka / klips → yem (assist / jighead)
+    const sirti = lay === 'sirti' || lay === 'agirsirti';
+    add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 34}); add({t: 'knot', k: anaKnot('leader'), where: 'Ana ip → lider'});
+    add({t: 'leader', label: 'Lider', cm: len.lider || 200, l: kostek, end: null}); add({t: 'knot', k: sirti || lay === 'popping' ? 'palomar' : 'uni', where: 'Lider → ' + (lay === 'slowjig' || lay === 'agirjig' || lay === 'popping' ? 'halka' : 'klips')});
+    add({t: 'swivel', label: lay === 'slowjig' || lay === 'agirjig' || lay === 'popping' ? 'Halka' : 'Klips', ring: true});
+    const asst = rg.slots.find(s => s.k === 'igne');
+    add({t: 'lure', lt: lure ? lure.lt : 'generic', label: lure ? lure.name : 'Sahte yem', g: lure ? (lure.g || lure.size) : '', assist: asst && (asst.sp && asst.sp.p && (asst.sp.p[0] === 'assist' || asst.sp.p[0] === 'jighead')) ? slotHook(asst) : null, jighead: asst && asst.sp && asst.sp.p && asst.sp.p[0] === 'jighead'});
+  }
+  return {lay, nodes: N, kursun, short, len};
+}
+// ---- çizim
+const scT = (x, y, s, o) => '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '"' + (o && o.a ? ' text-anchor="' + o.a + '"' : '') + ' style="font:' + (o && o.w ? o.w + ' ' : '') + (o && o.fs || 11) + 'px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;fill:' + (o && o.c || 'currentColor') + '">' + esc(s) + '</text>';
+const scLine = (x1, y1, x2, y2, c, w) => '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" style="stroke:' + c + ';stroke-width:' + (w || 2) + ';stroke-linecap:round"/>';
+const scPath = (d, c, w, f) => '<path d="' + d + '" style="stroke:' + c + ';stroke-width:' + (w || 2) + ';fill:' + (f || 'none') + ';stroke-linecap:round;stroke-linejoin:round"/>';
+const scCut = (s, n) => s && s.length > n ? s.slice(0, n - 1) + '…' : (s || '');
+// iğne: göz (x,y), ölçek s, yön (sağa açılan kanca); horiz: yatay yatan iğne
+function scHook(x, y, P, horiz){
+  if (horiz) return '<g>' + '<circle cx="' + x + '" cy="' + y + '" r="2.6" style="fill:none;stroke:' + P.hook + ';stroke-width:1.6"/>' +
+    scPath('M' + (x + 2.6) + ' ' + y + ' L' + (x + 20) + ' ' + y + ' A6 6 0 0 1 ' + (x + 20) + ' ' + (y - 12) + ' L' + (x + 15) + ' ' + (y - 12) + ' l2 3', P.hook, 1.8) + '</g>';
+  return '<g>' + '<circle cx="' + x + '" cy="' + y + '" r="2.6" style="fill:none;stroke:' + P.hook + ';stroke-width:1.6"/>' +
+    scPath('M' + x + ' ' + (y + 2.6) + ' L' + x + ' ' + (y + 17) + ' A6.5 6.5 0 0 0 ' + (x + 13) + ' ' + (y + 17) + ' L' + (x + 13) + ' ' + (y + 11) + ' l-2.6 2.4', P.hook, 1.8) + '</g>';
+}
+function scKnot(x, y, k, P, lbl, side){
+  const nm = (KNOTS[k] || {}).name || k;
+  return '<g class="kn" data-knot="' + k + '" role="button" tabindex="0" aria-label="' + esc(nm + ' düğümü') + '"><circle cx="' + x + '" cy="' + y + '" r="13" style="fill:transparent"/>' +
+    '<circle cx="' + x + '" cy="' + y + '" r="4.6" style="fill:' + P.knot + ';stroke:' + P.bg + ';stroke-width:1.6"/>' +
+    (lbl !== false ? scT(side === 'l' ? x - 9 : x + 9, y + 3.5, nm, {fs: 10, c: P.knot, w: 600, a: side === 'l' ? 'end' : null}) : '') + '</g>';
+}
+const scLbl = (y, a, b, P) => scT(SC_X0 - 14, y, a, {a: 'end', w: 600, fs: 11.5, c: P.txt}) + (b ? scT(SC_X0 - 14, y + 13, b, {a: 'end', fs: 10, c: P.mut}) : '');
+function scLure(x, y, lt, P){
+  const F = P.lure;
+  if (lt === 'egi') return scPath('M' + x + ' ' + y + ' C' + (x + 9) + ' ' + (y + 8) + ' ' + (x + 9) + ' ' + (y + 34) + ' ' + x + ' ' + (y + 46) + ' C' + (x - 9) + ' ' + (y + 34) + ' ' + (x - 9) + ' ' + (y + 8) + ' ' + x + ' ' + y + 'Z', P.hook, 1.4, F) +
+    [-6, -3, 0, 3, 6].map(d => scLine(x + d * 0.6, y + 46, x + d, y + 54, P.hook, 1.2)).join('') + scLine(x - 6, y + 12, x - 13, y + 22, P.hook, 1.4);
+  if (lt === 'tairubber' || lt === 'inchiku') return '<circle cx="' + x + '" cy="' + (y + 7) + '" r="7" style="fill:' + (lt === 'inchiku' ? P.lead : '#D9483B') + ';stroke:' + P.hook + ';stroke-width:1.2"/>' +
+    [-7, -4, -1, 2, 5, 8].map(d => scPath('M' + (x + d * 0.5) + ' ' + (y + 13) + ' q' + (d * 0.6) + ' 14 ' + (d * 0.9) + ' 30', lt === 'inchiku' ? '#E0A030' : '#E2683A', 1.3)).join('');
+  if (lt === 'soft') return '<circle cx="' + x + '" cy="' + (y + 4) + '" r="4" style="fill:' + P.lead + '"/>' + scPath('M' + x + ' ' + (y + 8) + ' c6 8 -6 16 0 24 c5 7 -3 12 2 18', '#7FB069', 5);
+  if (lt === 'minnow' || lt === 'trolling' || lt === 'bigtroll' || lt === 'popper')
+    return scPath('M' + x + ' ' + y + ' C' + (x + 10) + ' ' + (y + 6) + ' ' + (x + 10) + ' ' + (y + 34) + ' ' + x + ' ' + (y + 42) + ' C' + (x - 10) + ' ' + (y + 34) + ' ' + (x - 10) + ' ' + (y + 6) + ' ' + x + ' ' + y + 'Z', P.hook, 1.3, F) +
+      scPath('M' + (x - 6) + ' ' + (y + 46) + ' L' + x + ' ' + (y + 40) + ' L' + (x + 6) + ' ' + (y + 46), P.hook, 1.3) + '<circle cx="' + (x + 3) + '" cy="' + (y + 8) + '" r="1.8" style="fill:' + P.bg + '"/>';
+  // jig (slowjig / bigjig) ve diğerleri
+  return scPath('M' + (x - 5) + ' ' + y + ' L' + (x + 6) + ' ' + (y + 5) + ' L' + (x + 5) + ' ' + (y + 46) + ' L' + (x - 6) + ' ' + (y + 50) + 'Z', P.hook, 1.3, F) + scLine(x - 2, y + 10, x + 2, y + 40, P.bg, 1.2);
+}
+// şemayı çiz: {svg, h, knots: [{k, where}]}
+function schemeSvg(rg, opt){
+  opt = opt || {};
+  const P = SC_PAL[opt.pal || 'screen'], ch = opt.chain || rigChain(rg, opt.ld);
+  const X = SC_X0, out = [], knots = [];
+  let y = 14;
+  const kn = (k, where, yy, side) => { knots.push({k, where}); out.push(scKnot(X, yy, k, P, true, side)); };
+  const mc = l => l ? P[l.mat] || P.fc : P.fc;
+  let bedY = null, bedLab = false;
+  ch.nodes.forEach((n, i) => {
+    if (n.t === 'line') { out.push(scLine(X, y, X, y + n.h, mc(n.l), n.l && n.l.mat === 'braid' ? 1.8 : 2.2)); if (n.label) out.push(scLbl(y + n.h / 2 - 2, n.label, n.l ? n.l.txt : '', P)); y += n.h; }
+    else if (n.t === 'knot') kn(n.k, n.where, y);
+    else if (n.t === 'swivel') {
+      out.push('<circle cx="' + X + '" cy="' + (y + 3) + '" r="3" style="fill:none;stroke:' + P.metal + ';stroke-width:1.8"/>' + '<rect x="' + (X - 4) + '" y="' + (y + 6) + '" width="8" height="13" rx="3" style="fill:' + P.metal + '"/>' +
+        (n.ring ? '' : '<circle cx="' + X + '" cy="' + (y + 22) + '" r="3" style="fill:none;stroke:' + P.metal + ';stroke-width:1.8"/>'));
+      out.push(scT(X - 14, y + 16, n.label, {a: 'end', fs: 10.5, c: P.mut})); y += n.ring ? 20 : 25;
+    }
+    else if (n.t === 'gap') {
+      const h = n.h || Math.max(38, Math.min(84, (n.cm || 40) * 0.9));
+      out.push(scLine(X, y, X, y + h, mc(n.l), 2.2));
+      if (n.cm) out.push(scPath('M' + (X - 8) + ' ' + (y + 3) + ' l-4 0 l0 ' + (h - 6) + ' l4 0', P.mut, 1) + scT(X - 16, y + h / 2 + 4, n.cm + ' cm', {a: 'end', fs: 10.5, c: P.mut}));
+      if (n.lab && n.l && !bedLab) { bedLab = true; out.push(scLbl(y + h / 2 - 2, n.lab, n.l.txt, P)); }
+      y += h;
+    }
+    else if (n.t === 'tee' || n.t === 'trailTee') {
+      // T-fırdöndü: gövde + yan halka; köstek sağa (trailTee: dibe yatan uzun köstek)
+      out.push('<rect x="' + (X - 3.5) + '" y="' + (y - 5) + '" width="7" height="12" rx="2.5" style="fill:' + P.metal + '"/><circle cx="' + (X + 6) + '" cy="' + (y + 1) + '" r="2.6" style="fill:none;stroke:' + P.metal + ';stroke-width:1.6"/>');
+      const cm = n.cm, L = Math.min(n.t === 'trailTee' ? 196 : 150, Math.max(26, cm * (n.t === 'trailTee' ? 1.5 : 2.2)));
+      const x1 = X + 8, c = mc(n.line);
+      if (n.t === 'tee') {
+        const x2 = x1 + L, y2 = y + 12;
+        out.push(scPath('M' + x1 + ' ' + (y + 1) + ' C' + (x1 + L * 0.4) + ' ' + (y + 1) + ' ' + (x1 + L * 0.75) + ' ' + (y + 4) + ' ' + x2 + ' ' + y2, c, 1.6));
+        out.push(scHook(x2, y2, P));
+        out.push(scT(x1 + 4, y - 6, n.label + ' · ' + cm + ' cm', {fs: 10.5, w: 600, c: P.txt}));
+        if (n.hook) { const ht = scCut(n.hook.name + (n.hook.size ? ' ' + n.hook.size : ''), 34), hw = ht.length * 5.4; out.push(scT(Math.max(hw / 2 + 4, Math.min(SC_W - hw / 2 - 4, x2 + 6)), y2 + 33, ht, {fs: 10, c: P.mut, a: 'middle'})); }
+        knots.push({k: 'uni', where: n.label + ' → T-fırdöndü'}); out.push(scKnot(x1, y + 1, 'uni', P, false));
+        knots.push({k: 'snell', where: n.label + ' → iğne'}); out.push(scKnot(x2, y2, 'snell', P, false));
+        y += 52;
+      } else {
+        n._y = y; n._x1 = x1; n._L = L; n._c = c;   // dibe yatan kısım, dip çizgisi belli olunca çizilir
+        out.push('@@TRAIL' + i + '@@');
+        y += 6;
+      }
+    }
+    else if (n.t === 'sinker') {
+      if (n.shape === 'piramit') out.push(scPath('M' + X + ' ' + (y + 2) + ' L' + (X + 11) + ' ' + (y + 34) + ' L' + (X - 11) + ' ' + (y + 34) + 'Z', P.hook, 1.2, P.lead));
+      else out.push('<circle cx="' + X + '" cy="' + (y + 2) + '" r="2.6" style="fill:none;stroke:' + P.metal + ';stroke-width:1.6"/>' + scPath('M' + X + ' ' + (y + 5) + ' C' + (X + 11) + ' ' + (y + 17) + ' ' + (X + 13) + ' ' + (y + 36) + ' ' + X + ' ' + (y + 38) + ' C' + (X - 13) + ' ' + (y + 36) + ' ' + (X - 11) + ' ' + (y + 17) + ' ' + X + ' ' + (y + 5) + 'Z', P.hook, 1.2, P.lead));
+      if (n.ring2) out.push('<circle cx="' + X + '" cy="' + (y + 41) + '" r="2.6" style="fill:none;stroke:' + P.metal + ';stroke-width:1.6"/>');
+      out.push(scT(X - 16, y + 18, 'Kurşun', {a: 'end', w: 600, fs: 11.5, c: P.txt}) + scT(X - 16, y + 32, n.g || '', {a: 'end', fs: 11, w: 700, c: P.txt}));
+      n._y = y; y += n.ring2 ? 44 : 40;
+    }
+    else if (n.t === 'slide') {
+      out.push(scPath('M' + X + ' ' + y + ' C' + (X + (n.small ? 4 : 8)) + ' ' + (y + 4) + ' ' + (X + (n.small ? 4 : 8)) + ' ' + (y + (n.small ? 8 : 22)) + ' ' + X + ' ' + (y + (n.small ? 10 : 26)) + ' C' + (X - (n.small ? 4 : 8)) + ' ' + (y + (n.small ? 8 : 22)) + ' ' + (X - (n.small ? 4 : 8)) + ' ' + (y + 4) + ' ' + X + ' ' + y + 'Z', P.hook, 1.2, P.lead));
+      out.push(scT(X - 14, y + (n.small ? 8 : 15), n.small ? 'Saçma kurşun' : 'Gezer kurşun', {a: 'end', fs: 10.5, w: 600, c: P.txt}) + (n.small ? '' : scT(X - 14, y + 28, n.g || '', {a: 'end', fs: 10.5, w: 700, c: P.txt})));
+      out.push(scLine(X, y + (n.small ? 10 : 26), X, y + (n.small ? 18 : 34), P.fc, 1.6)); y += n.small ? 18 : 34;
+    }
+    else if (n.t === 'bead') { out.push('<circle cx="' + X + '" cy="' + (y + 4) + '" r="4" style="fill:#E2683A"/>' + scT(X - 14, y + 8, n.label, {a: 'end', fs: 10.5, c: P.mut})); out.push(scLine(X, y + 8, X, y + 16, P.fc, 1.6)); y += 16; }
+    else if (n.t === 'float') { out.push(scLine(10, y + 8, SC_W - 10, y + 8, P.fc, 1) + scPath('M' + X + ' ' + y + ' C' + (X + 7) + ' ' + (y + 6) + ' ' + (X + 7) + ' ' + (y + 24) + ' ' + X + ' ' + (y + 30) + ' C' + (X - 7) + ' ' + (y + 24) + ' ' + (X - 7) + ' ' + (y + 6) + ' ' + X + ' ' + y + 'Z', P.hook, 1.2, P.float) + scT(X - 14, y + 18, n.label, {a: 'end', fs: 10.5, w: 600, c: P.txt}) + scT(SC_W - 12, y + 4, 'su yüzeyi', {a: 'end', fs: 9.5, c: P.mut})); y += 32; }
+    else if (n.t === 'sabiki') {
+      out.push(scLine(X, y, X, y + 96, P.mono, 1.6));
+      for (let j = 0; j < 6; j++) { const yy = y + 8 + j * 15; out.push(scLine(X, yy, X + 16, yy + 4, P.mono, 1.2) + '<circle cx="' + (X + 17) + '" cy="' + (yy + 4) + '" r="2.2" style="fill:#7FD3A0"/>' + scHook(X + 19, yy + 4, P)); }
+      out.push(scLbl(y + 44, n.label || 'Çapari', n.size || '', P)); y += 98;
+    }
+    else if (n.t === 'leader') {
+      const h = Math.max(46, Math.min(96, (n.cm || 100) * 0.22)), c = mc(n.l);
+      out.push(scLine(X, y, X, y + h, c, 2) + scLbl(y + h / 2 - 2, n.label + ' · ' + n.cm + ' cm', n.l ? n.l.txt : '', P)); y += h;
+      if (n.end && n.end.t === 'hook') { knots.push({k: 'snell', where: n.label + ' → iğne'}); out.push(scKnot(X, y, 'snell', P, true)); out.push(scHook(X, y + 2, P)); if (n.end.hook) out.push(scT(X + 22, y + 22, scCut(n.end.hook.name + ' ' + (n.end.hook.size || ''), 30), {fs: 10, c: P.mut})); y += 30; }
+    }
+    else if (n.t === 'lure') {
+      out.push(scLure(X, y + 2, n.lt, P));
+      const lx = X + (n.assist ? 40 : 22);
+      out.push(scT(lx, y + 14, scCut(n.label, 34), {fs: 11, w: 600, c: P.txt}) + (n.g ? scT(lx, y + 28, n.g, {fs: 10.5, c: P.mut}) : ''));
+      if (n.assist) { out.push(scPath('M' + (X + 2) + ' ' + (y + 2) + ' q14 4 12 16', P.mono, 1.2) + scHook(X + 14, y + 18, P) + scT(lx, y + 42, scCut((n.jighead ? 'Jighead ' : 'Assist ') + (n.assist.name || '') + ' ' + (n.assist.size || ''), 34), {fs: 10, c: P.mut})); }
+      y += 64;
+    }
+    else if (n.t === 'bed') { bedY = y + 2; y += 26; }
+  });
+  // dibe yatan köstekler (hırsız): dip çizgisi
+  const yb = bedY != null ? bedY : y;
+  ch.nodes.forEach((n, i) => {
+    let path = '', x0, y0, label = n.label;
+    if (n.t === 'trailTee') { x0 = n._x1; y0 = n._y + 1; }
+    else if (n.t === 'trail') { const s = ch.nodes.find(m => m.t === 'sinker'); x0 = X + 2; y0 = (s ? s._y : yb - 6) + 43; }
+    else return;
+    const L = Math.min(196, Math.max(40, n.cm * 1.5)), c = n._c || mc(n.line), yy = yb - 3;
+    const xe = Math.min(SC_W - 24, x0 + 26 + L);
+    path = 'M' + x0 + ' ' + y0 + ' C' + (x0 + 16) + ' ' + (y0 + 2) + ' ' + (x0 + 20) + ' ' + (yy - 2) + ' ' + (x0 + 34) + ' ' + yy + ' L' + xe + ' ' + yy;
+    const html = scPath(path, c, 1.6) + scHook(xe, yy, P, true) +
+      scT(Math.min(x0 + 40, SC_W - 150), Math.min(y0 + 2, yy - 18) + (n.t === 'trail' ? 0 : -6), label + ' · ' + n.cm + ' cm' + (n.short ? ' (akış: %' + n.short + ' kısa)' : ''), {fs: 10.5, w: 600, c: n.short ? P.warn : P.txt}) +
+      (n.hook ? scT(SC_W - 6, yy + 20, scCut(n.hook.name + (n.hook.size ? ' ' + n.hook.size : ''), 34), {fs: 10, c: P.mut, a: 'end'}) : '') +
+      scKnot(x0, y0, n.t === 'trail' ? 'uni' : 'uni', P, false) + scKnot(xe, yy, 'snell', P, false);
+    knots.push({k: 'uni', where: label + (n.t === 'trail' ? ' → kurşunun alt halkası' : ' → T-fırdöndü')}, {k: 'snell', where: label + ' → iğne'});
+    const tok = '@@TRAIL' + i + '@@', at = out.indexOf(tok);
+    if (at >= 0) out[at] = html; else out.push(html);
+  });
+  if (bedY != null) {
+    out.unshift('<rect x="0" y="' + bedY + '" width="' + SC_W + '" height="22" style="fill:' + P.bed + '"/>' +
+      Array.from({length: 22}, (_, j) => '<circle cx="' + (8 + j * 15.3).toFixed(1) + '" cy="' + (bedY + 7 + (j % 3) * 4) + '" r="1.4" style="fill:' + P.bed2 + '"/>').join('') +
+      scT(8, bedY + 18, 'dip', {fs: 9.5, c: P.mut}));
+  }
+  const H = Math.max(y, (bedY || 0) + 26) + 6;
+  const uniq = []; knots.forEach(x => { if (!uniq.some(u => u.k === x.k && u.where === x.where)) uniq.push(x); });
+  const svg = '<svg class="rigsvg" viewBox="0 0 ' + SC_W + ' ' + H + '" width="100%" role="img" aria-label="' + esc((rg.code ? rg.code + ' ' : '') + 'rig şeması') + '" style="color:' + P.txt + ';max-width:' + (SC_W * 1.25) + 'px">' +
+    (opt.pal === 'print' ? '<rect width="' + SC_W + '" height="' + H + '" style="fill:#fff"/>' : '') + out.join('') + '</svg>';
+  return {svg, h: H, w: SC_W, knots: uniq, chain: ch};
+}
+
 // ---------------------------------------------------------------- 58 · Usta'ya sor (v0.20): Claude ile bugünkü koşullar ve riglerin hakkında soru
 // Kullanıcının kendi Claude API anahtarıyla doğrudan Anthropic'e sorulur (tarayıcıdan; sunucu yok). Anahtar yalnız bu cihazda
 // (localStorage) durur: profile, buluta, yedeğe, paylaşıma ve Düzenim koduna girmez. Soruyla birlikte Fishing'deki gün ve bölümün
@@ -4611,6 +4881,287 @@ function ustaAct(a, d){
   if (a === 'delkey') { lsDel(LSU.key); toast('Anahtar silindi'); ustaRedraw(); return; }
 }
 
+// ---------------------------------------------------------------- 59 · düğüm kütüphanesi (B2) · v0.25
+// Şemadaki her bağlantı noktasına dokununca o düğüm adım adım çizimle açılır. Rig hangi ipleri birleştiriyorsa düğüm ona göre seçilir:
+// örgü → fırdöndü: Palomar · örgü → lider: FG · misina → şok lider: çift uni · FC → fırdöndü / T-fırdöndü: Uni · köstek → iğne: Snell.
+// Fırdöndüsüz köstek çıkışı için köstek halkası (dropper loop). Dayanımlar yaklaşık değerdir; ipe ve bağlayışa göre değişir.
+const KN_W = 260, KN_H = 120;
+const knC = P => ({a: P.fc, b: P.braid, m: P.metal, h: P.hook, ar: P.mut});
+const knP = (d, c, w, dash) => '<path d="' + d + '" style="stroke:' + c + ';stroke-width:' + (w || 2.2) + ';fill:none;stroke-linecap:round;stroke-linejoin:round' + (dash ? ';stroke-dasharray:4 3' : '') + '"/>';
+const knRing = (x, y, r, c) => '<circle cx="' + x + '" cy="' + y + '" r="' + (r || 6) + '" style="fill:none;stroke:' + c + ';stroke-width:2.4"/>';
+const knSwv = (x, y, c) => knRing(x, y, 5.5, c) + '<rect x="' + (x - 5) + '" y="' + (y + 6) + '" width="10" height="20" rx="4" style="fill:' + c + '"/>' + knRing(x, y + 32, 5.5, c);
+const knArrow = (x1, y1, x2, y2, c) => { const a = Math.atan2(y2 - y1, x2 - x1), h = 7;
+  return knP('M' + x1 + ' ' + y1 + ' L' + x2 + ' ' + y2, c, 1.4) + knP('M' + (x2 - h * Math.cos(a - 0.45)).toFixed(1) + ' ' + (y2 - h * Math.sin(a - 0.45)).toFixed(1) + ' L' + x2 + ' ' + y2 + ' L' + (x2 - h * Math.cos(a + 0.45)).toFixed(1) + ' ' + (y2 - h * Math.sin(a + 0.45)).toFixed(1), c, 1.4); };
+const knWraps = (x0, x1, n, y, ry, c, w) => Array.from({length: n}, (_, i) => { const x = x0 + (x1 - x0) * (n === 1 ? 0.5 : i / (n - 1)); return '<ellipse cx="' + x.toFixed(1) + '" cy="' + y + '" rx="3.2" ry="' + ry + '" style="fill:none;stroke:' + c + ';stroke-width:' + (w || 2) + '"/>'; }).join('');
+const knHook = (x, y, c) => knRing(x, y, 4.5, c) + knP('M' + x + ' ' + (y + 4.5) + ' L' + x + ' ' + (y + 64) + ' A16 16 0 0 0 ' + (x + 32) + ' ' + (y + 64) + ' L' + (x + 32) + ' ' + (y + 48) + ' l-5 5', c, 2.6);
+const knTxt = (x, y, s, c) => '<text x="' + x + '" y="' + y + '" style="font:600 10px system-ui,-apple-system,sans-serif;fill:' + c + '">' + esc(s) + '</text>';
+const KNOTS = {
+  palomar: {name: 'Palomar', use: 'Örgü ya da misinayı fırdöndüye, klipse ya da iğneye bağlar. Örgüde en güvenilir uç düğümü.', str: '≈ %85–95',
+    pairs: ['örgü → fırdöndü / klips', 'örgü → iğne', 'misina → fırdöndü'],
+    tips: ['Örgüde ucu 4–5 mm bırak; çok kısa kesilen örgü kayabilir.', 'Fırdöndü ya da yem büyükse ilmeği üzerinden geçirmek zorlaşır; o zaman Uni.'],
+    steps: [
+      ['İpi yaklaşık 15 cm ikiye katla; katlı ucu (ilmeği) fırdöndünün halkasından geçir.', C => knSwv(70, 22, C.m) + knP('M250 20 L70 20 Q46 20 40 24', C.a) + knP('M250 28 L70 28 Q46 28 40 24', C.b) + knTxt(150, 14, 'ana ip', C.ar) + knTxt(150, 44, 'uç', C.ar)],
+      ['Katlı iple gevşek bir basit düğüm at; fırdöndü ilmeğin ucunda sarksın.', C => knSwv(46, 30, C.m) + knP('M250 28 L170 28 C140 28 128 4 112 18 C98 32 132 52 150 30 L100 30 Q60 30 46 36', C.a) + knP('M250 34 L172 34 C146 34 132 12 118 22 C106 32 132 46 146 36 L100 36 Q64 36 46 40', C.b)],
+      ['İlmeği fırdöndünün (ya da iğnenin) tamamının üzerinden geçir.', C => knSwv(70, 40, C.m) + knP('M250 26 L160 26 C140 26 132 12 120 20 C110 28 124 40 140 32', C.a) + knP('M250 32 L162 32 C146 32 140 22 130 26', C.b) + knP('M120 30 C100 30 52 18 52 52 C52 92 94 92 92 60', C.a, 1.8) + knArrow(92, 96, 72, 104, C.ar)],
+      ['Islat; ana ipi ve ucu birlikte çek, düğüm halkaya otursun. Ucu 3–4 mm bırakıp kes.', C => knSwv(70, 46, C.m) + knWraps(72, 84, 3, 46, 5, C.a) + knP('M84 44 L250 44', C.a) + knP('M84 49 L96 56', C.b) + knArrow(200, 70, 240, 70, C.ar)],
+    ]},
+  fg: {name: 'FG', use: 'Örgü ana ipi florokarbon ya da misina lidere bağlar. İnce ve uzundur, kamış halkalarından takılmadan geçer.', str: '≈ %85–95',
+    pairs: ['örgü → florokarbon lider', 'örgü → misina şok lider'],
+    tips: ['En az 20 sarım (10 çift) yap; az sarım kayar.', 'Kilitlerden önce ıslatıp iki yandan çok sıkı çek; gevşek FG yükte sıyrılır.'],
+    steps: [
+      ['Örgüyü gergin tut (bir yere bağla ya da dişinle tut). Lideri örgünün altından çaprazla.', C => knP('M10 56 L250 56', C.b, 1.6) + knP('M40 104 L150 56 L170 47', C.a, 3.4) + knArrow(30, 74, 10, 74, C.ar) + knArrow(230, 74, 250, 74, C.ar) + knTxt(14, 48, 'örgü', C.ar) + knTxt(40, 96, 'lider', C.ar)],
+      ['Örgüyü liderin bir önünden bir arkasından sar; her çift bir tur. En az 10 çift (20 sarım).', C => knP('M20 62 L230 62', C.a, 3.4) + knP('M250 34 L196 56 L186 70 L176 54 L166 70 L156 54 L146 70 L136 54 L126 70 L116 54 L106 70 L96 58 L20 58', C.b, 1.5) + knTxt(110, 92, '× 20', C.ar)],
+      ['Sarımları sık; 2–3 yarım kilitle (half hitch) örgüyü lidere sabitle. Islatıp iki yandan kuvvetlice çek.', C => knP('M20 62 L230 62', C.a, 3.4) + knWraps(110, 180, 12, 62, 4.5, C.b, 1.4) + knWraps(92, 102, 2, 62, 6, C.b, 1.6) + knP('M250 40 L186 60', C.b, 1.5) + knArrow(60, 88, 20, 88, C.ar) + knArrow(200, 88, 240, 88, C.ar)],
+      ['Lider ucunu 2–3 mm bırakıp kes; örgü ucuyla 4–6 yarım kilit daha at (son ikisi çift) ve kes.', C => knP('M20 62 L182 62', C.a, 3.4) + knWraps(112, 180, 12, 62, 4.2, C.b, 1.3) + knWraps(184, 204, 5, 60, 3, C.b, 1.3) + knP('M204 59 L250 52', C.b, 1.6) + knTxt(40, 50, 'lider', C.ar) + knTxt(220, 46, 'örgü', C.ar)],
+    ]},
+  uni: {name: 'Uni (Grinner)', use: 'Florokarbon ve misinayı fırdöndüye, T-fırdöndüye ya da klipse bağlar.', str: '≈ %80–90',
+    pairs: ['florokarbon → fırdöndü / T-fırdöndü', 'misina → fırdöndü', 'köstek → kurşun halkası'],
+    tips: ['0,40 mm üstü florokarbonda 4 sarım, ince ipte 5–6.', 'Sıkmadan önce mutlaka ıslat; kuru sıkılan florokarbon ısınıp zayıflar.'],
+    steps: [
+      ['İpi halkadan 15 cm geçir; ucu ana ipe paralel geri getirip üstte bir ilmek yap.', C => knRing(40, 62, 7, C.m) + knP('M250 66 L46 66', C.a) + knP('M46 66 C34 66 34 56 46 56 L186 56 C212 56 212 84 186 84 L126 84', C.b)],
+      ['Ucu ilmeğin içinden iki ipin etrafına 5–6 kez sar.', C => knRing(40, 62, 7, C.m) + knP('M250 66 L46 66', C.a) + knP('M46 66 C34 66 34 56 46 56 L120 56', C.b) + knWraps(126, 176, 6, 61, 13, C.b) + knP('M176 70 L196 92', C.b)],
+      ['Islat; uçtan çekerek sarımları sıkıştır.', C => knRing(40, 62, 7, C.m) + knP('M250 66 L46 66', C.a) + knP('M46 66 C34 66 34 56 46 56 L148 56', C.b) + knWraps(150, 166, 6, 61, 8, C.b) + knP('M166 66 L196 90', C.b) + knArrow(196, 90, 214, 108, C.ar)],
+      ['Ana ipi çek; düğüm halkaya kadar kayar. Ucu kes.', C => knRing(40, 62, 7, C.m) + knWraps(52, 66, 6, 63, 6, C.b) + knP('M66 66 L250 66', C.a) + knP('M66 60 L74 54', C.b) + knArrow(190, 86, 240, 86, C.ar)],
+    ]},
+  snell: {name: 'Snell (iğne bağı)', use: 'Kösteği iğneye bağlar. İp gözden iğne ucu tarafına çıkar; vuruşta iğne dönerek ağza oturur.', str: '≈ %85–95',
+    pairs: ['köstek → iğne (gözlü ya da palalı)'],
+    tips: ['Sarımlar gözden aşağı doğru, düzgün ve üst üste binmeden.', 'Palalı (gözsüz) iğnede de aynı bağ; pala sarımları tutar.'],
+    steps: [
+      ['İpi iğne gözünden iğne ucu tarafından geçir; pala boyunca aşağı uzatıp sapın yanında bir ilmek yap.', C => knHook(110, 14, C.h) + knP('M20 18 L105 18 L116 18 L116 72 C116 84 90 84 90 64 L90 30', C.a) + knP('M90 30 L84 22', C.b)],
+      ['İlmeği iğnenin sapı ve ipin etrafına gözden aşağı doğru 7–8 kez sar.', C => knHook(110, 14, C.h) + knP('M20 18 L116 18 L116 30', C.a) + Array.from({length: 7}, (_, i) => '<ellipse cx="113" cy="' + (30 + i * 5.5) + '" rx="9" ry="2.6" style="fill:none;stroke:' + C.b + ';stroke-width:2"/>').join('') + knP('M120 68 C130 80 96 92 96 74', C.a)],
+      ['Sarımları parmakla tutup ana ipi çek; ilmek sarımların altında kapanır.', C => knHook(110, 14, C.h) + Array.from({length: 7}, (_, i) => '<ellipse cx="113" cy="' + (28 + i * 4.5) + '" rx="8" ry="2.4" style="fill:none;stroke:' + C.b + ';stroke-width:2"/>').join('') + knP('M20 18 L112 18', C.a) + knArrow(60, 34, 24, 34, C.ar)],
+      ['Sıkıca çek ve ucu kes. İp gözden iğne ucu tarafına çıkmalı.', C => knHook(110, 14, C.h) + Array.from({length: 7}, (_, i) => '<ellipse cx="111" cy="' + (24 + i * 3.6) + '" rx="6.5" ry="2" style="fill:none;stroke:' + C.b + ';stroke-width:2"/>').join('') + knP('M112 14 L150 4 L250 4', C.a) + knTxt(160, 22, 'uç tarafa çıkar', C.ar)],
+    ]},
+  dropper: {name: 'Köstek halkası (dropper loop)', use: 'Bedenin ortasında fırdöndüsüz köstek çıkışı yapar (T-fırdöndü yoksa ya da hafif takımda).', str: '≈ %60–75 (bedeni zayıflatır)',
+    pairs: ['beden üzerinde köstek çıkışı', 'çapari / hafif takım'],
+    tips: ['Köstek bedenden ince olsun: takılırsa köstek kopsun, takım kalsın.', 'Burgu sayısı 5–7; az burgu kayar.'],
+    steps: [
+      ['Köstek çıkacak yerde ipte 5–6 cm’lik bir ilmek yap.', C => knP('M10 70 L104 70 C114 26 150 26 160 70 L250 70', C.a)],
+      ['İlmeğin bir yanını ötekinin etrafında 5–7 kez çevir; ilmek ortada kalsın.', C => knP('M10 70 L60 70', C.a) + knP('M196 70 L250 70', C.a) + knWraps(64, 104, 5, 70, 7, C.a) + knWraps(156, 196, 5, 70, 7, C.a) + knP('M108 68 C116 24 148 24 154 68', C.a)],
+      ['İlmeğin ortasını burgunun ortasındaki boşluktan geçir; parmağınla ya da dişinle tut.', C => knP('M10 70 L64 70', C.a) + knP('M196 70 L250 70', C.a) + knWraps(68, 112, 5, 70, 7, C.a) + knWraps(148, 192, 5, 70, 7, C.a) + knP('M116 68 C122 36 142 36 146 68', C.a) + knArrow(131, 40, 131, 96, C.ar)],
+      ['İki ucu yavaşça çek; burgular toplanır ve ilmek dik çıkar. Köstek bu ilmeğe bağlanır.', C => knP('M10 50 L250 50', C.a) + knWraps(118, 142, 6, 50, 5, C.a) + knP('M126 54 C122 90 140 90 136 54', C.a) + knTxt(150, 96, '≈ 5 cm', C.ar) + knArrow(60, 34, 20, 34, C.ar) + knArrow(200, 34, 240, 34, C.ar)],
+    ]},
+  ciftuni: {name: 'Çift uni', use: 'İki ipi uç uca ekler: örgü → misina / florokarbon, misina → şok lider.', str: '≈ %70–85',
+    pairs: ['örgü → misina / florokarbon', 'misina → şok lider', 'iki misina'],
+    tips: ['Örgü tarafında 8–10 sarım, misina ya da florokarbon tarafında 4–6.', 'İki düğüm birbirine dayanana kadar çek; arada boşluk kalmasın.'],
+    steps: [
+      ['İki ipi uç uca 20 cm üst üste koy.', C => knP('M10 56 L200 56', C.a, 2.6) + knP('M250 64 L60 64', C.b, 1.8) + knTxt(110, 88, '≈ 20 cm', C.ar)],
+      ['Birinci ipin ucuyla ötekinin üzerine uni at (4–6 sarım).', C => knP('M10 56 L150 56', C.a, 2.6) + knP('M250 64 L60 64', C.b, 1.8) + knWraps(154, 186, 5, 60, 10, C.a, 2.2) + knP('M186 52 L206 40', C.a, 2.2)],
+      ['Aynısını ikinci ipin ucuyla öteki yönde yap (örgüde 8–10 sarım).', C => knP('M10 56 L150 56', C.a, 2.6) + knP('M250 64 L110 64', C.b, 1.8) + knWraps(154, 186, 5, 60, 8, C.a, 2.2) + knWraps(68, 104, 9, 60, 9, C.b, 1.5) + knP('M68 68 L50 82', C.b, 1.6)],
+      ['İki ana ipi zıt yöne çek; düğümler kayıp birleşir. Uçları kes.', C => knP('M10 60 L112 60', C.a, 2.6) + knWraps(112, 126, 5, 60, 6, C.a, 2.2) + knWraps(128, 150, 9, 60, 5, C.b, 1.4) + knP('M150 60 L250 60', C.b, 1.8) + knArrow(60, 84, 20, 84, C.ar) + knArrow(200, 84, 240, 84, C.ar)],
+    ]},
+};
+const KNOT_ORDER = ['palomar', 'fg', 'uni', 'snell', 'dropper', 'ciftuni'];
+function knotStepSvg(k, i, pal){
+  const P = SC_PAL[pal || 'screen'], C = knC(P), s = KNOTS[k].steps[i];
+  return '<svg class="knsvg" viewBox="0 0 ' + KN_W + ' ' + KN_H + '" width="100%" role="img" aria-label="' + esc(KNOTS[k].name + ' adım ' + (i + 1)) + '">' + s[1](C) + '</svg>';
+}
+// tek düğüm sayfası (rigden açılınca o rigde nerede kullanıldığı da yazar)
+function openKnot(k, where, keep){
+  const K = KNOTS[k]; if (!K) return;
+  ui.sheet = 'knot'; ui.sheetArg = k;
+  openSheet(sheetBar(K.name) + '<div class="stack">' +
+    '<p class="sub">' + esc(K.use) + '</p>' +
+    '<div class="row knmeta"><span class="chip">Dayanım ' + esc(K.str) + '</span>' + K.pairs.map(p => '<span class="chip">' + esc(p) + '</span>').join('') + '</div>' +
+    (where && where.length ? '<p class="note"><b>Bu rigde:</b> ' + esc(where.join(' · ')) + '</p>' : '') +
+    '<ol class="knsteps">' + K.steps.map((s, i) => '<li><div class="knfig">' + knotStepSvg(k, i) + '</div><p><b>' + (i + 1) + '.</b> ' + esc(s[0]) + '</p></li>').join('') + '</ol>' +
+    '<section class="set"><h4>İpuçları</h4><ul class="kntips">' + K.tips.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul></section>' +
+    '<p class="note">Dayanım yaklaşık değerdir; ipe, kalınlığa ve bağlayışa göre değişir. Çizimler şematiktir.</p>' +
+    '<button class="btn" type="button" data-open="dugumler">Bütün düğümler</button></div>', keep);
+}
+function sheetKnots(){
+  return sheetBar('Düğüm kütüphanesi') + '<div class="stack"><p class="sub">Riglerde kullanılan düğümler. Rig şemasında bir bağlantı noktasına dokunursan o noktanın düğümü açılır.</p>' +
+    KNOT_ORDER.map(k => { const K = KNOTS[k]; return '<button type="button" class="kncard" data-knot="' + k + '"><div class="knfig">' + knotStepSvg(k, K.steps.length - 1) + '</div><div><b>' + esc(K.name) + '</b><span class="note">' + esc(K.use) + '</span><span class="chip">Dayanım ' + esc(K.str) + '</span></div></button>'; }).join('') + '</div>';
+}
+
+// ---------------------------------------------------------------- 59 · hazırlama kartı (B3) · v0.25
+// Rig kartında "Takım" satırına dokununca: şema (bugünkü ayarla), bu rigdeki düğümler, malzeme listesi (ne kadar ip, kaç iğne,
+// kaç T-fırdöndü), ölçülü adım adım hazırlama ve kontroller. Malzeme satırları işaretlenebilir (bu cihazda tutulur).
+// "Resim olarak kaydet" şemayı ve adımları tek resim yapar: tekneye telefonsuz götürmek ya da arkadaşına atmak için.
+const PREP_TOP = 20, PREP_BOT = 15, PREP_KNOT = 10;   // fırdöndüden ilk T'ye ve son T'den kurşuna öneri boyları, bağ payı (cm)
+const LSP = 'alyssa-prep';
+function prepCtx(rid){
+  const rg = RIGS[rid]; if (!rg) return null;
+  const ds = days(), dd = ds.find(d => d.key === ui.fday) || ds.find(d => d.key === dateKey(new Date())) || ds[0] || null;
+  const ld = leadFor(rg, dd);
+  return {rg, dd, ld, sc: schemeSvg(rg, {ld})};
+}
+const hookTxt = h => h ? (h.name + (h.size ? ' ' + h.size : '')).trim() : '';
+// malzeme: kalem, miktar, not (ip boyları cm cinsinden toplanır)
+function rigMaterials(rg, ch){
+  const N = ch.nodes, out = [];
+  const tees = N.filter(n => n.t === 'tee' || n.t === 'trailTee'), trails = N.filter(n => n.t === 'trail'), legs = tees.concat(trails);
+  const ana = N.find(n => n.t === 'line' && n.role === 'ana'), lead = N.find(n => n.t === 'leader');
+  const bed = N.find(n => n.t === 'gap' && n.l);
+  if (ana && ana.l) out.push({k: 'ana', t: 'Ana ip', v: lineNm(ana.l), q: 'makarada'});
+  const sok = N.find(n => n.t === 'line' && n.role === 'sok'); if (sok && sok.l) out.push({k: 'sok', t: 'Şok lider', v: lineNm(sok.l), q: '≈ 10 m'});
+  if (bed && tees.length && (ch.lay === 'hirsizli' || ch.lay === 'iki' || ch.lay === 'tek' || ch.lay === 'canli' || ch.lay === 'paternoster')) {
+    const gaps = N.filter(n => n.t === 'gap' && n.cm).reduce((a, n) => a + n.cm, 0);
+    const cm = PREP_TOP + gaps + PREP_BOT + PREP_KNOT * (tees.length + 2);
+    out.push({k: 'beden', t: ch.lay === 'paternoster' ? 'Beden (şok lider)' : 'Beden', v: lineNm(bed.l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm});
+  }
+  if (legs.length) { const cm = legs.reduce((a, n) => a + n.cm + PREP_KNOT, 0), l = legs[0].line;
+    out.push({k: 'kostek', t: 'Köstek', v: lineNm(l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm}); }
+  if (lead) out.push({k: 'lider', t: lead.label, v: lineNm(lead.l), q: fmtNum((lead.cm + 20) / 100, 1) + ' m', cm: lead.cm + 20});
+  const hooks = {};
+  legs.forEach(n => { const h = hookTxt(n.hook); if (h) { hooks[h] = hooks[h] || {n: 0, item: n.hook.item, size: n.hook.size}; hooks[h].n++; } });
+  N.filter(n => n.t === 'leader' && n.end && n.end.hook).forEach(n => { const h = hookTxt(n.end.hook); if (h) { hooks[h] = hooks[h] || {n: 0, item: n.end.hook.item, size: n.end.hook.size}; hooks[h].n++; } });
+  N.filter(n => n.t === 'lure' && n.assist).forEach(n => { const h = hookTxt(n.assist); if (h) { hooks[h] = hooks[h] || {n: 0, item: n.assist.item, size: n.assist.size}; hooks[h].n++; } });
+  Object.keys(hooks).forEach((h, i) => out.push({k: 'igne' + i, t: 'İğne', v: h, q: '× ' + hooks[h].n, n: hooks[h].n, item: hooks[h].item, size: hooks[h].size}));
+  const nT = tees.length, nSw = N.filter(n => n.t === 'swivel').length;
+  if (nT) out.push({k: 'tfir', t: 'T-fırdöndü', v: 'üç yollu fırdöndü', q: '× ' + nT});
+  if (nSw) out.push({k: 'fir', t: 'Fırdöndü / klips', v: N.filter(n => n.t === 'swivel').map(n => n.label).join(', '), q: '× ' + nSw});
+  if (N.some(n => n.t === 'sinker')) out.push({k: 'kursun', t: 'Kurşun', v: ch.kursun + (N.find(n => n.t === 'sinker').shape === 'piramit' ? ' piramit' : ' armut') + (N.find(n => n.t === 'sinker').ring2 ? ' (iki halkalı)' : ''), q: 'klipsle'});
+  if (N.some(n => n.t === 'slide')) out.push({k: 'gezer', t: N.find(n => n.t === 'slide').small ? 'Saçma kurşun' : 'Gezer kurşun', v: N.find(n => n.t === 'slide').g || '', q: ''});
+  if (N.some(n => n.t === 'bead')) out.push({k: 'boncuk', t: 'Stop boncuk', v: '', q: '× ' + N.filter(n => n.t === 'bead').length});
+  const lure = N.find(n => n.t === 'lure' || n.t === 'sabiki'); if (lure) out.push({k: 'yem', t: lure.t === 'sabiki' ? 'Çapari' : 'Sahte yem', v: lure.label + (lure.g ? ' · ' + lure.g : lure.size ? ' · ' + lure.size : ''), q: '× 1'});
+  if (N.some(n => n.t === 'float')) out.push({k: 'samandira', t: 'Şamandıra', v: '', q: '× 1'});
+  if (rg.gear && rg.gear.rod) out.push({k: 'kamis', t: 'Kamış', v: rg.gear.rod.it.name, q: ''});
+  if (rg.gear && rg.gear.reel) out.push({k: 'makine', t: 'Makine', v: rg.gear.reel.it.name, q: ''});
+  return out;
+}
+// adım adım hazırlama
+function prepSteps(rg, ch, ld){
+  const N = ch.nodes, S_ = [], push = s => S_.push(s);
+  const K = k => (KNOTS[k] || {}).name || k;
+  const ana = N.find(n => n.t === 'line' && n.role === 'ana'), lead = N.find(n => n.t === 'leader');
+  const tees = N.filter(n => n.t === 'tee' || n.t === 'trailTee'), trails = N.filter(n => n.t === 'trail'), legs = tees.concat(trails);
+  const sw = N.find(n => n.t === 'swivel'), k0 = N.find(n => n.t === 'knot');
+  const anaT = ana && ana.l ? lineNm(ana.l) : 'ana ip';
+  if (ch.lay === 'hirsizli' || ch.lay === 'iki' || ch.lay === 'tek' || ch.lay === 'canli' || ch.lay === 'paternoster') {
+    if (ch.lay === 'paternoster') push('Ana ipi (' + anaT + ') şok lidere ' + K('ciftuni') + ' ile ekle; şok lider makarada en az 5–6 tur kalsın.');
+    else push('Ana ipi (' + anaT + ') fırdöndüye ' + K(k0 ? k0.k : 'palomar') + ' ile bağla.');
+    const bed = N.find(n => n.t === 'gap' && n.l), bl = bed && bed.l ? bed.l.txt : '';
+    const seq = [ch.lay === 'paternoster' ? 'şok lider' : 'fırdöndü', PREP_TOP + ' cm'];
+    N.forEach(n => { if (n.t === 'tee' || n.t === 'trailTee') seq.push(trLower(n.label) + ' T-fırdöndüsü'); else if (n.t === 'gap' && n.cm) seq.push(n.cm + ' cm'); });
+    const hAlt = trails.length > 0;
+    seq.push(PREP_BOT + ' cm', hAlt ? 'kurşun (üst halka)' : 'kurşun klipsi');
+    push('Bedeni (' + (bed && bed.l ? lineNm(bed.l) : 'florokarbon') + ') parça parça şu sırayla bağla, her bağ ' + K('uni') + ': ' + seq.join(' → ') + '.');
+    if (legs.length) push('Köstekleri ' + (legs[0].line ? lineNm(legs[0].line) + ' ipinden ' : '') + 'kes (her birine ' + PREP_KNOT + ' cm bağ payı ekle): ' + legs.map(n => trLower(n.label) + ' ' + (n.cm + PREP_KNOT) + ' cm').join(', ') + '.');
+    const hk = {}; legs.forEach(n => { const h = hookTxt(n.hook); if (h) (hk[h] = hk[h] || []).push(trLower(n.label)); });
+    if (Object.keys(hk).length) push('İğneleri köstek uçlarına ' + K('snell') + ' ile bağla: ' + Object.keys(hk).map(h => hk[h].join(' ve ') + ' → ' + h).join('; ') + '.');
+    push('Köstekleri T-fırdöndülerin yan halkasına ' + K('uni') + ' ile bağla' + (hAlt ? '; hırsızı kurşunun alt halkasına bağla.' : '.'));
+    if (ld && ld.short && legs.some(n => n.k === 'hirsiz')) push('Akış güçlü: hırsızı %' + (ld.short === true ? 20 : ld.short) + ' kısa bağla (' + (ld.hirsiz || '') + ' cm; normalde ' + ((rg.lengths || {}).hirsiz || '') + ' cm).');
+  } else if (ch.lay === 'kaydirmali') {
+    push('Gezer kurşunu (' + ch.kursun + ') ve stop boncuğu ana ipe (' + anaT + ') geçir.');
+    push('Ana ipi fırdöndüye ' + K(k0 ? N.filter(n => n.t === 'knot')[0].k : 'palomar') + ' ile bağla.');
+    if (lead) push('Kösteği ' + lead.cm + ' cm (+' + PREP_KNOT + ' cm bağ payı) kes, fırdöndünün alt halkasına ' + K('uni') + ' ile bağla.');
+    if (lead && lead.end && lead.end.hook) push('İğneyi (' + hookTxt(lead.end.hook) + ') ' + K('snell') + ' ile bağla.');
+  } else if (ch.lay === 'capari') {
+    push('Ana ipi (' + anaT + ') klipsli fırdöndüye ' + K(k0 ? k0.k : 'palomar') + ' ile bağla.');
+    push('Çapari takımını üstteki klipse, kurşunu (' + ch.kursun + ') alttaki klipse tak.');
+  } else if (ch.lay === 'samandira') {
+    push('Stopu, şamandırayı ve saçma kurşunu ana ipe geçir; derinliği stoptan ayarla.');
+    push('Ana ipi fırdöndüye ' + K('uni') + ' ile bağla.');
+    if (lead) push('Kösteği ' + lead.cm + ' cm kes, fırdöndüye ' + K('uni') + ', iğneye (' + hookTxt(lead.end && lead.end.hook) + ') ' + K('snell') + ' ile bağla.');
+  } else {
+    const kk = N.filter(n => n.t === 'knot');
+    if (lead) push('Lideri ' + lead.cm + ' cm kes (' + (lead.l ? lead.l.txt : 'florokarbon') + ').');
+    if (kk[0]) push('Ana ipi (' + anaT + ') lidere ' + K(kk[0].k) + ' ile bağla.');
+    if (kk[1]) push('Liderin ucuna ' + trLower(sw ? sw.label : 'klips') + ' ' + K(kk[1].k) + ' ile bağla.');
+    const lu = N.find(n => n.t === 'lure'); if (lu) push('Yemi (' + lu.label + (lu.g ? ', ' + lu.g : '') + ') ' + trLower(sw ? sw.label : 'klips') + 'a tak' + (lu.assist ? '; assist iğneleri (' + hookTxt(lu.assist) + ') halkaya, jigin baş tarafına' : '') + '.');
+  }
+  if (N.some(n => n.t === 'sinker') && ch.lay !== 'capari') push('Kurşunu (' + ch.kursun + ') klipse tak' + ((rg.bottom || []).some(b => b === 'kayalik' || b === 'saf-kayalik') || rg.own ? '. Kayalıkta kurşunu bedenden ince bir misinayla bağla (kopma bağı): takılırsa yalnız kurşun gider.' : '.'));
+  push('Bütün düğümleri ıslatıp tek tek çek; ucu 2–3 mm bırakıp kes.');
+  return S_;
+}
+// kontroller: dolaşma, akış, kamış sınırı, köstek–beden kalınlığı, dişli tür
+function prepChecks(rg, ch, ld){
+  const out = [], N = ch.nodes;
+  const tees = N.filter(n => n.t === 'tee' || n.t === 'trailTee');
+  tees.forEach((n, i) => { const gap = N.slice(N.indexOf(n) + 1).find(m => m.t === 'gap' && m.cm); const next = tees[i + 1];
+    if (next && gap) out.push(n.cm >= gap.cm ? {bad: true, t: n.label + ' (' + n.cm + ' cm) köstek arasından (' + gap.cm + ' cm) uzun: alttaki köstekle dolaşır; ' + Math.max(10, gap.cm - 10) + ' cm’ye kısalt.'} : {t: n.label + ' ' + n.cm + ' cm < köstek arası ' + gap.cm + ' cm: dolaşmaz.'}); });
+  const bed = N.find(n => n.t === 'gap' && n.l), leg = tees[0] || N.find(n => n.t === 'trail');
+  if (bed && bed.l && bed.l.mm && leg && leg.line && leg.line.mm) {
+    if (leg.line.mm > bed.l.mm + 0.001) out.push({bad: true, t: 'Köstek (' + mmS(leg.line.mm) + ') bedenden (' + mmS(bed.l.mm) + ') kalın: takılınca beden kopar. Köstek bedenden ince olmalı.'});
+    else out.push({t: 'Köstek (' + mmS(leg.line.mm) + ') bedenden (' + mmS(bed.l.mm) + ') ince: takılırsa yalnız köstek gider.'});
+  }
+  if (ld && ld.short) out.push({t: 'Akış güçlü: hırsız %' + (ld.short === true ? 20 : ld.short) + ' kısa, köstekler dolaşmasın.'});
+  if (ld && ld.over) out.push({bad: true, t: 'Gereken kurşun ≈ ' + ld.need + ' g, sınır ' + ld.max + ' g: paraşüt çapa at ya da demirle.'});
+  else if (ld && ld.rodCap) out.push({t: 'Kamışın en fazla ' + ld.max + ' g taşır; kurşunu buna göre seç.'});
+  const teeth = (rg.species || []).filter(s => KB.TEETH && KB.TEETH[s]);
+  if (teeth.length) out.push({t: 'Dişli tür (' + teeth.map(spName).join(', ') + '): ' + (KB.TEETH[teeth[0]] === 'steel' ? 'çelik tel' : 'kalın florokarbon') + ' lider kullan.'});
+  gearIssues(rg).forEach(g => out.push({bad: g.bad, t: g.txt + (g.why ? ': ' + g.why : '')}));
+  out.push({t: 'Yedek: en az 2 köstek ve 3 iğne hazırla; tekneye bağlı götür.'});
+  return out;
+}
+const prepGet = () => { try { return JSON.parse(lsGet(LSP) || '{}') || {}; } catch (e) { return {}; } };
+function openPrep(rid, keep){
+  const c = prepCtx(rid); if (!c) { toast('Rig bulunamadı'); return; }
+  ui.sheet = 'prep'; ui.sheetArg = rid;
+  const {rg, ld, sc} = c, ch = sc.chain, mats = rigMaterials(rg, ch), steps = prepSteps(rg, ch, ld), checks = prepChecks(rg, ch, ld);
+  const done = (prepGet()[rid] || {});
+  const kn = {}; sc.knots.forEach(x => { (kn[x.k] = kn[x.k] || []).push(x.where); });
+  const sec = (t, body) => '<section class="set"><h4>' + t + '</h4>' + body + '</section>';
+  const hasH = ch.nodes.some(n => n.t === 'trailTee' && n.k === 'hirsiz') || ch.nodes.some(n => n.t === 'trail');
+  openSheet(sheetBar((rg.code ? rg.code + ' · ' : '') + 'Hazırlama') + '<div class="stack prep">' +
+    '<p class="sub">' + esc(rg.name) + (rg.groupName ? ' · ' + esc(rg.groupName) : '') + '</p>' +
+    (ld && (ld.short || ld.kursun) ? '<p class="note">Bugünkü ayar: ' + esc([ld.kursun ? 'kurşun ' + stripTags(ld.kursun) : '', ld.short ? 'hırsız %' + (ld.short === true ? 20 : ld.short) + ' kısa' : ''].filter(Boolean).join(' · ')) + '</p>' : '') +
+    '<div class="schemewrap">' + sc.svg + '</div>' +
+    (hasH ? '<div class="row hpos"><span class="note">Hırsız</span>' + segBtns('hirsizPos', [['ust', 'Kurşunun üstünde'], ['alt', 'Kurşunun altında']], hirsizPos()) + '</div>' : '') +
+    sec('Bu rigdeki düğümler', '<div class="knrow">' + Object.keys(kn).map(k => '<button type="button" class="btn small" data-knot="' + k + '" data-kwhere="' + esc(kn[k].join('|')) + '">' + esc(KNOTS[k].name) + ' <small>× ' + kn[k].length + '</small></button>').join('') + '</div><p class="note">Şemadaki renkli noktalara da dokunabilirsin.</p>') +
+    sec('Malzeme', '<ul class="mats">' + mats.map(m => '<li><label><input type="checkbox" data-prepchk="' + esc(rid + '|' + m.k) + '"' + (done[m.k] ? ' checked' : '') + '><span><b>' + esc(m.t) + '</b> ' + esc(m.v || '') + '</span><em>' + esc(m.q || '') + '</em></label></li>').join('') + '</ul>' +
+      '<p class="note">Beden boyu öneridir: fırdöndüden ilk T’ye ' + PREP_TOP + ' cm, son T’den kurşuna ' + PREP_BOT + ' cm ve her bağa ' + PREP_KNOT + ' cm pay. <button class="linkbtn" type="button" data-prepreset="' + esc(rid) + '">İşaretleri sıfırla</button></p>') +
+    sec('Adım adım', '<ol class="psteps">' + steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol>') +
+    sec('Kontrol', '<ul class="pchecks">' + checks.map(x => '<li class="' + (x.bad ? 'bad' : 'ok') + '">' + (x.bad ? '⚠ ' : '✓ ') + esc(x.t) + '</li>').join('') + '</ul>') +
+    '<div class="row"><button class="btn primary" type="button" data-prepimg="' + esc(rid) + '">Resim olarak kaydet</button><button class="btn" type="button" data-gear="' + esc(rid) + '">Kamış ve makine</button></div>' +
+    '</div>', keep);
+}
+function prepCheck(val, on){
+  const [rid, k] = val.split('|'); const all = prepGet(); all[rid] = all[rid] || {};
+  if (on) all[rid][k] = 1; else delete all[rid][k];
+  lsSet(LSP, JSON.stringify(all));
+}
+// ---- resim olarak kaydet: şema + adımlar + malzeme (açık renk, beyaz zemin)
+function wrapTxt(s, n){ const w = String(s).split(' '), out = []; let l = ''; w.forEach(x => { if ((l + ' ' + x).trim().length > n) { if (l) out.push(l); l = x; } else l = (l + ' ' + x).trim(); }); if (l) out.push(l); return out; }
+function prepImageSvg(rid){
+  const c = prepCtx(rid); if (!c) return null;
+  const {rg, ld} = c, sc = schemeSvg(rg, {ld, pal: 'print'}), ch = sc.chain, P = SC_PAL.print;
+  const W = 720, pad = 24, txt = [];
+  let y = 40;
+  const T = (s, o) => { txt.push('<text x="' + (o && o.x || pad) + '" y="' + y + '" style="font:' + (o && o.w || 400) + ' ' + (o && o.fs || 15) + 'px system-ui,-apple-system,sans-serif;fill:' + (o && o.c || P.txt) + '">' + esc(s) + '</text>'); };
+  T((rg.code ? rg.code + ' · ' : '') + rg.name, {w: 700, fs: 22}); y += 24;
+  T([rg.groupName, ld && ld.kursun ? 'kurşun ' + stripTags(ld.kursun) : '', ld && ld.short ? 'hırsız %' + (ld.short === true ? 20 : ld.short) + ' kısa' : ''].filter(Boolean).join(' · '), {c: P.mut, fs: 14}); y += 10;
+  const sw = 340, sh = sc.h * (sw / sc.w);
+  const scheme = '<svg x="' + pad + '" y="' + y + '" width="' + sw + '" height="' + sh.toFixed(0) + '" viewBox="0 0 ' + sc.w + ' ' + sc.h + '">' + sc.svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '') + '</svg>';
+  // sağ sütun: malzeme
+  let ry = y + 18; const rx = pad + sw + 18, right = [];
+  const R = (s, o) => { right.push('<text x="' + rx + '" y="' + ry + '" style="font:' + (o && o.w || 400) + ' ' + (o && o.fs || 13) + 'px system-ui,-apple-system,sans-serif;fill:' + (o && o.c || P.txt) + '">' + esc(s) + '</text>'); ry += (o && o.lh) || 18; };
+  R('Malzeme', {w: 700, fs: 15, lh: 22});
+  rigMaterials(rg, ch).forEach(m => wrapTxt('☐ ' + m.t + ': ' + (m.v || '') + (m.q ? ' (' + m.q + ')' : ''), 40).forEach((l, i) => R(l, {fs: 12.5, c: i ? P.mut : P.txt, lh: 17})));
+  ry += 8; R('Düğümler', {w: 700, fs: 15, lh: 22});
+  const kn = {}; sc.knots.forEach(x => { kn[x.k] = (kn[x.k] || 0) + 1; });
+  Object.keys(kn).forEach(k => R('• ' + KNOTS[k].name + ' × ' + kn[k] + ' (' + KNOTS[k].str + ')', {fs: 12.5, lh: 17}));
+  y = Math.max(y + sh, ry) + 20;
+  T('Adım adım', {w: 700, fs: 16}); y += 22;
+  prepSteps(rg, ch, ld).forEach((s, i) => { wrapTxt((i + 1) + '. ' + s, 92).forEach(l => { T(l, {fs: 13.5}); y += 19; }); y += 3; });
+  y += 8; T('Kontrol', {w: 700, fs: 16}); y += 22;
+  prepChecks(rg, ch, ld).forEach(x => { wrapTxt((x.bad ? '⚠ ' : '✓ ') + x.t, 92).forEach(l => { T(l, {fs: 13, c: x.bad ? P.warn : P.txt}); y += 18; }); });
+  y += 14; T(APP_NAME + ' · ' + fmtDT(new Date()), {fs: 11, c: P.mut}); y += 16;
+  return {w: W, h: Math.ceil(y), svg: '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + Math.ceil(y) + '" viewBox="0 0 ' + W + ' ' + Math.ceil(y) + '"><rect width="100%" height="100%" fill="#fff"/>' + scheme + right.join('') + txt.join('') + '</svg>'};
+}
+function svgToPngBlob(svg, w, h, scale){
+  return new Promise((res, rej) => {
+    const img = new Image(); const s = scale || 2;
+    img.onload = () => { try { const cv = document.createElement('canvas'); cv.width = Math.round(w * s); cv.height = Math.round(h * s); const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(img, 0, 0, cv.width, cv.height); cv.toBlob(b => b ? res(b) : rej(new Error('png')), 'image/png'); } catch (e) { rej(e); } };
+    img.onerror = () => rej(new Error('svg'));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.indexOf('xmlns=') < 0 ? svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"') : svg);
+  });
+}
+// paylaş (telefonda paylaşım menüsü) ya da indir
+async function shareImage(blob, name, title){
+  const file = new File([blob], name, {type: 'image/png'});
+  try { if (navigator.canShare && navigator.canShare({files: [file]})) { await navigator.share({files: [file], title}); return 'share'; } } catch (e) { if (e && e.name === 'AbortError') return 'cancel'; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  return 'download';
+}
+async function prepImage(rid){
+  const r = prepImageSvg(rid); if (!r) return;
+  try { const b = await svgToPngBlob(r.svg, r.w, r.h, 2); const rg = RIGS[rid]; const how = await shareImage(b, slugTR((rg.code || 'rig') + '-' + rg.name).slice(0, 40) + '.png', rg.name);
+    if (how === 'download') toast('Resim indirildi'); }
+  catch (e) { toast('Resim hazırlanamadı'); }
+}
+
 // ---------------------------------------------------------------- 60 · ortak çizim parçaları
 const STAR = on => '<svg viewBox="0 0 24 24" class="' + (on ? 'on' : 'off') + '" stroke-width="1.6"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2 6.3 20.3l1.2-6.4L2.8 9.5l6.4-.8z"/></svg>';
 const starsHtml = n => '<span class="stars" role="img" aria-label="' + n + ' yıldız">' + [1, 2, 3, 4, 5].map(i => STAR(i <= n)).join('') + '</span>';
@@ -4707,7 +5258,8 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
     rg.slots.map(sl => compRow(rg, sl, tier)).join('') +
     (sub ? '<div class="crow subrow"><span class="k">Yedek</span><span class="v">' + sub.list.map(c => esc(c.txt)).join('<br>') + '</span><span class="s"><span class="dot var"></span>elinde</span></div>' : '') +
     (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
-    (ld && lengthsTxt(ld) ? '<div class="crow"><span class="k">Takım</span><span class="v">' + lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') + '</span><span class="s"></span></div>' : '') +
+    // v0.25: Takım satırı → şema, düğümler ve hazırlama (59-prep.js)
+    '<button type="button" class="crow tap takim" data-prep="' + esc(rg.id) + '"><span class="k">Takım</span><span class="v">' + (ld && lengthsTxt(ld) ? lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') : 'Şema, düğümler ve hazırlama') + '</span><span class="s">Şema<i class="chev" aria-hidden="true">›</i></span></button>' +
     (opt.tune && opt.tune.length ? '<div class="tune"><b class="tuneh">Bugünkü ayar</b>' + opt.tune.map(t => '<div class="tl' + (t.warn ? ' warn' : '') + '"><span class="k">' + esc(t.k) + '</span><span class="v">' + esc(t.t) + '</span></div>').join('') + '</div>' : '') +
     '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details>' + (opt.foot || '') + '</article>';
 }
@@ -5880,6 +6432,7 @@ const MORE = [
   ['turler', 'Türlerim ve takım planı', () => { const n = (S.targets || []).length; return n ? n + ' hedef tür · takım ve alınacaklar' : 'Tür ekle: hangi takım, ne almalısın'; }],
   ['turtakvim', 'Tür takvimi', () => 'Ege: hangi tür hangi ayda, hangi suda · bu ay ' + MON_LONG[new Date().getMonth()]],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
+  ['dugumler', 'Düğüm kütüphanesi', () => 'Palomar, FG, Uni, Snell, köstek halkası, çift uni · adım adım çizimle'],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
   ['dosya', 'Dosya yedeği', () => 'Telefona indir ya da dosyadan yükle'],
   ['kaynak', 'Veri kaynakları', () => { const st = (S.wx && S.wx.status) || {}; const k = Object.keys(SRC); const ok = k.filter(i => st[i] === 'ok').length; return S.wx ? ok + '/' + k.length + ' kaynak çalışıyor' : 'Henüz veri yok'; }],
@@ -5909,7 +6462,7 @@ function openMore(name, keep){
   ui.sheet = name;
   if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, usta: sheetUsta, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, usta: sheetUsta, dugumler: sheetKnots, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -5949,6 +6502,7 @@ function setSetting(name, val){
   if (name === 'model' && S.wx) WX = buildWx();
   persist(); applyTheme(); indexAll(); renderAll();
   if (ui.sheet === 'ayarlar' || ui.sheet === 'gorunum') openMore(ui.sheet, true);
+  else if (ui.sheet === 'prep' && ui.sheetArg) openPrep(ui.sheetArg, true);
 }
 // ---- Görünüm: tablo satırları, Bugün kartları, takvim satırları, birimler, model
 const ROW_REG = () => ({hrows: HROWS, cards: TCARDS, calrows: CROWS});
@@ -8022,9 +8576,22 @@ function invChanged(){
   renderAll(); if (ui.sheet === 'parca' && ui.sheetArg) { const [r, k] = ui.sheetArg.split('|'); openPart(r, k, true); }
   else if (ui.sheet === 'gear' && ui.sheetArg) openGear(ui.sheetArg, true);
   else if (ui.sheet === 'rig' && ui.sheetArg) openRigSheet(ui.sheetArg, true);
+  else if (ui.sheet === 'prep' && ui.sheetArg) openPrep(ui.sheetArg, true);
 }
 // rig sayfasından (Fishing'deki diğer rigler) parça/kamış sayfasına geçilince "Geri" rig sayfasına döner
-function backTo(){ if (ui.sheet === 'rig' && ui.sheetArg) { const a = ui.sheetArg; ui.back = () => openRigSheet(a, true); } else if (ui.sheet !== 'parca' && ui.sheet !== 'gear') ui.back = null; }
+function backTo(){
+  const a = ui.sheetArg;
+  if (ui.sheet === 'rig' && a) ui.back = () => openRigSheet(a, true);
+  else if (ui.sheet === 'prep' && a) { const pb = ui.back; ui.back = () => { ui.back = pb; openPrep(a, true); }; }
+  else if (ui.sheet !== 'parca' && ui.sheet !== 'gear' && ui.sheet !== 'knot') ui.back = null;
+}
+// düğüm: rig hazırlama sayfasından açılınca o rigde nerede kullanıldığı ve "Geri" hazırlamaya döner
+function knotFrom(k, where){
+  if (ui.sheet === 'prep' && ui.sheetArg) { const a = ui.sheetArg; if (!where) { const c = prepCtx(a); where = c ? c.sc.knots.filter(x => x.k === k).map(x => x.where) : null; } backTo(); openKnot(k, where); return; }
+  if (ui.sheet === 'dugumler') { ui.back = () => openMore('dugumler', true); openKnot(k); return; }
+  if (ui.sheet !== 'knot') ui.back = null;
+  openKnot(k, where);
+}
 function setQty(k, v){ setQtyVal(k, v); invChanged(); }
 // adet/paket satırındaki "Alınacak": işaretliyse kaldırır (0 sayısı da silinir), değilse alınacak listesine koyar
 function alkToggle(k){
@@ -8052,6 +8619,7 @@ function bindEvents(){
   $('addCatch').addEventListener('click', () => catchForm(null));
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
+    const kg = e.target.closest && e.target.closest('g[data-knot]'); if (kg) { knotFrom(kg.dataset.knot); return; }   // şemadaki düğüm noktası
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
@@ -8105,6 +8673,10 @@ function bindEvents(){
     if (d.gearbuy) { gearAct('buy', d.gearbuy); return; }
     if (d.newitem) { ui.back = null; itemForm(null, d.newitem); return; }
     if (d.rigopen) { ui.back = null; openRigSheet(d.rigopen); return; }
+    if (d.prep) { backTo(); openPrep(d.prep); return; }
+    if (d.knot) { knotFrom(d.knot, d.kwhere ? d.kwhere.split('|') : null); return; }
+    if (d.prepreset) { const all = prepGet(); delete all[d.prepreset]; lsSet(LSP, JSON.stringify(all)); openPrep(d.prepreset, true); return; }
+    if (d.prepimg) { b.disabled = true; await prepImage(d.prepimg); b.disabled = false; return; }
     if (d.partuse) { partAct('use', d.partuse); return; }
     if (d.partall) { partAct('all', d.partall); return; }
     if (d.partorig) { partAct('orig', d.partorig); return; }
@@ -8197,6 +8769,7 @@ function bindEvents(){
   });
   document.addEventListener('change', e => {
     const el = e.target;
+    if (el.dataset && el.dataset.prepchk) { prepCheck(el.dataset.prepchk, el.checked); return; }
     if (el.id === 'cfCam' || el.id === 'cfGal') { addFiles(el.files); el.value = ''; return; }
     if (el.id === 'cf-sp') { $('cf-sp2w').hidden = el.value !== 'diger'; return; }
     if (el.id === 'cf-bot') { if (FORM) FORM.botTouched = true; return; }
@@ -8268,7 +8841,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
-  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
+  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
   loadState();
   pkgLoadCached();

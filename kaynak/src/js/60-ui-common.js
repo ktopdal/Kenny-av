@@ -94,7 +94,8 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
     rg.slots.map(sl => compRow(rg, sl, tier)).join('') +
     (sub ? '<div class="crow subrow"><span class="k">Yedek</span><span class="v">' + sub.list.map(c => esc(c.txt)).join('<br>') + '</span><span class="s"><span class="dot var"></span>elinde</span></div>' : '') +
     (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
-    (ld && lengthsTxt(ld) ? '<div class="crow"><span class="k">Takım</span><span class="v">' + lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') + '</span><span class="s"></span></div>' : '') +
+    // v0.25: Takım satırı → şema, düğümler ve hazırlama (59-prep.js)
+    '<button type="button" class="crow tap takim" data-prep="' + esc(rg.id) + '"><span class="k">Takım</span><span class="v">' + (ld && lengthsTxt(ld) ? lengthsTxt(ld) + (rg.own ? ' (kayalık, kısa)' : '') : 'Şema, düğümler ve hazırlama') + '</span><span class="s">Şema<i class="chev" aria-hidden="true">›</i></span></button>' +
     (opt.tune && opt.tune.length ? '<div class="tune"><b class="tuneh">Bugünkü ayar</b>' + opt.tune.map(t => '<div class="tl' + (t.warn ? ' warn' : '') + '"><span class="k">' + esc(t.k) + '</span><span class="v">' + esc(t.t) + '</span></div>').join('') + '</div>' : '') +
     '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details>' + (opt.foot || '') + '</article>';
 }

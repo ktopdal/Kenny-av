@@ -505,3 +505,37 @@ button.crow.tap .v{text-decoration:underline;text-decoration-color:color-mix(in 
 button.rec.tap{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
 button.rec.tap:active{background:var(--surface-2)}
 .rec .chev{font-style:normal;margin-left:6px;color:var(--muted)}
+/* v0.25: rig şeması, düğümler, hazırlama */
+:root{--sc-braid:#C8642F;--sc-fc:#3B8FC4;--sc-mono:#8E9AA0;--sc-metal:#5D666C;--sc-lead:#7D858A;--sc-bed:#EFE6CC;--sc-bed2:#CDBB8C;--sc-lure:#3F7FA8;--sc-hook:#2E3438}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sc-braid:#F08A4B;--sc-fc:#6CB8E8;--sc-mono:#A9B6BB;--sc-metal:#A5AFB5;--sc-lead:#9AA2A7;--sc-bed:#2E2A20;--sc-bed2:#5A4D35;--sc-lure:#6CB8E8;--sc-hook:#D5DDE2}}
+:root[data-theme="dark"]{--sc-braid:#F08A4B;--sc-fc:#6CB8E8;--sc-mono:#A9B6BB;--sc-metal:#A5AFB5;--sc-lead:#9AA2A7;--sc-bed:#2E2A20;--sc-bed2:#5A4D35;--sc-lure:#6CB8E8;--sc-hook:#D5DDE2}
+.schemewrap{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 6px;display:flex;justify-content:center}
+.schemewrap svg{display:block;height:auto}
+.rigsvg .kn{cursor:pointer}
+.rigsvg .kn:focus{outline:none}.rigsvg .kn:focus circle:last-of-type{stroke-width:3}
+.hpos{gap:8px;align-items:center;flex-wrap:wrap}
+.knrow{display:flex;flex-wrap:wrap;gap:6px}
+.knrow small{font:500 11px var(--mono);color:var(--muted)}
+.mats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mats li{border-top:1px solid var(--line-2)}
+.mats label{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:start;padding:7px 2px;font-size:13.5px;cursor:pointer}
+.mats input{margin-top:3px;width:16px;height:16px}
+.mats span{min-width:0;overflow-wrap:anywhere}
+.mats em{font:500 12px var(--mono);font-style:normal;color:var(--ink-2);white-space:nowrap}
+.mats input:checked+span{text-decoration:line-through;color:var(--muted)}
+.psteps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.45}
+.pchecks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13.5px;line-height:1.4}
+.pchecks li.bad{color:var(--D);font-weight:600}
+.pchecks li.ok{color:var(--ink-2)}
+button.crow.takim .v{text-decoration:none}
+.knsteps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.knsteps li{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--surface)}
+.knsteps p{margin:6px 0 0;font-size:14px;line-height:1.45}
+.knfig{background:var(--surface-2);border-radius:10px;padding:4px}
+.knfig svg{display:block;width:100%;height:auto}
+.knmeta{gap:6px;flex-wrap:wrap}
+.kntips{margin:0;padding-left:18px;font-size:13.5px;line-height:1.45;display:flex;flex-direction:column;gap:4px}
+.kncard{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--surface);color:inherit;font:inherit;cursor:pointer}
+.kncard b{display:block;font:600 15px var(--body)}
+.kncard .note{display:block;margin:2px 0 6px}
+@media (max-width:360px){.kncard{grid-template-columns:96px minmax(0,1fr)}}

@@ -14,6 +14,7 @@ const MORE = [
   ['turler', 'Türlerim ve takım planı', () => { const n = (S.targets || []).length; return n ? n + ' hedef tür · takım ve alınacaklar' : 'Tür ekle: hangi takım, ne almalısın'; }],
   ['turtakvim', 'Tür takvimi', () => 'Ege: hangi tür hangi ayda, hangi suda · bu ay ' + MON_LONG[new Date().getMonth()]],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
+  ['dugumler', 'Düğüm kütüphanesi', () => 'Palomar, FG, Uni, Snell, köstek halkası, çift uni · adım adım çizimle'],
   ['standart', 'Takım standartları', () => Object.keys(SETUPS).length ? Object.keys(SETUPS).length + ' takım' : 'Rig sistemi kurulunca'],
   ['dosya', 'Dosya yedeği', () => 'Telefona indir ya da dosyadan yükle'],
   ['kaynak', 'Veri kaynakları', () => { const st = (S.wx && S.wx.status) || {}; const k = Object.keys(SRC); const ok = k.filter(i => st[i] === 'ok').length; return S.wx ? ok + '/' + k.length + ' kaynak çalışıyor' : 'Henüz veri yok'; }],
@@ -43,7 +44,7 @@ function openMore(name, keep){
   ui.sheet = name;
   if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, usta: sheetUsta, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, usta: sheetUsta, dugumler: sheetKnots, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -83,6 +84,7 @@ function setSetting(name, val){
   if (name === 'model' && S.wx) WX = buildWx();
   persist(); applyTheme(); indexAll(); renderAll();
   if (ui.sheet === 'ayarlar' || ui.sheet === 'gorunum') openMore(ui.sheet, true);
+  else if (ui.sheet === 'prep' && ui.sheetArg) openPrep(ui.sheetArg, true);
 }
 // ---- Görünüm: tablo satırları, Bugün kartları, takvim satırları, birimler, model
 const ROW_REG = () => ({hrows: HROWS, cards: TCARDS, calrows: CROWS});

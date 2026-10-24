@@ -3,6 +3,12 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.25.0', notes: [
+    'Rig şeması: her rigin şeması kendi verisinden çizilir (ana ip, fırdöndü, beden, köstekler cm, iğneler, kurşun g); bugünkü ayar (akışta kısalan hırsız, kurşun) şemaya yansır',
+    'Rig kartında “Takım” satırına dokun: şema, bu rigdeki düğümler, malzeme listesi (ne kadar ip, kaç iğne, kaç T-fırdöndü), ölçülü adım adım hazırlama ve kontroller',
+    'Düğüm kütüphanesi (Daha → Düğüm kütüphanesi): Palomar, FG, Uni, Snell, köstek halkası, çift uni; adım adım çizim, hangi ipe, yaklaşık dayanım. Şemadaki noktaya dokununca o düğüm açılır',
+    'Hazırlama kartı tek resim olarak kaydedilir ya da paylaşılır',
+    'Hırsızın yeri seçilebilir: kurşunun üstünde ya da altında']},
   {v: '0.24.0', notes: [
     'Kamış ve makine bütün rig kartlarında: her rig için envanterindeki en uygun kamış + makine çifti (kurşun gramı, kamışın taşıdığı gram, kamış tipi, makara yuvası, makine boyu)',
     'Elindeki takım rige uymuyorsa “envanterden girildi ama uygun değil” ve nedeni yazar; uygun olanı ya da gereken ölçüyü önerir',

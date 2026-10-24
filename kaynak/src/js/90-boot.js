@@ -34,9 +34,22 @@ function invChanged(){
   renderAll(); if (ui.sheet === 'parca' && ui.sheetArg) { const [r, k] = ui.sheetArg.split('|'); openPart(r, k, true); }
   else if (ui.sheet === 'gear' && ui.sheetArg) openGear(ui.sheetArg, true);
   else if (ui.sheet === 'rig' && ui.sheetArg) openRigSheet(ui.sheetArg, true);
+  else if (ui.sheet === 'prep' && ui.sheetArg) openPrep(ui.sheetArg, true);
 }
 // rig sayfasından (Fishing'deki diğer rigler) parça/kamış sayfasına geçilince "Geri" rig sayfasına döner
-function backTo(){ if (ui.sheet === 'rig' && ui.sheetArg) { const a = ui.sheetArg; ui.back = () => openRigSheet(a, true); } else if (ui.sheet !== 'parca' && ui.sheet !== 'gear') ui.back = null; }
+function backTo(){
+  const a = ui.sheetArg;
+  if (ui.sheet === 'rig' && a) ui.back = () => openRigSheet(a, true);
+  else if (ui.sheet === 'prep' && a) { const pb = ui.back; ui.back = () => { ui.back = pb; openPrep(a, true); }; }
+  else if (ui.sheet !== 'parca' && ui.sheet !== 'gear' && ui.sheet !== 'knot') ui.back = null;
+}
+// düğüm: rig hazırlama sayfasından açılınca o rigde nerede kullanıldığı ve "Geri" hazırlamaya döner
+function knotFrom(k, where){
+  if (ui.sheet === 'prep' && ui.sheetArg) { const a = ui.sheetArg; if (!where) { const c = prepCtx(a); where = c ? c.sc.knots.filter(x => x.k === k).map(x => x.where) : null; } backTo(); openKnot(k, where); return; }
+  if (ui.sheet === 'dugumler') { ui.back = () => openMore('dugumler', true); openKnot(k); return; }
+  if (ui.sheet !== 'knot') ui.back = null;
+  openKnot(k, where);
+}
 function setQty(k, v){ setQtyVal(k, v); invChanged(); }
 // adet/paket satırındaki "Alınacak": işaretliyse kaldırır (0 sayısı da silinir), değilse alınacak listesine koyar
 function alkToggle(k){
@@ -64,6 +77,7 @@ function bindEvents(){
   $('addCatch').addEventListener('click', () => catchForm(null));
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
+    const kg = e.target.closest && e.target.closest('g[data-knot]'); if (kg) { knotFrom(kg.dataset.knot); return; }   // şemadaki düğüm noktası
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
@@ -117,6 +131,10 @@ function bindEvents(){
     if (d.gearbuy) { gearAct('buy', d.gearbuy); return; }
     if (d.newitem) { ui.back = null; itemForm(null, d.newitem); return; }
     if (d.rigopen) { ui.back = null; openRigSheet(d.rigopen); return; }
+    if (d.prep) { backTo(); openPrep(d.prep); return; }
+    if (d.knot) { knotFrom(d.knot, d.kwhere ? d.kwhere.split('|') : null); return; }
+    if (d.prepreset) { const all = prepGet(); delete all[d.prepreset]; lsSet(LSP, JSON.stringify(all)); openPrep(d.prepreset, true); return; }
+    if (d.prepimg) { b.disabled = true; await prepImage(d.prepimg); b.disabled = false; return; }
     if (d.partuse) { partAct('use', d.partuse); return; }
     if (d.partall) { partAct('all', d.partall); return; }
     if (d.partorig) { partAct('orig', d.partorig); return; }
@@ -209,6 +227,7 @@ function bindEvents(){
   });
   document.addEventListener('change', e => {
     const el = e.target;
+    if (el.dataset && el.dataset.prepchk) { prepCheck(el.dataset.prepchk, el.checked); return; }
     if (el.id === 'cfCam' || el.id === 'cfGal') { addFiles(el.files); el.value = ''; return; }
     if (el.id === 'cf-sp') { $('cf-sp2w').hidden = el.value !== 'diger'; return; }
     if (el.id === 'cf-bot') { if (FORM) FORM.botTouched = true; return; }
@@ -280,7 +299,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
-  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
+  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
   loadState();
   pkgLoadCached();

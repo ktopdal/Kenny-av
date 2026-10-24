@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.24 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v24_check.py
+"""Alyssa v0.3–v0.25 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v25_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -11,8 +11,8 @@ WWW = ROOT + '/qa/www_t'
 SHOTS = ROOT + '/qa/v24'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
-shutil.copytree(ROOT + '/app/dist', WWW + '/dist')
-prev = open(ROOT + '/app/preview/alyssa_onizleme.html', encoding='utf-8').read()
+shutil.copytree(os.environ.get('ALYSSA_DIST', ROOT + '/app/dist'), WWW + '/dist')   # ALYSSA_DIST: sabitlenmiş bir derlemeyi test etmek için
+prev = open(os.environ.get('ALYSSA_PREV', ROOT + '/app/preview/alyssa_onizleme.html'), encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
 PORT = 8789
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -275,7 +275,7 @@ async def main():
         for v in ['takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(200); await overflow(pg, v)
         await pg.screenshot(path=SHOTS + '/a_daha.png')
-        check(await pg.locator('#moreMenu .mrow').count() == 18, 'Daha menüsü 18 satır (Hesap ve Tür takvimi dahil)')
+        check(await pg.locator('#moreMenu .mrow').count() == 19, 'Daha menüsü 19 satır (Hesap, Tür takvimi ve Düğüm kütüphanesi dahil)')
         # alışveriş: aynı rig iki kez yok
         await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
         lines = await pg.locator('#sheet .item .sp').all_inner_texts()
