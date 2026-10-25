@@ -158,3 +158,14 @@ async function doRestore(passFromForm){
     closeSheet(); toast('Geri yüklendi: ' + r.catches + ' av' + (r.photos ? ', ' + r.photos + ' fotoğraf' : ''));
   } catch (e) { setBusy(false); const el = $('bkErr'); if (el) { el.textContent = e.message || String(e); el.hidden = false; } else toast(e.message || String(e)); }
 }
+
+// v0.28 · profili sıfırla: özel paket (32 rig sistemi) ve ayarlar kalır
+async function resetProfile(av, locs){
+  Object.keys(S.systems).forEach(k => { if (k !== 'ozel') delete S.systems[k]; });
+  S.inv = {items: {}, qty: {}, status: {}, unit: {}, v: 2};
+  S.targets = []; S.shopX = {}; S.rigOv = {}; S.rigPhotos = {}; S.prepLog = []; S.advice = []; S.fb = {}; S.profile.baits = [];
+  if (locs) Object.keys(S.locations).forEach(id => { const L = S.locations[id]; if (!(L.pkg)) delete S.locations[id]; });
+  if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null;
+  if (av) { try { for (const c of CATCHES) { await IDB.del('catches', c.id); (c.photos || []).forEach(p => IDB.del('photos', p).catch(() => {})); } } catch (e) {} await loadCatches(); }
+  persist(); indexAll(); renderAll(); closeSheet(); toast('Profil sıfırlandı; özel paketin duruyor');
+}

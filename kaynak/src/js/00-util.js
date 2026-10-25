@@ -3,6 +3,7 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.28.1', notes: ['Ayarlar → Sıfırla: envanter, kendi riglerin, alışveriş listesi, tür planları ve danışman önerileri silinir; özel paketin (32 rig) kalır. İstersen avlar ve kendi konumların da']},
   {v: '0.28.0', notes: [
     'Takım danışmanı (Daha → Takım danışmanı; tür sayfasında, kamış/makine sayfasında ve kalem formunda da): yapay zekâ internette Türkiye’de satılan güncel kamış, makine, ip, lider, iğne, terminal, kurşun, aksesuar ve hazır rigleri arar; hedefine, noktana (mera notu, derinlik, akıntı, su) ve elindeki takıma göre öneri tablosu yapar',
     'Yapay zekâyı sen seçersin: Claude, Gemini (Google Arama ile, Google AI’ın motoru), ChatGPT ya da anahtarsız Google AI (soruyu kopyalayıp Google AI Moduna yapıştırırsın, cevabı geri yapıştırırsın). Anahtar yalnız bu cihazda kalır; koordinat gitmez',

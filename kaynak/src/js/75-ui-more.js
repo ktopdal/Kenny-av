@@ -74,6 +74,9 @@ function sheetSettings(){
     '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>https://ktopdal.github.io/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
     '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
+    '<section class="set"><h4>Sıfırla</h4><p class="note">Envanter işaretlerin ve kendi kalemlerin, Rig Atölyesi ve tür planı riglerin, rig ayarların, alışveriş listesi, hedef türler ve danışman önerileri silinir. Özel paketin (32 rig sistemi) kalır; paket kalemleri ilk hâline döner.</p>' +
+    '<label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Kendi eklediğim konumları da sil</label>' +
+    '<button class="btn" type="button" data-act="resetProfile" style="color:var(--D)">Profilimi sıfırla</button></section>' +
     '</div>';
 }
 function setSetting(name, val){

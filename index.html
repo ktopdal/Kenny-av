@@ -1720,9 +1720,10 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.28.0';
+const APP_VERSION = '0.28.1';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.28.1', notes: ['Ayarlar → Sıfırla: envanter, kendi riglerin, alışveriş listesi, tür planları ve danışman önerileri silinir; özel paketin (32 rig) kalır. İstersen avlar ve kendi konumların da']},
   {v: '0.28.0', notes: [
     'Takım danışmanı (Daha → Takım danışmanı; tür sayfasında, kamış/makine sayfasında ve kalem formunda da): yapay zekâ internette Türkiye’de satılan güncel kamış, makine, ip, lider, iğne, terminal, kurşun, aksesuar ve hazır rigleri arar; hedefine, noktana (mera notu, derinlik, akıntı, su) ve elindeki takıma göre öneri tablosu yapar',
     'Yapay zekâyı sen seçersin: Claude, Gemini (Google Arama ile, Google AI’ın motoru), ChatGPT ya da anahtarsız Google AI (soruyu kopyalayıp Google AI Moduna yapıştırırsın, cevabı geri yapıştırırsın). Anahtar yalnız bu cihazda kalır; koordinat gitmez',
@@ -7814,6 +7815,9 @@ function sheetSettings(){
     '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>https://ktopdal.github.io/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
     '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
+    '<section class="set"><h4>Sıfırla</h4><p class="note">Envanter işaretlerin ve kendi kalemlerin, Rig Atölyesi ve tür planı riglerin, rig ayarların, alışveriş listesi, hedef türler ve danışman önerileri silinir. Özel paketin (32 rig sistemi) kalır; paket kalemleri ilk hâline döner.</p>' +
+    '<label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Kendi eklediğim konumları da sil</label>' +
+    '<button class="btn" type="button" data-act="resetProfile" style="color:var(--D)">Profilimi sıfırla</button></section>' +
     '</div>';
 }
 function setSetting(name, val){
@@ -10035,6 +10039,17 @@ async function doRestore(passFromForm){
   } catch (e) { setBusy(false); const el = $('bkErr'); if (el) { el.textContent = e.message || String(e); el.hidden = false; } else toast(e.message || String(e)); }
 }
 
+// v0.28 · profili sıfırla: özel paket (32 rig sistemi) ve ayarlar kalır
+async function resetProfile(av, locs){
+  Object.keys(S.systems).forEach(k => { if (k !== 'ozel') delete S.systems[k]; });
+  S.inv = {items: {}, qty: {}, status: {}, unit: {}, v: 2};
+  S.targets = []; S.shopX = {}; S.rigOv = {}; S.rigPhotos = {}; S.prepLog = []; S.advice = []; S.fb = {}; S.profile.baits = [];
+  if (locs) Object.keys(S.locations).forEach(id => { const L = S.locations[id]; if (!(L.pkg)) delete S.locations[id]; });
+  if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null;
+  if (av) { try { for (const c of CATCHES) { await IDB.del('catches', c.id); (c.photos || []).forEach(p => IDB.del('photos', p).catch(() => {})); } } catch (e) {} await loadCatches(); }
+  persist(); indexAll(); renderAll(); closeSheet(); toast('Profil sıfırlandı; özel paketin duruyor');
+}
+
 // ---------------------------------------------------------------- 82 · paylaşım: envanter ve rig sistemi bağlantısı, geri bildirim
 // Bağlantı verinin kendisini taşır (adresin # sonrası sunucuya gitmez): #al=<z|j><base64url>; z = deflate-raw sıkıştırılmış JSON.
 // Açan kişi veriyi KENDİ profiline kopyalar; gönderenin envanteri, konumları, avları ve özel paketi paylaşılmaz, bağlantı tek yönlüdür.
@@ -10941,6 +10956,7 @@ function bindEvents(){
         catch (e) { toast(e.message || 'Pusula okunamadı'); b.textContent = 'Pusulayla al'; } return; }
       if (a === 'gpsfill') { if (!navigator.geolocation) { toast('Konum servisi yok'); return; } navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000}); return; }
       if (a === 'baitReset') { Object.values(ITEMS).forEach(i => { if (i.cat === 'bait') { delete S.inv.status[i.id + '|-']; delete S.inv.qty[i.id + '|-']; } }); persist(); renderAll(); toast('Bütün yemler “yok”'); return; }
+      if (a === 'resetProfile') { if (!armOnce(b, 'Emin misin? Sıfırlamak için tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, !!($('rs-loc') || {}).checked); return; }
       if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
       if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }
       if (a === 'bkNow') { const p = backupNow(true); setBkStatus(); await p; if (ui.sheet === 'yedek') openMore('yedek', true); return; }
