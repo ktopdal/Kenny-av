@@ -132,7 +132,8 @@ function sheetTur(id){
       (added ? '<p class="note">Bu rig “Tür planlarım” sisteminde' + (ready(RIGS[added.id] || p.rg) ? ' ve hazır; uygun günde önerilere girer.' : '; eksikler tamamlanınca önerilere girer.') + '</p>' : '') + '</section>';
   } else plan = '<div class="empty">Bu tür için önerilecek takım bulunamadı.</div>';
   return '<div class="bar"><button class="btn" type="button" data-open="turler">Geri</button><h3 id="sheetTitle">' + esc(t.name) + '</h3><span style="width:64px"></span></div><div class="stack">' +
-    '<p class="sub">' + esc(s.latin) + (t.like ? ' · “' + esc(s.name) + '” kurallarıyla' : '') + '</p>' +
+    (hasFishArt(s.id) ? '<div class="tur-art ' + fishKind(s.id) + '">' + fishArt(s.id, s.name) + '</div>' : '') +
+    '<p class="sub">' + esc(s.latin) + (t.like ? ' · “' + esc(s.name) + '” kurallarıyla' : '') + (hasFishArt(s.id) ? ' · çizim temsilîdir' : '') + '</p>' +
     '<div class="tbl panel info"><table><tbody>' + info.map(([k, v]) => '<tr><th>' + esc(k) + '</th><td>' + esc(v || '—') + '</td></tr>').join('') + '</tbody></table></div>' +
     warn.map(w => '<p class="banner">' + esc(w) + '</p>').join('') + grp + have + plan +
     '<p class="note">Takım bilgisi geneldir. Bölgende bu türün nerede ve ne zaman olduğunu arkadaşlarına sor; en azından hangi takımla gideceğini baştan bilirsin.</p>' +

@@ -33,7 +33,7 @@ function startWizard(editId){
   if (!WZ.ans.locId || !S.locations[WZ.ans.locId]) { const L = wzDefLoc(WZ.ans.region); WZ.ans.locId = L ? L.id : null; }
   ui.sheet = 'wizard'; renderWizard();
 }
-// koordinat: "38,1292" ya da "38.1292"; derece-dakika (38°07,754') da olur
+// koordinat: "38,4192" ya da "38.4192"; derece-dakika (38°25,152') da olur
 function wzParseCoord(v){
   v = String(v || '').trim().replace(/,/g, '.'); if (!v) return null;
   const m = v.match(/^(-?\d+(?:\.\d+)?)\s*°?\s*(?:(\d+(?:\.\d+)?)\s*['’′]?)?/); if (!m) return null;

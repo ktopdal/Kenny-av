@@ -814,6 +814,419 @@ button.crow.takim .v{text-decoration:none}
 .mats .pk input{width:64px;font:inherit;padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 .mats.done input:checked+span{text-decoration:none;color:inherit}
 
+/* v0.27 · Takvim sayfası: "Konum 1 Av Takvimi" sayfasının düzeni. Bütün sınıflar .atk içinde ve t- ön ekli (uygulamanın diğer sınıflarıyla çakışmaz). */
+:root{
+  --bg-2:#DAE6E9;--gold-soft:#F5E6B4;--sea:#23729F;--sun:#EFA51A;--rain:#2A79B2;
+  --cloud-fill:#E2EDF0;--cloud-back:#B7C9D0;--cloud-edge:#6A8693;
+  --A-fill:#2DA66F;--B-fill:#8CB52A;--C-fill:#E3A31C;--D-fill:#DC4C40;
+  --night-shade:rgba(10,36,49,.075);--lowconf:rgba(10,36,49,.05);--sl-day:#EEF5F7;--sl-night:#C9DAE0;
+  --moon-lit:#F6EBC2;--moon-dark:#27495A;--moon-edge:#5C8190;
+  --water-dip-a:#CDE6EB;--water-dip-b:#8CC0CB;--water-acik-a:#BDE0EB;--water-acik-b:#5C9DB7;--water-gece-a:#17394B;--water-gece-b:#0A202C;
+  --sand-a:#E6DCBE;--sand-b:#D5C8A2;--weed:#5A8E6A;--rock-a:#7B8A90;--rock-b:#94A2A7;--plot-bg:#F2F7F8;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg-2:#0B1F29;--gold-soft:#3A3010;--sea:#5AAEDF;--sun:#F6B93B;--rain:#5AAEDF;
+  --cloud-fill:#A2BAC4;--cloud-back:#6C8794;--cloud-edge:#D3E3E9;
+  --A-fill:#30B87D;--B-fill:#98C32F;--C-fill:#E6A825;--D-fill:#E65A4C;
+  --night-shade:rgba(0,0,0,.32);--lowconf:rgba(255,255,255,.045);--sl-day:#123242;--sl-night:#08181F;
+  --moon-lit:#F4E9BE;--moon-dark:#1A3342;--moon-edge:#4E7180;
+  --water-dip-a:#16424F;--water-dip-b:#0C2B37;--water-acik-a:#14455A;--water-acik-b:#0B2C3D;--water-gece-a:#0E2A3A;--water-gece-b:#061520;
+  --sand-a:#2E3E3B;--sand-b:#233230;--weed:#3F7A57;--rock-a:#4D5F66;--rock-b:#60727A;--plot-bg:#0B1F29}}
+:root[data-theme="dark"]{
+  --bg-2:#0B1F29;--gold-soft:#3A3010;--sea:#5AAEDF;--sun:#F6B93B;--rain:#5AAEDF;
+  --cloud-fill:#A2BAC4;--cloud-back:#6C8794;--cloud-edge:#D3E3E9;
+  --A-fill:#30B87D;--B-fill:#98C32F;--C-fill:#E6A825;--D-fill:#E65A4C;
+  --night-shade:rgba(0,0,0,.32);--lowconf:rgba(255,255,255,.045);--sl-day:#123242;--sl-night:#08181F;
+  --moon-lit:#F4E9BE;--moon-dark:#1A3342;--moon-edge:#4E7180;
+  --water-dip-a:#16424F;--water-dip-b:#0C2B37;--water-acik-a:#14455A;--water-acik-b:#0B2C3D;--water-gece-a:#0E2A3A;--water-gece-b:#061520;
+  --sand-a:#2E3E3B;--sand-b:#233230;--weed:#3F7A57;--rock-a:#4D5F66;--rock-b:#60727A;--plot-bg:#0B1F29}
+
+/* Takvim açıkken sayfa tablette geniş */
+#main.wide{max-width:1160px}
+
+.atk{min-width:0}
+.atk .t-ic{width:18px;height:18px;flex:none;vertical-align:-3px}
+.atk .t-arr{width:15px;height:15px;color:var(--brand);vertical-align:-2px;flex:none}
+.atk .t-arr.wv{color:var(--sea)}
+
+/* ---------- kahraman */
+.atk .t-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:28px;align-items:center;padding-block:6px 18px}
+.atk .t-hero.noplot{grid-template-columns:minmax(0,1fr)}
+.atk .t-kicker{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--brand);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.atk .t-kicker .t-ic{color:var(--accent)}
+.atk .t-h1{font-family:var(--display);font-weight:800;font-size:clamp(36px,8.5vw,68px);line-height:.98;letter-spacing:-.025em;margin:12px 0 0;color:var(--ink)}
+.atk .t-h1 em{font-style:normal;color:var(--brand);display:block}
+.atk .t-lede{font-size:17px;line-height:1.45;color:var(--ink-2);max-width:52ch;margin-top:14px}
+.atk .t-coords{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.atk .t-pill{display:inline-flex;gap:7px;align-items:center;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font:500 12.5px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.atk .t-pill .t-ic{width:15px;height:15px;color:var(--accent)}
+.atk .t-stamp{margin-top:14px;font-size:13px;color:var(--muted);max-width:64ch}
+.atk .t-hero .row{margin-top:12px}
+.atk .t-plotfig{margin:0;justify-self:end;width:100%;max-width:380px}
+.atk .t-plot{display:block;width:100%;height:auto}
+.atk .t-plot .pl-grid{stroke:var(--line);stroke-width:.7}
+.atk .t-plot .pl-ring{fill:none;stroke:var(--brand);stroke-width:1.1;stroke-dasharray:3 4;opacity:.8}
+.atk .t-plot .pl-axis{stroke:var(--brand);stroke-width:.8;opacity:.5}
+.atk .t-plot .pl-frame{fill:none;stroke:var(--ink);stroke-width:1.4}
+.atk .t-plot text{font-family:var(--mono);fill:var(--muted)}
+.atk .t-plot .pl-tick{font-size:9.5px}.atk .t-plot .pl-ringlbl{font-size:9.5px;fill:var(--brand)}
+.atk .t-plot .pl-mark{fill:var(--accent)}.atk .t-plot .pl-mark-halo{fill:none;stroke:var(--accent);stroke-width:1.6}
+.atk .t-plot .pl-name{font:700 14px var(--display);fill:var(--ink)}
+.atk .t-plot .pl-scale{stroke:var(--ink);stroke-width:1.6;fill:none}.atk .t-plot .pl-scale-t{font-size:9.5px;fill:var(--ink)}
+.atk .t-plot .pl-north{fill:var(--ink)}.atk .t-plot .pl-n{font:700 10px var(--display);fill:var(--ink)}
+.atk .t-plotfig figcaption{margin-top:6px;font:500 11.5px var(--mono);color:var(--muted);text-align:center}
+
+/* ---------- nokta sekmeleri ve bölüm çubuğu */
+.atk .t-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 10px}
+.atk .t-tabs::-webkit-scrollbar{display:none}
+.atk .t-tabs button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.atk .t-tabs button .t-ic{width:15px;height:15px}
+.atk .t-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.atk .t-nav{position:sticky;top:calc((env(safe-area-inset-top,0px) + 54px) / var(--zoom,1));z-index:20;background:var(--bg);border-bottom:1px solid var(--line);
+  display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)) / var(--zoom,1));padding-inline:max(10px,env(safe-area-inset-left,0px))}
+.atk .t-nav::-webkit-scrollbar{display:none}
+.atk .t-nav button{border:0;background:none;padding:12px 10px 10px;font:500 13px var(--body);color:var(--ink-2);white-space:nowrap;border-bottom:2px solid transparent;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.atk .t-nav button .t-ic{width:15px;height:15px;color:var(--muted)}
+.atk .t-nav button:hover,.atk .t-nav button:focus-visible{color:var(--ink);border-bottom-color:var(--accent)}
+
+/* ---------- bölümler */
+.atk .t-sec{padding-block:26px 6px;scroll-margin-top:calc(env(safe-area-inset-top,0px) + 104px)}
+.atk .t-head{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.atk .t-head .t-hrow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.atk .t-head h2{font-weight:750;font-size:clamp(24px,5.4vw,36px);line-height:1.06;letter-spacing:-.015em}
+.atk .t-sub{color:var(--ink-2);max-width:68ch;font-size:14.5px}
+.atk .t-sub b{color:var(--ink)}
+.atk h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.01em;margin:0}
+.atk .t-panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.atk .t-panel>h3{margin-bottom:8px}
+.atk .t-note{font-size:12.5px;color:var(--muted);margin-top:10px;max-width:90ch;line-height:1.45}
+.atk .t-note b{color:var(--ink-2)}
+.atk .t-viewseg{display:inline-flex;gap:4px;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.atk .t-viewseg button{border:0;background:none;border-radius:999px;padding:5px 11px;font:500 12.5px var(--body);color:var(--ink-2);cursor:pointer;display:inline-flex;gap:5px;align-items:center;min-height:30px}
+.atk .t-viewseg button .t-ic{width:14px;height:14px}
+.atk .t-viewseg button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand,#fff)}
+
+/* ---------- özet */
+.atk .t-sumgrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+.atk .t-sum{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px}
+.atk .t-sum li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;align-items:start}
+.atk .t-ib{width:30px;height:30px;border-radius:8px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center}
+.atk .t-ib.warn{background:var(--D-bg);color:var(--D)}
+.atk .t-ib.gold{background:var(--gold-soft);color:var(--gold)}
+.atk .t-ib.ok{background:var(--A-bg);color:var(--A)}
+.atk .t-sum .t{font-size:14.5px;line-height:1.5;color:var(--ink-2);margin:0}
+.atk .t-sum .t b{color:var(--ink);font-weight:600}
+.atk .t-strip-w{overflow-x:auto;scrollbar-width:thin;padding-bottom:2px}
+.atk .t-strip{display:grid;gap:3px;align-items:center;min-width:330px}
+.atk .t-strip .lab{font:500 11.5px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atk .t-strip .cell{height:26px;border-radius:4px;display:grid;place-items:center;font:600 11px var(--mono);color:#fff;min-width:0}
+.atk .t-strip .cell.na{background:var(--line-2);color:var(--muted)}
+.atk .cell.A{background:var(--A-fill)}.atk .cell.B{background:var(--B-fill)}.atk .cell.C{background:var(--C-fill)}.atk .cell.D{background:var(--D-fill)}
+.atk .cell.B,.atk .cell.C{color:#1a1a12}
+.atk .cell.sol{background:color-mix(in srgb,var(--gold-fill) 16%,var(--surface));color:var(--gold);border:1px solid color-mix(in srgb,var(--gold-fill) 30%,transparent)}
+.atk .cell.sol.s2{background:color-mix(in srgb,var(--gold-fill) 30%,var(--surface))}
+.atk .cell.sol.s3{background:color-mix(in srgb,var(--gold-fill) 50%,var(--surface));color:var(--ink)}
+.atk .cell.sol.s4{background:color-mix(in srgb,var(--gold-fill) 74%,var(--surface));color:#1a1405}
+.atk .cell.sol.s5{background:var(--gold-fill);color:#1a1405}
+.atk .t-strip .dn{font:500 10.5px var(--mono);color:var(--muted);text-align:center}
+.atk .t-strip .dn.wk{color:var(--accent);font-weight:600}
+.atk .t-strip .gl{grid-column:1/-1;font:600 11px var(--mono);color:var(--ink-2);margin-top:6px}
+.atk .t-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12.5px;color:var(--ink-2)}
+.atk .t-legend span{display:inline-flex;gap:6px;align-items:center}
+.atk .t-sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+.atk .t-sw.A{background:var(--A-fill)}.atk .t-sw.B{background:var(--B-fill)}.atk .t-sw.C{background:var(--C-fill)}.atk .t-sw.D{background:var(--D-fill)}.atk .t-sw.sol{background:var(--gold-fill)}
+.atk .t-phases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+.atk .t-phase{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.atk .t-phase .t-moon{width:34px;height:34px;flex:none}
+.atk .t-phase b{display:block;font:600 13.5px var(--body);color:var(--ink)}
+.atk .t-phase small{font:500 12px var(--mono);color:var(--muted)}
+
+/* ---------- rozet, güven, yıldız */
+.atk .t-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px 2px 6px;border-radius:6px;font:600 12px var(--mono);border:1px solid transparent;white-space:nowrap}
+.atk .t-badge .t-ic{width:13px;height:13px}
+.atk .t-badge.A{background:var(--A-bg);color:var(--A);border-color:color-mix(in srgb,var(--A) 35%,transparent)}
+.atk .t-badge.B{background:var(--B-bg);color:var(--B);border-color:color-mix(in srgb,var(--B) 35%,transparent)}
+.atk .t-badge.C{background:var(--C-bg);color:var(--C);border-color:color-mix(in srgb,var(--C) 40%,transparent)}
+.atk .t-badge.D{background:var(--D-bg);color:var(--D);border-color:color-mix(in srgb,var(--D) 40%,transparent)}
+.atk .t-badge.sm{font-size:11px;padding:1px 6px}
+.atk .t-conf{display:inline-flex;gap:2px;align-items:center}
+.atk .t-conf i{width:6px;height:6px;border-radius:50%;background:var(--line);display:block}
+.atk .t-conf.c4 i:nth-child(-n+4),.atk .t-conf.c3 i:nth-child(-n+3),.atk .t-conf.c2 i:nth-child(-n+2),.atk .t-conf.c1 i:nth-child(-n+1){background:var(--brand)}
+.atk .t-stars{display:inline-flex;gap:1px;vertical-align:middle}
+.atk .t-st{width:14px;height:14px}
+.atk .t-st.on{color:var(--gold)}.atk .t-st.off{color:var(--line)}
+.atk .t-moon{display:block}
+.atk .t-flag{font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:4px;background:var(--A-bg);color:var(--A);align-self:center;white-space:nowrap}
+.atk .t-flag.warn{background:var(--D-bg);color:var(--D)}
+.atk .t-flag.t-now{background:var(--brand-soft);color:var(--brand)}
+.atk .t-tag{display:inline-block;padding:1px 6px;border-radius:5px;background:var(--gold-soft);color:var(--gold);font:600 11px var(--mono);margin-right:3px;white-space:nowrap}
+.atk .t-tag.dawn{background:var(--brand-soft);color:var(--brand)}
+.atk .bftb{vertical-align:1px}
+
+/* ---------- gün kartları (dikey) */
+.atk .t-days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.atk .t-day{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:9px;min-width:0;text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%}
+.atk .t-day:hover{border-color:var(--brand)}
+.atk .t-day.worst{border-color:color-mix(in srgb,var(--D) 45%,var(--line))}
+.atk .t-day.best{border-color:color-mix(in srgb,var(--A) 60%,var(--line));box-shadow:var(--shadow)}
+.atk .t-day.low{background:color-mix(in srgb,var(--surface) 70%,var(--bg))}
+.atk .t-day header{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.atk .t-day .dn{font:800 30px/1 var(--display);letter-spacing:-.03em}
+.atk .t-day .dm{font:500 12px var(--mono);color:var(--muted);flex:1;white-space:nowrap}
+.atk .t-day .dm.wk{color:var(--accent)}
+.atk .t-wxrow{display:flex;align-items:center;gap:10px}
+.atk .t-wx{width:44px;height:44px;flex:none}
+.atk .t-temps{display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums;flex:1;min-width:0}
+.atk .t-temps b{font:700 22px var(--display)}
+.atk .t-temps span{font:500 14px var(--mono);color:var(--muted)}
+.atk .t-kv{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.atk .t-kv li{display:flex;justify-content:space-between;gap:6px;align-items:center;border-top:1px dashed var(--line-2);padding-top:4px;min-width:0}
+.atk .t-kv li:first-child{border-top:0;padding-top:0}
+.atk .t-kv .k{color:var(--muted);display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+.atk .t-kv .k .t-ic{width:14px;height:14px;color:var(--brand)}
+.atk .t-kv b{font:600 13px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.atk .t-kv small{font:500 11px var(--mono);color:var(--muted)}
+.atk .t-cls{display:flex;flex-wrap:wrap;gap:6px}
+.atk .t-solrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding-top:8px;border-top:1px solid var(--line-2);margin-top:auto}
+.atk .t-solrow .t-moon{width:26px;height:26px;flex:none}
+.atk .t-solrow small{font:500 11.5px var(--mono);color:var(--muted);line-height:1.25;flex-basis:100%}
+.atk .t-dwin{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:var(--surface-2);font:500 12px var(--mono);color:var(--ink-2);flex-wrap:wrap}
+.atk .t-dwin b{color:var(--ink)}
+.atk .t-dwin .fi svg{width:13px;height:9px}
+.atk .t-dlist{display:flex;flex-direction:column;gap:8px}
+
+/* ---------- karşılaştırma (3 nokta) */
+.atk .t-cday{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:10px;display:flex;flex-direction:column;gap:8px}
+.atk .t-cday+.t-cday{margin-top:10px}
+.atk .t-cdh{display:flex;align-items:baseline;gap:8px}
+.atk .t-cdh b{font:800 24px/1 var(--display);letter-spacing:-.02em}
+.atk .t-cdh span{font:500 12px var(--mono);color:var(--muted)}
+.atk .t-cdh span.wk{color:var(--accent)}
+.atk .t-cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.atk .t-cgrid .t-day{padding:10px;gap:7px}
+.atk .t-cgrid .t-day .nm{font:700 14px var(--display);color:var(--ink);display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
+.atk .t-cgrid .t-day .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.atk .t-cgrid .t-wx{width:34px;height:34px}
+.atk .t-cgrid .t-temps b{font-size:18px}
+
+/* ---------- grafik ve tablolar */
+.atk .t-chart{overflow-x:auto;border:1px solid var(--line);background:var(--surface);border-radius:12px;-webkit-overflow-scrolling:touch;padding:10px 6px 6px}
+.atk .ch{display:block;min-width:900px;width:100%;height:auto}
+.atk .ch text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.atk .ch .tiny{font-size:10px}
+.atk .ch .grid{stroke:var(--line-2);stroke-width:1}
+.atk .ch .nightbg{fill:var(--night-shade)}
+.atk .ch .lowconf{fill:var(--lowconf)}
+.atk .ch .band{opacity:.5}
+.atk .ch .band-A{fill:var(--A-bg)}.atk .ch .band-B{fill:var(--B-bg)}.atk .ch .band-C{fill:var(--C-bg)}.atk .ch .band-D{fill:var(--D-bg)}
+.atk .ch .cls-l{font-weight:700;font-size:12px}
+.atk .ch .cls-A{fill:var(--A)}.atk .ch .cls-B{fill:var(--B)}.atk .ch .cls-C{fill:var(--C)}.atk .ch .cls-D{fill:var(--D)}
+.atk .ch .thr{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 4;opacity:.55}
+.atk .ch .thr-c{stroke:var(--C);opacity:.9}.atk .ch .thr-d{stroke:var(--D);opacity:.9}
+.atk .ch .thr-t{font-size:10px}.atk .ch .thr-c-t{fill:var(--C)}.atk .ch .thr-d-t{fill:var(--D)}
+.atk .ch .line-wind{fill:none;stroke:var(--brand);stroke-width:2.3;stroke-linejoin:round;stroke-linecap:round}
+.atk .ch .area-wind{fill:var(--brand);opacity:.15}
+.atk .ch .line-gust{fill:none;stroke:var(--accent);stroke-width:1.4;stroke-dasharray:4 3;stroke-linejoin:round;opacity:.85}
+.atk .ch .warr{fill:var(--ink-2)}.atk .ch .warr.wv{fill:var(--sea)}
+.atk .ch .bar-lo{fill:var(--sea)}
+.atk .ch .line-wave{fill:none;stroke:var(--sea);stroke-width:1.4;opacity:.7}
+.atk .ch .line-press{fill:none;stroke:var(--ink-2);stroke-width:2;stroke-linejoin:round}
+.atk .ch .line-temp{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linejoin:round}
+.atk .ch .line-sst{fill:none;stroke:var(--sea);stroke-width:2;stroke-dasharray:6 4}
+.atk .ch .leg-t{font-size:11px;fill:var(--ink-2)}
+.atk .ch .split{stroke:var(--accent);stroke-width:1.2;stroke-dasharray:4 4}
+.atk .ch .split-t{font-size:10.5px;fill:var(--accent)}
+.atk .ch .note-t{font-size:11px;font-style:italic}
+.atk .ch .ptitle{font-size:10.5px;letter-spacing:.1em;fill:var(--ink-2);font-weight:600}
+.atk .ch .dl{font-size:11px;font-weight:600;fill:var(--ink-2)}
+.atk .ch .dl.wk{fill:var(--accent)}
+.atk .ch .nowl{stroke:var(--brand);stroke-width:1.4}
+.atk .ch .sl-day{fill:var(--sl-day)}.atk .ch .sl-night{fill:var(--sl-night)}
+.atk .ch .sl-twi{fill:var(--sun);opacity:.30}
+.atk .ch .sl-major{fill:var(--gold-fill);stroke:var(--gold);stroke-width:1}
+.atk .ch .sl-minor{fill:var(--gold-fill);opacity:.8}
+.atk .ch .sl-sun{stroke:var(--sun);stroke-width:1.3}
+.atk .ch .sl-mm{fill:var(--ink-2)}
+.atk .ch .wc-A{fill:var(--A-fill)}.atk .ch .wc-B{fill:var(--B-fill)}.atk .ch .wc-C{fill:var(--C-fill)}.atk .ch .wc-D{fill:var(--D-fill)}
+.atk .ch .sl-win{fill:none;stroke-width:2.4}
+.atk .ch .win-A{stroke:var(--A)}.atk .ch .win-B{stroke:var(--B)}.atk .ch .win-C{stroke:var(--C)}.atk .ch .win-D{stroke:var(--D)}
+.atk .ch .sst.on{color:var(--gold)}.atk .ch .sst.off{color:var(--line)}
+.atk .ch .sl-lab{font-size:12px}
+.atk .t-tbl{overflow-x:auto;border:1px solid var(--line);background:var(--surface);border-radius:12px;-webkit-overflow-scrolling:touch}
+.atk table.t-data{border-collapse:separate;border-spacing:0;width:100%;min-width:1040px;font-size:13px}
+.atk table.t-data th{font:600 11.5px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap;vertical-align:bottom}
+.atk table.t-data th.grp{text-align:center;color:var(--ink-2)}
+.atk table.t-data td{padding:8px 10px;border-bottom:1px solid var(--line-2);vertical-align:middle;font-variant-numeric:tabular-nums;white-space:nowrap}
+.atk table.t-data tr:last-child td{border-bottom:0}
+.atk table.t-data td:first-child,.atk table.t-data th:first-child{position:sticky;left:0;z-index:1;background:var(--surface);border-right:1px solid var(--line-2)}
+.atk table.t-data th:first-child{background:var(--surface-2)}
+.atk table.t-data td small{display:block;font:500 11px var(--mono);color:var(--muted)}
+.atk table.t-data tr.sep td{border-top:2px solid var(--line)}
+.atk table.t-data .dcell{display:flex;align-items:center;gap:8px}
+.atk table.t-data .dcell b{font:700 17px var(--display);letter-spacing:-.01em}
+.atk table.t-data .dcell span{font:500 11.5px var(--mono);color:var(--muted)}
+.atk table.t-data .dcell .wk{color:var(--accent)}
+.atk table.t-data .wxc{display:flex;align-items:center;gap:6px}
+.atk table.t-data .t-wx{width:30px;height:30px}
+.atk table.t-data .est{color:var(--muted);font-style:italic}
+.atk table.t-data .na{color:var(--muted)}
+.atk table.t-data .t-badge{margin-right:4px}
+.atk .t-lrow{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font-size:12.5px;color:var(--ink-2)}
+.atk .t-lrow span{display:inline-flex;align-items:center;gap:6px}
+.atk .lg{display:inline-block;width:22px;height:12px;border-radius:2px;vertical-align:middle}
+.atk .lg.major{background:var(--gold-fill);border:1px solid var(--gold)}
+.atk .lg.minor{background:var(--gold-fill);opacity:.8;height:8px}
+.atk .lg.twi{background:var(--sun);opacity:.35}
+.atk .lg.night{background:var(--sl-night)}
+.atk .lg.win{border:2px solid var(--A);background:transparent}
+.atk .lg.sun{width:2px;background:var(--sun)}
+.atk .lg.gust{height:0;border-top:2px dashed var(--accent)}
+.atk .lg.wind{height:3px;background:var(--brand)}
+
+/* ---------- ay şeridi */
+.atk .t-moons{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin-bottom:14px}
+.atk .t-mn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);min-width:0}
+.atk .t-mn .t-moon{width:28px;height:28px}
+.atk .t-mn b{font:600 12px var(--mono)}
+.atk .t-mn small{font:500 10.5px var(--mono);color:var(--muted)}
+.atk .t-mn .t-stars{margin-top:2px}.atk .t-mn .t-st{width:8px;height:8px}
+.atk .t-mn.peak{border-color:var(--gold)}
+
+/* ---------- pencereler */
+.atk .t-wins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.atk .t-win{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.atk .t-win .rk{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 16px var(--display)}
+.atk .t-win h3{font-size:18px}
+.atk .t-win .when{font:500 13px var(--mono);color:var(--ink-2);margin-top:2px}
+.atk .t-win .meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:8px;align-items:center;font-size:13px;color:var(--ink-2)}
+.atk .t-win .meta b{font-family:var(--mono);font-weight:600}
+.atk .t-win .meta .fi svg{width:14px;height:10px}
+.atk .t-rigs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.atk .t-rigs .lbl{font:500 11.5px var(--mono);color:var(--muted);margin-right:2px}
+.atk .t-rigs button{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font:600 12px var(--mono);border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer;min-height:28px}
+.atk .t-rigs button.g{border-color:color-mix(in srgb,var(--sun) 70%,var(--line));background:color-mix(in srgb,var(--sun) 16%,var(--surface))}
+.atk .t-rigs button.n{border-color:color-mix(in srgb,var(--sea) 60%,var(--line));background:color-mix(in srgb,var(--sea) 14%,var(--surface))}
+.atk .t-rigs button small{font:500 11px var(--body);color:var(--ink-2);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- yöntem */
+.atk .t-method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.atk .t-method h3{font-size:17px;margin-bottom:8px}
+.atk .t-kvt{width:100%;border-collapse:collapse;font-size:13px}
+.atk .t-kvt th,.atk .t-kvt td{padding:6px 8px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.atk .t-kvt th{font:600 11.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.atk .t-src{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.atk .t-src a{text-underline-offset:3px}
+.atk .t-warn{display:flex;gap:12px;padding:14px 16px;border:1px solid color-mix(in srgb,var(--C) 45%,var(--line));background:color-mix(in srgb,var(--C) 10%,var(--surface));border-radius:10px;color:var(--ink-2);font-size:14px}
+.atk .t-warn .t-ic{color:var(--C);width:22px;height:22px;margin-top:1px}
+.atk .t-foot{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-between}
+.atk .t-empty{padding:28px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+
+/* ---------- ekran genişliği */
+@media (max-width:1100px){.atk .t-days{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:900px){
+  .atk .t-days{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .atk .t-sumgrid,.atk .t-method,.atk .t-wins{grid-template-columns:minmax(0,1fr)}
+  .atk .t-hero{grid-template-columns:minmax(0,1fr);gap:16px}
+  .atk .t-plotfig{justify-self:center;max-width:300px}
+}
+@media (max-width:620px){
+  .atk .t-days{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .atk .t-day .dn{font-size:26px}
+  .atk .t-kv .dl{display:none}
+  .atk .t-phases{grid-template-columns:minmax(0,1fr)}
+  .atk .t-moons{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .atk .t-panel{padding:14px}
+  .atk .t-lede{font-size:15.5px}
+}
+@media (max-width:370px){
+  .atk .t-day{padding:10px 9px}
+  .atk .t-kv .k .t-ic{display:none}
+  .atk .t-wx{width:36px;height:36px}
+  .atk .t-temps b{font-size:19px}
+  .atk .t-cgrid{grid-template-columns:minmax(0,1fr)}
+}
+.atk .t-wxrow .t-conf{margin-left:4px}
+
+/* ---------- yatay gün kartları (telefonda varsayılan) */
+.atk .t-rows{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.atk .t-drow{display:grid;grid-template-columns:50px minmax(0,1fr);gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px 10px 8px;text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%;min-width:0}
+.atk .t-drow:hover{border-color:var(--brand)}
+.atk .t-drow.best{border-color:color-mix(in srgb,var(--A) 60%,var(--line));box-shadow:var(--shadow)}
+.atk .t-drow.worst{border-color:color-mix(in srgb,var(--D) 45%,var(--line))}
+.atk .t-drow.low{background:color-mix(in srgb,var(--surface) 70%,var(--bg))}
+.atk .t-drow .t-dd{display:flex;flex-direction:column;align-items:center;gap:1px;padding-right:8px;border-right:1px solid var(--line-2)}
+.atk .t-drow .t-dd .dn{font:800 27px/1 var(--display);letter-spacing:-.03em}
+.atk .t-drow .t-dd .dm,.atk .t-drow .t-dd .dw{font:500 11.5px var(--mono);color:var(--muted)}
+.atk .t-drow .t-dd .dw{font-weight:600;color:var(--ink-2)}
+.atk .t-drow .t-dd .wk{color:var(--accent)}
+.atk .t-drow .t-dbd{display:flex;flex-direction:column;gap:7px;min-width:0}
+.atk .t-drow .t-dtop{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;min-width:0}
+.atk .t-drow .t-dtop .t-wx{width:34px;height:34px}
+.atk .t-drow .t-dtop .t-temps{flex:0 0 auto}
+.atk .t-drow .t-dtop .t-temps b{font-size:19px}
+.atk .t-drow .t-dtop .t-temps span{font-size:13px}
+.atk .t-drow .t-dtop .t-dcl{display:inline-flex;gap:4px;margin-left:auto}
+.atk .t-drow .t-dtop .t-dnm{display:inline-flex;align-items:center;gap:5px;font:700 14px var(--display);color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atk .t-drow .t-dtop .t-dnm .t-ic{width:15px;height:15px;color:var(--accent)}
+.atk .t-chips{display:flex;flex-wrap:wrap;gap:5px 12px;font:600 12.5px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.atk .t-chips .t-c{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.atk .t-chips .t-c .t-ic{width:15px;height:15px;color:var(--brand)}
+.atk .t-chips .t-c .t-arr{width:13px;height:13px}
+.atk .t-chips small{font:500 11px var(--mono);color:var(--muted)}
+.atk .t-drow .t-dbot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0}
+.atk .t-drow .t-dbot .t-dwin{padding:4px 8px}
+.atk .t-drow .t-dbot .t-dsol{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font:500 11.5px var(--mono);color:var(--muted)}
+.atk .t-drow .t-dbot .t-dsol .t-moon{width:22px;height:22px}
+.atk .t-drow .t-dbot .t-st{width:12px;height:12px}
+.atk .t-drow.cmp{grid-template-columns:minmax(0,1fr);padding:10px 12px}
+.atk .t-crows{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+@media (min-width:700px){.atk .t-rows{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:370px){
+  .atk .t-drow{grid-template-columns:42px minmax(0,1fr);gap:8px;padding:9px 9px 9px 6px}
+  .atk .t-drow .t-dd .dn{font-size:23px}
+  .atk .t-chips{gap:4px 9px;font-size:12px}
+  .atk .t-drow .t-dtop .t-wx{width:30px;height:30px}
+}
+/* Bugün: ölçü kartlarında ikon (takvimdeki ak-* sembolleri) */
+.metric .k .m-ic{width:14px;height:14px;flex:none;vertical-align:-2px;margin-right:4px;color:var(--brand)}
+
+/* ---------- balıklar (tür kartları) */
+.atk .t-spg{margin-top:8px}
+.atk .t-spg+.t-spg{margin-top:22px}
+.atk .t-spgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:12px}
+.atk .t-sp{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.atk .t-sp-art{display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(180deg,var(--water-dip-a),var(--water-dip-b));border:0;padding:0;cursor:pointer;min-width:0}
+.atk .t-sp-art.acik{background:linear-gradient(180deg,var(--water-acik-a),var(--water-acik-b));align-items:center}
+.atk .t-sp-art.gece{background:linear-gradient(180deg,var(--water-gece-a),var(--water-gece-b));align-items:center}
+.atk .t-art{display:block;width:100%;height:auto}
+.atk .t-sp-body{padding:14px 16px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.atk .t-sp-body header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.atk .t-sp-body h3{font-size:22px}
+.atk .t-sp-body h3 button{all:unset;cursor:pointer;font:inherit;color:inherit}
+.atk .t-sp-body h3 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.atk .t-sp-body i{font:italic 400 13px var(--body);color:var(--muted)}
+.atk .t-fit{display:flex;align-items:center;gap:8px;font:600 12.5px var(--mono);color:var(--ink-2)}
+.atk .t-meter{display:inline-flex;gap:3px}
+.atk .t-meter b{width:11px;height:11px;border-radius:50%;background:var(--line);display:block}
+.atk .t-meter.f5 b,.atk .t-meter.f4 b:nth-child(-n+4){background:var(--A-fill)}
+.atk .t-meter.f3 b:nth-child(-n+3){background:var(--C-fill)}
+.atk .t-meter.f2 b:nth-child(-n+2),.atk .t-meter.f1 b:nth-child(1){background:var(--D-fill)}
+.atk .t-why{font-size:13.5px;color:var(--ink-2);line-height:1.45;margin:0}
+.atk .t-facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;margin:0;font-size:13px}
+.atk .t-facts dt{font:500 11.5px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.atk .t-facts dd{margin:0;color:var(--ink);overflow-wrap:anywhere}
+.atk .t-sp .t-rigs{margin-top:2px}
+.atk .t-rigs button.off{opacity:.5;border-style:dashed}
+@media (max-width:1000px){.atk .t-spgrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.atk .t-sp{grid-template-columns:minmax(0,1fr)}.atk .t-sp-art{max-height:200px;overflow:hidden}}
+/* Türlerim tür sayfası: tür çizimi */
+.tur-art{border-radius:12px;overflow:hidden;background:linear-gradient(180deg,var(--water-dip-a),var(--water-dip-b));display:flex;justify-content:center;width:100%;max-width:380px;margin-inline:auto}
+.tur-art.acik{background:linear-gradient(180deg,var(--water-acik-a),var(--water-acik-b))}
+.tur-art.gece{background:linear-gradient(180deg,var(--water-gece-a),var(--water-gece-b))}
+.tur-art .t-art{display:block;width:100%;height:auto}
+.atk .t-wxrow{flex-wrap:wrap;row-gap:4px}
+@media (max-width:340px){.atk .t-days{grid-template-columns:minmax(0,1fr)}}
+
 </style>
 <style id="userTheme"></style></head><body>
 
@@ -827,6 +1240,8 @@ button.crow.takim .v{text-decoration:none}
   </div>
 </header>
 
+<!-- v0.27 ikon takımı (takvim ve kartlar) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="ak-w-sunny" viewBox="0 0 48 48"><circle cx="24" cy="24" r="9" fill="var(--sun)"/><path d="M24 5v6M24 37v6M5 24h6M37 24h6M10.6 10.6l4.2 4.2M33.2 33.2l4.2 4.2M10.6 37.4l4.2-4.2M33.2 14.8l4.2-4.2" stroke="var(--sun)" stroke-width="3" stroke-linecap="round" fill="none"/></symbol><symbol id="ak-w-partly" viewBox="0 0 48 48"><circle cx="17" cy="17" r="7" fill="var(--sun)"/><path d="M17 4v3M4 17h3M7.8 7.8l2.1 2.1M26.2 7.8l-2.1 2.1M7.8 26.2l2.1-2.1" stroke="var(--sun)" stroke-width="2.6" stroke-linecap="round" fill="none"/><path transform="translate(6 6) scale(.88)" d="M13 35c-4.4 0-8-3.4-8-7.6 0-3.9 3-7.1 6.9-7.5C13.2 15.6 17.2 13 22 13c5 0 9.2 3.1 10.5 7.4.5-.1 1-.2 1.5-.2 4.1 0 7.5 3.2 7.5 7.2S38.1 35 34 35H13z" fill="var(--cloud-fill)" stroke="var(--cloud-edge)" stroke-width="1.6" stroke-linejoin="round"/></symbol><symbol id="ak-w-cloudy" viewBox="0 0 48 48"><path transform="translate(9 -1) scale(.8)" d="M13 35c-4.4 0-8-3.4-8-7.6 0-3.9 3-7.1 6.9-7.5C13.2 15.6 17.2 13 22 13c5 0 9.2 3.1 10.5 7.4.5-.1 1-.2 1.5-.2 4.1 0 7.5 3.2 7.5 7.2S38.1 35 34 35H13z" fill="var(--cloud-back)" stroke="var(--cloud-edge)" stroke-width="1.6" stroke-linejoin="round"/><path transform="translate(0 4)" d="M13 35c-4.4 0-8-3.4-8-7.6 0-3.9 3-7.1 6.9-7.5C13.2 15.6 17.2 13 22 13c5 0 9.2 3.1 10.5 7.4.5-.1 1-.2 1.5-.2 4.1 0 7.5 3.2 7.5 7.2S38.1 35 34 35H13z" fill="var(--cloud-fill)" stroke="var(--cloud-edge)" stroke-width="1.6" stroke-linejoin="round"/></symbol><symbol id="ak-w-rain" viewBox="0 0 48 48"><path transform="translate(0 -5)" d="M13 35c-4.4 0-8-3.4-8-7.6 0-3.9 3-7.1 6.9-7.5C13.2 15.6 17.2 13 22 13c5 0 9.2 3.1 10.5 7.4.5-.1 1-.2 1.5-.2 4.1 0 7.5 3.2 7.5 7.2S38.1 35 34 35H13z" fill="var(--cloud-fill)" stroke="var(--cloud-edge)" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 36l-2.4 6.5M24 36l-2.4 6.5M33 36l-2.4 6.5" stroke="var(--rain)" stroke-width="2.8" stroke-linecap="round" fill="none"/></symbol><symbol id="ak-w-drizzle" viewBox="0 0 48 48"><path transform="translate(0 -5)" d="M13 35c-4.4 0-8-3.4-8-7.6 0-3.9 3-7.1 6.9-7.5C13.2 15.6 17.2 13 22 13c5 0 9.2 3.1 10.5 7.4.5-.1 1-.2 1.5-.2 4.1 0 7.5 3.2 7.5 7.2S38.1 35 34 35H13z" fill="var(--cloud-fill)" stroke="var(--cloud-edge)" stroke-width="1.6" stroke-linejoin="round"/><path d="M16 37l-1.2 3.2M24 38l-1.2 3.2M32 37l-1.2 3.2" stroke="var(--rain)" stroke-width="2.4" stroke-linecap="round" fill="none"/></symbol><symbol id="ak-w-showers" viewBox="0 0 48 48"><circle cx="16" cy="15" r="6.5" fill="var(--sun)"/><path d="M16 4v2.6M5 15h2.6M8.2 7.2l1.8 1.8M23.8 7.2L22 9" stroke="var(--sun)" stroke-width="2.4" stroke-linecap="round" fill="none"/><path transform="translate(5 -1) scale(.9)" d="M13 35c-4.4 0-8-3.4-8-7.6 0-3.9 3-7.1 6.9-7.5C13.2 15.6 17.2 13 22 13c5 0 9.2 3.1 10.5 7.4.5-.1 1-.2 1.5-.2 4.1 0 7.5 3.2 7.5 7.2S38.1 35 34 35H13z" fill="var(--cloud-fill)" stroke="var(--cloud-edge)" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 36l-2.2 6M28 36l-2.2 6" stroke="var(--rain)" stroke-width="2.8" stroke-linecap="round" fill="none"/></symbol><symbol id="ak-w-unknown" viewBox="0 0 48 48"><path d="M13 35c-4.4 0-8-3.4-8-7.6 0-3.9 3-7.1 6.9-7.5C13.2 15.6 17.2 13 22 13c5 0 9.2 3.1 10.5 7.4.5-.1 1-.2 1.5-.2 4.1 0 7.5 3.2 7.5 7.2S38.1 35 34 35H13z" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="3 3" stroke-linejoin="round" transform="translate(0 2)"/><text x="23.5" y="31" text-anchor="middle" font-size="13" font-weight="600" fill="var(--muted)" font-family="IBM Plex Mono, ui-monospace, monospace">?</text></symbol><symbol id="ak-arrow" viewBox="0 0 24 24"><path d="M12 2.5l6.2 11.2-4.6-1.8V21.5h-3.2V11.9l-4.6 1.8z" fill="currentColor"/></symbol><symbol id="ak-star" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" fill="currentColor"/></symbol><symbol id="ak-wind" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10.5a2.7 2.7 0 1 0-2.7-2.7M3 12.5h15a3 3 0 1 1-3 3M3 17h6.5a2.2 2.2 0 1 1-2.2 2.2"/></g></symbol><symbol id="ak-gust" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h9a2.5 2.5 0 1 0-2.5-2.5M2 11.5h15.5a3 3 0 1 1-3 3"/><path d="M15 18.5l2.2-2.6 1.6 1.6 2.7-3.4" stroke-width="1.6"/></g></symbol><symbol id="ak-wave" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5c2.4-2.8 4.6-2.8 7 0s4.6 2.8 7 0 4.4-2.6 6 0M2 15.5c2.4-2.8 4.6-2.8 7 0s4.6 2.8 7 0 4.4-2.6 6 0"/></g></symbol><symbol id="ak-thermo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.4V5a2 2 0 1 1 4 0v9.4a4 4 0 1 1-4 0z"/><path d="M12 9v7"/></g></symbol><symbol id="ak-gauge" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 17a8.6 8.6 0 1 1 16.8 0"/><path d="M12 16.5l3.8-5"/><circle cx="12" cy="16.5" r="1.2"/></g></symbol><symbol id="ak-drop" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5s6 6 6 10.2a6 6 0 0 1-12 0C6 9.5 12 3.5 12 3.5z"/></g></symbol><symbol id="ak-rain" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14.5a4.2 4.2 0 0 1-.5-8.4A5.6 5.6 0 0 1 17.4 7.5a3.5 3.5 0 0 1-.4 7"/><path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5"/></g></symbol><symbol id="ak-current" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5h14.5l-3.2-3.2M21 15.5H6.5l3.2 3.2"/></g></symbol><symbol id="ak-compass" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2 5.2-5.2 2 2-5.2z"/></g></symbol><symbol id="ak-sunrise" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18.5h18M7 18.5a5 5 0 0 1 10 0M12 4v5.5M9.2 6.7L12 4l2.8 2.7"/></g></symbol><symbol id="ak-sunset" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18.5h18M7 18.5a5 5 0 0 1 10 0M12 9.5V4M9.2 7L12 9.7 14.8 7"/></g></symbol><symbol id="ak-boat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.2l6 9.3h-6"/></g></symbol><symbol id="ak-anchor" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V21M7.5 11.5h9M4 14.5c.3 3.8 3.7 6.5 8 6.5s7.7-2.7 8-6.5"/></g></symbol><symbol id="ak-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.2a7 7 0 1 0-14 0C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.5"/></g></symbol><symbol id="ak-warn" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.4v.1"/></g></symbol><symbol id="ak-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.1"/></g></symbol><symbol id="ak-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/></g></symbol><symbol id="ak-fish" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12C5 8 9 6.5 12.5 7c1.4.2 2.6.8 3.6 1.6L21 6l-1.6 6 1.6 6-4.9-2.6c-1 .8-2.2 1.4-3.6 1.6C9 17.5 5 16 2.5 12z"/><path d="M10.2 9.4c.8 1.7.8 3.5 0 5.2"/></g><circle cx="6.6" cy="11.3" r="1.1" fill="currentColor"/></symbol><symbol id="ak-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol><symbol id="ak-check" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></g></symbol><symbol id="ak-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></g></symbol><symbol id="ak-moon" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></g></symbol><symbol id="ak-cloud" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18.5a4.5 4.5 0 0 1-.6-8.9A6 6 0 0 1 18 11a3.8 3.8 0 0 1-.5 7.5z"/></g></symbol><symbol id="ak-sink" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7.5 11.5L12 16l4.5-4.5M4 20.5h16"/></g></symbol><symbol id="ak-chart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 19.5h17M5 15l4-5 3.5 3 6-7.5"/><circle cx="9" cy="10" r=".6"/></g></symbol><symbol id="ak-table" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15"/></g></symbol><symbol id="ak-cards" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="7" height="16" rx="1.6"/><rect x="13.5" y="4" width="7" height="16" rx="1.6"/></g></symbol><symbol id="ak-rows" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="6.5" rx="1.6"/><rect x="3.5" y="13.5" width="17" height="6.5" rx="1.6"/></g></symbol></defs></svg>
 <main class="wrap" id="main">
   <div id="banners"></div>
 
@@ -894,11 +1309,7 @@ button.crow.takim .v{text-decoration:none}
 
   <!-- TAKVİM -->
   <section class="view" id="v-takvim" hidden>
-    <div class="sec-head"><span class="eyebrow">15 gün</span><h2 id="calTitle">Av takvimi</h2>
-      <p class="sub" id="calSub">Sınıf: A çok uygun, B uygun, C dikkat, D uygun değil. Bir güne dokun, saatlik tablosu açılır.</p>
-      <div class="row" style="margin-top:8px" id="calAlertRow"><button class="btn small" type="button" data-open="uyari">Takvim uyarısı kur</button></div></div>
-    <div class="calpick" id="calPick"></div>
-    <div class="days" id="dayList"></div>
+    <div class="atk" id="atk"></div>
   </section>
 
   <!-- AVLAR -->
@@ -1277,9 +1688,15 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.26.0';
+const APP_VERSION = '0.27.0';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.27.0', notes: [
+    'Takvim yenilendi: av takvimi sayfasının düzeni uygulamada, her gün güncel veriyle: konum çizelgesi, özet, uygunluk şeridi, meteogram, ayrıntılı tablo, solunar şeritleri, en iyi 6 pencere (rig önerisiyle), yöntem',
+    'Yeni gün kartları: hava simgesi, sıcaklık, rüzgâr oku ve adı, hamle, dalga, akıntı, su, basınç, yağış, deniz sınıfı, balık penceresi, ay evresi. Telefonda yatay, tablette dikey kartlar açılır; Günler → Dikey / Yatay ile değiştirirsin, seçim o cihazda kalır',
+    'Balıklar: takvimde tür kartları: her türün çizimi, Latince adı, bu dönemki uyumu (1–5), dip, mevsime göre derinlik, yem, boy, zaman, su sıcaklığı ve sistemindeki rig kodları. Resme dokun: tür sayfası; Türlerim tür sayfasında da çizim var (46 tür)',
+    'Takvimde istediğin noktaları seçersin (en çok 3): her noktanın kendi sekmesi; “Karşılaştır” sekmesinde her gün noktaların kartları birlikte, en iyi nokta işaretli',
+    'Yeni ikonlar: rüzgâr, hamle, dalga, akıntı, su, basınç, yağış, güneş, ay (Bugün ekranındaki ölçülerde de); bölüm çubuğuyla sayfada hızlı geçiş']},
   {v: '0.26.0', notes: [
     'Rig editörü: hazırlama sayfasında “Kopyasını düzenle”: köstek ekle/çıkar, boy ve iğne değiştir, köstek arası, ipler, kurşun; şema canlı değişir; dolaşma, kalınlık, akış ve kamış sınırı uyarıları. Kaydedince “Rig Atölyem” sisteminde kendi rigin olur (asıl rig ve envanter değişmez)',
     '“Rig hazırladım”: iğneler (adet ya da paketle sayılıyorsa) envanterden düşer, iplerin kullanılan metresi kaydedilir; azalan iğnenin hangi rigleri etkileyeceği önceden yazılır; “Geri al”',
@@ -5630,7 +6047,7 @@ function renderToday(){
   }
   $('todayLbl').textContent = DOW[dd.date.getDay()] + ' · ' + dd.date.getDate() + ' ' + MONTHS[dd.date.getMonth()];
   const cur = dd.hs.reduce((b, x) => Math.abs(x.t - now) < Math.abs(b.t - now) ? x : b, dd.hs[0]);
-  const M = (k, v, u, s) => '<div class="metric"><span class="k">' + k + '</span><span class="v">' + v + ' <small>' + u + '</small></span><span class="s">' + s + '</span></div>';
+  const M = (k, v, u, s, ic) => '<div class="metric"><span class="k">' + (ic ? akI(ic, 'm-ic') : '') + k + '</span><span class="v">' + v + ' <small>' + u + '</small></span><span class="s">' + s + '</span></div>';
   // Rüzgâr kartı Karma satırıyla aynı (Karma: ICON-EU, yedeğe geçmez); Hamle ayrı kartta, kendi modeliyle (Karma: GFS)
   const u = windU(), ul = u === 'bft' ? windU2() : u;
   const sub = (v, d) => v == null ? 'model yok' : windNum(v, ul) + ' ' + WU_TXT[ul] + (d == null ? '' : ' ' + windName(d));
@@ -5640,22 +6057,22 @@ function renderToday(){
   if (land) {   // kara: yalnız hava durumu
     const pops = dd.hs.map(x => x.pop).filter(v => v != null);
     $('nowGrid').innerHTML =
-      M('Rüzgâr ' + mBadge(SRC[kId].short), big(cur.wk), 'Bft', sub(cur.wk, cur.wkd)) +
-      M('Hamle ' + mBadge(gId ? (SRC[gId] ? SRC[gId].short : 'En iyi') : '–'), big(cur.gust), 'Bft', sub(cur.gust, gDir)) +
-      M('Sıcaklık', cur.temp == null ? '–' : tempV(cur.temp), TU(), 'gün ' + tempV(dd.tmin) + '–' + tempV(dd.tmax) + ' ' + TU()) +
-      M('Yağış', cur.pop == null ? '–' : '%' + Math.round(cur.pop), '', 'gün en çok %' + (pops.length ? Math.round(Math.max(...pops)) : '–') + (dd.rain >= 0.1 ? ' · ' + f1(dd.rain) + ' mm' : ' · yağış yok')) +
-      M('Bulut', cur.cloud == null ? '–' : '%' + Math.round(cur.cloud), '', cur.cloud == null ? '' : cur.cloud < 20 ? 'açık' : cur.cloud < 60 ? 'parçalı bulutlu' : cur.cloud < 90 ? 'çok bulutlu' : 'kapalı') +
-      M('Basınç', cur.press == null ? '–' : Math.round(pressNum(cur.press)), pressU() === 'mmhg' ? 'mmHg' : 'hPa', cur.dp3 == null ? '' : '3 saatte ' + (cur.dp3 >= 0.5 ? '↑ yükseliyor' : cur.dp3 <= -0.5 ? '↓ düşüyor' : '→ durgun'));
+      M('Rüzgâr ' + mBadge(SRC[kId].short), big(cur.wk), 'Bft', sub(cur.wk, cur.wkd), 'wind') +
+      M('Hamle ' + mBadge(gId ? (SRC[gId] ? SRC[gId].short : 'En iyi') : '–'), big(cur.gust), 'Bft', sub(cur.gust, gDir), 'gust') +
+      M('Sıcaklık', cur.temp == null ? '–' : tempV(cur.temp), TU(), 'gün ' + tempV(dd.tmin) + '–' + tempV(dd.tmax) + ' ' + TU(), 'thermo') +
+      M('Yağış', cur.pop == null ? '–' : '%' + Math.round(cur.pop), '', 'gün en çok %' + (pops.length ? Math.round(Math.max(...pops)) : '–') + (dd.rain >= 0.1 ? ' · ' + f1(dd.rain) + ' mm' : ' · yağış yok'), 'rain') +
+      M('Bulut', cur.cloud == null ? '–' : '%' + Math.round(cur.cloud), '', cur.cloud == null ? '' : cur.cloud < 20 ? 'açık' : cur.cloud < 60 ? 'parçalı bulutlu' : cur.cloud < 90 ? 'çok bulutlu' : 'kapalı', 'cloud') +
+      M('Basınç', cur.press == null ? '–' : Math.round(pressNum(cur.press)), pressU() === 'mmhg' ? 'mmHg' : 'hPa', cur.dp3 == null ? '' : '3 saatte ' + (cur.dp3 >= 0.5 ? '↑ yükseliyor' : cur.dp3 <= -0.5 ? '↓ düşüyor' : '→ durgun'), 'gauge');
     $('classRow').innerHTML = '';
     return;
   }
   $('nowGrid').innerHTML =
-    M('Rüzgâr ' + mBadge(SRC[kId].short), big(cur.wk), 'Bft', sub(cur.wk, cur.wkd)) +
-    M('Hamle ' + mBadge(gId ? (SRC[gId] ? SRC[gId].short : 'En iyi') : '–'), big(cur.gust), 'Bft', sub(cur.gust, gDir)) +
-    M('Dalga', f1(cur.wave), 'm', cur.per != null ? Math.round(cur.per) + ' sn ' + windName(cur.waveDir) + ' · gün en çok ' + f1(dd.wave) + ' m' : 'model yok') +
-    M('Akıntı', f1(cur.cur), 'kn', cur.cur != null ? dir8(cur.curDir) + ' yönüne' : 'model yok') +
-    M('Su sıcaklığı', cur.sst == null ? '–' : tempV(cur.sst, true), TU(), 'gün ort. ' + tempTxt(dd.sst, true)) +
-    M('Hava', cur.temp == null ? '–' : tempV(cur.temp), TU(), pressTxt(cur.press) + (cur.dp3 == null ? '' : ' ' + (cur.dp3 >= 0.5 ? '↑' : cur.dp3 <= -0.5 ? '↓' : '→')));
+    M('Rüzgâr ' + mBadge(SRC[kId].short), big(cur.wk), 'Bft', sub(cur.wk, cur.wkd), 'wind') +
+    M('Hamle ' + mBadge(gId ? (SRC[gId] ? SRC[gId].short : 'En iyi') : '–'), big(cur.gust), 'Bft', sub(cur.gust, gDir), 'gust') +
+    M('Dalga', f1(cur.wave), 'm', cur.per != null ? Math.round(cur.per) + ' sn ' + windName(cur.waveDir) + ' · gün en çok ' + f1(dd.wave) + ' m' : 'model yok', 'wave') +
+    M('Akıntı', f1(cur.cur), 'kn', cur.cur != null ? dir8(cur.curDir) + ' yönüne' : 'model yok', 'current') +
+    M('Su sıcaklığı', cur.sst == null ? '–' : tempV(cur.sst, true), TU(), 'gün ort. ' + tempTxt(dd.sst, true), 'drop') +
+    M('Hava', cur.temp == null ? '–' : tempV(cur.temp), TU(), pressTxt(cur.press) + (cur.dp3 == null ? '' : ' ' + (cur.dp3 >= 0.5 ? '↑' : cur.dp3 <= -0.5 ? '↓' : '→')), 'thermo');
   const cl = (c, lbl, w) => c ? '<div class="cls ' + c + '"><b>' + c + '</b><span><b style="font:600 13px var(--body)">' + lbl + '</b><br>' + CLS_TXT[c] + ' · en çok ' + bft(w) + ' Bft</span></div>' : '';
   $('classRow').innerHTML = cl(dd.clsD, 'Gündüz', dd.wd) + cl(dd.clsN, 'Gece', dd.wn);
 }
@@ -5683,7 +6100,7 @@ function toggleCalLoc(id){
   let ids = calLocs().slice();
   if (ids.includes(id)) { if (ids.length > 1) ids = ids.filter(x => x !== id); }
   else { if (ids.length >= CAL_MAX) { toast('En çok ' + CAL_MAX + ' nokta karşılaştırılır; önce birini çıkar'); return; } ids.push(id); }
-  S.settings.calLocs = ids; persist(); renderCalendar();
+  S.settings.calLocs = ids; ui.calTab = null; persist(); renderCalendar();
 }
 // başka bir konumun günlerini hesapla: genel durum (seçili konum, veri) geçici olarak o konuma çevrilir, sonra geri alınır
 function withLoc(L, w, fn){
@@ -5696,7 +6113,7 @@ const CAL_SUM = {};
 function calLegend(){
   const m = S.settings.model || 'karma';
   const src = m === 'karma' ? 'Karma: rüzgâr ICON-EU (yoksa ECMWF), hamle GFS' : 'model ' + (SRC[m] ? SRC[m].short : m);
-  return '<p class="note callegend">Rüzgâr ve hamle: gündüz (07–18) / gece (19–06) en yüksek değer · ' + esc(src) + '. Dalga ve akıntı: günün en yükseği · su ve basınç: gün ortalaması · hava: en düşük–en yüksek · yağış: günün en yüksek ihtimali.</p>';
+  return '<p class="note callegend">Rüzgâr ve hamle: gündüz (07–18) / gece (19–06) en yüksek değer · ' + esc(src) + '. ' + (landMode() ? 'Basınç: gün ortalaması' : 'Dalga ve akıntı: günün en yükseği · su ve basınç: gün ortalaması') + ' · hava: en düşük–en yüksek · yağış: günün en yüksek ihtimali.</p>';
 }
 function locSummary(L){
   const w = L.id === S.active ? S.wx : MWX[L.id];
@@ -5708,6 +6125,7 @@ function locSummary(L){
     const worst = [dd.clsD, dd.clsN].filter(Boolean).sort().pop() || null;
     const score = land || !win ? 0 : win.pct * (SEA_F[win.cls || worst] || 0.5);
     return {key: dd.key, date: dd.date, idx: dd.idx, wd: dd.wd, wn: dd.wn, gust: dd.gust, gD: dd.gD, gN: dd.gN, wave: dd.wave, clsD: dd.clsD, clsN: dd.clsN, tmin: dd.tmin, tmax: dd.tmax, pop: dd.pop, rain: dd.rain,
+      wx: akDayWx(dd), dir: akDir(dd), sst: dd.sst, stars: dd.sol.stars,
       land, win: win ? {pct: win.pct, fish: win.fish, a: win.a, b: win.b, cls: win.cls} : null, score};
   });
   const out = L.id === S.active ? make() : withLoc(L, w, make);
@@ -5720,59 +6138,6 @@ function renderCalPick(){
   if (all.length < 2) { el.innerHTML = ''; return; }
   el.innerHTML = '<div class="eyebrow">Noktalar · en çok ' + CAL_MAX + '</div><div class="seg wrapseg">' + all.map(L => '<button class="btn small" type="button" data-calloc="' + esc(L.id) + '" aria-pressed="' + sel.includes(L.id) + '">' +
     esc(locLabel(L)) + ' <em class="kd ' + locKind(L) + '">' + KIND_TXT[locKind(L)] + '</em></button>').join('') + '</div>';
-}
-function renderCalCompare(ids){
-  const Ls = ids.map(id => S.locations[id]);
-  const sums = Ls.map(L => { const sm = locSummary(L); if (!sm && L.id !== S.active && !wxFresh(MWX[L.id], L) && !MWX_LOAD[L.id] && Date.now() - (MWX_FAIL[L.id] || 0) > 5 * 60000)
-    loadWxFor(L).then(() => { if (!MWX[L.id]) MWX_FAIL[L.id] = Date.now(); renderCalendar(); }); return sm; });
-  const allLand = Ls.every(L => locKind(L) === 'kara');
-  $('calTitle').textContent = allLand ? 'Hava takvimi' : 'Av takvimi';
-  $('calSub').textContent = Ls.length + ' nokta yan yana. ' + (allLand ? '' : 'Her gün balık ve deniz sınıfına göre en iyi nokta işaretli. ') + 'Bir satıra dokun: o nokta seçilir, o günün saatlik tablosu açılır.';
-  $('calAlertRow').hidden = allLand;
-  const keys = []; sums.forEach(sm => (sm || []).forEach(d => { if (!keys.includes(d.key)) keys.push(d.key); })); keys.sort();
-  if (!keys.length) { $('dayList').innerHTML = '<div class="empty">Noktaların verisi yükleniyor…</div>'; return; }
-  const cls = (c, l) => c ? '<span class="chip ' + c + '">' + l + ' ' + c + '</span>' : '';
-  $('dayList').innerHTML = keys.slice(0, 16).map(k => {
-    const rows = Ls.map((L, i) => ({L, d: (sums[i] || []).find(x => x.key === k) || null}));
-    const best = rows.filter(r => r.d && r.d.score > 0).sort((p, q) => q.d.score - p.d.score)[0];
-    const d0 = rows.find(r => r.d).d;
-    return '<div class="day cmp' + (d0.idx >= 10 ? ' low' : '') + '"><div class="d"><b>' + d0.date.getDate() + '</b><span>' + MON3[d0.date.getMonth()] + ' ' + DOW[d0.date.getDay()] + '</span></div><div class="body">' +
-      rows.map(({L, d}) => '<button class="crow2' + (best && best.L === L ? ' best' : '') + '" type="button" data-calpick="' + esc(L.id) + '|' + k + '"><span class="nm">' + esc(locLabel(L)) + (best && best.L === L ? ' <em class="besttag">En iyi</em>' : '') + '</span>' +
-        (!d ? '<span class="note">yükleniyor…</span>' : '<span class="chips">' + (d.land ? '' : cls(d.clsD, 'Gündüz') + cls(d.clsN, 'Gece')) +
-          '<span><em>rüzgâr</em> ' + bftBadge(bft(d.wd)) + '/' + bftBadge(bft(d.wn)) + ' Bft</span>' +
-          (d.gD != null || d.gN != null ? '<span><em>hamle</em> ' + bftBadge(bft(d.gD)) + '/' + bftBadge(bft(d.gN)) + ' Bft</span>' : '') +
-          (d.land ? '<span><em>hava</em> ' + tempV(d.tmin) + '–' + tempV(d.tmax) + ' ' + TU() + '</span>' + (d.pop != null ? '<span><em>yağış</em> %' + Math.round(d.pop) + '</span>' : '') :
-            (d.wave != null ? '<span><em>dalga</em> ' + f1(d.wave) + ' m</span>' : '') + (d.win ? '<span class="cw">' + fishHtml(d.win.fish) + ' <b>%' + d.win.pct + '</b> ' + hm(d.win.a) + '–' + hm(d.win.b) + '</span>' : '')) + '</span>') +
-        '</button>').join('') + '</div></div>';
-  }).join('') + calLegend();
-}
-function renderCalendar(){
-  renderCalPick();
-  const sel = calLocs();
-  if (sel.length >= 2) { renderCalCompare(sel); return; }
-  const ds = days().slice(0, 16), land = landMode();
-  // karada: hava takvimi (deniz sınıfı, balık penceresi, solunar yıldızı, dalga, akıntı, su yok)
-  $('calTitle').textContent = land ? 'Hava takvimi' : 'Av takvimi';
-  $('calSub').textContent = land ? 'Kara noktası: yalnız hava durumu. Bir güne dokun, saatlik tablosu açılır.' : 'Sınıf: A çok uygun, B uygun, C dikkat, D uygun değil. Bir güne dokun, saatlik tablosu açılır.';
-  $('calAlertRow').hidden = land;
-  if (!ds.length) { $('dayList').innerHTML = '<div class="empty">' + (loc() ? 'Veri yok. İnternete bağlanınca takvim dolar.' : 'Önce bir konum ekle.') + '</div>'; return; }
-  const on = {}; orderedRows(CROWS, S.settings.calrows).forEach(r => { on[r.id] = r.on; });
-  const SEA_ROWS = ['dalga', 'akinti', 'su', 'pencere'];
-  const V = (id, html) => on[id] && !(land && SEA_ROWS.includes(id)) ? html : '';
-  $('dayList').innerHTML = ds.map(dd => {
-    const w = land ? null : windows(dd)[0];
-    return '<button class="day' + (dd.idx >= 10 ? ' low' : '') + '" data-calday="' + dd.key + '" style="text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%">' +
-      '<div class="d"><b>' + dd.date.getDate() + '</b><span>' + MON3[dd.date.getMonth()] + ' ' + DOW[dd.date.getDay()] + '</span></div>' +
-      '<div class="body">' + (land ? '' : '<div class="chips">' + (dd.clsD ? '<span class="chip ' + dd.clsD + '">Gündüz ' + dd.clsD + '</span>' : '') + (dd.clsN ? '<span class="chip ' + dd.clsN + '">Gece ' + dd.clsN + '</span>' : '') + starsHtml(dd.sol.stars) + '</div>') +
-      '<div class="vals">' + V('ruzgar', '<span><em>rüzgâr</em> ' + bftBadge(bft(dd.wd)) + '/' + bftBadge(bft(dd.wn)) + ' Bft</span>') + V('hamle', '<span><em>hamle</em> ' + bftBadge(bft(dd.gD)) + '/' + bftBadge(bft(dd.gN)) + ' Bft</span>') +
-      V('dalga', '<span><em>dalga</em> ' + f1(dd.wave) + ' m</span>') + V('akinti', dd.cur != null ? '<span><em>akıntı</em> ' + f1(dd.cur) + ' kn</span>' : '') + V('su', dd.sst != null ? '<span><em>su</em> ' + tempTxt(dd.sst, true) + '</span>' : '') +
-      V('hava', '<span><em>hava</em> ' + tempV(dd.tmin) + '–' + tempV(dd.tmax) + ' ' + TU() + '</span>') + V('basinc', '<span><em>basınç</em> ' + pressTxt(dd.pmean) + (dd.pdelta > 1 ? ' ↑' : dd.pdelta < -1 ? ' ↓' : '') + '</span>') +
-      V('yagis', dd.pop != null ? '<span><em>yağış</em> %' + Math.round(dd.pop) + (dd.rain >= 0.5 ? ' · ' + f1(dd.rain) + ' mm' : '') + '</span>' : '') +
-      '</div>' +
-      V('pencere', w ? '<div class="calwin">' + fishHtml(w.fish) + '<span><b>%' + w.pct + '</b> en iyi pencere <b>' + winTxt(w) + '</b>' + (w.cls ? ' · deniz ' + w.cls : '') + ' · ' + esc(w.evs.map(e => e.k).join(' + ')) + '</span></div>' +
-        (w.skipped ? '<div class="note">' + skipTxt(w.skipped) + '</div>' : '') : '') +
-      V('guven', '<div class="note">güven ' + dd.conf + ' · ' + esc(dd.models.join(', ')) + '</div>') + '</div></button>';
-  }).join('') + calLegend();
 }
 
 // ---------------------------------------------------------------- 71 · saatlik tablo (Windy düzeni; satırlar, birimler ve model seçilebilir)
@@ -7052,6 +7417,888 @@ function duzenApply(code){
   return n;
 }
 
+// ---------------------------------------------------------------- 76 · Takvim sayfası (v0.27)
+// "Konum 1 Av Takvimi" sayfasının düzeni uygulamanın içinde, her gün güncel veriyle ve kullanıcının seçtiği noktalar için:
+// kahraman (konum çizelgesi), özet ve uygunluk şeridi, dikey gün kartları (ya da eski satır listesi), meteogram, ayrıntılı tablo,
+// solunar şeritleri, en iyi pencereler (rig önerisiyle), yöntem. En çok 3 nokta seçilir; her nokta kendi sekmesinde, "Karşılaştır"
+// sekmesinde günler yan yana dikey kartlarla. İkonlar shell.html'deki ak-* sembollerinden gelir.
+const DOWL = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+const AK_CONF = {'yüksek': [4, 'Yüksek', 1], 'iyi': [3, 'İyi', 0.97], 'orta': [2, 'Orta', 0.9], 'düşük': [1, 'Düşük', 0.75]};
+const AK_WXT = {sunny: 'Açık', partly: 'Parçalı bulutlu', cloudy: 'Bulutlu', rain: 'Yağmurlu', drizzle: 'Çiseleme', showers: 'Sağanak olasılığı', unknown: 'Veri yok'};
+let CAL_DIRTY = true;
+// gün görünümü bu cihaza kaydedilir (telefon ve tablet aynı profili paylaşsa da ayrı seçilir): yoksa telefonda yatay, tablette dikey
+const CV_KEY = 'alyssa-cv';
+function calView(){ let v = null; try { v = localStorage.getItem(CV_KEY); } catch (e) {} return v === 'kart' || v === 'liste' ? v : ((window.innerWidth || 400) >= 700 ? 'kart' : 'liste'); }
+function setCalView(v){ try { localStorage.setItem(CV_KEY, v); } catch (e) {} }
+const akI = (n, c) => '<svg class="' + (c || 't-ic') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ak-' + n + '"/></svg>';
+const akWxI = (k, c) => '<svg class="' + (c || 't-wx') + '" viewBox="0 0 48 48" role="img" aria-label="' + AK_WXT[k] + '"><title>' + AK_WXT[k] + '</title><use href="#ak-w-' + k + '"/></svg>';
+// ok rüzgârın / dalganın gittiği yöne bakar (geldiği yön + 180°); akıntı zaten gittiği yöndür
+const akArr = (from, c) => from == null ? '' : '<svg class="' + (c || 't-arr') + '" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(' + Math.round((from + 180) % 360) + 'deg)"><use href="#ak-arrow"/></svg>';
+const akArrTo = (to, c) => to == null ? '' : akArr((to + 180) % 360, c);
+const akStars = n => '<span class="t-stars" role="img" aria-label="' + n + ' / 5 yıldız">' + [0, 1, 2, 3, 4].map(i => '<svg class="t-st ' + (i < n ? 'on' : 'off') + '" viewBox="0 0 24 24" aria-hidden="true"><use href="#ak-star"/></svg>').join('') + '</span>';
+const akConf = c => { const a = AK_CONF[c] || AK_CONF['orta']; return '<span class="t-conf c' + a[0] + '" role="img" aria-label="Güven ' + a[1] + '" title="Güven: ' + a[1] + '"><i></i><i></i><i></i><i></i></span>'; };
+const akBadge = (c, icon, label, sm) => c ? '<span class="t-badge ' + c + (sm ? ' sm' : '') + '" title="' + esc(CLS_TXT[c]) + '">' + (icon ? akI(icon) : '') + (label || c) + '</span>' : '';
+const akDname = d => d.getDate() + ' ' + MONTHS[d.getMonth()];
+const akWk = d => d.getDay() === 0 || d.getDay() === 6;
+const akDay0 = d => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+function akRange(a, b){
+  if (dateKey(a) === dateKey(b)) return akDname(a);
+  if (a.getMonth() === b.getMonth()) return a.getDate() + '–' + b.getDate() + ' ' + MONTHS[b.getMonth()];
+  return akDname(a) + ' – ' + akDname(b);
+}
+// "17 ve 26 Ekim" / "17, 26 ve 29 Ekim" (ay değişince ay adıyla)
+function akList(ds){
+  const g = []; ds.forEach(d => { const m = MONTHS[d.date.getMonth()]; if (g.length && g[g.length - 1][0] === m) g[g.length - 1][1].push(d.date.getDate()); else g.push([m, [d.date.getDate()]]); });
+  return g.map(([m, n]) => n.length === 1 ? n[0] + ' ' + m : n.slice(0, -1).join(', ') + ' ve ' + n[n.length - 1] + ' ' + m).join(', ');
+}
+function akRuns(ds, pred){ const out = []; let cur = []; ds.forEach(d => { if (pred(d)) cur.push(d); else if (cur.length) { out.push(cur); cur = []; } }); if (cur.length) out.push(cur); return out; }
+// ay evresi resmi (illum 0–1, büyüyen mi)
+function akMoon(illum, waxing, size, craters){
+  const s = size || 28, c = s / 2, r = s / 2 - 1.6, k = Math.max(0, Math.min(1, illum || 0));
+  let p = '<svg class="t-moon" viewBox="0 0 ' + s + ' ' + s + '" width="' + s + '" height="' + s + '" aria-hidden="true" focusable="false"><circle cx="' + c + '" cy="' + c + '" r="' + r.toFixed(1) + '" fill="var(--moon-dark)" stroke="var(--moon-edge)" stroke-width="1"/>';
+  p += akMoonLit(k, waxing, c, c, r);
+  if (craters && s >= 30) [[-0.28, -0.22, 0.16], [0.22, 0.12, 0.2], [-0.1, 0.38, 0.11]].forEach(([fx, fy, fr]) => { p += '<circle cx="' + (c + fx * r).toFixed(1) + '" cy="' + (c + fy * r).toFixed(1) + '" r="' + (fr * r).toFixed(1) + '" fill="var(--moon-dark)" opacity=".10"/>'; });
+  return p + '</svg>';
+}
+function akMoonLit(k, waxing, cx, cy, r){
+  if (k >= 0.97) return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r.toFixed(1) + '" fill="var(--moon-lit)"/>';
+  if (k <= 0.03) return '';
+  const rx = Math.abs(1 - 2 * k) * r, f = v => v.toFixed(2);
+  const d = waxing ? 'M' + f(cx) + ' ' + f(cy - r) + ' A' + f(r) + ' ' + f(r) + ' 0 0 1 ' + f(cx) + ' ' + f(cy + r) + ' A' + f(rx) + ' ' + f(r) + ' 0 0 ' + (k < 0.5 ? 0 : 1) + ' ' + f(cx) + ' ' + f(cy - r) + ' Z'
+    : 'M' + f(cx) + ' ' + f(cy - r) + ' A' + f(r) + ' ' + f(r) + ' 0 0 0 ' + f(cx) + ' ' + f(cy + r) + ' A' + f(rx) + ' ' + f(r) + ' 0 0 ' + (k < 0.5 ? 1 : 0) + ' ' + f(cx) + ' ' + f(cy - r) + ' Z';
+  return '<path d="' + d + '" fill="var(--moon-lit)"/>';
+}
+const akMoonG = (illum, waxing, cx, cy, r) => '<g><circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r + '" fill="var(--moon-dark)" stroke="var(--moon-edge)" stroke-width="1"/>' + akMoonLit(Math.max(0, Math.min(1, illum || 0)), waxing, +cx.toFixed(1), +cy.toFixed(1), r) + '</g>';
+const akWax = dd => { if (dd._wax == null) dd._wax = SunCalc.getMoonIllumination(new Date(akDay0(dd.date) + 12 * 3600000)).phase < 0.5; return dd._wax; };
+// ana evreler (yeniay, ilk dördün, dolunay, son dördün) ve tam saatleri: Meeus, Astronomical Algorithms, 49. bölüm (dakika düzeyinde)
+function akPhaseT(k){
+  const T = k / 1236.85, rd = Math.PI / 180, q = Math.round((k - Math.floor(k)) * 4) % 4;
+  const JDE = 2451550.09766 + 29.530588861 * k + 0.00015437 * T * T - 0.00000015 * T * T * T + 0.00000000073 * T * T * T * T;
+  const E = 1 - 0.002516 * T - 0.0000074 * T * T;
+  const M = (2.5534 + 29.1053567 * k - 0.0000014 * T * T) * rd, Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T * T + 0.00001238 * T * T * T) * rd;
+  const F = (160.7108 + 390.67050284 * k - 0.0016118 * T * T - 0.00000227 * T * T * T) * rd, Om = (124.7746 - 1.56375588 * k + 0.0020672 * T * T) * rd;
+  const sn = Math.sin; let c;
+  if (q === 0 || q === 2) {
+    const nw = q === 0;
+    c = (nw ? -0.4072 : -0.40614) * sn(Mp) + (nw ? 0.17241 : 0.17302) * E * sn(M) + (nw ? 0.01608 : 0.01614) * sn(2 * Mp) + (nw ? 0.01039 : 0.01043) * sn(2 * F) +
+      (nw ? 0.00739 : 0.00734) * E * sn(Mp - M) - (nw ? 0.00514 : 0.00515) * E * sn(Mp + M) + (nw ? 0.00208 : 0.00209) * E * E * sn(2 * M) - 0.00111 * sn(Mp - 2 * F) - 0.00057 * sn(Mp + 2 * F) +
+      0.00056 * E * sn(2 * Mp + M) - 0.00042 * sn(3 * Mp) + 0.00042 * E * sn(M + 2 * F) + 0.00038 * E * sn(M - 2 * F) - 0.00024 * E * sn(2 * Mp - M) - 0.00017 * sn(Om) - 0.00007 * sn(Mp + 2 * M) +
+      0.00004 * sn(2 * Mp - 2 * F) + 0.00004 * sn(3 * M) + 0.00003 * sn(Mp + M - 2 * F) + 0.00003 * sn(2 * Mp + 2 * F) - 0.00003 * sn(Mp + M + 2 * F) + 0.00003 * sn(Mp - M + 2 * F) - 0.00002 * sn(Mp - M - 2 * F) - 0.00002 * sn(3 * Mp + M) + 0.00002 * sn(4 * Mp);
+  } else {
+    c = -0.62801 * sn(Mp) + 0.17172 * E * sn(M) - 0.01183 * E * sn(Mp + M) + 0.00862 * sn(2 * Mp) + 0.00804 * sn(2 * F) + 0.00454 * E * sn(Mp - M) + 0.00204 * E * E * sn(2 * M) - 0.0018 * sn(Mp - 2 * F) -
+      0.0007 * sn(Mp + 2 * F) - 0.0004 * sn(3 * Mp) - 0.00034 * E * sn(2 * Mp - M) + 0.00032 * E * sn(M + 2 * F) + 0.00032 * E * sn(M - 2 * F) - 0.00028 * E * E * sn(Mp + 2 * M) + 0.00027 * E * sn(2 * Mp + M) -
+      0.00017 * sn(Om) - 0.00005 * sn(Mp - M - 2 * F) + 0.00004 * sn(2 * Mp + 2 * F) - 0.00004 * sn(Mp + M + 2 * F) + 0.00004 * sn(Mp - 2 * M) + 0.00003 * sn(Mp + M - 2 * F) + 0.00003 * sn(3 * M) + 0.00002 * sn(2 * Mp - 2 * F) + 0.00002 * sn(Mp - M + 2 * F) - 0.00002 * sn(3 * Mp + M);
+    const W = 0.00306 - 0.00038 * E * Math.cos(M) + 0.00026 * Math.cos(Mp) - 0.00002 * Math.cos(Mp - M) + 0.00002 * Math.cos(Mp + M) + 0.00002 * Math.cos(2 * F);
+    c += q === 1 ? W : -W;
+  }
+  return new Date((JDE + c - 69 / 86400 - 2440587.5) * 86400000);   // TT → UT (ΔT ≈ 69 sn)
+}
+function akPhases(t0, t1){
+  const NM = [['Yeniay', 0, true], ['İlk dördün', 0.5, true], ['Dolunay', 1, true], ['Son dördün', 0.5, false]], out = [];
+  const y = new Date(t0).getFullYear() + (new Date(t0).getMonth() + 0.5) / 12;
+  const k0 = Math.floor((y - 2000) * 12.3685) - 2;
+  for (let k = k0; k < k0 + 8; k++) for (let q = 0; q < 4; q++) { const t = akPhaseT(k + q / 4); if (t.getTime() >= t0 && t.getTime() < t1) out.push({name: NM[q][0], t, illum: NM[q][1], waxing: NM[q][2]}); }
+  return out.sort((a, b) => a.t - b.t);
+}
+// gün değerleri: hava simgesi, rüzgâr/dalga/akıntı yönü (rüzgâr ağırlıklı ortalama)
+function akDayWx(dd){
+  if (dd._wxk) return dd._wxk;
+  const hs = dd.hs.filter(x => x.h >= 7 && x.h < 19), cl = meanOf(hs, 'cloud'), pp = maxOf(hs, 'pop'), rn = hs.reduce((a, x) => a + (x.rain || 0), 0);
+  let k = 'unknown';
+  if (cl != null || pp != null) {
+    const c = cl == null ? 50 : cl, p = pp || 0;
+    k = rn >= 2 || p >= 70 ? 'rain' : rn >= 0.3 || p >= 45 ? (c < 70 ? 'showers' : 'drizzle') : c < 20 ? 'sunny' : c < 65 ? 'partly' : 'cloudy';
+  }
+  return (dd._wxk = k);
+}
+function akMeanDir(hs, dk, wk){
+  let s = 0, c = 0; hs.forEach(x => { const d = x[dk], w = wk ? x[wk] : 1; if (d == null || w == null) return; s += Math.sin(d * Math.PI / 180) * w; c += Math.cos(d * Math.PI / 180) * w; });
+  return !s && !c ? null : (Math.atan2(s, c) * 180 / Math.PI + 360) % 360;
+}
+const akDir = (dd, night) => akMeanDir(dd.hs.filter(x => night ? (x.h < 7 || x.h >= 19) : (x.h >= 7 && x.h < 18)), 'wdir', 'wind');
+// rüzgâr değeri: seçili birim (Bft rozeti ya da sayı) ve küçük ikinci birim
+function akW(ms, two){
+  if (ms == null) return '–';
+  const u = windU(), u2 = windU2();
+  const main = u === 'bft' ? bftBadge(bft(ms)) + ' Bft' : windNum(ms, u) + ' ' + WU_TXT[u];
+  return main + (two === false ? '' : ' <small>' + (u2 === 'bft' ? bft(ms) + ' Bft' : windNum(ms, u2) + ' ' + WU_TXT[u2]) + '</small>');
+}
+// hamle gündüz / gece (rüzgâr gibi iki değer)
+function akW2(a, b){
+  if (b == null) return akW(a, false); if (a == null) return akW(b, false);
+  const u = windU(); return u === 'bft' ? bftBadge(bft(a)) + '/' + bftBadge(bft(b)) + ' Bft' : windNum(a, u) + '/' + windNum(b, u) + ' ' + WU_TXT[u];
+}
+const akWt = ms => ms == null ? '–' : windNum(ms) + ' ' + WU_TXT[windU()];
+// günün en iyi penceresi ve sıralama puanı (balık × deniz payı × güven)
+function akBest(ds){
+  const rows = []; ds.forEach(dd => windows(dd).forEach(w => rows.push({dd, w, adj: w.pct * (SEA_F[w.cls] || 0.5) * (AK_CONF[dd.conf] || AK_CONF['orta'])[2]})));
+  return rows.sort((a, b) => b.adj - a.adj);
+}
+
+// ---------------------------------------------------------------- konum çizelgesi (ölçekli dakika ağı, 1–2–3 mil halkaları; kara çizilmez)
+function akPlot(L){
+  const W = 380, cx = 190, cy = 190, nm = 52, coslat = Math.cos(L.lat * Math.PI / 180);
+  const latM = (Math.abs(L.lat) % 1) * 60, lonM = (Math.abs(L.lon) % 1) * 60, sLat = L.lat >= 0 ? 1 : -1, sLon = L.lon >= 0 ? 1 : -1;
+  const x0 = 26, y0 = 26, x1 = W - 26, y1 = W - 26, o = [];
+  o.push('<svg class="t-plot" viewBox="0 0 ' + W + ' ' + W + '" role="img" aria-label="' + esc(locLabel(L)) + ' çizelgesi: 1, 2 ve 3 millik halkalar">');
+  o.push('<defs><clipPath id="ak-plotclip"><rect x="' + x0 + '" y="' + y0 + '" width="' + (x1 - x0) + '" height="' + (y1 - y0) + '"/></clipPath></defs>');
+  o.push('<rect x="' + x0 + '" y="' + y0 + '" width="' + (x1 - x0) + '" height="' + (y1 - y0) + '" fill="var(--plot-bg)"/><g clip-path="url(#ak-plotclip)">');
+  const bl = Math.floor(latM), bo = Math.floor(lonM), ys = [], xs = [];
+  for (let k = -4; k <= 5; k++) { const m = bl + k, y = cy - sLat * (m - latM) * nm; if (y >= y0 - 2 && y <= y1 + 2) { o.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" class="pl-grid"/>'); ys.push([y, m]); } }
+  for (let k = -6; k <= 7; k++) { const m = bo + k, x = cx + sLon * (m - lonM) * nm * coslat; if (x >= x0 - 2 && x <= x1 + 2) { o.push('<line y1="' + y0 + '" y2="' + y1 + '" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" class="pl-grid"/>'); xs.push([x, m]); } }
+  [1, 2, 3].forEach(i => o.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + i * nm + '" class="pl-ring"/>'));
+  o.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + cy + '" y2="' + cy + '" class="pl-axis"/><line y1="' + y0 + '" y2="' + y1 + '" x1="' + cx + '" x2="' + cx + '" class="pl-axis"/></g>');
+  o.push('<rect x="' + x0 + '" y="' + y0 + '" width="' + (x1 - x0) + '" height="' + (y1 - y0) + '" class="pl-frame"/>');
+  const mm = m => pad(((m % 60) + 60) % 60) + '′';
+  ys.forEach(([y, m]) => { if (y >= y0 + 6 && y <= y1 - 6) o.push('<text x="' + (x0 - 4) + '" y="' + y.toFixed(1) + '" class="pl-tick" text-anchor="end" dominant-baseline="middle">' + mm(m) + '</text>'); });
+  xs.forEach(([x, m]) => { if (x >= x0 + 10 && x <= x1 - 10) o.push('<text x="' + x.toFixed(1) + '" y="' + (y0 - 8) + '" class="pl-tick" text-anchor="middle">' + mm(m) + '</text>'); });
+  [1, 2, 3].forEach(i => o.push('<text x="' + (cx + i * nm * 0.7071 + 3).toFixed(1) + '" y="' + (cy - i * nm * 0.7071 - 3).toFixed(1) + '" class="pl-ringlbl">' + i + ' mil</text>'));
+  const nmTxt = String(L.id === '1' && L.pkg ? '1' : locLabel(L)).slice(0, 14);
+  o.push('<circle cx="' + cx + '" cy="' + cy + '" r="9" class="pl-mark-halo"/><circle cx="' + cx + '" cy="' + cy + '" r="4.2" class="pl-mark"/><text x="' + (cx + 13) + '" y="' + (cy - 11) + '" class="pl-name">' + esc(nmTxt) + '</text>');
+  const sx = x0 + 12, sy = y1 - 14;
+  o.push('<path d="M' + sx + ' ' + sy + ' h' + nm + ' M' + sx + ' ' + sy + ' v-5 M' + (sx + nm) + ' ' + sy + ' v-5" class="pl-scale"/><text x="' + (sx + nm + 6) + '" y="' + (sy + 1) + '" class="pl-scale-t">1 deniz mili</text>');
+  const nx = x1 - 22, ny = y1 - 34;
+  o.push('<path d="M' + nx + ' ' + (ny - 14) + ' l6 16 -6 -4 -6 4z" class="pl-north"/><text x="' + nx + '" y="' + (ny + 14) + '" class="pl-n" text-anchor="middle">K</text></svg>');
+  return o.join('');
+}
+
+// ---------------------------------------------------------------- bölüm başlığı ve kahraman
+const akHead = (eb, title, sub, right) => '<div class="t-head"><span class="eyebrow">' + eb + '</span><div class="t-hrow"><h2>' + title + '</h2>' + (right || '') + '</div>' + (sub ? '<p class="t-sub">' + sub + '</p>' : '') + '</div>';
+function akHero(L, ds, land, cmp){
+  const hide = S.settings.hideCoords, kind = locKind(L);
+  const n = ds.length, d0 = ds[0], d1 = ds[n - 1];
+  let h = '<header class="t-hero' + (hide || cmp ? ' noplot' : '') + '"><div>';
+  h += '<p class="t-kicker">' + akI('pin') + (cmp ? '<span>' + cmp.length + ' nokta</span><span>·</span><span>' + esc(cmp.map(id => locLabel(S.locations[id])).join(' · ')) + '</span>'
+    : '<span>' + esc(locLabel(L)) + '</span><span>·</span><span>' + esc(KIND_TXT[kind] + (kind !== 'kara' && shoreMode() ? ' · kıyıdan av' : kind !== 'kara' ? ' · tekne' : '')) + '</span>') + '</p>';
+  h += '<h1 class="t-h1"><span>' + (n ? n + ' günlük' : 'Günlük') + '</span> <em id="calTitle">' + (land ? 'Hava takvimi' : 'Av takvimi') + '</em></h1>';
+  const what = land ? 'hava, rüzgâr, hamle, sıcaklık, basınç ve yağış.' : shoreMode() ? 'hava, rüzgâr, dalga, su sıcaklığı, solunar pencereler ve kıyıdan tutulabilecek balıklar.' : 'hava, rüzgâr, dalga, su sıcaklığı, solunar pencereler ve tekneyle tutulabilecek balıklar.';
+  h += '<p class="t-lede" id="calSub">' + (n ? esc(akRange(d0.date, d1.date) + ' ' + d1.date.getFullYear()) + ': ' : '') + (cmp ? 'noktalar yan yana. Her gün balık ve deniz sınıfına göre en iyi nokta işaretli; bir karta dokun, o nokta seçilir ve o günün saatlik tablosu açılır.' : what) + '</p>';
+  if (!cmp && !hide) h += '<div class="t-coords"><span class="t-pill">' + akI('compass') + esc(f6(L.lat)) + '° ' + (L.lat >= 0 ? 'K' : 'G') + '</span><span class="t-pill">' + akI('compass') + esc(f6(L.lon)) + '° ' + (L.lon >= 0 ? 'D' : 'B') + '</span><span class="t-pill">' + esc(ddm(L.lat, 'K', 'G') + ' · ' + ddm(L.lon, 'D', 'B')) + '</span></div>';
+  if (!cmp) {
+    const at = S.wx && S.wx.at ? new Date(S.wx.at) : null;
+    const ms = [...new Set(ds.flatMap(d => d.models))];
+    h += '<p class="t-stamp">' + (at ? 'Veri ' + esc(fmtDT(at)) + ' güncellendi. ' : '') + 'Rüzgâr: ' + esc(ms.join(', ') || '–') + (land ? '' : ' · hamle GFS · dalga MFWAM') + '. Saatler telefonun saatidir. Bir güne dokun, saatlik tablosu açılır.</p>';
+  }
+  h += '<div class="row wrap" id="calAlertRow"' + (land ? ' hidden' : '') + '><button class="btn small" type="button" data-open="uyari">' + akI('clock') + 'Takvim uyarısı kur</button></div>';
+  h += '</div>' + (cmp || hide ? '' : '<figure class="t-plotfig">' + akPlot(L) + '<figcaption>' + esc(locLabel(L)) + ' · çizelge ölçeklidir: 1 deniz mili = 1 dakika enlem</figcaption></figure>') + '</header>';
+  return h;
+}
+const f6 = v => v.toFixed(6).replace('.', ',');
+
+// ---------------------------------------------------------------- özet
+function akSummary(ds, land){
+  const it = [], add = (ic, cls, t) => it.push('<li><span class="t-ib ' + cls + '">' + akI(ic) + '</span><p class="t">' + t + '</p></li>');
+  if (!land) {
+    const ok = d => ['A', 'B'].includes(d.clsD) && ['A', 'B'].includes(d.clsN) && d.conf !== 'düşük';
+    const rr = akRuns(ds, ok).sort((a, b) => b.length - a.length)[0];
+    if (rr) {
+      const wm = Math.max(...rr.map(x => Math.max(x.wd || 0, x.wn || 0))), hm2 = Math.max(...rr.map(x => x.wave || 0));
+      add('boat', 'ok', '<b>' + akRange(rr[0].date, rr[rr.length - 1].date) + '</b> ' + (shoreMode() ? 'kıyı' : 'tekne') + ' için en rahat aralık: gündüz ve gece A–B sınıfı (rüzgâr en çok ' + akWt(wm) + ')' + (hm2 ? ', dalga en fazla ' + f1(hm2) + ' m' : '') + '.');
+    } else add('boat', 'warn', 'Bu dönemde gündüzü ve gecesi birlikte A–B sınıfı olan gün yok; tek tek günlere ve saatlik tabloya bak.');
+    const bad = ds.filter(d => d.clsD === 'D' || d.clsN === 'D'), bh = bad.filter(d => d.conf !== 'düşük'), bl = bad.filter(d => d.conf === 'düşük');
+    const rng = a => { const v = [...new Set(a.map(d => windNum(Math.max(d.wd || 0, d.wn || 0))))].sort((p, q) => p - q); return (v.length > 1 ? v[0] + '–' + v[v.length - 1] : v[0]) + ' ' + WU_TXT[windU()]; };
+    const parts = []; if (bh.length) parts.push('<b>' + akList(bh) + '</b> deniz D sınıfında (rüzgâr ' + rng(bh) + ' ya da dalga yüksek): çıkışı gözden geçir');
+    if (bl.length) parts.push('<b>' + akList(bl) + '</b> için tahmin ' + rng(bl) + ' civarı gösteriyor (düşük güven)');
+    if (parts.length) add('warn', 'warn', parts.join('. ') + '.');
+    const pk = akRuns(ds, d => d.sol.stars >= 4);
+    const ph = akPhases(akDay0(ds[0].date), akDay0(ds[ds.length - 1].date) + 86400000);
+    if (pk.length || ph.length) {
+      const best = pk.sort((a, b) => b.reduce((s, x) => s + x.sol.stars, 0) - a.reduce((s, x) => s + x.sol.stars, 0))[0];
+      const five = ds.filter(d => d.sol.stars === 5);
+      add('moon', 'gold', (best ? '<b>Solunar ' + akRange(best[0].date, best[best.length - 1].date) + '</b> ' + (best.length > 1 ? 'arası' : 'günü') + ' 4–5 yıldız' + (five.length ? ' (zirve ' + akList(five) + ')' : '') + '. ' : '') +
+        ph.map(p => p.name + ' ' + akDname(p.t) + ' ' + hm(p.t)).join(', ') + (ph.length ? '.' : ''));
+    }
+    const seen = new Set(), top = []; akBest(ds).forEach(r => { if (top.length < 3 && !seen.has(r.dd.key)) { seen.add(r.dd.key); top.push(r); } });
+    if (top.length) add('fish', '', '<b>En iyi pencereler</b> (balık, deniz ve güvene göre, günde en iyisi): ' + top.map(r => akDname(r.dd.date) + ' ' + winTxt(r.w) + ' ' + r.w.kinds.join('+') + ' (%' + r.w.pct + ', ' + (r.w.night ? 'gece' : 'gündüz') + (r.w.cls ? ', ' + r.w.cls + ' sınıfı' : '') + ')').join('; ') + '.');
+  } else {
+    const calm = ds.filter(d => d.wd != null && bft(d.wd) <= 3);
+    add('wind', '', calm.length ? '<b>' + akList(calm.slice(0, 8)) + '</b> gündüz rüzgâr 3 Bft ve altında.' : 'Bu dönemde gündüz rüzgârı 4 Bft altına inmiyor.');
+    const windy = ds.filter(d => d.gD != null && bft(d.gD) >= 6); if (windy.length) add('warn', 'warn', '<b>' + akList(windy) + '</b> hamle 6 Bft ve üstü.');
+  }
+  const tmn = minOf(ds, 'tmin'), tmx = maxOf(ds, 'tmax'), sst = ds.filter(d => d.sst != null), rain = ds.filter(d => d.rain >= 1);
+  add('thermo', '', 'Hava <b>' + tempV(tmn) + '–' + tempV(tmx) + ' ' + TU() + '</b>' + (!land && sst.length ? ', su sıcaklığı <b>' + tempV(sst[0].sst, true) + ' → ' + tempV(sst[sst.length - 1].sst, true) + ' ' + TU() + '</b>' : '') + '. ' +
+    (rain.length ? 'Belirgin yağış ' + rain.slice(0, 5).map(d => akDname(d.date) + ' (' + f1(d.rain) + ' mm)').join(', ') + (rain.length > 5 ? ' ve ' + (rain.length - 5) + ' gün daha' : '') + '.' : 'Belirgin yağış görünmüyor.'));
+  const fall = akRuns(ds, d => d.pdelta != null && d.pdelta <= -2.5)[0];
+  if (fall) add('gauge', '', 'Basınç ' + akRange(fall[0].date, fall[fall.length - 1].date) + ' ' + (fall.length > 1 ? 'arası günde' : 'günü') + ' yaklaşık ' + Math.round(Math.abs(fall.reduce((a, x) => a + x.pdelta, 0) / fall.length)) + ' hPa düşüyor; hava değişiminin habercisi olabilir.');
+  const low = ds.find(d => d.conf === 'düşük');
+  if (low) add('info', '', '<b>' + akDname(low.date) + ' ve sonrası</b> düşük güven: modeller uzak günlerde ayrışır, yalnız eğilim olarak oku.');
+  return '<ul class="t-sum">' + it.join('') + '</ul>';
+}
+// uygunluk şeridi: gündüz, gece ve solunar (karşılaştırmada her nokta için gündüz/gece)
+function akStrip(ds, rows){
+  const n = ds.length, cols = 'grid-template-columns:52px repeat(' + n + ',minmax(16px,1fr))';
+  let h = '<div class="t-strip-w"><div class="t-strip" style="' + cols + '" role="table" aria-label="Günlük uygunluk"><span class="lab"></span>' + ds.map(d => '<span class="dn' + (akWk(d.date) ? ' wk' : '') + '">' + d.date.getDate() + '</span>').join('');
+  rows.forEach(r => {
+    if (r.group) { h += '<span class="gl">' + esc(r.group) + '</span>'; return; }
+    h += '<span class="lab">' + esc(r.lab) + '</span>' + r.cells.map(c => c == null ? '<span class="cell na">–</span>' : '<span class="cell ' + c.c + '" title="' + esc(c.t) + '">' + c.v + '</span>').join('');
+  });
+  return h + '</div></div>';
+}
+function akSecOzet(ds, land){
+  const n = ds.length, rows = [];
+  if (!land) {
+    rows.push({lab: 'gündüz', cells: ds.map(d => d.clsD ? {c: d.clsD, v: d.clsD, t: akDname(d.date) + ' ' + DOW[d.date.getDay()] + ': gündüz ' + CLS_TXT[d.clsD]} : null)});
+    rows.push({lab: 'gece', cells: ds.map(d => d.clsN ? {c: d.clsN, v: d.clsN, t: akDname(d.date) + ' ' + DOW[d.date.getDay()] + ': gece ' + CLS_TXT[d.clsN]} : null)});
+    rows.push({lab: 'solunar', cells: ds.map(d => ({c: 'sol s' + d.sol.stars, v: d.sol.stars, t: akDname(d.date) + ': solunar ' + d.sol.stars + '/5 yıldız'}))});
+  } else {
+    rows.push({lab: 'gündüz', cells: ds.map(d => d.wd == null ? null : {c: seaClass(d.wd), v: bft(d.wd), t: akDname(d.date) + ': gündüz en çok ' + bft(d.wd) + ' Bft'})});
+    rows.push({lab: 'hamle', cells: ds.map(d => d.gD == null ? null : {c: seaClass(d.gD), v: bft(d.gD), t: akDname(d.date) + ': hamle ' + bft(d.gD) + ' Bft'})});
+  }
+  const ph = akPhases(akDay0(ds[0].date), akDay0(ds[n - 1].date) + 86400000);
+  return '<section class="t-sec" id="t-ozet">' + akHead('Özet', 'Bu ' + n + ' günde ne var?', 'Tek bakışta: ' + (land ? 'rüzgâr, sıcaklık ve yağış' : 'deniz uygunluğu, solunar gücü ve öne çıkan pencereler') + '. Ayrıntılar aşağıda.') +
+    '<div class="t-sumgrid"><div class="t-panel">' + akSummary(ds, land) + '</div><div class="t-panel"><h3>' + (land ? 'Rüzgâr şeridi' : (shoreMode() ? 'Kıyı' : 'Tekne') + ' uygunluğu şeridi') + '</h3>' +
+    '<p class="t-note" style="margin:4px 0 12px">' + (land ? 'Gündüz (07–18) en yüksek rüzgâr ve hamle, Bft.' : 'Rüzgâr ve dalgaya göre gündüz (07–18) ve gece (19–06) sınıfı.') + '</p>' + akStrip(ds, rows) +
+    '<div class="t-legend">' + 'ABCD'.split('').map(c => '<span><i class="t-sw ' + c + '"></i>' + c + ' ' + CLS_TXT[c] + '</span>').join('') + (land ? '' : '<span><i class="t-sw sol"></i>Solunar 1–5 yıldız</span>') + '</div>' +
+    (ph.length ? '<div class="t-phases">' + ph.map(p => '<div class="t-phase">' + akMoon(p.illum, p.waxing, 34, true) + '<div><b>' + p.name + '</b><small>' + akDname(p.t) + ' ' + hm(p.t) + '</small></div></div>').join('') + '</div>' : '') +
+    '</div></div></section>';
+}
+
+// ---------------------------------------------------------------- dikey gün kartları
+function akDayCard(dd, o){
+  const land = o.land, on = o.on, key = dd.key, w = land ? null : windows(dd)[0];
+  const today = key === dateKey(new Date());
+  let cls = 't-day' + (dd.idx >= 10 ? ' low' : ''), flag = '';
+  if (o.best.includes(key)) { cls += ' best'; flag = '<span class="t-flag">öne çıkan</span>'; }
+  else if (!land && dd.clsD === 'D' && dd.clsN === 'D') { cls += ' worst'; flag = '<span class="t-flag warn">rüzgârlı</span>'; }
+  if (today) flag = '<span class="t-flag t-now">bugün</span>' + flag;
+  const V = (id, html) => on[id] && !(land && ['dalga', 'akinti', 'su', 'pencere'].includes(id)) ? html : '';
+  const dir = akDir(dd);
+  let h = '<button type="button" class="' + cls + '" data-calday="' + key + '" aria-label="' + esc(akDname(dd.date) + ' ' + DOWL[dd.date.getDay()]) + '">';
+  h += '<header><span class="dn">' + dd.date.getDate() + '</span><span class="dm' + (akWk(dd.date) ? ' wk' : '') + '">' + MON3[dd.date.getMonth()] + ' · ' + DOW[dd.date.getDay()] + '</span>' + flag + '</header>';
+  h += '<div class="t-wxrow">' + akWxI(akDayWx(dd)) + '<div class="t-temps"><b>' + (dd.tmax == null ? '–' : tempV(dd.tmax) + '°') + '</b><span>' + (dd.tmin == null ? '' : tempV(dd.tmin) + '°') + '</span></div>' + (on.guven ? akConf(dd.conf) : '') + '</div>';
+  h += '<ul class="t-kv">' +
+    V('ruzgar', '<li><span class="k">' + akI('wind') + 'Rüzgâr</span><b>' + akArr(dir) + '<span class="dl">' + esc(windName(dir)) + '</span> ' + akW(dd.wd, false) + '</b></li>') +
+    V('ruzgar', dd.wn != null ? '<li><span class="k">' + akI('moon') + 'Gece</span><b>' + akW(dd.wn, false) + '</b></li>' : '') +
+    V('hamle', dd.gD != null || dd.gN != null ? '<li><span class="k">' + akI('gust') + 'Hamle</span><b title="gündüz / gece">' + akW2(dd.gD, dd.gN) + '</b></li>' : '') +
+    V('dalga', dd.wave != null ? '<li><span class="k">' + akI('wave') + 'Dalga</span><b>' + f1(dd.wave) + ' m' + (dd.per ? ' <small>' + Math.round(dd.per) + ' sn</small>' : '') + '</b></li>' : '') +
+    V('akinti', dd.cur != null ? '<li><span class="k">' + akI('current') + 'Akıntı</span><b>' + f1(dd.cur) + ' kn</b></li>' : '') +
+    V('su', dd.sst != null ? '<li><span class="k">' + akI('drop') + 'Su</span><b>' + tempV(dd.sst, true) + '°</b></li>' : '') +
+    V('basinc', dd.pmean != null ? '<li><span class="k">' + akI('gauge') + 'Basınç</span><b>' + Math.round(pressNum(dd.pmean)) + ' <small>' + (dd.pdelta > 1 ? '↑ +' : dd.pdelta < -1 ? '↓ −' : '→ ') + (Math.abs(dd.pdelta) > 1 ? f1(Math.abs(dd.pdelta)) : '') + '</small></b></li>' : '') +
+    V('yagis', dd.pop != null ? '<li><span class="k">' + akI('rain') + 'Yağış</span><b>%' + Math.round(dd.pop) + (dd.rain >= 0.5 ? ' <small>' + f1(dd.rain) + ' mm</small>' : '') + '</b></li>' : '') + '</ul>';
+  if (!land) h += '<div class="t-cls">' + akBadge(dd.clsD, 'sun', 'gündüz ' + (dd.clsD || '')) + akBadge(dd.clsN, 'moon', 'gece ' + (dd.clsN || '')) + '</div>';
+  if (w && on.pencere) h += '<div class="t-dwin">' + fishHtml(w.fish) + '<span><b>%' + w.pct + '</b> ' + winTxt(w) + '</span></div>';
+  h += '<div class="t-solrow">' + akMoon(dd.sol.illum, akWax(dd), 26) + (land ? '' : akStars(dd.sol.stars)) + '<small>%' + Math.round(dd.sol.illum * 100) + ' · ' + esc(dd.sol.name) + '</small></div>';
+  return h + '</button>';
+}
+// yatay gün kartı (telefonda varsayılan): solda tarih, sağda hava simgesi ve sınıflar, ikonlu değerler, balık penceresi ve ay
+const akChip = (ic, html, t) => '<span class="t-c"' + (t ? ' title="' + esc(t) + '"' : '') + '>' + akI(ic) + html + '</span>';
+function akDayRow(dd, o){
+  const land = o.land, on = o.on, key = dd.key, w = land ? null : windows(dd)[0], today = key === dateKey(new Date());
+  let cls = 't-drow' + (dd.idx >= 10 ? ' low' : ''), flag = '';
+  if (o.best.includes(key)) { cls += ' best'; flag = '<span class="t-flag">öne çıkan</span>'; }
+  else if (!land && dd.clsD === 'D' && dd.clsN === 'D') { cls += ' worst'; flag = '<span class="t-flag warn">rüzgârlı</span>'; }
+  if (today) flag = '<span class="t-flag t-now">bugün</span>' + flag;
+  const V = (id, html) => on[id] && !(land && ['dalga', 'akinti', 'su', 'pencere'].includes(id)) ? html : '';
+  const dir = akDir(dd), wk = akWk(dd.date) ? ' wk' : '';
+  let h = '<button type="button" class="' + cls + '" data-calday="' + key + '" aria-label="' + esc(akDname(dd.date) + ' ' + DOWL[dd.date.getDay()]) + '">';
+  h += '<div class="t-dd"><b class="dn">' + dd.date.getDate() + '</b><span class="dm' + wk + '">' + MON3[dd.date.getMonth()] + '</span><span class="dw' + wk + '">' + DOW[dd.date.getDay()] + '</span></div><div class="t-dbd">';
+  h += '<div class="t-dtop">' + akWxI(akDayWx(dd)) + '<div class="t-temps"><b>' + (dd.tmax == null ? '–' : tempV(dd.tmax) + '°') + '</b><span>' + (dd.tmin == null ? '' : tempV(dd.tmin) + '°') + '</span></div>' +
+    (on.guven ? akConf(dd.conf) : '') + flag + (land ? '' : '<span class="t-dcl">' + akBadge(dd.clsD, 'sun', dd.clsD, true) + akBadge(dd.clsN, 'moon', dd.clsN, true) + '</span>') + '</div>';
+  h += '<div class="t-chips">' +
+    V('ruzgar', akChip('wind', akArr(dir) + akW(dd.wd, false), 'Rüzgâr gündüz' + (dir == null ? '' : ', ' + windName(dir)))) +
+    V('ruzgar', dd.wn != null ? akChip('moon', akW(dd.wn, false), 'Rüzgâr gece') : '') +
+    V('hamle', dd.gD != null || dd.gN != null ? akChip('gust', akW2(dd.gD, dd.gN), 'Hamle gündüz / gece') : '') +
+    V('dalga', dd.wave != null ? akChip('wave', f1(dd.wave) + ' m' + (dd.per ? ' <small>' + Math.round(dd.per) + ' sn</small>' : ''), 'Dalga') : '') +
+    V('akinti', dd.cur != null ? akChip('current', f1(dd.cur) + ' kn', 'Akıntı') : '') +
+    V('su', dd.sst != null ? akChip('drop', tempV(dd.sst, true) + '°', 'Su sıcaklığı') : '') +
+    V('basinc', dd.pmean != null ? akChip('gauge', Math.round(pressNum(dd.pmean)) + ' <small>' + (dd.pdelta > 1 ? '↑' : dd.pdelta < -1 ? '↓' : '→') + '</small>', 'Basınç') : '') +
+    V('yagis', dd.pop != null ? akChip('rain', '%' + Math.round(dd.pop) + (dd.rain >= 0.5 ? ' <small>' + f1(dd.rain) + ' mm</small>' : ''), 'Yağış') : '') + '</div>';
+  h += '<div class="t-dbot">' + (w && on.pencere ? '<span class="t-dwin">' + fishHtml(w.fish) + '<span><b>%' + w.pct + '</b> ' + winTxt(w) + '</span></span>' : '') +
+    '<span class="t-dsol">' + akMoon(dd.sol.illum, akWax(dd), 22) + (land ? '<small>%' + Math.round(dd.sol.illum * 100) + '</small>' : akStars(dd.sol.stars)) + '</span></div>';
+  return h + '</div></button>';
+}
+function akBestDays(ds){ const out = []; akBest(ds).forEach(r => { if (out.length < 3 && !out.includes(r.dd.key) && ['A', 'B'].includes(r.w.cls)) out.push(r.dd.key); }); return out; }
+function akSecGunler(ds, land, inner, title){
+  const v = calView();
+  const seg = '<div class="t-viewseg" role="group" aria-label="Gün kartları"><button type="button" data-atkview="kart" aria-pressed="' + (v === 'kart') + '">' + akI('cards') + 'Dikey</button><button type="button" data-atkview="liste" aria-pressed="' + (v === 'liste') + '">' + akI('rows') + 'Yatay</button></div>';
+  return '<section class="t-sec" id="t-gunler">' + akHead('Günlük kartlar', title || ds.length + ' günün tek bakışta özeti',
+    title ? 'Her gün noktalar ' + (v === 'kart' ? 'yan yana' : 'alt alta') + '; deniz sınıfı ve balık penceresine göre en iyi nokta yeşil çerçeveli. Bir karta dokun: o nokta seçilir ve o günün saatlik tablosu açılır.' :
+    land ? 'Her kart hava simgesini, sıcaklığı, gündüz ve gece rüzgârını, hamleyi, basıncı ve yağışı verir.' : 'Her kart gündüz ve gece rüzgârını, hamleyi, dalgayı, su sıcaklığını ve basıncı verir. Yeşil çerçeveli üç gün, deniz uygunluğu ile balık penceresini birlikte en iyi sunan günlerdir.', seg) +
+    '<div id="dayList" class="t-dlist ' + v + '">' + inner + '</div>' +
+    '<p class="t-note">Ok rüzgârın gittiği yöne bakar' + (v === 'kart' ? ', ad geldiği yönü verir' : '') + '. Noktalar tahminin güvenini gösterir: ●●●● yüksek, ●○○○ düşük. Telefonda yatay, tablette dikey kartlar açılır; seçimin bu cihazda kalır. Kart satırlarını Daha → Görünüm’den açıp kapatırsın.</p></section>';
+}
+
+// ---------------------------------------------------------------- meteogram
+function akMeteo(ds, land){
+  const n = ds.length, t0 = akDay0(ds[0].date), t1 = akDay0(ds[n - 1].date) + 86400000;
+  const hrs = WX.hours.filter(x => x.t >= t0 && x.t < t1);
+  const W = 1000, L = 64, R = 34, pw = W - L - R, X = t => L + (t - t0) / (t1 - t0) * pw, o = [];
+  const defs = land ? [['wind', 176], ['press', 104], ['temp', 132]] : [['wind', 176], ['wave', 136], ['press', 104], ['temp', 132]];
+  const P = {}; let y = 52; defs.forEach(([k, hh]) => { const band = k === 'wave' ? 32 : 0; P[k] = {y, py: y + band, ph: hh - band}; y += hh + 38; });
+  const yEnd = y - 38, H = yEnd + 92;
+  const r1 = v => v.toFixed(1), rect = (x, yy, w, hh, c) => w > 0 && hh > 0 ? '<rect x="' + r1(x) + '" y="' + r1(yy) + '" width="' + r1(w) + '" height="' + r1(hh) + '" class="' + c + '"/>' : '';
+  const hl = (p, v, Y) => '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + r1(Y(v)) + '" y2="' + r1(Y(v)) + '" class="grid"/>';
+  const ys = (p, a, b) => v => p.py + p.ph - (v - a) / (b - a) * p.ph;
+  const lines = (fy, cls) => { const segs = []; let cur = []; hrs.forEach(x => { const v = fy(x); if (v == null || isNaN(v)) { if (cur.length > 1) segs.push(cur); cur = []; } else cur.push(r1(X(x.t.getTime())) + ',' + r1(v)); }); if (cur.length > 1) segs.push(cur); return segs.map(s => '<polyline points="' + s.join(' ') + '" class="' + cls + '"/>').join(''); };
+  const gridV = p => { for (let i = 0; i <= n; i++) { const x = X(i < n ? akDay0(ds[i].date) : t1); o.push('<line x1="' + r1(x) + '" x2="' + r1(x) + '" y1="' + r1(p.py) + '" y2="' + r1(p.py + p.ph) + '" class="grid"/>'); } };
+  const mid = d => X(akDay0(d.date) + 12 * 3600000);
+  const lowI = ds.findIndex(d => d.conf === 'düşük'), tLow = lowI >= 0 ? akDay0(ds[lowI].date) : null;
+  o.push('<svg class="ch" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + n + ' günlük meteogram">');
+  Object.values(P).forEach(p => {
+    ds.forEach(d => { const b = akDay0(d.date); o.push(rect(X(b), p.py, X(d.sol.sunrise.getTime()) - X(b), p.ph, 'nightbg'), rect(X(d.sol.sunset.getTime()), p.py, X(b + 86400000) - X(d.sol.sunset.getTime()), p.ph, 'nightbg')); });
+    if (tLow) o.push(rect(X(tLow), p.py, X(t1) - X(tLow), p.ph, 'lowconf'));
+  });
+  // RÜZGÂR (seçili birim; Bft seçiliyse kn)
+  const wu = windU() === 'bft' ? 'kn' : windU(), cf = wu === 'kn' ? KN : wu === 'kmh' ? 3.6 : 1, step = wu === 'kmh' ? 10 : wu === 'ms' ? 2 : 5;
+  let p = P.wind; const wmax = Math.max(13.4, ...hrs.map(x => Math.max(x.wind || 0, x.gust || 0)));
+  const vmax = Math.min(Math.ceil(28 * cf / step) * step, Math.ceil(wmax * cf / step) * step); let Y = ys(p, 0, vmax);
+  [[0, 5.4, 'A'], [5.4, 7.9, 'B'], [7.9, 10.7, 'C'], [10.7, 99, 'D']].forEach(([a, b, c]) => { const ta = a * cf, tb = Math.min(b * cf, vmax); if (ta >= vmax) return; o.push(rect(L, Y(tb), pw, Y(ta) - Y(tb), 'band band-' + c), '<text x="' + (W - R + 16) + '" y="' + r1((Y(tb) + Y(ta)) / 2 + 4) + '" class="cls-l cls-' + c + '" text-anchor="middle">' + c + '</text>'); });
+  for (let v = 0; v <= vmax; v += step) o.push(hl(p, v, Y), '<text x="' + (L - 8) + '" y="' + r1(Y(v) + 4) + '" text-anchor="end">' + v + '</text>');
+  [5.4, 7.9, 10.7].forEach(v => { if (v * cf < vmax) o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + r1(Y(v * cf)) + '" y2="' + r1(Y(v * cf)) + '" class="thr"/>'); });
+  gridV(p);
+  const segs = []; let cur = []; hrs.forEach(x => { if (x.wind == null) { if (cur.length > 1) segs.push(cur); cur = []; } else cur.push(x); }); if (cur.length > 1) segs.push(cur);
+  segs.forEach(s => o.push('<path d="M' + r1(X(s[0].t.getTime())) + ',' + r1(Y(0)) + ' L' + s.map(x => r1(X(x.t.getTime())) + ',' + r1(Y(Math.min(vmax, x.wind * cf)))).join(' L') + ' L' + r1(X(s[s.length - 1].t.getTime())) + ',' + r1(Y(0)) + ' Z" class="area-wind"/>'));
+  o.push(lines(x => x.gust == null ? null : Y(Math.min(vmax, x.gust * cf)), 'line-gust'), lines(x => x.wind == null ? null : Y(Math.min(vmax, x.wind * cf)), 'line-wind'));
+  hrs.forEach(x => { if ([3, 9, 15, 21].includes(x.h) && x.wdir != null) o.push('<path d="M0 -6L4.2 5L0 2.6L-4.2 5Z" transform="translate(' + r1(X(x.t.getTime())) + ' ' + r1(p.py + 11) + ') rotate(' + Math.round((x.wdir + 180) % 360) + ')" class="warr"/>'); });
+  // DALGA
+  if (!land) {
+    p = P.wave; const wvm = Math.max(1.8, Math.ceil(((maxOf(ds, 'wave') || 0) + 0.2) * 2) / 2); Y = ys(p, 0, wvm);
+    for (let v = 0; v < wvm + 0.01; v += 0.5) o.push(hl(p, v, Y), '<text x="' + (L - 8) + '" y="' + r1(Y(v) + 4) + '" text-anchor="end">' + f1(v) + '</text>');
+    o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + r1(Y(1)) + '" y2="' + r1(Y(1)) + '" class="thr thr-c"/><line x1="' + L + '" x2="' + (W - R) + '" y1="' + r1(Y(1.5)) + '" y2="' + r1(Y(1.5)) + '" class="thr thr-d"/>');
+    o.push('<text x="' + (W - R - 4) + '" y="' + r1(Y(1) - 4) + '" class="thr-t thr-c-t" text-anchor="end">1,0 m dikkat</text><text x="' + (W - R - 4) + '" y="' + r1(Y(1.5) - 4) + '" class="thr-t thr-d-t" text-anchor="end">1,5 m uygun değil</text>');
+    gridV(p);
+    ds.forEach(d => { if (d.wave == null) return; const xc = mid(d), wd = akMeanDir(d.hs, 'waveDir', 'wave');
+      o.push(rect(xc - 12, Y(d.wave), 24, Y(0) - Y(d.wave), 'bar-lo'));
+      if (wd != null) o.push('<path d="M0 -6L4.2 5L0 2.6L-4.2 5Z" transform="translate(' + r1(xc) + ' ' + r1(p.y + 8) + ') rotate(' + Math.round((wd + 180) % 360) + ')" class="warr wv"/>');
+      if (d.per) o.push('<text x="' + r1(xc) + '" y="' + r1(p.y + 27) + '" text-anchor="middle" class="tiny">' + Math.round(d.per) + ' sn</text>'); });
+    o.push(lines(x => x.wave == null ? null : Y(Math.min(wvm, x.wave)), 'line-wave'));
+  }
+  // BASINÇ
+  p = P.press; const pr = hrs.map(x => pressNum(x.press)).filter(v => v != null), ps = pressU() === 'mmhg' ? 4 : 5;
+  gridV(p);
+  if (pr.length) {
+    const a = Math.floor(Math.min(...pr) / ps) * ps; let b = Math.ceil(Math.max(...pr) / ps) * ps; if (b - a < 3 * ps) b = a + 3 * ps; Y = ys(p, a, b);
+    for (let v = a; v <= b + 0.1; v += ps) o.push(hl(p, v, Y), '<text x="' + (L - 8) + '" y="' + r1(Y(v) + 4) + '" text-anchor="end">' + v + '</text>');
+    o.push(lines(x => x.press == null ? null : Y(pressNum(x.press)), 'line-press'));
+  } else o.push('<text x="' + (L + pw / 2) + '" y="' + r1(p.py + p.ph / 2 + 4) + '" text-anchor="middle" class="note-t">basınç verisi yok</text>');
+  // SICAKLIK (hava ve su)
+  p = P.temp; const tv = hrs.map(x => tempNum(x.temp)).concat(land ? [] : hrs.map(x => tempNum(x.sst))).filter(v => v != null);
+  gridV(p);
+  if (tv.length) {
+    const a = Math.floor(Math.min(...tv) / 4) * 4; let b = Math.ceil(Math.max(...tv) / 4) * 4; if (b - a < 8) b = a + 8; Y = ys(p, a, b);
+    for (let v = a; v <= b + 0.1; v += 4) o.push(hl(p, v, Y), '<text x="' + (L - 8) + '" y="' + r1(Y(v) + 4) + '" text-anchor="end">' + v + '</text>');
+    o.push(lines(x => x.temp == null ? null : Y(tempNum(x.temp)), 'line-temp'));
+    if (!land) o.push(lines(x => x.sst == null ? null : Y(tempNum(x.sst)), 'line-sst'));
+    const lx = L + 12, ly = p.py + 14;
+    o.push('<line x1="' + lx + '" x2="' + (lx + 22) + '" y1="' + (ly - 4) + '" y2="' + (ly - 4) + '" class="line-temp"/><text x="' + (lx + 28) + '" y="' + ly + '" class="leg-t">hava</text>');
+    if (!land) o.push('<line x1="' + (lx + 74) + '" x2="' + (lx + 96) + '" y1="' + (ly - 4) + '" y2="' + (ly - 4) + '" class="line-sst"/><text x="' + (lx + 102) + '" y="' + ly + '" class="leg-t">su</text>');
+  }
+  // şimdi, düşük güven sınırı, başlıklar, gün etiketleri, ay
+  const now = Date.now(); if (now > t0 && now < t1) o.push('<line x1="' + r1(X(now)) + '" x2="' + r1(X(now)) + '" y1="22" y2="' + yEnd + '" class="nowl"/><text x="' + r1(X(now) + 4) + '" y="20" class="split-t" style="fill:var(--brand)">şimdi</text>');
+  if (tLow) o.push('<line x1="' + r1(X(tLow)) + '" x2="' + r1(X(tLow)) + '" y1="22" y2="' + yEnd + '" class="split"/><text x="' + r1(X(tLow) + 6) + '" y="16" class="split-t">düşük güven ▸ yalnız eğilim</text>');
+  const titles = {wind: 'RÜZGÂR · ' + WU_TXT[wu], wave: 'DALGA · m', press: 'BASINÇ · ' + (pressU() === 'mmhg' ? 'mmHg' : 'hPa'), temp: 'SICAKLIK · ' + TU()};
+  Object.entries(P).forEach(([k, q]) => o.push('<text transform="translate(14 ' + r1(q.py + q.ph / 2) + ') rotate(-90)" text-anchor="middle" class="ptitle">' + titles[k] + '</text>'));
+  ds.forEach(d => { const xc = mid(d), wk = akWk(d.date) ? ' wk' : '', t = d.date.getDate() + ' ' + DOW[d.date.getDay()];
+    o.push('<text x="' + r1(xc) + '" y="40" text-anchor="middle" class="dl' + wk + '">' + t + '</text><text x="' + r1(xc) + '" y="' + (yEnd + 22) + '" text-anchor="middle" class="dl' + wk + '">' + t + '</text>');
+    o.push(akMoonG(d.sol.illum, akWax(d), xc, yEnd + 44, 8.5), '<text x="' + r1(xc) + '" y="' + (yEnd + 66) + '" text-anchor="middle" class="tiny">%' + Math.round(d.sol.illum * 100) + '</text>'); });
+  return o.join('') + '</svg>';
+}
+function akSecGrafik(ds, land){
+  return '<section class="t-sec" id="t-grafik">' + akHead('Meteogram', land ? 'Rüzgâr, basınç ve sıcaklık' : 'Rüzgâr, dalga, basınç ve sıcaklık', 'Saat saat model verisi. Gece saatleri koyu zeminle, düşük güvenli günler açık gölgeyle gösterilir. Grafik yana kaydırılır.') +
+    '<div class="t-chart">' + akMeteo(ds, land) + '</div>' +
+    '<div class="t-lrow"><span><i class="lg wind"></i>Rüzgâr</span><span><i class="lg gust"></i>Hamle</span>' + (land ? '' : '<span><i class="lg" style="background:var(--sea)"></i>Günün en yüksek dalgası</span>') + '<span><i class="lg night"></i>Gece</span></div>' +
+    '<p class="t-note"><b>Nasıl okunur:</b> Rüzgâr panelindeki renkli bantlar ' + (land ? 'rüzgâr sınıflarını' : 'deniz sınıflarını') + ' (A–D) gösterir; oklar rüzgârın gittiği yöne bakar.' + (land ? '' : ' Dalga panelinde sütun günün en yüksek dalgası, ince çizgi saatlik dalga; üstteki ok dalganın gittiği yönü, sayı periyodu verir.') + '</p></section>';
+}
+
+// ---------------------------------------------------------------- ayrıntılı tablo
+function akSecTablo(ds, land){
+  const u = windU(), un = WU_TXT[u === 'bft' ? 'kn' : u];
+  let h = '<section class="t-sec" id="t-tablo">' + akHead('Ayrıntılı tablo', land ? 'Hava verileri' : 'Hava ve deniz verileri', 'Aynı veriler sayısal olarak. Tablo yana kaydırılır; tarih sütunu sabit kalır.') +
+    '<div class="t-tbl"><table class="t-data"><thead><tr><th rowspan="2">Tarih</th><th rowspan="2">Hava</th><th rowspan="2">Sıcaklık<br>maks / min</th><th colspan="4" class="grp">Rüzgâr · ' + un + '</th>' +
+    (land ? '' : '<th colspan="3" class="grp">Dalga</th><th rowspan="2">Akıntı<br>kn</th><th rowspan="2">Su<br>' + TU() + '</th>') + '<th rowspan="2">Basınç<br>gün değişimi</th><th rowspan="2">Yağış</th><th rowspan="2">Güneş</th>' +
+    (land ? '' : '<th colspan="2" class="grp">' + (shoreMode() ? 'Kıyı' : 'Tekne') + '</th>') + '</tr><tr><th>Yön</th><th>Gündüz</th><th>Gece</th><th>Hamle</th>' + (land ? '' : '<th>Yükseklik m</th><th>Periyot · boy</th><th>Yön</th>') + (land ? '' : '<th>Gündüz</th><th>Gece</th>') + '</tr></thead><tbody>';
+  const wv = ms => ms == null ? '<span class="na">–</span>' : (u === 'bft' ? Math.round(ms * KN) : windNum(ms, u)) + '<small>Bft ' + bft(ms) + ' · ' + Math.round(ms * 3.6) + ' km/sa</small>';
+  ds.forEach((d, i) => {
+    const dir = akDir(d), wdD = akMeanDir(d.hs, 'waveDir', 'wave'), cdir = akMeanDir(d.hs, 'curDir', 'cur'), est = d.idx >= 10 ? ' class="est"' : '';
+    const dl = d.sol.sunset - d.sol.sunrise;
+    h += '<tr' + (d.idx === 10 ? ' class="sep"' : '') + '><td><div class="dcell"><b>' + d.date.getDate() + '</b><span class="' + (akWk(d.date) ? 'wk' : '') + '">' + MON3[d.date.getMonth()] + '<br>' + DOW[d.date.getDay()] + '</span></div>' + akConf(d.conf) + '</td>' +
+      '<td><div class="wxc">' + akWxI(akDayWx(d)) + '<span>' + AK_WXT[akDayWx(d)] + '</span></div></td><td>' + (d.tmax == null ? '–' : tempV(d.tmax) + '° / ' + tempV(d.tmin) + '°') + '</td>' +
+      '<td>' + akArr(dir) + ' ' + esc(dir == null ? '–' : dir8(dir) + ' · ' + windName(dir)) + '</td><td' + est + '>' + wv(d.wd) + '</td><td' + est + '>' + wv(d.wn) + '</td><td' + est + '>' + wv(d.gust) + '</td>' +
+      (land ? '' : '<td>' + (d.wave == null ? '<span class="na">–</span>' : f1(d.wave)) + '</td><td>' + (d.per ? Math.round(d.per) + ' sn<small>' + Math.round(1.56 * d.per * d.per) + ' m boy</small>' : '<span class="na">–</span>') + '</td><td>' + (wdD == null ? '–' : akArr(wdD, 't-arr wv') + ' ' + dir8(wdD)) + '</td>' +
+        '<td>' + (d.cur == null ? '<span class="na">–</span>' : f1(d.cur) + (cdir != null ? '<small>→ ' + dir8(cdir) + '</small>' : '')) + '</td><td>' + (d.sst == null ? '<span class="na">–</span>' : tempV(d.sst, true)) + '</td>') +
+      '<td>' + (d.pmean == null ? '<span class="na">–</span>' : Math.round(pressNum(d.pmean)) + '<small>' + (d.pdelta >= 0 ? '↑ +' : '↓ −') + f1(Math.abs(d.pdelta)) + ' hPa</small>') + '</td>' +
+      '<td>' + (d.pop == null && !d.rain ? '<span class="na">–</span>' : (d.pop != null ? '%' + Math.round(d.pop) : '') + (d.rain >= 0.1 ? '<small>' + f1(d.rain) + ' mm</small>' : '')) + '</td>' +
+      '<td>' + hm(d.sol.sunrise) + ' – ' + hm(d.sol.sunset) + '<small>gün ' + Math.floor(dl / 3600000) + ' sa ' + Math.round(dl % 3600000 / 60000) + ' dk</small></td>' +
+      (land ? '' : '<td>' + akBadge(d.clsD) + '</td><td>' + akBadge(d.clsN) + '</td>') + '</tr>';
+  });
+  return h + '</tbody></table></div><p class="t-note">Rüzgâr: gündüz 07–18, gece 19–06 saatlerinin en yüksek değeri; hamle günün en yükseği. ' + (land ? '' : 'Dalga boyu derin su ilişkisiyle 1,56 × T² (m). Akıntı ve su sıcaklığı deniz modelinden. ') + 'İtalik değerler düşük güvenli günlerdir.</p></section>';
+}
+
+// ---------------------------------------------------------------- solunar
+function akSolStrip(ds){
+  const W = 1000, L = 112, R = 100, pw = W - L - R, top = 38, pitch = 38, rh = 32, H = top + ds.length * pitch + 6, o = [];
+  const X = hh => L + Math.max(0, Math.min(24, hh)) / 24 * pw, r1 = v => v.toFixed(1);
+  o.push('<svg class="ch" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Günlük 24 saatlik solunar çizelgesi">');
+  for (let hh = 0; hh <= 24; hh += 3) o.push('<text x="' + r1(X(hh)) + '" y="' + (top - 14) + '" text-anchor="middle">' + pad(hh) + '</text>');
+  ds.forEach((d, i) => {
+    const ry = top + i * pitch, b = akDay0(d.date), hf = t => (t - b) / 3600000, s = d.sol;
+    const rc = (a, z, yy, hh, c) => { a = Math.max(0, Math.min(24, a)); z = Math.max(0, Math.min(24, z)); return z - a <= 0 ? '' : '<rect x="' + r1(X(a)) + '" y="' + r1(yy) + '" width="' + r1(X(z) - X(a)) + '" height="' + r1(hh) + '" class="' + c + '"/>'; };
+    const sr = hf(s.sunrise), ss = hf(s.sunset);
+    o.push(rc(0, 24, ry, rh, 'sl-day'), rc(0, sr, ry, rh, 'sl-night'), rc(ss, 24, ry, rh, 'sl-night'), rc(sr - 0.75, sr + 0.75, ry, rh, 'sl-twi'), rc(ss - 0.75, ss + 0.75, ry, rh, 'sl-twi'));
+    for (let hh = 0; hh <= 24; hh += 3) o.push('<line x1="' + r1(X(hh)) + '" x2="' + r1(X(hh)) + '" y1="' + ry + '" y2="' + (ry + rh) + '" class="grid"/>');
+    d.hs.forEach(x => { const c = clsOf(x); if (c) o.push(rc(x.h, x.h + 1, ry + rh - 5, 5, 'wc-' + c)); });
+    s.allMajor.forEach(p => o.push(rc(hf(p.a), hf(p.b), ry + 3, rh - 11, 'sl-major')));
+    s.allMinor.forEach(p => o.push(rc(hf(p.a), hf(p.b), ry + 8, rh - 21, 'sl-minor')));
+    o.push('<line x1="' + r1(X(sr)) + '" x2="' + r1(X(sr)) + '" y1="' + ry + '" y2="' + (ry + rh) + '" class="sl-sun"/><line x1="' + r1(X(ss)) + '" x2="' + r1(X(ss)) + '" y1="' + ry + '" y2="' + (ry + rh) + '" class="sl-sun"/>');
+    s.allMinor.forEach(p => { const hh = hf(p.c); if (hh < 0 || hh >= 24) return; o.push(p.e === 'rise' ? '<path d="M' + r1(X(hh)) + ' ' + (ry + 1.5) + ' l-3.6 5.4 h7.2z" class="sl-mm"/>' : '<path d="M' + r1(X(hh)) + ' ' + (ry + 8.5) + ' l-3.6 -5.4 h7.2z" class="sl-mm"/>'); });
+    windows(d).forEach(w => { const a = Math.max(0, hf(w.a)), z = Math.min(24, hf(w.b)); if (z > a) o.push('<rect x="' + r1(X(a) + 1) + '" y="' + (ry + 1) + '" width="' + r1(X(z) - X(a) - 2) + '" height="' + (rh - 2) + '" rx="3" class="sl-win win-' + (w.cls || 'B') + '"/>'); });
+    const m = ry + rh / 2;
+    o.push(akMoonG(s.illum, akWax(d), 12, m, 8), '<text x="28" y="' + r1(m + 4) + '" class="dl sl-lab' + (akWk(d.date) ? ' wk' : '') + '">' + d.date.getDate() + ' ' + DOW[d.date.getDay()] + '</text>');
+    for (let k = 0; k < 5; k++) o.push('<use href="#ak-star" x="' + r1(W - R + 10 + k * 14.5) + '" y="' + r1(m - 6.5) + '" width="13" height="13" class="sst ' + (k < s.stars ? 'on' : 'off') + '"/>');
+  });
+  return o.join('') + '</svg>';
+}
+const akTags = w => w.kinds.map(k => '<span class="t-tag' + (k === 'Şafak' || k === 'Alacakaranlık' ? ' dawn' : '') + '">' + esc(k) + '</span>').join('');
+function akSecSolunar(ds){
+  const inDay = (d, t) => t >= akDay0(d.date) && t < akDay0(d.date) + 86400000;
+  let h = '<section class="t-sec" id="t-solunar">' + akHead('Solunar', 'Ay evresi ve günlük pencereler', 'Major dönem ay tepede ya da en alttayken (±60 dk), minor dönem ay doğarken ya da batarken (±30 dk). Yıldız, günün en yüksek solunar değerinden; renkli çerçeve o günün en iyi pencereleri.') +
+    '<div class="t-moons">' + ds.map(d => '<div class="t-mn' + (d.sol.stars === 5 ? ' peak' : '') + '" title="' + esc(akDname(d.date) + ': ' + d.sol.name + ', %' + Math.round(d.sol.illum * 100)) + '">' + akMoon(d.sol.illum, akWax(d), 28) + '<b>' + d.date.getDate() + '</b><small>%' + Math.round(d.sol.illum * 100) + '</small>' + akStars(d.sol.stars) + '</div>').join('') + '</div>' +
+    '<div class="t-chart">' + akSolStrip(ds) + '</div>' +
+    '<div class="t-lrow"><span><i class="lg major"></i>Major</span><span><i class="lg minor"></i>Minor</span><span><i class="lg twi"></i>Şafak / alacakaranlık (±45 dk)</span><span><i class="lg night"></i>Gece</span><span><i class="lg sun"></i>Güneş doğar / batar</span><span>▲ ▼ Ay doğar / batar</span><span><i class="lg win"></i>Önerilen pencere (deniz sınıfı rengi)</span><span>Alt şerit: saatlik deniz sınıfı</span></div>' +
+    '<div class="t-tbl" style="margin-top:16px"><table class="t-data" style="min-width:1080px"><thead><tr><th>Tarih</th><th>Evre</th><th>Yıldız</th><th>Major</th><th>Minor</th><th>Ay doğar / batar</th><th>Pencere 1</th><th>Pencere 2</th></tr></thead><tbody>';
+  ds.forEach(d => {
+    const s = d.sol, per = a => a.length ? a.map(p => hm(p.a) + '–' + hm(p.b)).join('<br>') : '<span class="na">–</span>';
+    const rise = s.allMinor.filter(p => p.e === 'rise' && inDay(d, p.c)).map(p => hm(p.c)), set = s.allMinor.filter(p => p.e === 'set' && inDay(d, p.c)).map(p => hm(p.c));
+    const ws = windows(d).map(w => '<b>' + winTxt(w) + '</b><br>' + akTags(w) + akBadge(w.cls, null, null, true) + '<small>' + (w.night ? 'gece' : 'gündüz') + ' · %' + w.pct + ' balık' + (w.x && w.x.wind != null ? ' · rüzgâr ' + akWt(w.x.wind) : '') + '</small>');
+    while (ws.length < 2) ws.push('<span class="na">–</span>');
+    h += '<tr><td><div class="dcell"><b>' + d.date.getDate() + '</b><span class="' + (akWk(d.date) ? 'wk' : '') + '">' + MON3[d.date.getMonth()] + '<br>' + DOW[d.date.getDay()] + '</span></div></td>' +
+      '<td><div class="dcell">' + akMoon(s.illum, akWax(d), 26) + '<span>%' + Math.round(s.illum * 100) + '<br>' + esc(s.name) + '</span></div></td><td>' + akStars(s.stars) + '</td><td>' + per(s.major) + '</td><td>' + per(s.minor) + '</td>' +
+      '<td>↑ ' + (rise.join(' · ') || '–') + '<small>↓ ' + (set.join(' · ') || '–') + '</small></td><td>' + ws[0] + '</td><td>' + ws[1] + '</td></tr>';
+  });
+  return h + '</tbody></table></div><p class="t-note">Ay doğuşu, batışı ve geçişleri bu koordinat için hesaplanır. Pencereler balık değerini (solunar eğrisi ve hava payı) deniz sınıfıyla tartar; aynı hesap Bugün ve Fishing ekranlarında da kullanılır. Bir planlama aracıdır, kesin bir etki iddiası değildir.</p></section>';
+}
+
+// ---------------------------------------------------------------- en iyi pencereler (rig önerisiyle)
+function akSecPencere(ds){
+  const top = akBest(ds).slice(0, 6);
+  let h = '<section class="t-sec" id="t-pencere">' + akHead('Planlama', 'En iyi ' + (top.length || '') + ' pencere', 'Balık değeri, deniz sınıfı ve tahminin güvenine göre sıralandı. Rig önerileri o pencerenin koşullarıyla senin sistemindeki hazır riglerden gelir; rige dokun, rig sayfası açılır.') + '<div class="t-wins">';
+  top.forEach((r, i) => {
+    const {dd, w} = r; let recs = [];
+    try { recs = recommend(dd, w.night, null, {w, x: w.x}).filter(o => o.ok).slice(0, 3); } catch (e) { recs = []; }
+    h += '<article class="t-win"><div class="rk">' + (i + 1) + '</div><div><h3>' + akDname(dd.date) + ' ' + DOWL[dd.date.getDay()] + ', ' + winTxt(w) + '</h3><p class="when">' + winLabel(w) + ' penceresi · ' + (w.night ? 'gece' : 'gündüz') + '</p>' +
+      '<div class="meta">' + akTags(w) + akBadge(w.cls, 'boat', w.cls ? w.cls + ' · ' + CLS_TXT[w.cls] : '') + '</div>' +
+      '<div class="meta">' + fishHtml(w.fish) + '<span>Balık <b>%' + w.pct + '</b></span>' + (w.x && w.x.wind != null ? '<span>Rüzgâr <b>' + akWt(w.x.wind) + '</b></span>' : '') + (dd.wave != null ? '<span>Dalga <b>' + f1(dd.wave) + ' m</b></span>' : '') + '<span>Solunar ' + akStars(dd.sol.stars) + '</span><span>Güven ' + akConf(dd.conf) + '</span></div>' +
+      (recs.length ? '<div class="t-rigs"><span class="lbl">Rig</span>' + recs.map(o => '<button type="button" class="' + (w.night ? 'n' : 'g') + '" data-rigopen="' + esc(o.rg.id) + '" title="' + esc(o.rg.name || '') + '">' + esc(o.rg.code || '') + (o.rg.name ? ' <small>' + esc(o.rg.name) + '</small>' : '') + '</button>').join('') + '</div>'
+        : '<p class="t-note">Bu pencere için hazır rig yok; Rigler sekmesinden sistemini kur ya da eksikleri tamamla.</p>') + '</div></article>';
+  });
+  return h + '</div>' + (top.length ? '' : '<div class="t-empty">Pencere hesaplanamadı.</div>') + '</section>';
+}
+
+// ---------------------------------------------------------------- yöntem
+function akSecYontem(land){
+  const row = (a, b) => '<tr><td><b>' + esc(a) + '</b></td><td>' + esc(b) + '</td></tr>';
+  let h = '<section class="t-sec" id="t-yontem">' + akHead('Yöntem', 'Veriler nereden geliyor, neler hesaplandı?', 'Hangi değerin model çıktısı, hangisinin hesap olduğu ayrı yazıldı.') +
+    '<div class="t-warn">' + akI('warn') + '<p><b>Resmî deniz tahmini değildir.</b> Çıkıştan önce MGM ve Kıyı Emniyeti denizcilik uyarılarını, o günkü güncel rüzgâr ve dalga tahminini kontrol et. Sınıflar bir güvenlik garantisi değil, planlama kılavuzudur.</p></div>' +
+    '<div class="t-method" style="margin-top:16px"><div class="t-panel"><h3>Hangi değer nereden?</h3><table class="t-kvt"><thead><tr><th>Değer</th><th>Kaynak ve yöntem</th></tr></thead><tbody>' +
+    row('Rüzgâr', 'Karma: ICON-EU 7 km, bittiği yerde ECMWF IFS, sonra Open-Meteo en iyi eşleşme. Model seçimi Bugün → Saatlik tablodan değişir.') +
+    row('Hamle', 'Karma: GFS; yoksa en iyi eşleşme.') +
+    row('Hava, basınç, bulut, yağış', 'Aynı modellerden saatlik; yağış olasılığı Open-Meteo en iyi eşleşme.') +
+    (land ? '' : row('Dalga', 'MFWAM (Météo-France) dalga modeli; yoksa en iyi deniz modeli. Yükseklik, yön ve periyot.') + row('Akıntı ve su sıcaklığı', 'Open-Meteo deniz modeli (en iyi eşleşme). Nokta karadaysa en yakın deniz noktası.')) +
+    row('Güneş, ay, solunar', 'Bu koordinat için astronomik hesap (SunCalc): gün doğumu ve batımı, ay doğuşu, batışı, tepe ve alt geçişi.') +
+    '</tbody></table></div><div class="t-panel"><h3>' + (land ? 'Rüzgâr sınıfları' : 'Deniz sınıfları') + '</h3><table class="t-kvt"><thead><tr><th>Sınıf</th><th>Rüzgâr (en çok)</th><th>Anlamı</th></tr></thead><tbody>' +
+    [['A', '≤ 10,5 kn · ≤ 5,4 m/s · Bft ≤ 3'], ['B', '≤ 15,4 kn · ≤ 7,9 m/s · Bft 4'], ['C', '≤ 20,8 kn · ≤ 10,7 m/s · Bft 5'], ['D', '> 20,8 kn · Bft ≥ 6']].map(([c, t]) => '<tr><td>' + akBadge(c) + '</td><td class="mono">' + t + '</td><td>' + CLS_TXT[c] + '</td></tr>').join('') +
+    '</tbody></table>' + (land ? '' : '<p class="t-note">Dalga 1,0 m ve üstündeyse sınıf bir kademe düşer, 1,5 m ve üstünde D olur. Kıyı modunda rüzgârın kıyıya göre yönü (vuran, esen, yandan) de hesaba girer.</p>') +
+    '<h3 style="margin-top:16px">Güven</h3><table class="t-kvt"><tbody><tr><td>' + akConf('yüksek') + '</td><td><b>1–3. gün</b> · yüksek</td></tr><tr><td>' + akConf('iyi') + '</td><td><b>4–7. gün</b> · iyi</td></tr><tr><td>' + akConf('orta') + '</td><td><b>8–10. gün</b> · orta</td></tr><tr><td>' + akConf('düşük') + '</td><td><b>11. gün ve sonrası</b> · düşük, yalnız eğilim</td></tr></tbody></table>' +
+    (land ? '' : '<h3 style="margin-top:16px">Balık değeri ve pencere</h3><p class="t-note" style="margin-top:0">10 dakikalık solunar eğrisi: taban %24; major (±60 dk) 0,6, minor (±30 dk) 0,36, şafak ve alacakaranlık 0,4 ağırlık; ay evresi ×0,9–1,1; saatlik değer basınç eğilimi ve akıntıyla düzeltilir. 5 balık, her balık %20. Pencere = balık × deniz payı (A 1 · B 0,92 · C 0,7 · D 0,25); sıralamada güven de çarpılır (yüksek 1 … düşük 0,75).</p>') +
+    '</div></div><div class="t-panel" style="margin-top:16px"><h3>Kaynaklar</h3><ul class="t-src">' +
+    [['Open-Meteo hava tahmini (ICON-EU, ECMWF, GFS)', 'https://open-meteo.com/en/docs'], ['Open-Meteo deniz tahmini (dalga, akıntı, su sıcaklığı)', 'https://open-meteo.com/en/docs/marine-weather-api'], ['SunCalc (güneş ve ay hesabı)', 'https://github.com/mourner/suncalc'], ['MGM denizcilik tahmini ve uyarıları', 'https://www.mgm.gov.tr/denizcilik/']]
+      .map(([t, u]) => '<li><a href="' + u + '" target="_blank" rel="noopener noreferrer">' + esc(t) + '</a></li>').join('') + '</ul></div></section>';
+  return h;
+}
+
+// ---------------------------------------------------------------- karşılaştırma (en çok 3 nokta)
+function akCmpCard(L, d, best, land){
+  const cls = 't-day' + (best ? ' best' : '') + (d.idx >= 10 ? ' low' : '');
+  return '<button type="button" class="' + cls + '" data-calpick="' + esc(L.id) + '|' + d.key + '"><div class="nm"><span>' + esc(locLabel(L)) + '</span>' + (best ? '<em class="t-flag">en iyi</em>' : '') + '</div>' +
+    '<div class="t-wxrow">' + akWxI(d.wx || 'unknown') + '<div class="t-temps"><b>' + (d.tmax == null ? '–' : tempV(d.tmax) + '°') + '</b><span>' + (d.tmin == null ? '' : tempV(d.tmin) + '°') + '</span></div></div>' +
+    '<ul class="t-kv"><li><span class="k">' + akI('wind') + 'Rüzgâr</span><b>' + akArr(d.dir) + ' ' + akW(d.wd, false) + '</b></li>' + (d.wn != null ? '<li><span class="k">' + akI('moon') + 'Gece</span><b>' + akW(d.wn, false) + '</b></li>' : '') +
+    (d.gD != null || d.gN != null ? '<li><span class="k">' + akI('gust') + 'Hamle</span><b title="gündüz / gece">' + akW2(d.gD, d.gN) + '</b></li>' : '') +
+    (land ? (d.pop != null ? '<li><span class="k">' + akI('rain') + 'Yağış</span><b>%' + Math.round(d.pop) + '</b></li>' : '') : (d.wave != null ? '<li><span class="k">' + akI('wave') + 'Dalga</span><b>' + f1(d.wave) + ' m</b></li>' : '') + (d.sst != null ? '<li><span class="k">' + akI('drop') + 'Su</span><b>' + tempV(d.sst, true) + '°</b></li>' : '')) + '</ul>' +
+    (land ? '<div class="t-note" style="margin:0">Kara · yalnız hava</div>' : '<div class="t-cls">' + akBadge(d.clsD, 'sun', 'gündüz ' + (d.clsD || '')) + akBadge(d.clsN, 'moon', 'gece ' + (d.clsN || '')) + '</div>' +
+      (d.win ? '<div class="t-dwin">' + fishHtml(d.win.fish) + '<span><b>%' + d.win.pct + '</b> ' + hm(d.win.a) + '–' + hm(d.win.b) + '</span></div>' : '')) + '</button>';
+}
+function akCmpRow(L, d, best, land){
+  const cls = 't-drow cmp' + (best ? ' best' : '') + (d.idx >= 10 ? ' low' : '');
+  return '<button type="button" class="' + cls + '" data-calpick="' + esc(L.id) + '|' + d.key + '"><div class="t-dbd"><div class="t-dtop">' + akWxI(d.wx || 'unknown') +
+    '<span class="t-dnm">' + akI(land ? 'pin' : 'anchor') + esc(locLabel(L)) + '</span>' + (best ? '<em class="t-flag">en iyi</em>' : '') +
+    '<div class="t-temps"><b>' + (d.tmax == null ? '–' : tempV(d.tmax) + '°') + '</b><span>' + (d.tmin == null ? '' : tempV(d.tmin) + '°') + '</span></div>' +
+    (land ? '' : '<span class="t-dcl">' + akBadge(d.clsD, 'sun', d.clsD, true) + akBadge(d.clsN, 'moon', d.clsN, true) + '</span>') + '</div>' +
+    '<div class="t-chips">' + akChip('wind', akArr(d.dir) + akW(d.wd, false), 'Rüzgâr gündüz') + (d.wn != null ? akChip('moon', akW(d.wn, false), 'Rüzgâr gece') : '') + (d.gD != null || d.gN != null ? akChip('gust', akW2(d.gD, d.gN), 'Hamle gündüz / gece') : '') +
+    (land ? (d.pop != null ? akChip('rain', '%' + Math.round(d.pop), 'Yağış') : '') : (d.wave != null ? akChip('wave', f1(d.wave) + ' m', 'Dalga') : '') + (d.sst != null ? akChip('drop', tempV(d.sst, true) + '°', 'Su sıcaklığı') : '')) + '</div>' +
+    (!land && d.win ? '<div class="t-dbot"><span class="t-dwin">' + fishHtml(d.win.fish) + '<span><b>%' + d.win.pct + '</b> ' + hm(d.win.a) + '–' + hm(d.win.b) + '</span></span></div>' : '') + '</div></button>';
+}
+function akCompare(ids){
+  const Ls = ids.map(id => S.locations[id]);
+  const sums = Ls.map(L => { const sm = locSummary(L); if (!sm && L.id !== S.active && !wxFresh(MWX[L.id], L) && !MWX_LOAD[L.id] && Date.now() - (MWX_FAIL[L.id] || 0) > 5 * 60000)
+    loadWxFor(L).then(() => { if (!MWX[L.id]) MWX_FAIL[L.id] = Date.now(); renderCalendar(); }); return sm; });
+  const allLand = Ls.every(L => locKind(L) === 'kara');
+  const keys = []; sums.forEach(sm => (sm || []).forEach(d => { if (!keys.includes(d.key)) keys.push(d.key); })); keys.sort();
+  const k16 = keys.slice(0, 16), ds = k16.map(k => { for (const sm of sums) { const d = (sm || []).find(x => x.key === k); if (d) return d; } return null; });
+  let body = '';
+  if (!k16.length) body = '<div class="t-empty">Noktaların verisi yükleniyor…</div>';
+  else {
+    const rows = []; Ls.forEach((L, i) => { const sm = sums[i] || []; rows.push({group: locLabel(L)});
+      if (locKind(L) === 'kara') rows.push({lab: 'rüzgâr', cells: k16.map(k => { const d = sm.find(x => x.key === k); return d && d.wd != null ? {c: seaClass(d.wd), v: bft(d.wd), t: 'gündüz ' + bft(d.wd) + ' Bft'} : null; })});
+      else ['clsD', 'clsN'].forEach(f => rows.push({lab: f === 'clsD' ? 'gündüz' : 'gece', cells: k16.map(k => { const d = sm.find(x => x.key === k); return d && d[f] ? {c: d[f], v: d[f], t: locLabel(L) + ' ' + akDname(d.date) + ': ' + CLS_TXT[d[f]]} : null; })})); });
+    const v = calView();
+    body = '<section class="t-sec" id="t-ozet">' + akHead('Özet', 'Noktalar yan yana', 'Her nokta için gündüz ve gece sınıfı. Bir noktanın bütün sayfası için üstteki sekmesine dokun.') + '<div class="t-panel">' + akStrip(ds, rows) +
+      '<div class="t-legend">' + 'ABCD'.split('').map(c => '<span><i class="t-sw ' + c + '"></i>' + c + ' ' + CLS_TXT[c] + '</span>').join('') + '</div></div></section>';
+    const inner = k16.map(k => {
+      const cards = Ls.map((L, i) => ({L, d: (sums[i] || []).find(x => x.key === k) || null}));
+      const best = cards.filter(r => r.d && r.d.score > 0).sort((p, q) => q.d.score - p.d.score)[0];
+      const d0 = cards.find(r => r.d).d;
+      return '<div class="t-cday"><div class="t-cdh"><b>' + d0.date.getDate() + '</b><span class="' + (akWk(d0.date) ? 'wk' : '') + '">' + MONTHS[d0.date.getMonth()] + ' · ' + DOWL[d0.date.getDay()] + '</span></div><div class="' + (v === 'kart' ? 't-cgrid' : 't-crows') + '">' +
+        cards.map(({L, d}) => d ? (v === 'kart' ? akCmpCard : akCmpRow)(L, d, best && best.L === L, d.land) : '<div class="t-empty">' + esc(locLabel(L)) + ' yükleniyor…</div>').join('') + '</div></div>';
+    }).join('');
+    body += akSecGunler(ds, allLand, inner + calLegend(), 'Noktalar gün gün');
+  }
+  return {body, allLand};
+}
+
+// ---------------------------------------------------------------- sayfa
+const AK_SECS = [['ozet', 'Özet', 'info'], ['gunler', 'Günler', 'cal'], ['grafik', 'Grafik', 'chart'], ['tablo', 'Tablo', 'table'], ['solunar', 'Solunar', 'moon'], ['pencere', 'Pencereler', 'clock'], ['balik', 'Balıklar', 'fish'], ['yontem', 'Yöntem', 'compass']];
+const akNav = ids => '<nav class="t-nav" aria-label="Takvim bölümleri">' + AK_SECS.filter(s => ids.includes(s[0])).map(s => '<button type="button" data-atkgo="' + s[0] + '">' + akI(s[2]) + s[1] + '</button>').join('') + '</nav>';
+function akTabs(sel){
+  if (sel.length < 2) return '';
+  const t = ui.calTab;
+  return '<div class="t-tabs" role="tablist" aria-label="Takvim noktası">' + sel.map(id => '<button class="btn small" type="button" data-atktab="' + esc(id) + '" aria-pressed="' + (t === id) + '">' + akI(locKind(S.locations[id]) === 'kara' ? 'pin' : 'anchor') + esc(locLabel(S.locations[id])) + '</button>').join('') +
+    '<button class="btn small" type="button" data-atktab="cmp" aria-pressed="' + (t === 'cmp') + '">' + akI('cards') + 'Karşılaştır</button></div>';
+}
+function akLocPage(L){
+  const ds = days().slice(0, 16), land = locKind(L) === 'kara';
+  if (!ds.length) return {hero: '', body: '<div class="t-empty">' + (loc() ? 'Veri yok. İnternete bağlanınca takvim dolar.' : 'Önce bir konum ekle.') + '</div>', secs: [], land};
+  const v = calView();
+  const on = {}; orderedRows(CROWS, S.settings.calrows).forEach(r => { on[r.id] = r.on; });
+  const o = {land, on, best: land ? [] : akBestDays(ds)};
+  const inner = (v === 'kart' ? '<div class="t-days">' + ds.map(dd => akDayCard(dd, o)).join('') : '<div class="t-rows">' + ds.map(dd => akDayRow(dd, o)).join('')) + '</div>' + calLegend();
+  const secs = land ? ['ozet', 'gunler', 'grafik', 'tablo', 'yontem'] : ['ozet', 'gunler', 'grafik', 'tablo', 'solunar', 'pencere', 'balik', 'yontem'];
+  const body = akSecOzet(ds, land) + akSecGunler(ds, land, inner) + akSecGrafik(ds, land) + akSecTablo(ds, land) + (land ? '' : akSecSolunar(ds) + akSecPencere(ds) + akSecBalik(L)) + akSecYontem(land) +
+    '<footer class="t-foot"><span>' + esc(locLabel(L)) + (S.settings.hideCoords ? '' : ' · ' + esc(fmtCoord(L.lat, L.lon, true))) + '</span><span>Veriler tahmindir; resmî deniz tahmini yerine geçmez.</span></footer>';
+  return {hero: akHero(L, ds, land, null), body, secs, land, v, ds};
+}
+// görünüm seçilmemişse tablet döndürülünce (700 px sınırı) kartlar yeniden çizilir
+let AK_VIEW_R = null, AK_RZ = null;
+window.addEventListener('resize', () => { clearTimeout(AK_RZ); AK_RZ = setTimeout(() => { const v = $('v-takvim'); if (v && !v.hidden && AK_VIEW_R && calView() !== AK_VIEW_R) renderCalendar(); }, 250); });
+function renderCalendar(){
+  const view = $('v-takvim'); if (!view) return;
+  if (view.hidden) { CAL_DIRTY = true; return; }
+  CAL_DIRTY = false; AK_VIEW_R = calView();
+  const box = $('atk'); if (!box) return;
+  const sel = calLocs();
+  if (!sel.length) { box.innerHTML = '<div class="t-empty">Önce bir konum ekle. Takvim seçtiğin noktaya göre hesaplanır.<div class="row" style="justify-content:center;margin-top:10px"><button class="btn primary" type="button" data-open="konumlar">Konum ekle</button></div></div>'; return; }
+  if (ui.calTab !== 'cmp' && !sel.includes(ui.calTab)) ui.calTab = null;
+  if (!ui.calTab || (ui.calTab === 'cmp' && sel.length < 2)) ui.calTab = sel.length >= 2 ? 'cmp' : sel[0];
+  const top = '<div class="calpick" id="calPick"></div>' + akTabs(sel);
+  if (ui.calTab === 'cmp') {
+    const r = akCompare(sel);
+    box.innerHTML = akHeroCmp(sel, r.allLand) + top + akNav(['ozet', 'gunler']) + r.body;
+    renderCalPick(); return;
+  }
+  const L = S.locations[ui.calTab];
+  let pg;
+  if (L.id === S.active) pg = akLocPage(L);
+  else {
+    const w = MWX[L.id];
+    if (!w || !w.raw) {
+      if (!MWX_LOAD[L.id] && Date.now() - (MWX_FAIL[L.id] || 0) > 5 * 60000) loadWxFor(L).then(() => { if (!MWX[L.id]) MWX_FAIL[L.id] = Date.now(); renderCalendar(); });
+      box.innerHTML = top + '<div class="t-empty">' + esc(locLabel(L)) + ' için veri yükleniyor…</div>'; renderCalPick(); return;
+    }
+    pg = withLoc(L, w, () => akLocPage(L));
+  }
+  box.innerHTML = pg.hero + top + (pg.secs.length ? akNav(pg.secs) : '') + pg.body;
+  renderCalPick();
+}
+function akHeroCmp(sel, allLand){
+  const L = S.locations[sel[0]];
+  const ds = (locSummary(L) || []).slice(0, 16);
+  const fake = ds.length ? ds : [];
+  return akHero(L, fake.map(d => ({date: d.date, models: []})), !!allLand, sel);
+}
+// bölüm çubuğu: dokununca o bölüme kayar
+function akGo(id){ const el = $('t-' + id); if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+
+// ---------------------------------------------------------------- 76b · balık çizimleri ve tür kartları (v0.28)
+// Av takvimi sayfasındaki parametrik çizimler (sparit, uskumrugiller, kalamar) ve su sahnesi; diğer türler için aynı kalıplardan
+// renk ve desen değişkeleri, yassı balıklar, ahtapot ve mürekkep balığı. Çizimler temsilîdir, ölçekli fotoğraf değildir.
+// Takvimin "Balıklar" bölümü ve Türlerim tür sayfası buradan çizer. Renkler doğal tonlardır (su zemininin üstünde sabit).
+function fSpline(pts, closed){
+  const n = pts.length, P = i => closed ? pts[((i % n) + n) % n] : pts[Math.max(0, Math.min(n - 1, i))], f = v => v.toFixed(1);
+  const out = ['M' + f(pts[0][0]) + ' ' + f(pts[0][1])];
+  for (let i = 0; i < (closed ? n : n - 1); i++) {
+    const p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2);
+    out.push('C' + f(p1[0] + (p2[0] - p0[0]) / 6) + ' ' + f(p1[1] + (p2[1] - p0[1]) / 6) + ' ' + f(p2[0] - (p3[0] - p1[0]) / 6) + ' ' + f(p2[1] - (p3[1] - p1[1]) / 6) + ' ' + f(p2[0]) + ' ' + f(p2[1]));
+  }
+  return out.join(' ') + (closed ? ' Z' : '');
+}
+const fSc = (pts, d, cy) => pts.map(([x, y]) => [x, (cy || 64) + (y - (cy || 64)) * d]);
+const fRays = (pts, col, op) => pts.map(([a, b, c, d]) => '<line x1="' + a + '" y1="' + b + '" x2="' + c + '" y2="' + d + '" stroke="' + col + '" stroke-opacity="' + (op || 0.35) + '" stroke-width=".9"/>').join('');
+const fDefs = (u, back, mid, belly, body, so) => '<linearGradient id="' + u + '-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + back + '"/><stop offset=".52" stop-color="' + mid + '"/><stop offset="1" stop-color="' + belly + '"/></linearGradient>' +
+  '<clipPath id="' + u + '-c"><path d="' + body + '"/></clipPath><pattern id="' + u + '-s" width="9" height="7" patternUnits="userSpaceOnUse"><path d="M0 7Q4.5 1.2 9 7M-4.5 3.5Q0 -2 4.5 3.5M4.5 3.5Q9 -2 13.5 3.5" fill="none" stroke="#10202a" stroke-opacity="' + (so == null ? 0.13 : so) + '" stroke-width=".8"/></pattern>';
+const fPath = (d, fill, line, extra) => '<path d="' + d + '" fill="' + fill + '" stroke="' + line + '" stroke-opacity=".5" stroke-width="1" stroke-linejoin="round"' + (extra || '') + '/>';
+const F_HEADS = {pointy: {1: [17, 61], 2: [27, 51], 3: [46, 39]}, steep: {1: [15, 55], 2: [22, 41], 3: [42, 31]}, hump: {1: [16, 53], 2: [25, 38], 3: [44, 25]}, blunt: {1: [14, 60], 2: [20, 49], 3: [44, 36]}};
+// sparit gövdesi (çipura, karagöz, mercan …): o = {u, back, mid, belly, fin, edge, marks, depth, head, tail, eye, dorsal, line, tailCol, fin2, teeth, pec, front}
+function fSparid(o){
+  const line = o.line || '#14262f', d = o.depth || 1, head = o.head || 'normal';
+  let top = [[12, 66], [17, 57], [28, 46], [46, 36], [70, 29], [100, 25], [130, 27], [156, 34], [174, 44], [190, 55]];
+  let bot = [[190, 73], [174, 81], [156, 90], [130, 98], [100, 102], [72, 100], [48, 92], [30, 80], [18, 72]];
+  Object.entries(F_HEADS[head] || {}).forEach(([i, v]) => { top[i] = v; });
+  if (head === 'steep' || head === 'hump') bot.splice(-2, 2, [27, 83], [16, 73]); else if (head === 'pointy') bot.splice(-2, 2, [30, 78], [18, 70]);
+  const body = fSpline(fSc(top, d).concat(fSc(bot, d)), true), tc = o.tailCol || o.fin, fb = o.fin2 || o.fin, u = o.u;
+  const r = ['<defs>' + fDefs(u, o.back, o.mid, o.belly, body) + '</defs>'];
+  if ((o.tail || 'fork') === 'fork') {
+    r.push(fPath('M184 57C198 49 218 35 237 18C229 38 219 52 213 64C219 76 229 92 237 110C218 94 198 80 184 71Z', tc, line));
+    r.push(fRays([[190, 64, 232, 26], [190, 64, 224, 38], [190, 64, 216, 50], [190, 64, 216, 78], [190, 64, 224, 90], [190, 64, 232, 102]], line, 0.22));
+    r.push('<path d="M237 18C229 38 219 52 213 64C219 76 229 92 237 110" fill="none" stroke="' + o.edge + '" stroke-width="2.2" stroke-opacity=".7" stroke-linecap="round"/>');
+  } else {
+    r.push(fPath('M184 57C202 47 226 50 238 64C226 80 202 82 184 71Z', tc, line));
+    r.push(fRays([[190, 64, 234, 56], [190, 64, 236, 64], [190, 64, 234, 72], [190, 64, 224, 52], [190, 64, 224, 76]], line, 0.22));
+  }
+  const spiny = (o.dorsal || 'spiny') === 'spiny';
+  const dd = spiny ? 'M64 33L70 15L76 22L86 11L92 19L103 9L110 17L121 9L128 17C142 11 156 21 172 44Z' : 'M64 33L70 17L78 23L88 14L97 20L106 15C114 12 124 10 136 12C152 14 166 26 174 46Z';
+  const rays = spiny ? [[66, 31, 70, 15], [74, 31, 78, 21], [82, 29, 86, 11], [90, 28, 94, 18], [99, 27, 103, 9], [108, 27, 112, 16], [117, 27, 121, 9], [126, 28, 130, 16]]
+    : [[70, 31, 70, 17], [78, 31, 78, 23], [88, 29, 88, 14], [97, 28, 97, 20], [110, 27, 110, 14], [122, 27, 122, 11], [134, 28, 136, 12], [146, 30, 150, 17], [158, 34, 162, 24]];
+  r.push(fPath(dd, o.dorsalCol || o.fin, line), fRays(rays, line, 0.28), '<path d="' + dd.split('Z')[0] + '" fill="none" stroke="' + o.edge + '" stroke-width="1.6" stroke-opacity=".55"/>');
+  r.push(fPath('M136 97L142 111L152 107L160 113C168 104 175 92 179 80Z', fb, line), fRays([[144, 99, 143, 110], [152, 97, 152, 107], [160, 94, 160, 112], [168, 88, 170, 102]], line, 0.25));
+  r.push(fPath('M84 96C86 111 94 119 105 115C102 107 98 101 96 96Z', fb, line), o.back2 || '');
+  r.push('<path d="' + body + '" fill="url(#' + u + '-g)"/><path d="' + body + '" fill="url(#' + u + '-s)"/><g clip-path="url(#' + u + '-c)">');
+  r.push('<path d="' + fSpline(fSc([[38, 49], [70, 41], [110, 38], [150, 44], [182, 55]], d)) + '" fill="none" stroke="#fff" stroke-opacity=".26" stroke-width="7" stroke-linecap="round"/>', o.marks || '', '</g>');
+  r.push('<path d="' + body + '" fill="none" stroke="' + line + '" stroke-opacity=".62" stroke-width="1.3" stroke-linejoin="round"/>');
+  r.push('<path d="M57 37C66 53 66 75 53 93" fill="none" stroke="' + line + '" stroke-opacity=".5" stroke-width="1.4"/><path d="M62 42C68 56 67 72 59 87" fill="none" stroke="' + line + '" stroke-opacity=".2" stroke-width="1"/>');
+  r.push('<path d="M68 51C102 43 150 51 186 62" fill="none" stroke="' + line + '" stroke-opacity=".32" stroke-width="1" stroke-dasharray="2 3"/>');
+  r.push('<path d="M12.5 67C15 72 21 74.5 28 73.5" fill="none" stroke="' + line + '" stroke-opacity=".7" stroke-width="1.4" stroke-linecap="round"/>');
+  if (o.teeth) r.push('<path d="M14 68.5l1.8 4 1.6-3.2 2 3.8 1.4-3" fill="#fff" stroke="' + line + '" stroke-opacity=".5" stroke-width=".6"/>');
+  r.push(fPath('M62 66C75 60 89 69 95 85C82 87 66 81 62 66Z', o.pec || o.fin, line, ' fill-opacity=".72"'));
+  r.push('<circle cx="33" cy="56" r="7.5" fill="' + (o.eye || '#E9C46A') + '"/><circle cx="33" cy="56" r="7.5" fill="none" stroke="' + line + '" stroke-opacity=".55" stroke-width="1"/><circle cx="33" cy="56" r="4.3" fill="#0d171c"/><circle cx="31.2" cy="54.2" r="1.5" fill="#fff" fill-opacity=".9"/>');
+  r.push('<circle cx="21" cy="54" r="1.2" fill="' + line + '" fill-opacity=".55"/>', o.front || '');
+  return r.join('');
+}
+// uskumrugil/pelajik gövde (palamut, lüfer, akya, kolyoz …)
+function fFusi(o){
+  const line = o.line || '#10222d', d = o.depth || 1, u = o.u;
+  const body = fSpline(fSc([[8, 64], [16, 55], [34, 46], [62, 40], [100, 37], [140, 40], [172, 48], [198, 58]], d, 65).concat(fSc([[198, 71], [172, 80], [140, 89], [100, 92], [62, 90], [34, 83], [16, 73]], d, 65)), true);
+  const tc = o.tailCol || o.fin, fb = o.fin2 || o.fin, r = ['<defs>' + fDefs(u, o.back, o.mid, o.belly, body, 0.1) + '</defs>'];
+  r.push(fPath('M192 59C206 53 224 40 239 18C233 40 230 55 229 65C230 75 233 90 239 112C224 90 206 77 192 71Z', tc, line));
+  r.push(fRays([[196, 65, 235, 26], [196, 65, 228, 40], [196, 65, 224, 54], [196, 65, 224, 76], [196, 65, 228, 90], [196, 65, 235, 104]], line, 0.22));
+  r.push('<path d="M239 18C233 40 230 55 229 65C230 75 233 90 239 112" fill="none" stroke="' + o.edge + '" stroke-width="2.2" stroke-opacity=".7" stroke-linecap="round"/>');
+  const dor = o.dorsal || 'tuna';
+  if (dor === 'tuna') {
+    r.push(fPath('M58 42L64 29L74 25L86 23L98 25L110 29L122 35L132 41Z', o.dorsalCol || o.fin, line), fRays([[66, 40, 66, 29], [76, 39, 76, 26], [88, 38, 88, 24], [100, 38, 100, 26], [112, 39, 113, 31], [122, 40, 123, 36]], line, 0.25));
+    r.push(fPath('M142 41L151 31L161 35L169 46Z', fb, line));
+  } else if (dor === 'two') {
+    r.push(fPath('M70 41L76 28L90 26L104 29L114 41Z', o.dorsalCol || o.fin, line), fRays([[78, 40, 78, 29], [88, 39, 88, 27], [98, 39, 98, 29]], line, 0.25));
+    r.push(fPath('M126 41C132 31 148 27 158 34L170 47Z', fb, line), fRays([[134, 40, 136, 31], [144, 40, 147, 30], [154, 42, 158, 34]], line, 0.25));
+  } else if (dor === 'long') {
+    r.push(fPath('M40 44C50 26 80 24 110 26C140 28 160 34 178 50Z', o.dorsalCol || o.fin, line), fRays([[50, 42, 52, 30], [66, 40, 68, 27], [84, 38, 86, 26], [102, 38, 104, 26], [120, 39, 122, 28], [138, 40, 140, 31], [156, 44, 158, 36]], line, 0.25));
+  } else {
+    [66, 76, 86, 96, 106].forEach((x, i) => r.push(fPath('M' + (x - 3) + ' 41L' + (x + 1) + ' ' + (27 - (i % 2) * 2) + ' L' + (x + 5) + ' 41Z', o.fin, line)));
+    r.push(fPath('M120 41C124 26 142 20 156 27C166 32 172 40 178 52Z', fb, line), fRays([[128, 40, 131, 27], [138, 39, 142, 23], [148, 40, 152, 26], [158, 42, 163, 33]], line, 0.25));
+  }
+  if (o.finlets) for (let i = 0; i < 5; i++) { const x = 172 + i * 5.2, y = 49 + i * 2.1, yb = 79 - i * 2.1;
+    r.push(fPath('M' + x.toFixed(1) + ' ' + y.toFixed(1) + 'L' + (x + 4).toFixed(1) + ' ' + (y - 7).toFixed(1) + 'L' + (x + 8).toFixed(1) + ' ' + (y + 1).toFixed(1) + 'Z', o.fin, line), fPath('M' + (x - 2).toFixed(1) + ' ' + yb.toFixed(1) + 'L' + (x + 2).toFixed(1) + ' ' + (yb + 7).toFixed(1) + 'L' + (x + 6).toFixed(1) + ' ' + (yb - 1).toFixed(1) + 'Z', o.fin, line)); }
+  r.push(fPath('M138 90L148 101L160 99L172 81Z', fb, line), fPath('M80 89L86 100L96 94Z', fb, line), o.back2 || '');
+  r.push('<path d="' + body + '" fill="url(#' + u + '-g)"/><path d="' + body + '" fill="url(#' + u + '-s)"/><g clip-path="url(#' + u + '-c)">');
+  r.push('<path d="' + fSpline(fSc([[30, 56], [70, 50], [120, 49], [165, 55], [196, 63]], d, 65)) + '" fill="none" stroke="#fff" stroke-opacity=".30" stroke-width="6" stroke-linecap="round"/>', o.marks || '', '</g>');
+  r.push('<path d="' + body + '" fill="none" stroke="' + line + '" stroke-opacity=".62" stroke-width="1.3" stroke-linejoin="round"/>');
+  r.push('<path d="M45 48C52 60 52 74 43 86" fill="none" stroke="' + line + '" stroke-opacity=".5" stroke-width="1.4"/><path d="M50 52C103 46 150 56 194 65" fill="none" stroke="' + line + '" stroke-opacity=".30" stroke-width="1" stroke-dasharray="2 3"/>');
+  r.push(o.mouth === 'big' ? '<path d="M8.5 66C16 72 26 74 38 73" fill="none" stroke="' + line + '" stroke-opacity=".75" stroke-width="1.5" stroke-linecap="round"/><path d="M10 67.5l1.5 3.5 1.8-3.2 1.8 3.4 1.6-3" fill="#fff" stroke="' + line + '" stroke-opacity=".5" stroke-width=".6"/>'
+    : '<path d="M8.5 66C14 70 20 72 27 71.5" fill="none" stroke="' + line + '" stroke-opacity=".75" stroke-width="1.4" stroke-linecap="round"/>');
+  r.push(fPath('M56 67C64 65 72 70 76 79C67 79 59 74 56 67Z', o.pec || o.fin, line, ' fill-opacity=".8"'));
+  r.push('<circle cx="27" cy="57.5" r="6" fill="' + (o.eye || '#F2E6B6') + '"/><circle cx="27" cy="57.5" r="6" fill="none" stroke="' + line + '" stroke-opacity=".55" stroke-width="1"/><circle cx="27" cy="57.5" r="3.5" fill="#0d171c"/><circle cx="25.6" cy="56" r="1.2" fill="#fff" fill-opacity=".9"/>', o.front || '');
+  return r.join('');
+}
+// kalamar ve mürekkep balığı
+function fSquid(u, cuttle){
+  const g1 = cuttle ? '#8C6E57' : '#C98FB0', g2 = cuttle ? '#C9AE92' : '#E9C2D3', g3 = cuttle ? '#EFE2D2' : '#F7E7EE', arm = cuttle ? '#A88B72' : '#D6A1BE', line = '#2a1f3d';
+  const body = cuttle ? 'M84 60C96 36 168 32 206 60C168 88 96 84 84 60Z' : 'M94 60C112 43 164 37 214 60C164 83 112 77 94 60Z';
+  const r = ['<defs><linearGradient id="' + u + '-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + g1 + '"/><stop offset=".55" stop-color="' + g2 + '"/><stop offset="1" stop-color="' + g3 + '"/></linearGradient><clipPath id="' + u + '-c"><path d="' + body + '"/></clipPath></defs>'];
+  [[88, 54, 40, 40], [88, 57, 36, 52], [88, 60, 34, 63], [88, 63, 36, 74], [88, 66, 40, 86]].forEach(([x, y, ex, ey]) => r.push('<path d="M' + x + ' ' + y + ' C' + (x - 14) + ' ' + (y - 6) + ' ' + (ex + 16) + ' ' + (ey + 6) + ' ' + ex + ' ' + ey + '" fill="none" stroke="' + arm + '" stroke-width="3.2" stroke-linecap="round"/>'));
+  if (!cuttle) r.push('<path d="M92 56C70 46 52 34 24 28" fill="none" stroke="' + g1 + '" stroke-width="2.4" stroke-linecap="round"/><path d="M92 64C70 74 52 86 24 92" fill="none" stroke="' + g1 + '" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="21" cy="27.5" rx="7" ry="4.2" transform="rotate(-18 21 27.5)" fill="' + g1 + '"/><ellipse cx="21" cy="92.5" rx="7" ry="4.2" transform="rotate(18 21 92.5)" fill="' + g1 + '"/>');
+  r.push(cuttle ? '<path d="M88 50C120 30 176 30 210 56L210 64C176 90 120 90 88 70Z" fill="' + g2 + '" fill-opacity=".7" stroke="' + line + '" stroke-opacity=".4"/>' : fPath('M160 52L214 60L160 68C176 62 176 58 160 52Z', '#D9A7C2', line));
+  r.push('<path d="' + body + '" fill="url(#' + u + '-g)" stroke="' + line + '" stroke-opacity=".6" stroke-width="1.3" stroke-linejoin="round"/><g clip-path="url(#' + u + '-c)">');
+  if (cuttle) for (let i = 0; i < 9; i++) r.push('<path d="M' + (104 + i * 11) + ' 40q4 10 0 20" fill="none" stroke="#3b2a1e" stroke-opacity=".45" stroke-width="2.2"/>');
+  else [[110, 56], [118, 50], [126, 58], [134, 52], [142, 60], [150, 50], [158, 57], [166, 53], [174, 61], [182, 55], [190, 60], [122, 66], [138, 67], [154, 66], [170, 68], [118, 59], [146, 55], [130, 62], [162, 61], [200, 59]]
+    .forEach(([x, y], i) => r.push('<circle cx="' + x + '" cy="' + y + '" r="' + (1.2 + (i % 3) * 0.5).toFixed(1) + '" fill="#8E3F6B" fill-opacity=".' + (4 + i % 4) + '"/>'));
+  r.push('<path d="M100 54C130 44 170 44 206 58" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="4" stroke-linecap="round"/></g>');
+  r.push('<ellipse cx="86" cy="60" rx="12" ry="9.5" fill="' + arm + '" stroke="' + line + '" stroke-opacity=".55" stroke-width="1.2"/><circle cx="86" cy="53" r="5.2" fill="#F4EBC0"/><circle cx="86" cy="53" r="2.8" fill="#0d171c"/><circle cx="86" cy="68" r="5.2" fill="#F4EBC0"/><circle cx="86" cy="67.5" r="2.8" fill="#0d171c"/>');
+  return r.join('');
+}
+function fOcto(u){
+  const c1 = '#B0645A', c2 = '#D99A8A', line = '#3a1d1a', r = ['<defs><radialGradient id="' + u + '-g" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="' + c2 + '"/><stop offset="1" stop-color="' + c1 + '"/></radialGradient></defs>'];
+  [[96, 78, 30, 104, 8, 86], [104, 82, 64, 112, 40, 108], [114, 84, 110, 116, 90, 118], [124, 82, 150, 114, 170, 110], [132, 78, 190, 104, 214, 90], [100, 74, 46, 84, 20, 70], [130, 74, 186, 82, 222, 64], [118, 84, 128, 118, 140, 120]]
+    .forEach(([x, y, cx, cy, ex, ey]) => { r.push('<path d="M' + x + ' ' + y + ' Q' + cx + ' ' + cy + ' ' + ex + ' ' + ey + '" fill="none" stroke="' + c1 + '" stroke-width="7" stroke-linecap="round"/><path d="M' + x + ' ' + y + ' Q' + cx + ' ' + cy + ' ' + ex + ' ' + ey + '" fill="none" stroke="#F3D3C6" stroke-width="2" stroke-dasharray="1.5 4" stroke-linecap="round" stroke-opacity=".8"/>'); });
+  r.push('<path d="M88 74C80 40 96 14 116 12C138 10 152 36 144 74Z" fill="url(#' + u + '-g)" stroke="' + line + '" stroke-opacity=".55" stroke-width="1.3"/>');
+  r.push('<ellipse cx="104" cy="60" rx="5" ry="4" fill="#F4EBC0"/><rect x="101" y="59" width="6" height="2" rx="1" fill="#0d171c"/><ellipse cx="130" cy="60" rx="5" ry="4" fill="#F4EBC0"/><rect x="127" y="59" width="6" height="2" rx="1" fill="#0d171c"/>');
+  r.push('<path d="M104 30c6-4 14-4 20 0" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>');
+  return r.join('');
+}
+// yassı balık (dil, kalkan): üstten bakış
+function fFlat(u, round){
+  const c1 = round ? '#7A6A4E' : '#8B6F4C', c2 = round ? '#A8956E' : '#B9996F', line = '#2c2216';
+  const body = round ? 'M30 64C30 26 76 14 120 16C166 18 196 38 198 64C196 90 166 110 120 112C76 114 30 102 30 64Z' : 'M18 62C24 38 70 28 120 30C170 32 196 48 200 64C196 80 170 96 120 98C70 100 24 88 18 62Z';
+  const r = ['<defs><linearGradient id="' + u + '-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c2 + '"/><stop offset="1" stop-color="' + c1 + '"/></linearGradient><clipPath id="' + u + '-c"><path d="' + body + '"/></clipPath></defs>'];
+  r.push('<path d="' + (round ? 'M24 64C22 18 80 4 120 8C170 10 206 34 206 64C206 94 170 118 120 120C80 124 22 110 24 64Z' : 'M10 62C16 30 70 18 120 20C176 22 204 44 208 64C204 84 176 106 120 108C70 110 16 94 10 62Z') + '" fill="' + c1 + '" fill-opacity=".55" stroke="' + line + '" stroke-opacity=".35"/>');
+  r.push(fPath(round ? 'M196 56L234 40L230 64L234 88L196 72Z' : 'M198 56L236 44L232 64L236 84L198 72Z', c1, line));
+  r.push('<path d="' + body + '" fill="url(#' + u + '-g)" stroke="' + line + '" stroke-opacity=".55" stroke-width="1.3"/><g clip-path="url(#' + u + '-c)">');
+  for (let i = 0; i < 26; i++) { const x = 46 + (i * 37) % 150, y = 34 + (i * 23) % 64; r.push('<circle cx="' + x + '" cy="' + y + '" r="' + (round ? 2.4 : 3.2 + (i % 3)) + '" fill="' + (round ? '#3d2f1f' : '#5a4630') + '" fill-opacity="' + (round ? 0.5 : 0.28) + '"/>'); }
+  r.push('<path d="M60 64C100 60 150 62 196 64" fill="none" stroke="' + line + '" stroke-opacity=".3" stroke-dasharray="2 3"/></g>');
+  r.push('<circle cx="48" cy="52" r="4.5" fill="#E8D9A8"/><circle cx="48" cy="52" r="2.4" fill="#0d171c"/><circle cx="56" cy="44" r="4.5" fill="#E8D9A8"/><circle cx="56" cy="44" r="2.4" fill="#0d171c"/>');
+  return r.join('');
+}
+// su sahnesi: dip (kum, taş, yosun) · açık su · gece
+function fScene(kind, u){
+  const o = ['<defs><linearGradient id="' + u + '-r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".17"/><stop offset="1" stop-color="#fff" stop-opacity=".03"/></linearGradient></defs>'];
+  if (kind !== 'gece') o.push('<g fill="url(#' + u + '-r)"><path d="M30 0L64 0 104 190 56 190 Z"/><path d="M122 0L140 0 184 190 144 190 Z"/><path d="M196 0L222 0 270 190 222 190 Z"/></g>');
+  else o.push('<circle cx="42" cy="26" r="28" fill="#FFE9A8" fill-opacity=".14"/><circle cx="42" cy="26" r="9" fill="#FFF3C8" fill-opacity=".9"/><g fill="#fff" fill-opacity=".55">' + [[150, 14, 1], [190, 30, 1.2], [232, 12, 0.9], [254, 38, 1], [112, 34, 0.8], [86, 12, 0.8], [214, 58, 0.8]].map(([x, y, r]) => '<circle cx="' + x + '" cy="' + y + '" r="' + r + '"/>').join('') + '</g>');
+  o.push('<g fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1">' + [[250, 110, 3], [256, 92, 2], [245, 78, 1.5], [26, 120, 2.5], [20, 102, 1.6], [34, 140, 1.4]].map(([x, y, r]) => '<circle cx="' + x + '" cy="' + y + '" r="' + r + '"/>').join('') + '</g>');
+  if (kind === 'dip') o.push('<path d="M0 168C40 160 74 174 124 166C172 158 222 174 280 164L280 190L0 190Z" style="fill:var(--sand-a)"/><path d="M0 180C60 174 110 184 170 178C220 173 250 182 280 178L280 190L0 190Z" style="fill:var(--sand-b)"/>' +
+    '<path d="M236 170c-6-16 6-26 0-42M244 170c4-14-4-22 2-34M252 170c-5-12 3-18-1-30" fill="none" stroke="var(--weed)" stroke-width="3" stroke-linecap="round"/><ellipse cx="24" cy="171" rx="16" ry="9" style="fill:var(--rock-a)"/><ellipse cx="43" cy="175" rx="11" ry="6.5" style="fill:var(--rock-b)"/>');
+  else if (kind === 'gece') o.push('<path d="M0 176C50 170 90 180 140 174C190 168 240 180 280 172L280 190L0 190Z" style="fill:var(--sand-a)" fill-opacity=".55"/>');
+  return o.join('');
+}
+const fBands = (xs, w, op, col) => xs.map(x => '<path d="M' + x + ' 20C' + (x + 4) + ' 50 ' + (x + 4) + ' 80 ' + x + ' 112L' + (x + w) + ' 112C' + (x + w + 4) + ' 80 ' + (x + w + 4) + ' 50 ' + (x + w) + ' 20Z" fill="' + (col || '#1a2229') + '" fill-opacity="' + op + '"/>').join('');
+const fLines = (n, y0, dy, col, op, w) => Array.from({length: n}, (_, i) => '<path d="M70 ' + (y0 + i * dy) + ' C110 ' + (y0 - 6 + i * dy) + ' 150 ' + (y0 - 2 + i * dy) + ' 188 ' + (y0 + 4 + i * dy) + '" fill="none" stroke="' + col + '" stroke-opacity="' + op + '" stroke-width="' + (w || 1.3) + '"/>').join('');
+const fDots = (pts, col, r, op) => pts.map(([x, y]) => '<circle cx="' + x + '" cy="' + y + '" r="' + (r || 2) + '" fill="' + col + '" fill-opacity="' + (op || 0.85) + '"/>').join('');
+const fMottle = (col, op) => [[60, 48], [84, 60], [104, 44], [120, 70], [140, 52], [160, 66], [74, 80], [112, 88], [150, 84], [176, 56], [92, 30], [132, 36]].map(([x, y], i) => '<ellipse cx="' + x + '" cy="' + y + '" rx="' + (6 + i % 3 * 2) + '" ry="' + (4 + i % 2 * 2) + '" fill="' + col + '" fill-opacity="' + op + '"/>').join('');
+const FA = {};   // tür kimliği → çizim
+FA.cipura = u => fSparid({u, back: '#566C78', mid: '#A6B6BD', belly: '#E9EEF0', fin: '#6C7F89', edge: '#2d3e47', depth: 1.02, eye: '#E2B755', tailCol: '#5B6E78',
+  marks: '<path d="M20 52C28 38 46 31 70 29L70 37C50 38 37 45 29 58Z" fill="#E1B04A" fill-opacity=".95"/><ellipse cx="60" cy="64" rx="8" ry="16" fill="#B9382B" fill-opacity=".8"/><ellipse cx="61" cy="64" rx="5" ry="12.5" fill="#1d2226" fill-opacity=".85"/>' + fLines(5, 56, 7, '#1d2f38', 0.14)});
+FA.karagoz = u => fSparid({u, back: '#76858D', mid: '#B9C5C9', belly: '#EEF2F2', fin: '#8795A0', edge: '#2d3e47', tailCol: '#70808A', marks: fBands([58], 14, 0.78) + fBands([172], 16, 0.86) + fLines(4, 60, 8, '#caa04a', 0.3, 1.2)});
+FA.sargoz = u => fSparid({u, back: '#68787F', mid: '#B0BCC1', belly: '#E6EBEC', fin: '#7D8D96', edge: '#2d3e47', depth: 1.05, head: 'steep', eye: '#E3C46C', tailCol: '#697A83',
+  marks: fBands([66, 84, 102, 120, 138, 154], 6, 0.26) + '<ellipse cx="180" cy="64" rx="7" ry="17" fill="#13181c" fill-opacity=".88"/>'});
+FA.isparoz = u => fSparid({u, back: '#8998A0', mid: '#C6D0D4', belly: '#EFF3F4', fin: '#98A7AF', edge: '#2d3e47', depth: 0.92, eye: '#E8D28A', tailCol: '#8A99A1',
+  marks: '<path d="M172 34C176 52 176 76 172 96L184 96C188 76 188 52 184 34Z" fill="#14191d" fill-opacity=".9"/><path d="M62 70C100 62 140 68 170 72" fill="none" stroke="#d3b45b" stroke-opacity=".35" stroke-width="1.4"/>'});
+FA.mercan = u => fSparid({u, back: '#D8686F', mid: '#EFA9A8', belly: '#FBEFEE', fin: '#E48D8E', edge: '#8d3340', depth: 0.94, head: 'pointy', eye: '#F3E3B2', tailCol: '#DD777A',
+  marks: '<ellipse cx="70" cy="68" rx="3.6" ry="3.6" fill="#7A2A31" fill-opacity=".8"/><path d="M30 70C70 82 130 88 186 70" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="3"/>'});
+FA.fangri = u => fSparid({u, back: '#C24A55', mid: '#E58E90', belly: '#F8DCDA', fin: '#D2616A', edge: '#7d2a35', depth: 1.1, head: 'steep', eye: '#F0D79A', tailCol: '#CD5A64',
+  marks: fDots([[78, 40], [92, 36], [106, 34], [120, 36], [134, 40], [86, 50], [100, 47], [114, 46], [128, 49], [146, 50], [70, 58], [96, 58], [122, 59], [150, 58], [164, 52], [60, 48]], '#8CC9E8', 2, 0.9)});
+FA.sinarit = u => fSparid({u, back: '#334F6C', mid: '#7799B3', belly: '#D7E3EA', fin: '#3F5E7E', edge: '#1b2f45', depth: 1.06, head: 'hump', eye: '#E8DDA0', tailCol: '#3A5977', teeth: true,
+  marks: fDots([[70, 44], [90, 40], [112, 38], [134, 42], [80, 54], [102, 51], [124, 53], [146, 52], [160, 56], [66, 60], [92, 64]], '#BBD7EA', 1.8, 0.8)});
+FA.sinagrit = u => fSparid({u, back: '#B4606C', mid: '#E2A2A6', belly: '#F7E4E2', fin: '#C87882', edge: '#6e2c38', depth: 1.1, head: 'hump', eye: '#F0D79A', tailCol: '#BE6A75', teeth: true,
+  marks: fDots([[80, 44], [100, 40], [122, 42], [92, 54], [114, 52], [136, 54]], '#C9E1EE', 1.6, 0.7)});
+FA.tranca = u => fSparid({u, back: '#8A6B3E', mid: '#C9A25C', belly: '#F1E4C0', fin: '#D58B3E', edge: '#7b4a1c', depth: 1.08, head: 'hump', eye: '#F2E1A0', tailCol: '#CF7F36',
+  marks: '<path d="M10 20L74 20 74 112 10 112Z" fill="#E2B13F" fill-opacity=".38"/><path d="M30 70C70 84 130 90 186 72" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="3"/>'});
+FA.eskina = u => fSparid({u, back: '#41312A', mid: '#7A5B3E', belly: '#B58C58', fin: '#4B392F', edge: '#EDE5D0', depth: 0.96, head: 'blunt', tail: 'round', dorsal: 'long', eye: '#E8C57A', tailCol: '#46362D', fin2: '#4B392F', line: '#1a120d',
+  marks: '<path d="M20 70C70 84 130 92 186 74" fill="none" stroke="#F0C27A" stroke-opacity=".30" stroke-width="4"/><path d="M62 44C104 38 150 48 186 60" fill="none" stroke="#2a1d14" stroke-opacity=".25" stroke-width="2"/>'});
+FA.minakop = u => fSparid({u, back: '#7C6A4A', mid: '#C7B48A', belly: '#EFE6CF', fin: '#8C7A58', edge: '#3a2f1f', depth: 0.94, head: 'blunt', tail: 'round', dorsal: 'long', eye: '#E8D7A0', tailCol: '#7E6C4C',
+  marks: Array.from({length: 7}, (_, i) => '<path d="M' + (60 + i * 17) + ' 30L' + (80 + i * 17) + ' 100" stroke="#5a4a30" stroke-opacity=".35" stroke-width="2"/>').join(''), front: '<path d="M16 74l2 8" stroke="#3a2f1f" stroke-width="1.6" stroke-linecap="round"/>'});
+FA.izmarit = u => fSparid({u, back: '#6E7F91', mid: '#B9C4CE', belly: '#EEF1F3', fin: '#8494A4', edge: '#2d3e47', depth: 0.8, head: 'pointy', tailCol: '#7A8B9C', marks: '<rect x="96" y="54" width="14" height="10" rx="3" fill="#1c252d" fill-opacity=".75"/>'});
+FA.kupes = u => fSparid({u, back: '#8A8C5A', mid: '#CFCB98', belly: '#F2F0DE', fin: '#A3A06A', edge: '#3a3a1f', depth: 0.78, head: 'pointy', eye: '#EBDCA0', tailCol: '#999760', marks: fLines(4, 48, 10, '#D9B23C', 0.55, 1.6)});
+FA.melanurya = u => fSparid({u, back: '#6B7A86', mid: '#BBC6CD', belly: '#EEF2F3', fin: '#7D8C98', edge: '#2d3e47', depth: 0.9, tailCol: '#6E7D88',
+  marks: '<ellipse cx="180" cy="64" rx="9" ry="13" fill="#fff" fill-opacity=".8"/><ellipse cx="180" cy="64" rx="7" ry="11" fill="#101418"/>' + fLines(4, 52, 9, '#3c4a55', 0.18)});
+FA.mirmir = u => fSparid({u, back: '#8E9AA2', mid: '#CCD4D8', belly: '#F2F4F5', fin: '#9EA9B0', edge: '#2d3e47', depth: 0.86, head: 'pointy', tailCol: '#909CA4', marks: fBands([56, 70, 84, 98, 112, 126, 140, 154, 168], 5, 0.45)});
+FA.kirma = u => fSparid({u, back: '#C79C98', mid: '#E6C9C5', belly: '#FAF0EE', fin: '#D4AFAB', edge: '#7d4a4a', depth: 0.9, head: 'pointy', eye: '#F3E3B2', tailCol: '#C9A09C', marks: '<ellipse cx="66" cy="64" rx="5" ry="6" fill="#4a2020" fill-opacity=".7"/>'});
+FA.hani = u => fSparid({u, back: '#8A5A3C', mid: '#C9966A', belly: '#EED9BE', fin: '#A36E4A', edge: '#3d2414', depth: 0.92, head: 'pointy', tail: 'round', teeth: true, tailCol: '#97653F',
+  marks: fBands([70, 92, 114, 136, 158], 9, 0.35, '#4a2a18') + fLines(2, 66, 12, '#F0C38A', 0.6, 2)});
+FA.iskorpit = u => fSparid({u, back: '#6E4A33', mid: '#A87A58', belly: '#E3CDB4', fin: '#7E5A40', edge: '#2a1a10', depth: 1.05, head: 'blunt', tail: 'round', eye: '#E9B87A', tailCol: '#76533A', line: '#22140b',
+  marks: fMottle('#3a2416', 0.45), front: '<path d="M30 46l-4-8M38 44l0-9M46 44l4-8" stroke="#3a2416" stroke-width="1.6" stroke-linecap="round"/>'});
+FA.lipsoz = u => fSparid({u, back: '#B5523C', mid: '#DE8C6E', belly: '#F6DCCB', fin: '#C2664C', edge: '#5a1f12', depth: 1.05, head: 'blunt', tail: 'round', eye: '#F2D08A', tailCol: '#B85A42', line: '#3a160c',
+  marks: fMottle('#7a2a1a', 0.4), front: '<path d="M30 46l-4-8M38 44l0-9M46 44l4-8M24 78l-6 4" stroke="#7a2a1a" stroke-width="1.6" stroke-linecap="round"/>'});
+FA.gelincik = u => fSparid({u, back: '#6A5040', mid: '#A68A72', belly: '#E6D8C8', fin: '#7A604E', edge: '#2a1c12', depth: 0.82, head: 'blunt', tail: 'round', dorsal: 'long', tailCol: '#6E5444', front: '<path d="M18 74l-3 9" stroke="#2a1c12" stroke-width="1.4" stroke-linecap="round"/>'});
+FA.lahos = u => fSparid({u, back: '#6B5A3A', mid: '#A8925E', belly: '#E8DDBE', fin: '#7A6844', edge: '#2e2414', depth: 1.06, tail: 'round', teeth: true, tailCol: '#73613E', marks: fLines(3, 48, 14, '#E2C060', 0.55, 2.2)});
+FA.orfoz = u => fSparid({u, back: '#5A4636', mid: '#8E7660', belly: '#D9CBB8', fin: '#665040', edge: '#241a12', depth: 1.12, tail: 'round', teeth: true, tailCol: '#5E4A3A', marks: fMottle('#E8DCC4', 0.35)});
+FA['kaya-baligi'] = u => fSparid({u, back: '#6B5E48', mid: '#A3967A', belly: '#E3DCC8', fin: '#7A6C52', edge: '#2a2418', depth: 0.86, head: 'blunt', tail: 'round', dorsal: 'long', tailCol: '#6E6048', marks: fMottle('#3a3020', 0.35)});
+FA.barbunya = u => fSparid({u, back: '#D0605A', mid: '#EFA4A0', belly: '#FBEDEB', fin: '#DE8580', edge: '#7a2a28', depth: 0.86, head: 'steep', eye: '#F3E3B2', tailCol: '#D46A64',
+  front: '<path d="M17 76c1 8 3 12 6 14M21 77c1 7 4 11 7 12" fill="none" stroke="#B5524A" stroke-width="1.4" stroke-linecap="round"/>'});
+FA.tekir = u => fSparid({u, back: '#C0605A', mid: '#E9A49A', belly: '#FBEDEB', fin: '#D88A7E', edge: '#7a2a28', depth: 0.86, head: 'steep', eye: '#F3E3B2', tailCol: '#C86A60', marks: fLines(3, 54, 9, '#F2CC4A', 0.75, 2),
+  dorsalCol: '#E9C2A0', front: '<path d="M17 76c1 8 3 12 6 14M21 77c1 7 4 11 7 12" fill="none" stroke="#B5524A" stroke-width="1.4" stroke-linecap="round"/>'});
+FA.kirlangic = u => fSparid({u, back: '#B5524A', mid: '#DE8E84', belly: '#F6DEDA', fin: '#C86A60', edge: '#5a1f1a', depth: 0.92, head: 'blunt', eye: '#F2D08A', tailCol: '#BE5E56',
+  pec: '#3E8A9E', front: '<path d="M60 66C80 56 110 72 116 96C96 100 66 88 60 66Z" fill="#4AA0B4" fill-opacity=".75" stroke="#1d5866" stroke-opacity=".6"/><path d="M66 70C84 66 104 78 110 92" fill="none" stroke="#9fe0ee" stroke-width="1.5"/>'});
+FA.trakonya = u => fFusi({u, back: '#8C7E5C', mid: '#C8BC98', belly: '#F2EDDC', fin: '#9C8E6A', edge: '#3a3020', depth: 0.72, dorsal: 'two', mouth: 'big', dorsalCol: '#1c1a14', tailCol: '#958866',
+  marks: Array.from({length: 8}, (_, i) => '<path d="M' + (60 + i * 16) + ' 46L' + (74 + i * 16) + ' 84" stroke="#3a6a8a" stroke-opacity=".45" stroke-width="2"/>').join('')});
+FA.akya = u => fFusi({u, back: '#4A667A', mid: '#B2C3CD', belly: '#EEF2F4', fin: '#5A788C', edge: '#24394a', depth: 1.18, dorsal: 'free', mouth: 'big', tailCol: '#587589',
+  marks: '<path d="M48 70C90 62 140 68 190 66" fill="none" stroke="#E8B8B0" stroke-opacity=".5" stroke-width="3"/>' + fDots([[90, 52], [104, 56], [118, 52], [132, 57], [146, 53], [160, 58]], '#2c3b46', 1.8, 0.45)});
+FA.sarikuyruk = u => fFusi({u, back: '#5B6E7C', mid: '#B9C2BF', belly: '#F0EFE6', fin: '#6A7E8A', edge: '#24394a', depth: 1.12, dorsal: 'free', mouth: 'big', tailCol: '#D9B53B', fin2: '#C9A83E',
+  marks: '<path d="M30 44L76 34" stroke="#3a3020" stroke-opacity=".55" stroke-width="3"/><path d="M40 68C90 62 140 64 196 64" fill="none" stroke="#E2C04A" stroke-opacity=".75" stroke-width="4"/>'});
+FA.levrek = u => fFusi({u, back: '#5E6E78', mid: '#B7C3C9', belly: '#F1F4F5', fin: '#6C7C86', edge: '#2a3a44', depth: 1.05, dorsal: 'two', mouth: 'big', tailCol: '#66767F', marks: '<ellipse cx="46" cy="56" rx="4" ry="5" fill="#1e2a33" fill-opacity=".55"/>' + fLines(3, 52, 8, '#3c4a55', 0.18)});
+FA.palamut = u => fFusi({u, back: '#1A3B66', mid: '#7C9DBF', belly: '#E7EEF4', fin: '#2A4F7E', edge: '#10243f', depth: 1.06, tailCol: '#22446F', finlets: true,
+  marks: Array.from({length: 7}, (_, i) => '<path d="M' + (58 + i * 17) + ' 30C' + (64 + i * 17) + ' 44 ' + (74 + i * 17) + ' 54 ' + (84 + i * 17) + ' 68" fill="none" stroke="#12263f" stroke-opacity=".85" stroke-width="3.4" stroke-linecap="round"/>').join('')});
+FA.orkinos = u => fFusi({u, back: '#13294B', mid: '#6F8FB0', belly: '#E4EBF1', fin: '#1E3A64', edge: '#0b1a33', depth: 1.3, tailCol: '#1A3560', finlets: true, fin2: '#C9A83E',
+  marks: '<path d="M30 70C90 64 150 68 196 66" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>'});
+FA.lufer = u => fFusi({u, back: '#36707A', mid: '#AFC8CC', belly: '#F2F6F6', fin: '#C7B65F', edge: '#3b5a36', depth: 1.08, dorsal: 'two', mouth: 'big', tailCol: '#3F7C84', fin2: '#C7B65F',
+  marks: '<ellipse cx="55" cy="66" rx="4" ry="5" fill="#1e3338" fill-opacity=".6"/><path d="M40 70C90 63 150 68 196 66" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>'});
+FA.lambuka = u => fFusi({u, back: '#2F8F6B', mid: '#C6D44A', belly: '#F2E27A', fin: '#2F7FA0', edge: '#1d4a3a', depth: 1.15, dorsal: 'long', mouth: 'small', tailCol: '#D2C040', dorsalCol: '#2F7FA0',
+  marks: fDots([[60, 56], [80, 50], [100, 58], [120, 50], [140, 58], [160, 52], [90, 70], [130, 72]], '#2a6fb0', 2, 0.8)});
+FA.kolyoz = u => fFusi({u, back: '#2C6B73', mid: '#A9C4C6', belly: '#F3F6F5', fin: '#4E8890', edge: '#17353d', depth: 0.96, tailCol: '#3C7A82', finlets: true,
+  marks: Array.from({length: 5}, (_, i) => '<path d="M' + (24 + (i % 2) * 4) + ' ' + (44 + i * 4.5) + ' q4 -4 8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0" fill="none" stroke="#10303b" stroke-opacity=".65" stroke-width="1.2"/>').join('') +
+    Array.from({length: 11}, (_, i) => '<circle cx="' + (60 + i * 11) + '" cy="78" r="1.3" fill="#31434b" fill-opacity=".45"/><circle cx="' + (60 + i * 11) + '" cy="84" r="1.3" fill="#31434b" fill-opacity=".45"/>').join('')});
+FA.uskumru = u => fFusi({u, back: '#1F5E6E', mid: '#9CC0C6', belly: '#F3F6F5', fin: '#3E7684', edge: '#10303b', depth: 0.92, tailCol: '#2E6A78', finlets: true,
+  marks: Array.from({length: 9}, (_, i) => '<path d="M' + (40 + i * 16) + ' 38c6 6 -2 12 6 20" fill="none" stroke="#0b1f27" stroke-opacity=".8" stroke-width="2.4"/>').join('')});
+FA.istavrit = u => fFusi({u, back: '#4D7F94', mid: '#BCD0D8', belly: '#F3F6F7', fin: '#6A96A8', edge: '#1d3a46', depth: 0.86, dorsal: 'two', tailCol: '#5A8A9C',
+  marks: '<path d="M44 58C80 56 110 60 140 66C160 70 180 66 196 65" fill="none" stroke="#2b4a56" stroke-opacity=".6" stroke-width="3" stroke-dasharray="3 1.5"/><ellipse cx="46" cy="52" rx="3" ry="3" fill="#1e2a33" fill-opacity=".6"/>'});
+FA.mezgit = u => fFusi({u, back: '#8D9AA3', mid: '#CBD3D8', belly: '#F4F6F7', fin: '#9AA7AF', edge: '#36444c', depth: 0.82, dorsal: 'two', tailCol: '#909DA6', marks: '<ellipse cx="58" cy="66" rx="3" ry="3.5" fill="#1e2a33" fill-opacity=".6"/>'});
+FA.kefal = u => fFusi({u, back: '#5B6A73', mid: '#AEB9BF', belly: '#ECF0F1', fin: '#6A7880', edge: '#2a363d', depth: 0.98, dorsal: 'two', tailCol: '#63717A', marks: fLines(5, 46, 8, '#2d3a42', 0.4, 1.4)});
+FA.zargana = u => fFusi({u, back: '#2E6B7E', mid: '#A8C8CF', belly: '#F2F6F6', fin: '#3C7A8C', edge: '#173a46', depth: 0.42, dorsal: 'two', tailCol: '#3A7486',
+  front: '<path d="M10 63L-16 64.5L10 66.5Z" fill="#2E6B7E" stroke="#173a46" stroke-opacity=".6"/>', marks: '<path d="M20 64C80 62 140 63 196 64" stroke="#7FD0C0" stroke-opacity=".6" stroke-width="2"/>'});
+FA.kalamar = u => fSquid(u, false);
+FA.murekkep = u => fSquid(u, true);
+FA.ahtapot = u => fOcto(u);
+FA.dil = u => fFlat(u, false);
+FA.kalkan = u => fFlat(u, true);
+// tür sahnesi: açık su, gece ya da dip
+const F_KIND = {palamut: 'acik', lufer: 'acik', kolyoz: 'acik', istavrit: 'acik', uskumru: 'acik', akya: 'acik', sarikuyruk: 'acik', orkinos: 'acik', lambuka: 'acik', zargana: 'acik', levrek: 'acik', kefal: 'acik', mezgit: 'acik', kalamar: 'gece'};
+const fishKind = id => F_KIND[id] || 'dip';
+let F_UID = 0;
+function fishArt(id, label){
+  const fn = FA[id]; if (!fn) return '';
+  const u = 'fa' + (++F_UID), kind = fishKind(id);
+  const tx = id === 'kalamar' || id === 'murekkep' ? 26 : id === 'ahtapot' ? 20 : 20, ty = id === 'kalamar' || id === 'murekkep' ? 30 : id === 'ahtapot' ? 34 : 26;
+  return '<svg class="t-art" viewBox="0 0 280 190" preserveAspectRatio="xMidYMax meet" role="img" aria-label="' + esc(label || '') + ', temsilî çizim">' + fScene(kind, u) + '<g transform="translate(' + tx + ' ' + ty + ')">' + fn(u) + '</g></svg>';
+}
+const hasFishArt = id => !!FA[id];
+
+// ---------------------------------------------------------------- takvim: Balıklar bölümü (tür kartları)
+// Sistemindeki (riglerin ve hedef türlerin) türler, sonra bölgede bu dönem iyi olan diğerleri. Uyum 1–5: Ege av takvimi (bu ay), su sıcaklığı;
+// özel paketin tür notu varsa (Ekim–Kasım tahmini, dip, yem, boy, zaman) o yazılır. Karta dokununca tür sayfası, rig koduna dokununca rig açılır.
+const SPFIT_TXT = ['', 'Mevsimi değil', 'Zayıf', 'Orta', 'İyi', 'Çok iyi'];
+const SEASON_NM = ['kış', 'ilkbahar', 'yaz', 'sonbahar'];
+function spFit(id, month, sst){
+  const p = SPECIES[id];
+  if ((month === 10 || month === 11) && p && p.fit_oct_est) return Math.max(1, Math.min(5, Math.round(p.fit_oct_est)));
+  const n = spNow(id, month, sst); if (!n) return null;
+  return Math.max(1, Math.min(5, Math.round(1 + 4 * n.v)));
+}
+const fitMeter = f => '<span class="t-meter f' + f + '" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b></span>';
+function spRigs(id){
+  const rs = RIG_LIST.filter(r => (r.species || []).includes(id));
+  return rs.map(r => ({r, ok: ready(r)})).sort((a, b) => (b.ok - a.ok) || String(a.r.code || '').localeCompare(String(b.r.code || ''))).slice(0, 6);
+}
+function spCard(s, month, sst){
+  const id = s.id, p = SPECIES[id] || {}, fit = spFit(id, month, sst), kind = fishKind(id);
+  const uniq = a => a.filter((x, i) => x && a.indexOf(x) === i);
+  const bait = p.bait || uniq([].concat(s.b.g || [], s.b.n || [])).join(', ');
+  const lure = !p.bait && bait && uniq([].concat(s.b.g || [], s.b.n || [])).every(x => LURE_WORDS.test(trLower(x)));
+  const dep = spDepth(id, month);
+  const facts = [
+    ['Dip', p.bottom || s.hab.map(b => BOTTOM_TXT[b] || b).join(', ')],
+    ['Derinlik', dep ? dep[0] + '–' + dep[1] + ' m (' + SEASON_NM[SEASON_IX(month)] + ')' : s.depth[0] + '–' + s.depth[1] + ' m'],
+    [lure ? 'Sahte yem' : 'Yem', bait],
+    ['Boy', p.size || Object.entries(s.sz || {}).map(([k, v]) => (k === 'trofe' ? 'trofe ' : 'porsiyon ') + v).join(' · ')],
+    ['Zaman', p.time || s.t.map(x => ({gunduz: 'gündüz', gece: 'gece', safak: 'şafak'}[x] || x)).join(', ')],
+    ['Su', KB.CAL[id] ? suTxt(id) : '']].filter(x => x[1]);
+  const why = p.note || (KB.CAL[id] ? MON_LONG[month - 1] + ': ' + CAL_TXT[calMonth(id, month)] + '. ' + calSummary(id, month).replace(/ · şu an .*$/, '') + '.' : s.note || '');
+  const rigs = spRigs(id);
+  return '<article class="t-sp"><button type="button" class="t-sp-art ' + kind + '" data-tur="' + esc(id) + '" aria-label="' + esc(s.name) + ' tür sayfası">' + fishArt(id, s.name) + '</button><div class="t-sp-body">' +
+    '<header><h3><button type="button" data-tur="' + esc(id) + '">' + esc(s.name) + '</button></h3><i>' + esc(p.sub ? s.latin + ' · ' + p.sub : s.latin) + '</i></header>' +
+    (fit ? '<div class="t-fit">' + fitMeter(fit) + '<span>' + SPFIT_TXT[fit] + ' · ' + fit + '/5</span></div>' : '') +
+    (why ? '<p class="t-why">' + esc(why) + '</p>' : '') +
+    '<dl class="t-facts">' + facts.map(([k, v]) => '<dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd>').join('') + '</dl>' +
+    (rigs.length ? '<div class="t-rigs"><span class="lbl">Rig</span>' + rigs.map(({r, ok}) => '<button type="button" class="' + (r.time === 'gece' || /^N-/.test(r.code || '') ? 'n' : 'g') + (ok ? '' : ' off') + '" data-rigopen="' + esc(r.id) + '" title="' + esc((r.name || '') + (ok ? '' : ' · tamamlanmadı')) + '">' + esc(r.code || r.name || '') + '</button>').join('') + '</div>' : '') +
+    '</div></article>';
+}
+function akSecBalik(L){
+  const month = new Date().getMonth() + 1, sst = todaySst(), reg = regionOf(L), shore = shoreMode();
+  const mine = new Set(RIG_LIST.flatMap(r => r.species || []).concat((S.targets || []).map(t => t.like || t.id)));
+  const fitOf = s => spFit(s.id, month, sst) || 0;
+  const sorter = (a, b) => b.f - a.f || trCmp(a.s.name, b.s.name);
+  const g1 = KB.SPECIES.filter(s => mine.has(s.id)).map(s => ({s, f: fitOf(s)})).sort(sorter);
+  const g2 = KB.SPECIES.filter(s => !mine.has(s.id) && s.bol.includes(reg) && KB.CAL[s.id] && calMonth(s.id, month) >= 2).map(s => ({s, f: fitOf(s)})).sort(sorter).slice(0, g1.length ? 6 : 10);
+  const grp = (title, note, list) => list.length ? '<div class="t-spg"><h3>' + title + '</h3><p class="t-note" style="margin-top:2px">' + note + '</p><div class="t-spgrid">' + list.map(x => spCard(x.s, month, sst)).join('') + '</div></div>' : '';
+  return '<section class="t-sec" id="t-balik">' + akHead('Hedef türler', (shore ? 'Kıyıdan' : 'Tekneyle') + ' tutulabilecek balıklar', 'Bu dönem için tahmini sezon uyumu: Ege av takvimi (' + MON_LONG[month - 1] + '), ' + (sst != null ? 'bugünkü su ' + tempTxt(sst, true) + ' ' : 'su sıcaklığı ') + 've senin sistemin. Çizimler temsilîdir, ölçekli fotoğraf değildir. Resme ya da ada dokun: tür sayfası açılır.') +
+    grp('Sistemindeki türler', 'Riglerinin ve hedef türlerinin balıkları, uyuma göre sıralı. Soluk rig kodu: eksiği var.', g1) +
+    grp(g1.length ? 'Bölgede bu dönem iyi olan diğer türler' : 'Bölgede bu dönem iyi olan türler', 'Sisteminde rigi olmayan, bu ay mevsiminde ya da en iyi ayında olan türler.', g2) +
+    (g1.length || g2.length ? '' : '<div class="t-empty">Bu ay için öne çıkan tür bulunamadı.</div>') + '</section>';
+}
+
 // ---------------------------------------------------------------- 77 · Harita: nokta seç, yer adı, derece-dakika koordinat, derinlik, katmanlar
 // Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
 // Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
@@ -7626,7 +8873,7 @@ function startWizard(editId){
   if (!WZ.ans.locId || !S.locations[WZ.ans.locId]) { const L = wzDefLoc(WZ.ans.region); WZ.ans.locId = L ? L.id : null; }
   ui.sheet = 'wizard'; renderWizard();
 }
-// koordinat: "38,1292" ya da "38.1292"; derece-dakika (38°07,754') da olur
+// koordinat: "38,4192" ya da "38.4192"; derece-dakika (38°25,152') da olur
 function wzParseCoord(v){
   v = String(v || '').trim().replace(/,/g, '.'); if (!v) return null;
   const m = v.match(/^(-?\d+(?:\.\d+)?)\s*°?\s*(?:(\d+(?:\.\d+)?)\s*['’′]?)?/); if (!m) return null;
@@ -7916,7 +9163,8 @@ function sheetTur(id){
       (added ? '<p class="note">Bu rig “Tür planlarım” sisteminde' + (ready(RIGS[added.id] || p.rg) ? ' ve hazır; uygun günde önerilere girer.' : '; eksikler tamamlanınca önerilere girer.') + '</p>' : '') + '</section>';
   } else plan = '<div class="empty">Bu tür için önerilecek takım bulunamadı.</div>';
   return '<div class="bar"><button class="btn" type="button" data-open="turler">Geri</button><h3 id="sheetTitle">' + esc(t.name) + '</h3><span style="width:64px"></span></div><div class="stack">' +
-    '<p class="sub">' + esc(s.latin) + (t.like ? ' · “' + esc(s.name) + '” kurallarıyla' : '') + '</p>' +
+    (hasFishArt(s.id) ? '<div class="tur-art ' + fishKind(s.id) + '">' + fishArt(s.id, s.name) + '</div>' : '') +
+    '<p class="sub">' + esc(s.latin) + (t.like ? ' · “' + esc(s.name) + '” kurallarıyla' : '') + (hasFishArt(s.id) ? ' · çizim temsilîdir' : '') + '</p>' +
     '<div class="tbl panel info"><table><tbody>' + info.map(([k, v]) => '<tr><th>' + esc(k) + '</th><td>' + esc(v || '—') + '</td></tr>').join('') + '</tbody></table></div>' +
     warn.map(w => '<p class="banner">' + esc(w) + '</p>').join('') + grp + have + plan +
     '<p class="note">Takım bilgisi geneldir. Bölgende bu türün nerede ve ne zaman olduğunu arkadaşlarına sor; en azından hangi takımla gideceğini baştan bilirsin.</p>' +
@@ -8886,6 +10134,8 @@ function renderAll(){
 const VIEWS = ['bugun', 'takvim', 'avlar', 'fishing', 'rigler', 'envanter', 'daha'];
 function show(v){
   document.querySelectorAll('section.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
+  $('main').classList.toggle('wide', v === 'takvim');   // v0.27: takvim tablette geniş
+  if (v === 'takvim' && CAL_DIRTY) renderCalendar();
   document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'));
   window.scrollTo({top: 0});
   try { history.replaceState(history.state, '', '#' + v); } catch (e) {}
@@ -8980,6 +10230,9 @@ function bindEvents(){
     if (d.iseg) { ui.inv = d.iseg; renderInventory(); return; }
     if (d.hday) { ui.hday = d.hday; renderHourly(); return; }
     if (d.calloc) { toggleCalLoc(d.calloc); return; }
+    if (d.atktab) { ui.calTab = d.atktab; renderCalendar(); return; }
+    if (d.atkview) { setCalView(d.atkview); renderCalendar(); setTimeout(() => akGo('gunler'), 30); return; }
+    if (d.atkgo) { akGo(d.atkgo); return; }
     if (d.calpick) { const [id, k] = d.calpick.split('|'); if (S.active !== id && S.locations[id]) { S.active = id; persist(); WX = null; if (wxFresh(MWX[id], S.locations[id])) { S.wx = MWX[id]; WX = buildWx(); } loadWeather(); }
       ui.hday = k; show('bugun'); renderAll(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
     if (d.lkind) { const [id, k] = d.lkind.split('|'); setLocKind(id, k); return; }

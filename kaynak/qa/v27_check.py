@@ -1,5 +1,5 @@
-"""Alyssa v0.3–v0.26 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
-Çalıştır: python3 /home/claude/fishapp/qa/v26_check.py
+"""Alyssa v0.3–v0.24 uçtan uca testleri (Playwright, sahte Open-Meteo ve sahte GitHub API ile).
+Çalıştır: python3 /home/claude/fishapp/qa/v24_check.py
 """
 import os, sys
 import asyncio, base64, hashlib, json, os, re, shutil, subprocess, sys, time, urllib.parse
@@ -7,14 +7,14 @@ from playwright.async_api import async_playwright
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   # sahte Firebase
 
 ROOT = '/home/claude/fishapp'
-WWW = ROOT + '/qa/www_t'
-SHOTS = ROOT + '/qa/v24'
+WWW = ROOT + '/qa/www_27'
+SHOTS = ROOT + '/qa/v27'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(os.environ.get('ALYSSA_DIST', ROOT + '/app/dist'), WWW + '/dist')   # ALYSSA_DIST: sabitlenmiş bir derlemeyi test etmek için
 prev = open(os.environ.get('ALYSSA_PREV', ROOT + '/app/preview/alyssa_onizleme.html'), encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8789
+PORT = 8796
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -435,14 +435,14 @@ async def main():
         # takvimdeki pencere yüzdesi = o günün tablosunda pencere saatlerinin en yükseği
         await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(300)
         await pg.screenshot(path=SHOTS + '/g_takvim.png')
-        ndays = min(4, await pg.locator('#dayList .day').count()); okc = 0
+        ndays = min(4, await pg.locator('#dayList [data-calday]').count()); okc = 0
         for i in range(ndays):
-            t = await pg.locator('#dayList .day').nth(i).inner_text()
-            mm = re.search(r'%(\d+) en iyi pencere (\d\d):(\d\d)–(\d\d):(\d\d)', t.replace('\n', ' '))
+            t = await pg.locator('#dayList [data-calday]').nth(i).inner_text()
+            mm = re.search(r'%(\d+) (\d\d):(\d\d)–(\d\d):(\d\d)', t.replace('\n', ' '))
             if not mm: check(False, 'G: takvim günü %d pencere metni: %s' % (i, t[:160])); continue
             pct, a, bb = int(mm.group(1)), int(mm.group(2)) * 60 + int(mm.group(3)), int(mm.group(4)) * 60 + int(mm.group(5))
             if bb == 0: bb = 24 * 60
-            await pg.locator('#dayList .day').nth(i).click(); await pg.wait_for_timeout(300)
+            await pg.locator('#dayList [data-calday]').nth(i).click(); await pg.wait_for_timeout(300)
             hrs = await pg.evaluate("""() => { const rows = [...document.querySelectorAll('#hTable tr')]; const h = [...rows[0].querySelectorAll('td')].map(td => +td.textContent); const fr = rows.find(tr => tr.querySelector('th b').textContent === 'Balık'); const f = [...fr.querySelectorAll('td')].map(td => +td.querySelector('small').textContent.replace('%','')); return h.map((x, i) => [x, f[i]]); }""")
             inwin = [p for h, p in hrs if h * 60 <= bb + 20 and h * 60 > a - 30]
             same = bool(inwin) and max(inwin) == pct
@@ -1361,7 +1361,9 @@ async def main():
         check(found, 'T: ICON bitince Karma satırı – (ECMWF\'ye geçmiyor), ECMWF satırı dolu (gün %d)' % i)
         if found:
             await pg.locator('#hourly').screenshot(path=SHOTS + '/t_karma_bos.png')
-            dl = await pg.inner_text('#dayList'); check('ECMWF' in dl, 'T: gün özetleri ICON sonrası ECMWF ile sürüyor')
+            await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(400)
+            dl = await pg.inner_text('#atk'); check('ECMWF' in dl, 'T: gün özetleri ICON sonrası ECMWF ile sürüyor')
+            await pg.click('.tabbar button[data-v="bugun"]'); await pg.wait_for_timeout(300)
         await pg.locator('#dayChips .dchip').first.click(); await pg.wait_for_timeout(150)
         # birimler: ikinci satır ve °F
         await pg.click('#hEdit'); await pg.wait_for_timeout(300)
@@ -1702,13 +1704,13 @@ async def main():
         check(await pg.locator('#calPick button[data-calloc]').count() == 3, 'Y: takvimde nokta seçici (3 nokta)')
         await pg.click('#calPick button[data-calloc="%s"]' % ids['Sığacık açığı']); await pg.wait_for_timeout(300)
         await pg.click('#calPick button[data-calloc="%s"]' % ids['Ev']); await pg.wait_for_timeout(3500)
-        rows = await pg.locator('#dayList .day.cmp').first.locator('.crow2').count()
+        rows = await pg.locator('#dayList .t-cday').first.locator('.t-drow').count()
         check(rows == 3, 'Y: her gün 3 nokta alt alta (%d)' % rows)
-        d1 = await pg.locator('#dayList .day.cmp').first.inner_text(); print('   ilk gün:', d1.replace('\n', ' | ')[:300])
-        check('Konum 1' in d1 and 'Sığacık' in d1 and 'Ev' in d1 and 'hava' in d1, 'Y: deniz noktalarında sınıf ve balık, kara noktasında hava')
-        nb = await pg.locator('#dayList .crow2.best').count(); check(nb >= 5, 'Y: günlerin çoğunda en iyi nokta işaretli (%d)' % nb)
-        kara_row = await pg.locator('#dayList .day.cmp').first.locator('.crow2', has_text='Ev').inner_text()
-        check('Gündüz' not in kara_row and 'En iyi' not in kara_row, 'Y: kara noktası sınıfsız ve “en iyi” olamaz')
+        d1 = await pg.locator('#dayList .t-cday').first.inner_text(); print('   ilk gün:', d1.replace('\n', ' | ')[:300])
+        check('Konum 1' in d1 and 'Sığacık' in d1 and 'Ev' in d1 and await pg.locator('#dayList .t-cday').first.locator('.t-drow', has_text='Sığacık').locator('.t-badge').count() == 2, 'Y: deniz noktalarında sınıf ve balık, kara noktasında hava')
+        nb = await pg.locator('#dayList .t-drow.best').count(); check(nb >= 5, 'Y: günlerin çoğunda en iyi nokta işaretli (%d)' % nb)
+        kara = pg.locator('#dayList .t-cday').first.locator('.t-drow', has_text='Ev'); kara_row = await kara.inner_text()
+        check(await kara.locator('.t-badge').count() == 0 and 'EN IYI' not in U(kara_row), 'Y: kara noktası sınıfsız ve “en iyi” olamaz')
         check(await pg.locator('#calPick button[aria-pressed="true"]').count() == 3, 'Y: 3 nokta seçili')
         st = await state(pg); check(len(st['settings'].get('calLocs') or []) == 3, 'Y: seçim kaydedildi')
         await pg.screenshot(path=SHOTS + '/y_takvim_3.png', full_page=True)
@@ -1721,8 +1723,8 @@ async def main():
         await pg.click('#calPick button[data-calloc="%s"]' % i4); await pg.wait_for_timeout(300)
         check('En çok 3' in await pg.inner_text('#toast') and await pg.locator('#calPick button[aria-pressed="true"]').count() == 3, 'Y: dördüncü nokta eklenmedi, uyarı verildi')
         # satıra dokun: o nokta seçilir, o günün saatlik tablosu açılır
-        k2 = await pg.locator('#dayList .day.cmp').nth(1).locator('.crow2', has_text='Sığacık').get_attribute('data-calpick')
-        await pg.locator('#dayList .day.cmp').nth(1).locator('.crow2', has_text='Sığacık').click(); await pg.wait_for_timeout(1500)
+        k2 = await pg.locator('#dayList .t-cday').nth(1).locator('.t-drow', has_text='Sığacık').get_attribute('data-calpick')
+        await pg.locator('#dayList .t-cday').nth(1).locator('.t-drow', has_text='Sığacık').click(); await pg.wait_for_timeout(1500)
         st = await state(pg)
         check(st['active'] == ids['Sığacık açığı'] and await pg.is_visible('#v-bugun') and await pg.get_attribute('#dayChips button[aria-pressed="true"]', 'data-hday') == k2.split('|')[1], 'Y: satıra dokununca o nokta ve o gün açıldı')
         for w in [390, 320]:
@@ -1732,7 +1734,7 @@ async def main():
         await pg.set_viewport_size({'width': 390, 'height': 860})
         # tek noktaya dönünce eski takvim
         await pg.click('#calPick button[data-calloc="%s"]' % ids['Ev']); await pg.click('#calPick button[data-calloc="1"]'); await pg.wait_for_timeout(300)
-        check(await pg.locator('#dayList .day.cmp').count() == 0 and await pg.locator('#dayList button.day').count() >= 5, 'Y: tek nokta kalınca eski takvim düzeni')
+        check(await pg.locator('#dayList .t-cday').count() == 0 and await pg.locator('#dayList [data-calday]').count() >= 5 and await pg.locator('#atk .t-tabs').count() == 0, 'Y: tek nokta kalınca o noktanın sayfası')
         print('Y errors:', errs); check(not errs, 'Y: sayfa hatası yok')
         await ctx.close()
 

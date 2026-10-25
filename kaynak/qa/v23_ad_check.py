@@ -242,13 +242,13 @@ async def main():
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
         # 1) takvim tek nokta: hamle iki değer + açıklama
         await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(400)
-        v = await pg.locator('#dayList .day').first.inner_text()
-        hm = re.search(r'hamle\s*(\d+)\s*/\s*(\d+)\s*Bft', v.replace('\n', ' '))
+        v = await pg.locator('#dayList [data-calday]').first.inner_text()
+        hm = re.search(r'(\d+)\s*/\s*(\d+)\s*Bft', v.replace('\n', ' '))
         print('   gün:', v.replace('\n', ' ')[:200])
         check(bool(hm), 'AD: takvimde hamle gündüz/gece iki değer')
         dd = await pg.evaluate('() => { const d = window.ALYSSA_QA.days()[0]; return {gD: d.gD, gN: d.gN, g: d.gust}; }')
         check(dd['gD'] is not None and dd['gN'] is not None and max(dd['gD'], dd['gN']) <= dd['g'] + 1e-9, 'AD: gündüz/gece hamle günün hamlesini aşmaz')
-        lg = await pg.inner_text('#dayList .callegend')
+        lg = await pg.inner_text('#dayList .callegend')   # v0.27: yeni takvim düzeninde de
         check('gündüz (07–18)' in lg and 'en yüksek' in lg and 'ortalaması' in lg, 'AD: takvim altında değerlerin açıklaması')
         # 2) iki nokta: hamle iki değer
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(250)
@@ -257,9 +257,9 @@ async def main():
         await pg.click('.tabbar button[data-v="takvim"]'); await pg.wait_for_timeout(300)
         st = await state(pg); ids = {l['name']: l['id'] for l in st['locations'].values()}
         await pg.click('#calPick button[data-calloc="%s"]' % ids['Sığacık açığı']); await pg.wait_for_timeout(3500)
-        cr = await pg.locator('#dayList .day.cmp').first.locator('.crow2').all_inner_texts()
+        cr = await pg.locator('#dayList .t-cday').first.locator('[data-calpick]').all_inner_texts()
         print('   karşılaştırma:', [c.replace('\n', ' ')[:110] for c in cr])
-        check(len(cr) == 2 and all(re.search(r'hamle\s*\d+\s*/\s*\d+\s*Bft', c.replace('\n', ' ')) for c in cr), 'AD: 2 nokta seçiliyken her noktada hamle iki değer')
+        check(len(cr) == 2 and all(re.search(r'\d+\s*/\s*\d+\s*Bft', c.replace('\n', ' ')) for c in cr), 'AD: 2 nokta seçiliyken her noktada hamle iki değer')
         check(await pg.locator('#dayList .callegend').count() == 1, 'AD: karşılaştırmada da açıklama')
         await pg.click('#calPick button[data-calloc="%s"]' % ids['Sığacık açığı']); await pg.wait_for_timeout(300)
         # 3) saatlik tablo: sütuna dokun → mavi

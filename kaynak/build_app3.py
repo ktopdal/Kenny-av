@@ -19,7 +19,7 @@ DIST = os.path.join(APP, 'dist')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.26.0'
+VERSION = '0.27.0'
 NAME, SHORT = 'Alyssa by Barbossa App', 'Alyssa'
 THEME = '#0B6B7C'
 
@@ -115,7 +115,7 @@ def sample():
 
 def assemble(preview, data):
     shell = open(os.path.join(SRC, 'shell.html'), encoding='utf-8').read()
-    css = '\n'.join(open(os.path.join(SRC, f), encoding='utf-8').read() for f in ('app.css', 'app2.css', 'app3.css') if os.path.exists(os.path.join(SRC, f)))
+    css = '\n'.join(open(os.path.join(SRC, f), encoding='utf-8').read() for f in ('app.css', 'app2.css', 'app3.css', 'app4.css') if os.path.exists(os.path.join(SRC, f)))
     js = '\n'.join(open(f, encoding='utf-8').read() for f in sorted(glob.glob(os.path.join(SRC, 'js', '*.js'))))
     js = "(function(){\n'use strict';\n" + js + "\n})();"
     js = js.replace('/*__VERSION__*/', VERSION).replace('/*__PREVIEW__*/false', 'true' if preview else 'false')

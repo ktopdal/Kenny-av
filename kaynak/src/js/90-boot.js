@@ -24,6 +24,8 @@ function renderAll(){
 const VIEWS = ['bugun', 'takvim', 'avlar', 'fishing', 'rigler', 'envanter', 'daha'];
 function show(v){
   document.querySelectorAll('section.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
+  $('main').classList.toggle('wide', v === 'takvim');   // v0.27: takvim tablette geniş
+  if (v === 'takvim' && CAL_DIRTY) renderCalendar();
   document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'));
   window.scrollTo({top: 0});
   try { history.replaceState(history.state, '', '#' + v); } catch (e) {}
@@ -118,6 +120,9 @@ function bindEvents(){
     if (d.iseg) { ui.inv = d.iseg; renderInventory(); return; }
     if (d.hday) { ui.hday = d.hday; renderHourly(); return; }
     if (d.calloc) { toggleCalLoc(d.calloc); return; }
+    if (d.atktab) { ui.calTab = d.atktab; renderCalendar(); return; }
+    if (d.atkview) { setCalView(d.atkview); renderCalendar(); setTimeout(() => akGo('gunler'), 30); return; }
+    if (d.atkgo) { akGo(d.atkgo); return; }
     if (d.calpick) { const [id, k] = d.calpick.split('|'); if (S.active !== id && S.locations[id]) { S.active = id; persist(); WX = null; if (wxFresh(MWX[id], S.locations[id])) { S.wx = MWX[id]; WX = buildWx(); } loadWeather(); }
       ui.hday = k; show('bugun'); renderAll(); setTimeout(() => $('hourly').scrollIntoView({block: 'start'}), 60); return; }
     if (d.lkind) { const [id, k] = d.lkind.split('|'); setLocKind(id, k); return; }

@@ -3,6 +3,12 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.27.0', notes: [
+    'Takvim yenilendi: av takvimi sayfasının düzeni uygulamada, her gün güncel veriyle: konum çizelgesi, özet, uygunluk şeridi, meteogram, ayrıntılı tablo, solunar şeritleri, en iyi 6 pencere (rig önerisiyle), yöntem',
+    'Yeni gün kartları: hava simgesi, sıcaklık, rüzgâr oku ve adı, hamle, dalga, akıntı, su, basınç, yağış, deniz sınıfı, balık penceresi, ay evresi. Telefonda yatay, tablette dikey kartlar açılır; Günler → Dikey / Yatay ile değiştirirsin, seçim o cihazda kalır',
+    'Balıklar: takvimde tür kartları: her türün çizimi, Latince adı, bu dönemki uyumu (1–5), dip, mevsime göre derinlik, yem, boy, zaman, su sıcaklığı ve sistemindeki rig kodları. Resme dokun: tür sayfası; Türlerim tür sayfasında da çizim var (46 tür)',
+    'Takvimde istediğin noktaları seçersin (en çok 3): her noktanın kendi sekmesi; “Karşılaştır” sekmesinde her gün noktaların kartları birlikte, en iyi nokta işaretli',
+    'Yeni ikonlar: rüzgâr, hamle, dalga, akıntı, su, basınç, yağış, güneş, ay (Bugün ekranındaki ölçülerde de); bölüm çubuğuyla sayfada hızlı geçiş']},
   {v: '0.26.0', notes: [
     'Rig editörü: hazırlama sayfasında “Kopyasını düzenle”: köstek ekle/çıkar, boy ve iğne değiştir, köstek arası, ipler, kurşun; şema canlı değişir; dolaşma, kalınlık, akış ve kamış sınırı uyarıları. Kaydedince “Rig Atölyem” sisteminde kendi rigin olur (asıl rig ve envanter değişmez)',
     '“Rig hazırladım”: iğneler (adet ya da paketle sayılıyorsa) envanterden düşer, iplerin kullanılan metresi kaydedilir; azalan iğnenin hangi rigleri etkileyeceği önceden yazılır; “Geri al”',
