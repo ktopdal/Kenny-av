@@ -66,6 +66,12 @@ function prepSteps(rg, ch, ld){
     if (Object.keys(hk).length) push('İğneleri köstek uçlarına ' + K('snell') + ' ile bağla: ' + Object.keys(hk).map(h => hk[h].join(' ve ') + ' → ' + h).join('; ') + '.');
     push('Köstekleri T-fırdöndülerin yan halkasına ' + K('uni') + ' ile bağla' + (hAlt ? '; hırsızı kurşunun alt halkasına bağla.' : '.'));
     if (ld && ld.short && legs.some(n => n.k === 'hirsiz')) push('Akış güçlü: hırsızı %' + (ld.short === true ? 20 : ld.short) + ' kısa bağla (' + (ld.hirsiz || '') + ' cm; normalde ' + ((rg.lengths || {}).hirsiz || '') + ' cm).');
+  } else if (ch.lay === 'canliagir') {
+    if (lead) push('Lideri ' + fmtNum((lead.cm + 20) / 100, 1) + ' m kes (' + (lead.l ? lead.l.txt : 'kalın florokarbon') + '); çiftlik halatı ve ağına sürtünmeye karşı uzun kalsın.');
+    push('Ana ipi (' + anaT + ') lidere ' + K('fg') + ' ile bağla; düğümü makaraya sarmadan önce sık ve ıslat.');
+    push('Liderin ucuna rulmanlı fırdöndüyü ' + K('palomar') + ' ile bağla; fırdöndünün alt halkasına bir halka (solid ring) tak.');
+    if (legs[0]) push('Canlı yem kösteğini ' + (legs[0].cm + PREP_KNOT) + ' cm kes; halkaya ' + K('uni') + ', iğneye' + (hookTxt(legs[0].hook) ? ' (' + hookTxt(legs[0].hook) + ')' : '') + ' ' + K('snell') + ' ile bağla.');
+    push('Kurşunu (' + ch.kursun + ') halkaya ince bir misina ya da kalın lastikle (kopma bağı) bağla: balık takılınca kurşun kopar, balık serbest çekilir.');
   } else if (ch.lay === 'kaydirmali') {
     push('Gezer kurşunu (' + ch.kursun + ') ve stop boncuğu ana ipe (' + anaT + ') geçir.');
     push('Ana ipi fırdöndüye ' + K(k0 ? N.filter(n => n.t === 'knot')[0].k : 'palomar') + ' ile bağla.');
@@ -85,7 +91,7 @@ function prepSteps(rg, ch, ld){
     if (kk[1]) push('Liderin ucuna ' + trLower(sw ? sw.label : 'klips') + ' ' + K(kk[1].k) + ' ile bağla.');
     const lu = N.find(n => n.t === 'lure'); if (lu) push('Yemi (' + lu.label + (lu.g ? ', ' + lu.g : '') + ') ' + trLower(sw ? sw.label : 'klips') + 'a tak' + (lu.assist ? '; assist iğneleri (' + hookTxt(lu.assist) + ') halkaya, jigin baş tarafına' : '') + '.');
   }
-  if (N.some(n => n.t === 'sinker') && ch.lay !== 'capari') push('Kurşunu (' + ch.kursun + ') klipse tak' + ((rg.bottom || []).some(b => b === 'kayalik' || b === 'saf-kayalik') || rg.own ? '. Kayalıkta kurşunu bedenden ince bir misinayla bağla (kopma bağı): takılırsa yalnız kurşun gider.' : '.'));
+  if (N.some(n => n.t === 'sinker') && ch.lay !== 'capari' && ch.lay !== 'canliagir') push('Kurşunu (' + ch.kursun + ') klipse tak' + ((rg.bottom || []).some(b => b === 'kayalik' || b === 'saf-kayalik') || rg.own ? '. Kayalıkta kurşunu bedenden ince bir misinayla bağla (kopma bağı): takılırsa yalnız kurşun gider.' : '.'));
   push('Bütün düğümleri ıslatıp tek tek çek; ucu 2–3 mm bırakıp kes.');
   return S_;
 }

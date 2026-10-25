@@ -7,14 +7,14 @@ from playwright.async_api import async_playwright
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import fbmock   # sahte Firebase
 
 ROOT = '/home/claude/fishapp'
-WWW = ROOT + '/qa/www_27'
-SHOTS = ROOT + '/qa/v27'
+WWW = ROOT + '/qa/www_28'
+SHOTS = ROOT + '/qa/v28'
 os.makedirs(SHOTS, exist_ok=True)
 if os.path.isdir(WWW): shutil.rmtree(WWW)
 shutil.copytree(os.environ.get('ALYSSA_DIST', ROOT + '/app/dist'), WWW + '/dist')   # ALYSSA_DIST: sabitlenmiş bir derlemeyi test etmek için
 prev = open(os.environ.get('ALYSSA_PREV', ROOT + '/app/preview/alyssa_onizleme.html'), encoding='utf-8').read()
 open(WWW + '/preview.html', 'w', encoding='utf-8').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + prev + '</body></html>')
-PORT = 8796
+PORT = 8800
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(PORT), '--bind', '127.0.0.1', '--directory', WWW], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 BASE = 'http://127.0.0.1:%d' % PORT
@@ -275,7 +275,7 @@ async def main():
         for v in ['takvim', 'avlar', 'rigler', 'envanter', 'daha']:
             await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(200); await overflow(pg, v)
         await pg.screenshot(path=SHOTS + '/a_daha.png')
-        check(await pg.locator('#moreMenu .mrow').count() == 19, 'Daha menüsü 19 satır (Hesap, Tür takvimi ve Düğüm kütüphanesi dahil)')
+        check(await pg.locator('#moreMenu .mrow').count() == 20, 'Daha menüsü 20 satır (Hesap, Tür takvimi, Düğüm kütüphanesi ve Takım danışmanı dahil)')
         # alışveriş: aynı rig iki kez yok
         await pg.click('button[data-open="alisveris"]'); await pg.wait_for_timeout(300)
         lines = await pg.locator('#sheet .item .sp').all_inner_texts()
@@ -857,7 +857,7 @@ async def main():
         check(r0['sinker']['max'] == 140, 'F: kamış sınırı kurşuna işlendi')
         check(any(sl['k'] == 'hirsiz' for sl in r0['slots']), 'F: hırsızlı yuvaları')
         names = [r['name'] for r in sy[0]['rigs']]; print('   rigler:', names)
-        check(any('2 iğneli' in n for n in names) and any('Chunking' in n for n in names), 'F: 2 iğneli ve orkinos rigleri var')
+        check(any('2 iğneli' in n for n in names) and any('Ağır canlı yem' in n for n in names), 'F: 2 iğneli ve orkinos (ağır canlı yem) rigleri var')
         check(await pg.locator('#rigList article.rig.off').count() == 5, 'F: envanter boşken hepsi tamamlanmadı')
         await pg.screenshot(path=SHOTS + '/f_rigler_bos.png')
         # dünya / Türkiye seviyeleri

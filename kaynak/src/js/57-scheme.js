@@ -82,6 +82,13 @@ function rigChain(rg, ld){
     add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 24}); add({t: 'bead', label: 'Stop'}); add({t: 'float', label: 'Şamandıra'});
     add({t: 'line', role: 'ana', label: '', l: ana, h: 24}); add({t: 'slide', g: 'saçma', small: true}); add({t: 'knot', k: 'uni', where: 'Ana ip → fırdöndü'}); add({t: 'swivel', label: 'Fırdöndü'}); add({t: 'knot', k: 'uni', where: 'Köstek → fırdöndü'});
     add({t: 'leader', label: 'Köstek', cm: len.kostek || 50, l: kostek, end: {t: 'hook', hook: slotHook(sl('igne'))}});
+  } else if (lay === 'canliagir') {
+    // v0.28: örgü → FG → uzun lider → rulmanlı fırdöndü + halka; halkadan canlı yem kösteği, kurşun kopma bağıyla
+    add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 34}); add({t: 'knot', k: anaKnot('leader'), where: 'Ana ip → lider'});
+    add({t: 'leader', label: 'Lider', cm: len.lider || 1000, l: kostek, end: null}); add({t: 'knot', k: 'palomar', where: 'Lider → rulmanlı fırdöndü'});
+    add({t: 'swivel', label: 'Fırdöndü + halka'});
+    add({t: 'trailTee', k: 'igne', label: 'Canlı yem kösteği', cm: len.kostek || 200, short: 0, hook: slotHook(sl('igne')), line: kostek});
+    add({t: 'gap', cm: null, l: null, h: 24, lab: 'Kopma bağı'}); add({t: 'sinker', g: kursun}); add({t: 'bed'});
   } else if (lay === 'chunking') {
     add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 34}); add({t: 'knot', k: 'ciftuni', where: 'Ana ip → lider'});
     add({t: 'leader', label: 'Lider', cm: len.lider || 400, l: kostek, end: {t: 'hook', hook: slotHook(sl('igne'))}});

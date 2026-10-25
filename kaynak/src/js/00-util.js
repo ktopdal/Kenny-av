@@ -3,6 +3,12 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.28.0', notes: [
+    'Takım danışmanı (Daha → Takım danışmanı; tür sayfasında, kamış/makine sayfasında ve kalem formunda da): yapay zekâ internette Türkiye’de satılan güncel kamış, makine, ip, lider, iğne, terminal, kurşun, aksesuar ve hazır rigleri arar; hedefine, noktana (mera notu, derinlik, akıntı, su) ve elindeki takıma göre öneri tablosu yapar',
+    'Yapay zekâyı sen seçersin: Claude, Gemini (Google Arama ile, Google AI’ın motoru), ChatGPT ya da anahtarsız Google AI (soruyu kopyalayıp Google AI Moduna yapıştırırsın, cevabı geri yapıştırırsın). Anahtar yalnız bu cihazda kalır; koordinat gitmez',
+    'Motor her öneriyi ölçüsüyle kontrol eder: kamışın taşıdığı gram, makara yuvası (tetikli/tetiksiz) ve elindeki makine, makine boyu, iğne numarası, ip ve lider çapı, kurşun gramı: Uygun / Sınırda / Uygun değil. Eldeki kamış ve makinelerin de değerlendirilir',
+    'Öneri satırı tek dokunuşla alışveriş listesine; aldığında marka, model ve ölçüleriyle (boy, en fazla gram, PE, yuva, iğne no) envantere girer, rigler hemen buna göre çözülür. Son 6 öneri saklanır',
+    'Orkinos için yeni düzen: kurşunlu ağır canlı yem (PE 4–6 örgü, 10 m kalın florokarbon lider, rulmanlı fırdöndü ve halka, 200–400 g kurşun kopma bağıyla, 7/0–9/0 dövme canlı yem iğnesi); şeması ve adım adım hazırlaması var; kurşun noktanın derinliği ve akıntısına göre hesaplanır']},
   {v: '0.27.0', notes: [
     'Takvim yenilendi: av takvimi sayfasının düzeni uygulamada, her gün güncel veriyle: konum çizelgesi, özet, uygunluk şeridi, meteogram, ayrıntılı tablo, solunar şeritleri, en iyi 6 pencere (rig önerisiyle), yöntem',
     'Yeni gün kartları: hava simgesi, sıcaklık, rüzgâr oku ve adı, hamle, dalga, akıntı, su, basınç, yağış, deniz sınıfı, balık penceresi, ay evresi. Telefonda yatay, tablette dikey kartlar açılır; Günler → Dikey / Yatay ile değiştirirsin, seçim o cihazda kalır',

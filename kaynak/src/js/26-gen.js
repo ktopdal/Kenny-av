@@ -177,6 +177,7 @@ function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
   if (['hirsizli', 'iki', 'tek'].includes(lay)) sinker = {g: std.g.slice(), max: rodMax || std.max};
   else if (lay === 'kaydirmali') sinker = ans.mode === 'kiyi' || tid === 'surf' ? {g: [30, 80], max: rodMax || 120} : {g: [60, 120], max: rodMax || 150};
   else if (lay === 'canli') sinker = {g: [150, 300], max: rodMax || 300};
+  else if (lay === 'canliagir') sinker = {g: X.g.slice(), max: rodMax || X.g[1]};
   else if (lay === 'paternoster' || lay === 'capari' || lay === 'samandira') sinker = X.g ? {g: X.g.slice(), max: rodMax || X.g[1]} : null;
   const months = list.every(s => s.m) ? [...new Set(list.flatMap(s => s.m))].sort((a, b) => a - b) : null;
   const hab = [...new Set(list.flatMap(s => s.hab))].filter(b => b !== 'orta-su');

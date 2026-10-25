@@ -12,6 +12,7 @@ const MORE = [
   ['grup', 'Ortak av haritası', () => { const g = grpCfg(); return g ? g.group + ' · ' + (GROUP.members.length ? GROUP.members.length + ' üye' : 'grup açık') : 'Kapalı · arkadaşlarınla şifreli ortak harita'; }],
   ['konumlar', 'Konumlar', () => Object.keys(S.locations).length + ' konum' + (loc() ? ' · seçili: ' + locLabel(loc()) : '')],
   ['turler', 'Türlerim ve takım planı', () => { const n = (S.targets || []).length; return n ? n + ' hedef tür · takım ve alınacaklar' : 'Tür ekle: hangi takım, ne almalısın'; }],
+  ['danisman', 'Takım danışmanı', () => { const p = aiProv(), n = (S.advice || []).length; return 'Yapay zekâ internette arar: kamış, makine, ip, iğne önerisi · ' + AI_PROV[p].name + (AI_PROV[p].manual || aiKey(p) ? '' : ' (anahtar yok)') + (n ? ' · ' + n + ' öneri' : ''); }],
   ['turtakvim', 'Tür takvimi', () => 'Ege: hangi tür hangi ayda, hangi suda · bu ay ' + MON_LONG[new Date().getMonth()]],
   ['alisveris', 'Alışveriş listesi', () => { const n = shoppingList().length; return n ? n + ' kalem eksik' : 'Eksik kalem yok'; }],
   ['dugumler', 'Düğüm kütüphanesi', () => 'Palomar, FG, Uni, Snell, köstek halkası, çift uni · adım adım çizimle'],
@@ -44,7 +45,7 @@ function openMore(name, keep){
   ui.sheet = name;
   if (name === 'turler') ui.sheetArg = null;
   if (name === 'grup' && grpOn() && !GROUP.at && !GROUP.busy) { GROUP.busy = true; grpFetch(true).then(() => { if (ui.sheet === 'grup') openMore('grup', true); }); }
-  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, usta: sheetUsta, dugumler: sheetKnots, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
+  const F = {hesap: sheetAccount, turler: sheetTurler, tur: () => sheetTur(ui.sheetArg), turtakvim: sheetSpeciesCal, usta: sheetUsta, danisman: sheetDan, dugumler: sheetKnots, ayarlar: sheetSettings, gorunum: sheetView, liste: sheetChecklist, uyari: sheetAlert, paylas: sheetShare, grup: sheetGroup, yedek: sheetBackup, paket: sheetPackage, konumlar: sheetLocations, alisveris: sheetShopping, standart: sheetStandards, dosya: sheetFile, kaynak: sheetSources, surum: sheetChangelog}[name];
   if (F) openSheet(F(), keep);
 }
 // ---- Ayarlar
@@ -216,7 +217,7 @@ function sheetShopping(){
     const tw = n.why.filter(w => w.indexOf('tur:') === 0).map(w => w.slice(4)), yw = n.why.filter(w => w.indexOf('yem:') === 0).map(w => w.slice(4));
     const g = store ? 'm:' + store : n.why.includes('bitti') || n.why.includes('alinacak') ? 'al' : yw.length ? 'y:' + yw[0] : tw.length ? 't:' + tw[0] : 'rig'; n.tw = tw; (G[g] = G[g] || []).push(n); });
   const SN = {al: 'Bitti ya da alınacak', rig: 'Rigleri tamamlamak için'};
-  Object.keys(G).filter(g => g.indexOf('t:') === 0).forEach(g => { SN[g] = g.slice(2) + ' için (tür planı)'; });
+  Object.keys(G).filter(g => g.indexOf('t:') === 0).forEach(g => { SN[g] = /takım danışmanı$/.test(g) ? g.slice(2) : g.slice(2) + ' için (tür planı)'; });
   Object.keys(G).filter(g => g.indexOf('y:') === 0).forEach(g => { SN[g] = 'Yem · ' + g.slice(2) + ' çıkışı'; });
   if (pkgOn() && Array.isArray(D.stores)) D.stores.forEach(st => { SN['m:' + st.id] = st.name + ' (' + st.id + ')'; });
   const order = Object.keys(G).filter(g => g.indexOf('y:') === 0).sort().concat(Object.keys(G).filter(g => g.indexOf('m:') === 0).sort(), ['al'].filter(g => G[g]), Object.keys(G).filter(g => g.indexOf('t:') === 0).sort(), ['rig'].filter(g => G[g]));
@@ -225,7 +226,7 @@ function sheetShopping(){
     const tag = n.rigs.length ? '<span class="chip">' + n.rigs.length + ' rigde</span>' : '<span class="chip">' + esc(CAT_TXT[(it || {}).cat] || '') + '</span>';
     const act = k ? (u !== 'durum' ? '<label class="f" style="flex-direction:row;align-items:center;gap:8px">Aldığım (' + (u === 'paket' ? 'paket' : 'adet') + ')<input style="width:90px" data-qk="' + esc(k) + '" inputmode="numeric" placeholder="0"></label>' :
         '<button class="btn small primary" type="button" data-bought="' + esc(k) + '">Aldım</button>') :
-      (n.sp ? '<button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button>' : n.kind === 'bait' ? '<button class="btn small primary" type="button" data-shopdel="' + esc(n.k) + '">Aldım</button>' : '');
+      (n.dan ? '<button class="btn small" type="button" data-danbuy="' + esc(n.k) + '">Aldım, envantere ekle</button><button class="btn small" type="button" data-shopdel="' + esc(n.k) + '">Listeden çıkar</button>' : n.sp ? '<button class="btn small" type="button" data-buyadd="' + esc(n.k) + '">Aldım, envantere ekle</button>' : n.kind === 'bait' ? '<button class="btn small primary" type="button" data-shopdel="' + esc(n.k) + '">Aldım</button>' : '');
     return '<div class="item"><div class="row" style="justify-content:space-between"><div class="nm">' + esc(it ? it.name : n.name) + ' <b class="mono">' + esc(n.size || '') + '</b></div>' + tag + '</div>' +
       ((n.rigs.length || (it && it.note) || n.tw.length > 1) ? '<div class="sp">' + esc([n.rigs.join(', '), n.tw.length > 1 ? n.tw.join(', ') + ' için' : '', it && it.note ? it.note : ''].filter(Boolean).join(' · ')) + '</div>' : '') +
       (act ? '<div class="row">' + act + '</div>' : '') + '</div>';

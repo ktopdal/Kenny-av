@@ -127,8 +127,9 @@ const GEAR_EX = {
   egi: {rod: ['Shimano Sephia', 'Daiwa Emeraldas'], reel: ['Shimano Sephia', 'Daiwa Emeraldas']},
   ahtapot: {rod: ['Shimano Beastmaster Boat', 'Penn Squadron III Boat'], reel: ['Penn Spinfisher', 'Daiwa BG']},
   sirti: {rod: [], reel: ['Shimano TLD', 'Penn Squall']},
-  buyuk: {rod: [], reel: ['Shimano Tiagra', 'Penn International']},
-  popping: {rod: [], reel: ['Shimano Stella SW', 'Daiwa Saltiga']},
+  buyuk: {rod: ['Penn International stand-up', 'Shimano Tiagra stand-up'], reel: ['Shimano Tiagra', 'Penn International']},
+  popping: {rod: ['Shimano Grappler Type C'], reel: ['Shimano Stella SW', 'Daiwa Saltiga']},
+  canliagir: {rod: ['Shimano Grappler Type J', 'Daiwa Saltiga J'], reel: ['Shimano Talica', 'Penn Fathom Lever Drag']},
   paternoster: {rod: ['Daiwa Crosscast Surf'], reel: ['Daiwa Crosscast', 'Shimano Ultegra']},
   lrf: {rod: ['Shimano Soare', 'Daiwa Gekkabijin'], reel: ['Shimano Sahara', 'Daiwa Ninja LT']},
   spin: {rod: ['Daiwa Ninja', 'Shimano Catana'], reel: ['Shimano Nasci', 'Daiwa Ninja LT']},
@@ -201,7 +202,8 @@ function openGear(rid, keep){
     const open = !f || !f.have || f.fit === 'bad';
     return '<details class="gbuy"' + (open ? ' open' : '') + '><summary>' + (open ? 'Uygun ' + trLower(lbl) + ' al' : 'Başka bir ' + trLower(lbl) + ' almak istersen') + '</summary>' +
       '<p class="note"><b>Aranacak ölçü:</b> ' + esc(req) + '</p>' + (ex.length ? '<p class="note"><b>Örnek seriler:</b> ' + esc(ex.join(', ')) + ' (örnek; modelini yukarıdaki ölçüye göre seç)</p>' : '') +
-      '<div class="row"><button class="btn small" type="button" data-gearbuy="' + esc(rid + '|' + kind) + '">Alışveriş listesine ekle</button><button class="btn small" type="button" data-newitem="' + kind + '">Envantere ' + trLower(lbl) + ' ekle</button></div></details>';
+      '<div class="row"><button class="btn small" type="button" data-gearbuy="' + esc(rid + '|' + kind) + '">Alışveriş listesine ekle</button><button class="btn small" type="button" data-newitem="' + kind + '">Envantere ' + trLower(lbl) + ' ekle</button></div>' +
+      '<div class="row"><button class="btn small primary" type="button" data-danopen="' + esc(JSON.stringify({rid, cats: [kind === 'rod' ? 'kamis' : 'makine']})) + '">Marka ve model öner (takım danışmanı)</button></div></details>';
   };
   const list = (arr, cur, sl) => arr.filter(f => !cur || f.it.id !== cur.it.id).map(f => gearCard(f, false, rid, sl.k, group.length)).join('') || '<p class="note">Başka yok.</p>';
   openSheet(sheetBar('Kamış ve makine') + '<div class="stack"><p class="sub">' + esc(head) + '</p>' +

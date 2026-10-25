@@ -167,6 +167,7 @@ function itemForm(id, cat0){
       '<label class="f">En fazla (g)<input id="it-rodm" inputmode="numeric" value="' + esc(r.max || '') + '" placeholder="Ör. 150"></label>' +
       '<label class="f">PE<input id="it-rodp" inputmode="decimal" value="' + esc(r.pe ? fmtNum(r.pe, 1) : '') + '" placeholder="Ör. 2"></label>' +
       '<label class="f wide">Makara yuvası<select id="it-rods">' + opt([['', 'Bilmiyorum'], ['spin', 'Tetiksiz: spinning makine takılır'], ['cast', 'Tetikli: çıkrık takılır']], r.seat || '') + '</select></label></div>' +
+    '<p class="note wide" id="it-danw"' + (['rod', 'reel'].includes(c.cat) ? '' : ' hidden') + '>Hangi marka ve model? <button class="linkbtn" type="button" data-danopen="' + esc(JSON.stringify({cats: [c.cat === 'reel' ? 'makine' : 'kamis']})) + '">Takım danışmanına sor</button></p>' +
     '<div class="fields wide" id="it-reelw"' + (c.cat === 'reel' ? '' : ' hidden') + '><label class="f wide">Makine tipi<select id="it-reelt">' + opt(REEL_T, m.type || 'spin') + '</select></label>' +
       '<label class="f">Boy<input id="it-reels" inputmode="numeric" value="' + esc(m.size || '') + '" placeholder="Ör. 4000"></label></div>' +
     '<label class="f wide">Özellik<input id="it-spec" value="' + esc(c.spec || '') + '" placeholder="Ör. 0,26 mm · PE 1,5 · 120 g · siyah nikel"></label>' +
@@ -177,7 +178,7 @@ function itemForm(id, cat0){
     (it ? '<button class="btn" type="button" id="itDel" data-delitem="' + esc(it.id) + '" style="color:var(--D)">Kalemi sil</button>' : '') + '</div>');
 }
 function itemFormCat(cat){
-  $('it-patw').hidden = cat !== 'hook'; $('it-rodw').hidden = cat !== 'rod'; $('it-reelw').hidden = cat !== 'reel';
+  $('it-patw').hidden = cat !== 'hook'; $('it-rodw').hidden = cat !== 'rod'; $('it-reelw').hidden = cat !== 'reel'; if ($('it-danw')) $('it-danw').hidden = !['rod', 'reel'].includes(cat);
   $('it-sizew').hidden = ['rod', 'reel', 'bait', 'braid', 'fc', 'mono'].includes(cat);
 }
 function saveItem(){

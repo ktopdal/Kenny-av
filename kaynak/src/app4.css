@@ -410,3 +410,35 @@
 .tur-art .t-art{display:block;width:100%;height:auto}
 .atk .t-wxrow{flex-wrap:wrap;row-gap:4px}
 @media (max-width:340px){.atk .t-days{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- v0.28 · Takım danışmanı */
+.dan .set h4{margin-bottom:6px}
+.dan .uq{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.dan .bchip[aria-pressed="true"]{background:var(--brand);color:var(--on-brand,#fff);border-color:var(--brand)}
+.dan-key{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.dan-busy{border:1px solid var(--line);border-radius:12px;padding:18px;background:var(--surface);text-align:center}
+.dan-busy b{display:block;font:600 16px var(--body);margin-bottom:6px;animation:danp 1.6s ease-in-out infinite}
+@keyframes danp{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.dan-busy b{animation:none}}
+.dan-ozet p{margin:0 0 8px}.dan-ozet ul{margin:0 0 8px;padding-left:18px}
+.dan-o{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:5px;min-width:0}
+.dan-o+.dan-o{margin-top:8px}
+.dan-o.bad{border-color:color-mix(in srgb,var(--D) 45%,var(--line))}
+.dan-o .h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.dan-o .h b{font:700 15px var(--body);color:var(--ink);overflow-wrap:anywhere}
+.dan-o .h .fitb{margin-left:auto}
+.dan-o .olc{font-size:12.5px;color:var(--ink-2);overflow-wrap:anywhere}
+.dan-o p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.45}
+.dan-o p.mot{color:var(--D);font-size:12.5px}
+.dan-o .meta{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.dan-o .row{flex-wrap:wrap;gap:6px}
+.dan-own{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:6px 0;border-top:1px dashed var(--line-2)}
+.dan-own:first-of-type{border-top:0}
+.dan-own span:first-child{font:600 13.5px var(--body);overflow-wrap:anywhere;flex:1;min-width:0}
+.dan-own small{flex-basis:100%;font-size:12px;color:var(--muted);line-height:1.35}
+.fitb.na{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.dan-prompt{width:100%;font:12px/1.4 var(--mono);border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface-2);color:var(--ink);margin-top:6px}
+.dan textarea#dn-paste{width:100%;font:13px/1.4 var(--body)}
+.dan-ul{margin:0;padding-left:18px;font-size:13px;display:flex;flex-direction:column;gap:4px;overflow-wrap:anywhere}
+.dan-gs{width:100%;height:96px;border:0;border-radius:8px;background:#fff}
+.dan-cta .btn{margin-top:4px}

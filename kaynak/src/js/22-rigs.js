@@ -118,6 +118,7 @@ function shoppingList(){
     if (x.sp) { try { if (resolveSlot(x.sp).strict) return; } catch (e) {} }   // başka bir kalemle karşılandı (ör. kamışı formdan ekledin)
     const n = add(x.k, {item: x.item || null, size: x.size || null, name: x.item ? null : x.name, store: x.store || null, kind: x.kind, sp: x.sp || null});
     if (!n.sp && x.sp) n.sp = x.sp;
+    if (x.dan) n.dan = x.dan;   // takım danışmanından (58b-danisman.js)
     (x.for || []).forEach(f => { const w = (x.kind === 'bait' ? 'yem:' : 'tur:') + f; if (!n.why.includes(w)) n.why.push(w); });
   });
   return Object.values(need);

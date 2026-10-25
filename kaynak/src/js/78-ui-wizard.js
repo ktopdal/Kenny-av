@@ -4,7 +4,7 @@ const WZ_STEPS = ['Yer', 'Teknik', 'Türler', 'Yem', 'Takım', 'Kur'];
 const LAY_DESC = {
   hirsizli: 'Üst, orta ve uzun hırsız köstek; 3 iğne', iki: 'Üst köstek ve uzun alt (hırsız) köstek', tek: 'Tek iğne, uzun köstek (80–120 cm)',
   kaydirmali: 'Gezer kurşun, tek iğne; temkinli balık için', slowjig: '100–250 g jig, assist iğne', tairubber: '60–150 g tai rubber', inchiku: '80–200 g inchiku',
-  chunking: 'Parça yem ve circle iğne', popping: 'Popper ve stickbait, kalın lider', agirjig: '200–400 g jig', agirsirti: 'Büyük sırtı yemi, kalın mono',
+  chunking: 'Parça yem ve circle iğne', canliagir: '200–400 g kurşun, canlı yem, 10 m kalın lider', popping: 'Popper ve stickbait, kalın lider', agirjig: '200–400 g jig', agirsirti: 'Büyük sırtı yemi, kalın mono',
   paternoster: '2 iğne, piramit kurşun', egi: 'Kalamar ve mürekkep zokası', ahtapot: 'Ahtapot zokası',
 };
 // v0.24: "Hangi denizde?" yerine nokta: kayıtlı konumlardan, haritadan ya da koordinatla. Deniz bölgesi (türler buna göre süzülür),

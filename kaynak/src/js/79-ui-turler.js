@@ -136,6 +136,7 @@ function sheetTur(id){
     '<p class="sub">' + esc(s.latin) + (t.like ? ' · “' + esc(s.name) + '” kurallarıyla' : '') + (hasFishArt(s.id) ? ' · çizim temsilîdir' : '') + '</p>' +
     '<div class="tbl panel info"><table><tbody>' + info.map(([k, v]) => '<tr><th>' + esc(k) + '</th><td>' + esc(v || '—') + '</td></tr>').join('') + '</tbody></table></div>' +
     warn.map(w => '<p class="banner">' + esc(w) + '</p>').join('') + grp + have + plan +
+    '<section class="set dan-cta"><h4>Marka ve model önerisi</h4><p class="note">Takım danışmanı yapay zekâyla internette arar: Türkiye’de satılan kamış, makine, ip, iğne ve aksesuarı noktana ve elindeki takıma göre önerir; motor ölçüleri kontrol eder.</p><button class="btn primary small" type="button" data-danopen="' + esc(JSON.stringify({sp: s.id})) + '">Takım danışmanına sor</button></section>' +
     '<p class="note">Takım bilgisi geneldir. Bölgende bu türün nerede ve ne zaman olduğunu arkadaşlarına sor; en azından hangi takımla gideceğini baştan bilirsin.</p>' +
     (t.temp ? '<button class="btn" type="button" data-trkeep="' + esc(t.id) + '">Hedef türlerime ekle</button>' : '<button class="btn small" type="button" data-trdel="' + esc(t.id) + '" style="color:var(--D)">Listeden çıkar</button>') + '</div>';
 }

@@ -154,6 +154,9 @@ function bindEvents(){
     if (d.fb) { fbAct(d.fb, d); return; }
     if (d.usta) { ustaAct(d.usta, d); return; }
     if (d.ustam) { lsSet(LSU.model, d.ustam); ustaRedraw(); return; }
+    if (d.dan) { danAct(d.dan, d); return; }
+    if (d.danopen != null) { const fr = ui.sheet, fa = ui.sheetArg; ui.back = fr === 'gear' && fa ? () => openGear(fa, true) : fr === 'tur' && fa ? () => { ui.sheetArg = fa; openMore('tur', true); } : null; openDan(d.danopen ? JSON.parse(d.danopen) : {}); return; }
+    if (d.danbuy) { danShopHave(d.danbuy); return; }
     if (d.alloc) { toggleAlertLoc(d.alloc); return; }
     if (d.shopdel) { const x = (S.shopX || {})[d.shopdel]; if (x) { delete S.shopX[d.shopdel]; const id = x.bait && Object.keys(ITEMS).find(i => ITEMS[i].cat === 'bait' && (ITEMS[i].key === x.bait || baitKey(ITEMS[i].name) === x.bait)); if (id) setStatus(id + '|-', 'var'); invChanged(); openMore('alisveris', true); toast('İşaretlendi'); } return; }
     if (d.avgo) { openAvLink(d.avgo); return; }
@@ -241,6 +244,7 @@ function bindEvents(){
   document.addEventListener('change', e => {
     const el = e.target;
     if (el.dataset && el.dataset.prepchk) { prepCheck(el.dataset.prepchk, el.checked); return; }
+    if (el.dataset && el.dataset.danchg) { danChange(el.dataset.danchg); return; }
     if (el.dataset && el.dataset.rpfile) { addRigPhotos(el.dataset.rpfile, el.files); el.value = ''; return; }
     if (el.dataset && el.dataset.edsel != null && RED) { edSel_(el.dataset.edsel, el.value); return; }
     if (el.dataset && el.dataset.edchk === 'trail' && RED) { const l = RED.legs[RED.legs.length - 1]; l.trail = el.checked; edRelabel(RED); renderEditor(true); return; }
@@ -314,6 +318,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   items: () => ITEMS, stockOf, unitOf, shoppingList, baitInfo, baitPick, baitKey, baitIds, termTypes, lureTypeOf, resolveSlot, genSystem, std: () => STD,
   cloud: () => CLOUD, cloudSync, pushNow, ensureKinds, placeInfo, seaDecide, modeNow, landMode, rodInfo, reelInfo, reqSlots, speciesSearch, techsFor, planFor, missingOf, ready, resolveRig,
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
+  danParse, danCheck, danPrompt, danRig, danOwn, mdTables, danToInv, openDan, aiProv, dan: () => DAN,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
   spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, prepUse, openDone, applyDone, undoDone, rigToDraft, draftToRig, edWarn, openEditor, rigPh, allPhotoIds, addRigPhotos, red: () => RED, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
