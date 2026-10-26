@@ -160,12 +160,13 @@ async function doRestore(passFromForm){
 }
 
 // v0.28 · profili sıfırla: özel paket (32 rig sistemi) ve ayarlar kalır
-async function resetProfile(av, locs, pk){
+async function resetProfile(av, locs, pk, hide){
+  S.pkg.hidden = !!hide;
   Object.keys(S.systems).forEach(k => { if (k !== 'ozel') delete S.systems[k]; });
   S.inv = {items: {}, qty: {}, status: {}, unit: {}, v: 2};
   if (pk) Object.values(ITEMS).filter(i => !i.std && i.src !== 'kullanici').forEach(i => sizesOf(i).forEach(sz => { S.inv.status[i.id + '|' + sz] = 'yok'; }));   // paket kalemleri: tohum durumu geri gelmesin
   S.targets = []; S.shopX = {}; S.rigOv = {}; S.rigPhotos = {}; S.prepLog = []; S.advice = []; S.fb = {}; S.profile.baits = [];
-  if (locs) Object.keys(S.locations).forEach(id => { const L = S.locations[id]; if (!(L.pkg)) delete S.locations[id]; });
+  if (locs) Object.keys(S.locations).forEach(id => { const L = S.locations[id]; if (!(L.pkg) || hide) delete S.locations[id]; });
   if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null;
   if (av) { try { for (const c of CATCHES) { await IDB.del('catches', c.id); (c.photos || []).forEach(p => IDB.del('photos', p).catch(() => {})); } } catch (e) {} await loadCatches(); }
   persist(); indexAll(); renderAll(); closeSheet(); toast('Profil sıfırlandı; özel paketin duruyor');

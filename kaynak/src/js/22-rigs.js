@@ -8,7 +8,7 @@ const LEN_LBL = {ust: 'köstek üst', orta: 'orta', hirsiz: 'hırsız', ara: 'k�
 const SPECIES_BASE = KB.SPECIES;   // 21-kb.js
 
 let ITEMS = {}, SPECIES = {}, RIGS = {}, RIG_LIST = [], SETUPS = {};
-const pkgOn = () => !!(D && S.systems.ozel);
+const pkgOn = () => !!(D && S.systems.ozel && !S.pkg.hidden);   // v0.28.3: gizlenen paket hiç görünmez (rigler, kalemler, kurulumlar)
 function pkgRigs(){
   if (!pkgOn() || S.systems.ozel.active === false) return [];
   const setups = Object.fromEntries(D.setups.map(s => [s.id, s]));

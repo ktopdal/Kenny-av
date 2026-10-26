@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------- 72 · Rigler ve Envanter
 function renderRigs(){
   if (!RSNAP && RIG_LIST.length) RSNAP = rigSnap();
-  const sys = Object.values(S.systems);
+  const sys = Object.values(S.systems).filter(sy => sy.source !== 'paket' || pkgOn());   // gizli paket görünmez
   const all = RIG_LIST; const n = all.filter(ready).length;
   $('rigEyebrow').textContent = sys.length ? sys.length + ' sistem · ' + all.length + ' rig' : 'Rig sistemi yok';
   $('rigSub').textContent = all.length ? n + ' rig tamam, ' + (all.length - n) + ' rig eksik kalem bekliyor. Tamamlanmayanlar soluk görünür ve öneriye girmez.' : '';

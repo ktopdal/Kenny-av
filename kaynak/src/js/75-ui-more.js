@@ -75,7 +75,7 @@ function sheetSettings(){
     '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '<section class="set"><h4>Sıfırla</h4><p class="note">Envanter işaretlerin ve kendi kalemlerin, Rig Atölyesi ve tür planı riglerin, rig ayarların, alışveriş listesi, hedef türler ve danışman önerileri silinir. Özel paketin (32 rig sistemi) kalır; paket kalemleri ilk hâline döner.</p>' +
-    '<label class="row note chk"><input type="checkbox" id="rs-pk" checked> Paketteki envanteri de boşalt (hepsi “yok” olur; 32 rig eksik görünür, rigler silinmez)</label><label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Kendi eklediğim konumları da sil</label>' +
+    (D && S.systems.ozel ? '<label class="row note chk"><input type="checkbox" id="rs-hide"' + (S.pkg.hidden ? ' checked' : '') + '> Özel paketi tamamen gizle (32 rig ve kalemleri görünmez; yeni kullanıcı gibi). Daha → Özel paket’ten geri getirirsin</label>' : '') + '<label class="row note chk"><input type="checkbox" id="rs-pk" checked> Paketteki envanteri de boşalt (hepsi “yok” olur; 32 rig eksik görünür, rigler silinmez)</label><label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Kendi eklediğim konumları da sil</label>' +
     '<button class="btn" type="button" data-act="resetProfile" style="color:var(--D)">Profilimi sıfırla</button></section>' +
     '</div>';
 }
@@ -148,6 +148,7 @@ function sheetBackup(){
 // ---- Özel paket
 function sheetPackage(){
   const on = pkgOn();
+  if (S.pkg.hidden && D && S.systems.ozel) return sheetBar('Özel paket') + '<div class="stack"><div class="panel stack"><b>Gizli</b><span class="note">Özel paket bu profilde gizli: rigleri ve kalemleri hiçbir yerde görünmüyor, yeni bir kullanıcı gibi kullanıyorsun. Paket silinmedi; istediğinde geri getirirsin.</span><div class="row"><button class="btn primary" type="button" data-act="pkgShow">Paketi geri getir</button></div></div></div>';
   return sheetBar('Özel paket') + '<div class="stack">' +
     '<p class="sub">Özel paket, sahibinin şifresiyle açılan şifreli bir rig sistemidir (rigler, envanter kalemleri, kayıtlı konumlar). Şifre yalnızca bir kez girilir; telefon hatırlar.</p>' +
     (on ? '<div class="panel stack"><b>Açık · ' + esc(S.systems.ozel.name) + '</b><span class="note">' + D.rigs.length + ' rig · ' + D.items.length + ' kalem · veri sürümü ' + esc(D.meta.data_version || '') + '</span>' +

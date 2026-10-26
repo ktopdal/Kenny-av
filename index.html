@@ -1720,9 +1720,10 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.28.2';
+const APP_VERSION = '0.28.3';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.28.3', notes: ['Sıfırla: özel paketi tamamen gizleme (yeni kullanıcı gibi); Daha → Özel paket → Paketi geri getir']},
   {v: '0.28.2', notes: ['Sıfırla: “Paketteki envanteri de boşalt” seçeneği; paket kalemleri de “yok” olur, rigler silinmez']},
   {v: '0.28.1', notes: ['Ayarlar → Sıfırla: envanter, kendi riglerin, alışveriş listesi, tür planları ve danışman önerileri silinir; özel paketin (32 rig) kalır. İstersen avlar ve kendi konumların da']},
   {v: '0.28.0', notes: [
@@ -2797,7 +2798,7 @@ const LEN_LBL = {ust: 'köstek üst', orta: 'orta', hirsiz: 'hırsız', ara: 'k�
 const SPECIES_BASE = KB.SPECIES;   // 21-kb.js
 
 let ITEMS = {}, SPECIES = {}, RIGS = {}, RIG_LIST = [], SETUPS = {};
-const pkgOn = () => !!(D && S.systems.ozel);
+const pkgOn = () => !!(D && S.systems.ozel && !S.pkg.hidden);   // v0.28.3: gizlenen paket hiç görünmez (rigler, kalemler, kurulumlar)
 function pkgRigs(){
   if (!pkgOn() || S.systems.ozel.active === false) return [];
   const setups = Object.fromEntries(D.setups.map(s => [s.id, s]));
@@ -6994,7 +6995,7 @@ function compassTxt(x){
 // ---------------------------------------------------------------- 72 · Rigler ve Envanter
 function renderRigs(){
   if (!RSNAP && RIG_LIST.length) RSNAP = rigSnap();
-  const sys = Object.values(S.systems);
+  const sys = Object.values(S.systems).filter(sy => sy.source !== 'paket' || pkgOn());   // gizli paket görünmez
   const all = RIG_LIST; const n = all.filter(ready).length;
   $('rigEyebrow').textContent = sys.length ? sys.length + ' sistem · ' + all.length + ' rig' : 'Rig sistemi yok';
   $('rigSub').textContent = all.length ? n + ' rig tamam, ' + (all.length - n) + ' rig eksik kalem bekliyor. Tamamlanmayanlar soluk görünür ve öneriye girmez.' : '';
@@ -7817,7 +7818,7 @@ function sheetSettings(){
     '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '<section class="set"><h4>Sıfırla</h4><p class="note">Envanter işaretlerin ve kendi kalemlerin, Rig Atölyesi ve tür planı riglerin, rig ayarların, alışveriş listesi, hedef türler ve danışman önerileri silinir. Özel paketin (32 rig sistemi) kalır; paket kalemleri ilk hâline döner.</p>' +
-    '<label class="row note chk"><input type="checkbox" id="rs-pk" checked> Paketteki envanteri de boşalt (hepsi “yok” olur; 32 rig eksik görünür, rigler silinmez)</label><label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Kendi eklediğim konumları da sil</label>' +
+    (D && S.systems.ozel ? '<label class="row note chk"><input type="checkbox" id="rs-hide"' + (S.pkg.hidden ? ' checked' : '') + '> Özel paketi tamamen gizle (32 rig ve kalemleri görünmez; yeni kullanıcı gibi). Daha → Özel paket’ten geri getirirsin</label>' : '') + '<label class="row note chk"><input type="checkbox" id="rs-pk" checked> Paketteki envanteri de boşalt (hepsi “yok” olur; 32 rig eksik görünür, rigler silinmez)</label><label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Kendi eklediğim konumları da sil</label>' +
     '<button class="btn" type="button" data-act="resetProfile" style="color:var(--D)">Profilimi sıfırla</button></section>' +
     '</div>';
 }
@@ -7890,6 +7891,7 @@ function sheetBackup(){
 // ---- Özel paket
 function sheetPackage(){
   const on = pkgOn();
+  if (S.pkg.hidden && D && S.systems.ozel) return sheetBar('Özel paket') + '<div class="stack"><div class="panel stack"><b>Gizli</b><span class="note">Özel paket bu profilde gizli: rigleri ve kalemleri hiçbir yerde görünmüyor, yeni bir kullanıcı gibi kullanıyorsun. Paket silinmedi; istediğinde geri getirirsin.</span><div class="row"><button class="btn primary" type="button" data-act="pkgShow">Paketi geri getir</button></div></div></div>';
   return sheetBar('Özel paket') + '<div class="stack">' +
     '<p class="sub">Özel paket, sahibinin şifresiyle açılan şifreli bir rig sistemidir (rigler, envanter kalemleri, kayıtlı konumlar). Şifre yalnızca bir kez girilir; telefon hatırlar.</p>' +
     (on ? '<div class="panel stack"><b>Açık · ' + esc(S.systems.ozel.name) + '</b><span class="note">' + D.rigs.length + ' rig · ' + D.items.length + ' kalem · veri sürümü ' + esc(D.meta.data_version || '') + '</span>' +
@@ -10041,12 +10043,13 @@ async function doRestore(passFromForm){
 }
 
 // v0.28 · profili sıfırla: özel paket (32 rig sistemi) ve ayarlar kalır
-async function resetProfile(av, locs, pk){
+async function resetProfile(av, locs, pk, hide){
+  S.pkg.hidden = !!hide;
   Object.keys(S.systems).forEach(k => { if (k !== 'ozel') delete S.systems[k]; });
   S.inv = {items: {}, qty: {}, status: {}, unit: {}, v: 2};
   if (pk) Object.values(ITEMS).filter(i => !i.std && i.src !== 'kullanici').forEach(i => sizesOf(i).forEach(sz => { S.inv.status[i.id + '|' + sz] = 'yok'; }));   // paket kalemleri: tohum durumu geri gelmesin
   S.targets = []; S.shopX = {}; S.rigOv = {}; S.rigPhotos = {}; S.prepLog = []; S.advice = []; S.fb = {}; S.profile.baits = [];
-  if (locs) Object.keys(S.locations).forEach(id => { const L = S.locations[id]; if (!(L.pkg)) delete S.locations[id]; });
+  if (locs) Object.keys(S.locations).forEach(id => { const L = S.locations[id]; if (!(L.pkg) || hide) delete S.locations[id]; });
   if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null;
   if (av) { try { for (const c of CATCHES) { await IDB.del('catches', c.id); (c.photos || []).forEach(p => IDB.del('photos', p).catch(() => {})); } } catch (e) {} await loadCatches(); }
   persist(); indexAll(); renderAll(); closeSheet(); toast('Profil sıfırlandı; özel paketin duruyor');
@@ -10958,7 +10961,8 @@ function bindEvents(){
         catch (e) { toast(e.message || 'Pusula okunamadı'); b.textContent = 'Pusulayla al'; } return; }
       if (a === 'gpsfill') { if (!navigator.geolocation) { toast('Konum servisi yok'); return; } navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000}); return; }
       if (a === 'baitReset') { Object.values(ITEMS).forEach(i => { if (i.cat === 'bait') { delete S.inv.status[i.id + '|-']; delete S.inv.qty[i.id + '|-']; } }); persist(); renderAll(); toast('Bütün yemler “yok”'); return; }
-      if (a === 'resetProfile') { if (!armOnce(b, 'Emin misin? Sıfırlamak için tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, !!($('rs-loc') || {}).checked, !!($('rs-pk') || {}).checked); return; }
+      if (a === 'resetProfile') { if (!armOnce(b, 'Emin misin? Sıfırlamak için tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, !!($('rs-loc') || {}).checked, !!($('rs-pk') || {}).checked, !!($('rs-hide') || {}).checked); return; }
+      if (a === 'pkgShow') { S.pkg.hidden = false; persist(); indexAll(); renderAll(); openMore('paket', true); toast('Özel paket geri geldi'); return; }
       if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
       if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }
       if (a === 'bkNow') { const p = backupNow(true); setBkStatus(); await p; if (ui.sheet === 'yedek') openMore('yedek', true); return; }
