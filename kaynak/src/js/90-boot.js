@@ -80,6 +80,7 @@ function bindEvents(){
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
     const kg = e.target.closest && e.target.closest('g[data-knot]'); if (kg) { knotFrom(kg.dataset.knot); return; }   // şemadaki düğüm noktası
+    if (e.target.id === 'about' && !pkgDoor()) { PKG_TAPS++; if (PKG_TAPS >= 5) { renderMore(); toast('Özel paket açıldı: Daha → Özel paket'); } return; }   // gizli kapı (yalnız sahibi bilir)
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }

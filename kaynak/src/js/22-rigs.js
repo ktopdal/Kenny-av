@@ -8,6 +8,9 @@ const LEN_LBL = {ust: 'köstek üst', orta: 'orta', hirsiz: 'hırsız', ara: 'k�
 const SPECIES_BASE = KB.SPECIES;   // 21-kb.js
 
 let ITEMS = {}, SPECIES = {}, RIGS = {}, RIG_LIST = [], SETUPS = {};
+// özel paket kapısı yalnız sahibine: paket bu cihazda açılmışsa, adres ?paket ile açıldıysa ya da Daha'daki sürüm yazısına 5 kez dokunulduysa
+let PKG_TAPS = 0;
+const pkgDoor = () => !!(S && S.pkg && S.pkg.unlocked) || PKG_TAPS >= 5 || /[?&#]paket\b/.test(location.href) || /[?&]qa=1\b/.test(location.search);
 const pkgOn = () => !!(D && S.systems.ozel && !S.pkg.hidden);   // v0.28.3: gizlenen paket hiç görünmez (rigler, kalemler, kurulumlar)
 function pkgRigs(){
   if (!pkgOn() || S.systems.ozel.active === false) return [];

@@ -9,7 +9,7 @@ function showWelcome(){
     (cloudOn() ? '<button class="btn primary bigbtn" type="button" data-wel="hesap">Hesabımla giriş yap</button>' : '') +
     '<button class="btn ' + (cloudOn() ? '' : 'primary ') + 'bigbtn" type="button" data-wel="kur">Rig sistemimi kur</button>' +
     '<p class="note" id="welKurNote" hidden>Rig Atölyesi bir sonraki sürümde geliyor: nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel sistemi kuracak. Şimdilik boş başlayabilir, konum ve envanter ekleyebilirsin.</p>' +
-    '<button class="btn bigbtn" type="button" data-wel="paket">Özel paketimi aç</button>' +
+    (pkgDoor() ? '<button class="btn bigbtn" type="button" data-wel="paket">Özel paketimi aç</button>' : '') +
     '<form id="welPkg" class="stack" hidden novalidate><label class="f">Paket şifresi<input id="wel-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
     '<p class="err" id="welErr" hidden></p><button class="btn primary" type="submit" id="welBtn">Aç</button></form>' +
     '<button class="btn bigbtn" type="button" data-wel="bulut">Buluttan geri yükle</button>' +
