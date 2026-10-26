@@ -192,7 +192,7 @@ function bindEvents(){
         catch (e) { toast(e.message || 'Pusula okunamadı'); b.textContent = 'Pusulayla al'; } return; }
       if (a === 'gpsfill') { if (!navigator.geolocation) { toast('Konum servisi yok'); return; } navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000}); return; }
       if (a === 'baitReset') { Object.values(ITEMS).forEach(i => { if (i.cat === 'bait') { delete S.inv.status[i.id + '|-']; delete S.inv.qty[i.id + '|-']; } }); persist(); renderAll(); toast('Bütün yemler “yok”'); return; }
-      if (a === 'resetProfile') { if (!armOnce(b, 'Emin misin? Sıfırlamak için tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, !!($('rs-loc') || {}).checked); return; }
+      if (a === 'resetProfile') { if (!armOnce(b, 'Emin misin? Sıfırlamak için tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, !!($('rs-loc') || {}).checked, !!($('rs-pk') || {}).checked); return; }
       if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
       if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }
       if (a === 'bkNow') { const p = backupNow(true); setBkStatus(); await p; if (ui.sheet === 'yedek') openMore('yedek', true); return; }
