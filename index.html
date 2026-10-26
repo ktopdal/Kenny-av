@@ -1720,9 +1720,10 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.28.5';
+const APP_VERSION = '0.28.6';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.28.6', notes: ['Haritada “Konumu kaydet”: önce ad sorulur, haritadaki yer adı önerilir', 'Sıfırlamadan sonra seçilen ilk konumun tahmini hemen yüklenir (bekleyip kalmıyordu)']},
   {v: '0.28.5', notes: ['Ayarlar → Sıfırla → “Yeni kullanıcı gibi başla”: kutulara bakmadan envanteri, kendi riglerini, alışverişi, bütün konumları siler ve özel paketi gizler']},
   {v: '0.28.4', notes: ['Yeni kullanıcı özel paketle ilgili hiçbir şey görmez: karşılama ekranında, Daha menüsünde ve Sıfırla bölümünde paket seçenekleri yalnız paketi açılmış cihazda çıkar']},
   {v: '0.28.3', notes: ['Sıfırla: özel paketi tamamen gizleme (yeni kullanıcı gibi); Daha → Özel paket → Paketi geri getir']},
@@ -6679,6 +6680,8 @@ function renderToday(){
   $('fcta').hidden = land;
   applyCards();
   const L = loc();
+  // konum var ama veri hiç istenmemiş (ör. sıfırlamadan sonra haritadan ilk nokta): tahmini başlat
+  if (L && !WX && $('net') && $('net').dataset.s === 'idle' && !PREVIEW) setTimeout(() => { if (!WX && $('net').dataset.s === 'idle') loadWeather(); }, 0);
   $('noLoc').hidden = !!L;
   $('noLoc').innerHTML = L ? '' : '<div class="panel stack"><h3>Önce bir konum ekle</h3><p class="sub">Hava, deniz ve solunar bilgisi seçtiğin noktaya göre hesaplanır. Bulunduğun yeri al ya da koordinat gir.</p>' +
     '<div class="row"><button class="btn primary" type="button" data-act="gpsloc">Bulunduğum yer</button><button class="btn" type="button" data-open="konumlar">Koordinat gir</button></div></div>';
@@ -9428,10 +9431,25 @@ async function mapAct(a, b){
     if (!WZ) { closeSheet(); return; }
     wzUseLoc(id); persist(); ui.sheet = 'wizard'; renderWizard(); toast(locLabel(S.locations[id]) + ' · Rig Atölyesi'); return;
   }
+  // v0.28.6: kaydetmeden önce ad sor (haritadaki yer adı önerilir)
+  if (a === 'save' && !p.id && !b.dataset.named) {
+    const card = $('mapCard'); card.hidden = false;
+    card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Sığacık açığı" autocomplete="off"></label>' +
+      (p.name ? '<p class="note">Haritadaki adı önerildi; istersen değiştir.</p>' : '') +
+      '<div class="row"><button class="btn primary" type="button" data-mapact="save" data-named="1">Kaydet</button><button class="btn" type="button" data-mapact="namecancel">Vazgeç</button></div></div>';
+    const inp = $('mpName'); if (inp) { inp.focus(); inp.select(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('[data-named]').click(); }); }
+    return;
+  }
+  if (a === 'namecancel') { pickPoint(p.lat, p.lon); return; }
   if (a === 'save' || a === 'forecast') {
+    const nm = b.dataset.named && $('mpName') ? $('mpName').value.trim() : '';
+    if (nm) p.name = nm;
+    const hadActive = !!loc();
     const id = mapSavePoint(p, a === 'forecast');
+    if (nm && S.locations[id]) S.locations[id].name = nm;
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
     persist(); drawLocs(); renderAll(); toast('Konumlarına kaydedildi: ' + S.locations[id].name);
+    if (!hadActive || S.active === id) { WX = null; loadWeather(true); }   // ilk konumsa tahmin hemen gelsin
     locCard(id);
   }
 }

@@ -29,6 +29,8 @@ function renderToday(){
   $('fcta').hidden = land;
   applyCards();
   const L = loc();
+  // konum var ama veri hiç istenmemiş (ör. sıfırlamadan sonra haritadan ilk nokta): tahmini başlat
+  if (L && !WX && $('net') && $('net').dataset.s === 'idle' && !PREVIEW) setTimeout(() => { if (!WX && $('net').dataset.s === 'idle') loadWeather(); }, 0);
   $('noLoc').hidden = !!L;
   $('noLoc').innerHTML = L ? '' : '<div class="panel stack"><h3>Önce bir konum ekle</h3><p class="sub">Hava, deniz ve solunar bilgisi seçtiğin noktaya göre hesaplanır. Bulunduğun yeri al ya da koordinat gir.</p>' +
     '<div class="row"><button class="btn primary" type="button" data-act="gpsloc">Bulunduğum yer</button><button class="btn" type="button" data-open="konumlar">Koordinat gir</button></div></div>';

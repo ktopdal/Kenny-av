@@ -476,10 +476,25 @@ async function mapAct(a, b){
     if (!WZ) { closeSheet(); return; }
     wzUseLoc(id); persist(); ui.sheet = 'wizard'; renderWizard(); toast(locLabel(S.locations[id]) + ' · Rig Atölyesi'); return;
   }
+  // v0.28.6: kaydetmeden önce ad sor (haritadaki yer adı önerilir)
+  if (a === 'save' && !p.id && !b.dataset.named) {
+    const card = $('mapCard'); card.hidden = false;
+    card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Sığacık açığı" autocomplete="off"></label>' +
+      (p.name ? '<p class="note">Haritadaki adı önerildi; istersen değiştir.</p>' : '') +
+      '<div class="row"><button class="btn primary" type="button" data-mapact="save" data-named="1">Kaydet</button><button class="btn" type="button" data-mapact="namecancel">Vazgeç</button></div></div>';
+    const inp = $('mpName'); if (inp) { inp.focus(); inp.select(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('[data-named]').click(); }); }
+    return;
+  }
+  if (a === 'namecancel') { pickPoint(p.lat, p.lon); return; }
   if (a === 'save' || a === 'forecast') {
+    const nm = b.dataset.named && $('mpName') ? $('mpName').value.trim() : '';
+    if (nm) p.name = nm;
+    const hadActive = !!loc();
     const id = mapSavePoint(p, a === 'forecast');
+    if (nm && S.locations[id]) S.locations[id].name = nm;
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
     persist(); drawLocs(); renderAll(); toast('Konumlarına kaydedildi: ' + S.locations[id].name);
+    if (!hadActive || S.active === id) { WX = null; loadWeather(true); }   // ilk konumsa tahmin hemen gelsin
     locCard(id);
   }
 }
