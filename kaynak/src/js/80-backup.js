@@ -167,7 +167,7 @@ async function resetProfile(av, locs, pk, hide){
   if (pk) Object.values(ITEMS).filter(i => !i.std && i.src !== 'kullanici').forEach(i => sizesOf(i).forEach(sz => { S.inv.status[i.id + '|' + sz] = 'yok'; }));   // paket kalemleri: tohum durumu geri gelmesin
   S.targets = []; S.shopX = {}; S.rigOv = {}; S.rigPhotos = {}; S.prepLog = []; S.advice = []; S.fb = {}; S.profile.baits = [];
   if (locs) Object.keys(S.locations).forEach(id => { const L = S.locations[id]; if (!(L.pkg) || hide) delete S.locations[id]; });
-  if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null;
+  if (!S.locations[S.active]) { S.active = Object.keys(S.locations)[0] || null; S.wx = null; try { WX = null; DAYS_CACHE = null; } catch (e) {} }
   if (av) { try { for (const c of CATCHES) { await IDB.del('catches', c.id); (c.photos || []).forEach(p => IDB.del('photos', p).catch(() => {})); } } catch (e) {} await loadCatches(); }
-  persist(); indexAll(); renderAll(); closeSheet(); toast('Profil sıfırlandı; özel paketin duruyor');
+  persist(); indexAll(); renderAll(); closeSheet(); toast(hide ? 'Her şey silindi; yeni kullanıcı gibi başlıyorsun' : 'Profil sıfırlandı');
 }

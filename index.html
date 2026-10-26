@@ -1720,9 +1720,10 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.28.4';
+const APP_VERSION = '0.28.5';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.28.5', notes: ['Ayarlar → Sıfırla → “Yeni kullanıcı gibi başla”: kutulara bakmadan envanteri, kendi riglerini, alışverişi, bütün konumları siler ve özel paketi gizler']},
   {v: '0.28.4', notes: ['Yeni kullanıcı özel paketle ilgili hiçbir şey görmez: karşılama ekranında, Daha menüsünde ve Sıfırla bölümünde paket seçenekleri yalnız paketi açılmış cihazda çıkar']},
   {v: '0.28.3', notes: ['Sıfırla: özel paketi tamamen gizleme (yeni kullanıcı gibi); Daha → Özel paket → Paketi geri getir']},
   {v: '0.28.2', notes: ['Sıfırla: “Paketteki envanteri de boşalt” seçeneği; paket kalemleri de “yok” olur, rigler silinmez']},
@@ -7823,7 +7824,8 @@ function sheetSettings(){
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '<section class="set"><h4>Sıfırla</h4><p class="note">Envanterin, kendi kurduğun rig sistemleri ve rig ayarların, alışveriş listesi, hedef türler ve danışman önerileri silinir; uygulama ilk kurulduğu gibi olur.' + (S.pkg.unlocked ? ' Özel paketin kalır.' : '') + '</p>' +
     (D && S.systems.ozel && S.pkg.unlocked ? '<label class="row note chk"><input type="checkbox" id="rs-hide"' + (S.pkg.hidden ? ' checked' : '') + '> Özel paketi tamamen gizle (32 rig ve kalemleri görünmez; yeni kullanıcı gibi). Daha → Özel paket’ten geri getirirsin</label>' : '') + (D && S.systems.ozel && S.pkg.unlocked ? '<label class="row note chk"><input type="checkbox" id="rs-pk" checked> Paketteki envanteri de boşalt (hepsi “yok” olur; 32 rig eksik görünür, rigler silinmez)</label>' : '') + '<label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Konumlarımı da sil</label>' +
-    '<button class="btn" type="button" data-act="resetProfile" style="color:var(--D)">Profilimi sıfırla</button></section>' +
+    '<div class="row wrap"><button class="btn" type="button" data-act="resetProfile" style="color:var(--D)">Profilimi sıfırla</button>' + (D && S.systems.ozel && S.pkg.unlocked ? '<button class="btn" type="button" data-act="resetNew" style="color:var(--D)">Yeni kullanıcı gibi başla</button>' : '') + '</div>' +
+    (D && S.systems.ozel && S.pkg.unlocked ? '<p class="note"><b>Yeni kullanıcı gibi başla:</b> kutulara bakmadan her şeyi siler: envanter, kendi rigler, alışveriş, konumların (Konum 1 dahil) ve özel paketi gizler. Yalnız avların kalır (yukarıda işaretlersen onlar da gider). Paketi geri getirmek: Daha → Özel paket.</p>' : '') + '</section>' +
     '</div>';
 }
 function setSetting(name, val){
@@ -10054,9 +10056,9 @@ async function resetProfile(av, locs, pk, hide){
   if (pk) Object.values(ITEMS).filter(i => !i.std && i.src !== 'kullanici').forEach(i => sizesOf(i).forEach(sz => { S.inv.status[i.id + '|' + sz] = 'yok'; }));   // paket kalemleri: tohum durumu geri gelmesin
   S.targets = []; S.shopX = {}; S.rigOv = {}; S.rigPhotos = {}; S.prepLog = []; S.advice = []; S.fb = {}; S.profile.baits = [];
   if (locs) Object.keys(S.locations).forEach(id => { const L = S.locations[id]; if (!(L.pkg) || hide) delete S.locations[id]; });
-  if (!S.locations[S.active]) S.active = Object.keys(S.locations)[0] || null;
+  if (!S.locations[S.active]) { S.active = Object.keys(S.locations)[0] || null; S.wx = null; try { WX = null; DAYS_CACHE = null; } catch (e) {} }
   if (av) { try { for (const c of CATCHES) { await IDB.del('catches', c.id); (c.photos || []).forEach(p => IDB.del('photos', p).catch(() => {})); } } catch (e) {} await loadCatches(); }
-  persist(); indexAll(); renderAll(); closeSheet(); toast('Profil sıfırlandı; özel paketin duruyor');
+  persist(); indexAll(); renderAll(); closeSheet(); toast(hide ? 'Her şey silindi; yeni kullanıcı gibi başlıyorsun' : 'Profil sıfırlandı');
 }
 
 // ---------------------------------------------------------------- 82 · paylaşım: envanter ve rig sistemi bağlantısı, geri bildirim
@@ -10967,6 +10969,7 @@ function bindEvents(){
       if (a === 'gpsfill') { if (!navigator.geolocation) { toast('Konum servisi yok'); return; } navigator.geolocation.getCurrentPosition(p => { $('nl-lat').value = p.coords.latitude.toFixed(6); $('nl-lon').value = p.coords.longitude.toFixed(6); toast('Konum alındı'); }, () => toast('Konum izni verilmedi'), {enableHighAccuracy: true, timeout: 15000}); return; }
       if (a === 'baitReset') { Object.values(ITEMS).forEach(i => { if (i.cat === 'bait') { delete S.inv.status[i.id + '|-']; delete S.inv.qty[i.id + '|-']; } }); persist(); renderAll(); toast('Bütün yemler “yok”'); return; }
       if (a === 'resetProfile') { if (!armOnce(b, 'Emin misin? Sıfırlamak için tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, !!($('rs-loc') || {}).checked, !!($('rs-pk') || {}).checked, !!($('rs-hide') || {}).checked); return; }
+      if (a === 'resetNew') { if (!armOnce(b, 'Her şey silinecek: tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, true, true, true); return; }
       if (a === 'pkgShow') { S.pkg.hidden = false; persist(); indexAll(); renderAll(); openMore('paket', true); toast('Özel paket geri geldi'); return; }
       if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
       if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }

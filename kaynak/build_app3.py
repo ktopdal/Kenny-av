@@ -19,7 +19,7 @@ DIST = os.path.join(APP, 'dist')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.28.4'
+VERSION = '0.28.5'
 NAME, SHORT = 'Alyssa by Barbossa App', 'Alyssa'
 THEME = '#0B6B7C'
 

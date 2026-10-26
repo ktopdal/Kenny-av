@@ -3,6 +3,7 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.28.5', notes: ['Ayarlar → Sıfırla → “Yeni kullanıcı gibi başla”: kutulara bakmadan envanteri, kendi riglerini, alışverişi, bütün konumları siler ve özel paketi gizler']},
   {v: '0.28.4', notes: ['Yeni kullanıcı özel paketle ilgili hiçbir şey görmez: karşılama ekranında, Daha menüsünde ve Sıfırla bölümünde paket seçenekleri yalnız paketi açılmış cihazda çıkar']},
   {v: '0.28.3', notes: ['Sıfırla: özel paketi tamamen gizleme (yeni kullanıcı gibi); Daha → Özel paket → Paketi geri getir']},
   {v: '0.28.2', notes: ['Sıfırla: “Paketteki envanteri de boşalt” seçeneği; paket kalemleri de “yok” olur, rigler silinmez']},
