@@ -70,7 +70,7 @@ const locKind = L => !L ? null : L.kind && KIND_TXT[L.kind] ? L.kind : 'deniz';
 const landMode = () => locKind(loc()) === 'kara';
 // geçerli av modu: karada 'kara', kıyı türünde her zaman 'kiyi', denizde kullanıcının seçimi (Tekne/Kıyı)
 const modeNow = () => { const k = locKind(loc()); return k === 'kara' ? 'kara' : k === 'kiyi' ? 'kiyi' : (S.mode === 'kiyi' ? 'kiyi' : 'tekne'); };
-const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + L.name;
+const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + L.name + (L.tmp ? ' (kaydedilmedi)' : '');
 
 // ---------------------------------------------------------------- stok
 // durum: var | az (adette azalmış) | bitti (sayı 0 ya da "bitti" işareti; alınacak sayılır) | alinacak (istek, henüz yok) | yok

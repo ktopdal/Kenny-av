@@ -1720,9 +1720,10 @@ else window.SunCalc = SunCalc;
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
 const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.28.6';
+const APP_VERSION = '0.28.7';
 const PREVIEW = false;
 const CHANGELOG = [
+  {v: '0.28.7', notes: ['Harita kartı: önce “Kaydet”, sonra “Kaydetmeden tahmine dön” (nokta kaydedilmez; başka konuma geçince silinir), sonra Google Haritalar']},
   {v: '0.28.6', notes: ['Haritada “Konumu kaydet”: önce ad sorulur, haritadaki yer adı önerilir', 'Sıfırlamadan sonra seçilen ilk konumun tahmini hemen yüklenir (bekleyip kalmıyordu)']},
   {v: '0.28.5', notes: ['Ayarlar → Sıfırla → “Yeni kullanıcı gibi başla”: kutulara bakmadan envanteri, kendi riglerini, alışverişi, bütün konumları siler ve özel paketi gizler']},
   {v: '0.28.4', notes: ['Yeni kullanıcı özel paketle ilgili hiçbir şey görmez: karşılama ekranında, Daha menüsünde ve Sıfırla bölümünde paket seçenekleri yalnız paketi açılmış cihazda çıkar']},
@@ -2481,7 +2482,7 @@ const locKind = L => !L ? null : L.kind && KIND_TXT[L.kind] ? L.kind : 'deniz';
 const landMode = () => locKind(loc()) === 'kara';
 // geçerli av modu: karada 'kara', kıyı türünde her zaman 'kiyi', denizde kullanıcının seçimi (Tekne/Kıyı)
 const modeNow = () => { const k = locKind(loc()); return k === 'kara' ? 'kara' : k === 'kiyi' ? 'kiyi' : (S.mode === 'kiyi' ? 'kiyi' : 'tekne'); };
-const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + L.name;
+const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + L.name + (L.tmp ? ' (kaydedilmedi)' : '');
 
 // ---------------------------------------------------------------- stok
 // durum: var | az (adette azalmış) | bitti (sayı 0 ya da "bitti" işareti; alınacak sayılır) | alinacak (istek, henüz yok) | yok
@@ -3863,6 +3864,7 @@ async function loadWxFor(L){
   finally { delete MWX_LOAD[L.id]; }
 }
 async function loadWeather(force){
+  Object.keys(S.locations).forEach(id => { if (S.locations[id].tmp && id !== S.active) delete S.locations[id]; });   // kaydedilmeden bakılan nokta: başka konuma geçince silinir
   const L = loc();
   if (!L) { WX = null; setNet('idle', 'Konum yok'); renderAll(); return; }
   const key = wxKey(L);
@@ -7924,7 +7926,7 @@ function sheetLocations(){
   const ccount = id => CATCHES.filter(c => c.loc && distKm(c.loc, S.locations[id]) <= 0.5).length;
   const list = Object.values(S.locations);
   return sheetBar('Konumlar', '<button class="btn" type="button" data-open="harita">Harita</button>') + '<div class="stack">' +
-    (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +
+    (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +(L.tmp ? '<span class="chip C">kaydedilmedi · başka konuma geçince silinir</span>' : '') +
       '<div class="sp mono">' + fmtCoord(L.lat, L.lon, true) + (ccount(L.id) ? ' · ' + ccount(L.id) + ' av' : '') + '</div>' +
       (L.sea && L.sea.lat != null ? '<div class="sp">Deniz verisi ' + f1(L.sea.km) + ' km ' + dir8(L.sea.dir) + ' yönündeki noktadan</div>' : '') + '</div>' +
       (S.active === L.id ? '<span class="chip A">Seçili</span>' : '<button class="btn small" type="button" data-use="' + esc(L.id) + '">Seç</button>') + '</div>' + kindBtns(L) +
@@ -9379,7 +9381,7 @@ function renderPick(){
   el.innerHTML = '<div class="mc-h"><b>' + esc(p.name || 'Seçilen nokta') + (p.busy && p.name ? ' …' : '') + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
     coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' + kNote + gNote +
     (ui.mapFor === 'wizard' && WZ ? '<div class="row"><button class="btn primary" type="button" data-mapact="wzuse">Rig Atölyesinde kullan</button></div>' : '') +
-    '<div class="row"><button class="btn' + (ui.mapFor === 'wizard' ? '' : ' primary') + '" type="button" data-mapact="forecast">' + (p.kind === 'kara' ? 'Bu noktanın hava durumu' : 'Bu noktanın tahmini') + '</button><button class="btn" type="button" data-mapact="save">Kaydet</button>' +
+    '<div class="row"><button class="btn' + (ui.mapFor === 'wizard' ? '' : ' primary') + '" type="button" data-mapact="save">Kaydet</button><button class="btn" type="button" data-mapact="forecast">' + (p.kind === 'kara' ? 'Kaydetmeden hava durumuna dön' : 'Kaydetmeden tahmine dön') + '</button>' +
     '<a class="btn" href="' + gmapsUrl(p.lat, p.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
   el.hidden = false;
 }
@@ -9432,7 +9434,7 @@ async function mapAct(a, b){
     wzUseLoc(id); persist(); ui.sheet = 'wizard'; renderWizard(); toast(locLabel(S.locations[id]) + ' · Rig Atölyesi'); return;
   }
   // v0.28.6: kaydetmeden önce ad sor (haritadaki yer adı önerilir)
-  if (a === 'save' && !p.id && !b.dataset.named) {
+  if (a === 'save' && (!p.id || (S.locations[p.id] || {}).tmp) && !b.dataset.named) {
     const card = $('mapCard'); card.hidden = false;
     card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Sığacık açığı" autocomplete="off"></label>' +
       (p.name ? '<p class="note">Haritadaki adı önerildi; istersen değiştir.</p>' : '') +
@@ -9445,8 +9447,11 @@ async function mapAct(a, b){
     const nm = b.dataset.named && $('mpName') ? $('mpName').value.trim() : '';
     if (nm) p.name = nm;
     const hadActive = !!loc();
+    const isNew = !p.id && !(nearestLoc(p) && nearestLoc(p).d <= 0.2);
     const id = mapSavePoint(p, a === 'forecast');
     if (nm && S.locations[id]) S.locations[id].name = nm;
+    if (a === 'save' && S.locations[id]) delete S.locations[id].tmp;
+    if (a === 'forecast' && isNew && S.locations[id]) S.locations[id].tmp = true;   // kaydetmeden: başka konuma geçince silinir
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
     persist(); drawLocs(); renderAll(); toast('Konumlarına kaydedildi: ' + S.locations[id].name);
     if (!hadActive || S.active === id) { WX = null; loadWeather(true); }   // ilk konumsa tahmin hemen gelsin
@@ -11056,7 +11061,7 @@ function bindEvents(){
       if ((cur == null ? '' : String(cur)) === v) return;
       setQtyVal(k, v); persist(); setTimeout(() => { indexAll(); renderAll(); reShop(); }, 250); toast('Kaydedildi'); return;
     }
-    if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; if (!L) return; L[el.dataset.f] = el.value.trim() || (el.dataset.f === 'name' ? L.name : ''); persist(); renderAll(); toast('Kaydedildi'); return; }
+    if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; if (!L) return; L[el.dataset.f] = el.value.trim() || (el.dataset.f === 'name' ? L.name : ''); if (el.dataset.f === 'name') delete L.tmp; persist(); renderAll(); toast('Kaydedildi'); return; }
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; persist(); applyTheme(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }

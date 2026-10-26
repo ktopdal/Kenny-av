@@ -238,7 +238,7 @@ async def main():
         b = await p.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args=['--no-sandbox'])
         # ================================================== A) temiz kurulum → özel paket → ayarlar → konum → yedek
         ctx, pg, errs = await new_ctx(b)
-        await pg.goto(BASE + '/dist/'); await pg.wait_for_timeout(1200)
+        await pg.goto(BASE + '/dist/?paket'); await pg.wait_for_timeout(1200)
         check(await pg.is_visible('#welcome'), 'karşılama ekranı görünüyor')
         check('Alyssa by Barbossa App' in await pg.inner_text('#welcome'), 'uygulama adı karşılamada')
         await pg.screenshot(path=SHOTS + '/a_welcome.png')
@@ -362,7 +362,7 @@ async def main():
 
         # ================================================== B) yeni telefon: buluttan geri yükleme
         ctx, pg, errs = await new_ctx(b)
-        await pg.goto(BASE + '/dist/'); await pg.wait_for_timeout(1000)
+        await pg.goto(BASE + '/dist/?paket'); await pg.wait_for_timeout(1000)
         await pg.click('button[data-wel="bulut"]'); await pg.wait_for_timeout(300)
         await pg.fill('#bk-repo', 'kenny/alyssa-yedek'); await pg.fill('#bk-name', 'kenny'); await pg.fill('#bk-tok', GOOD_TOKEN); await pg.fill('#bk-pass', 'yanlis-sifre')
         await pg.click('#bkForm button[data-act="bkRestoreAsk"]'); await pg.wait_for_timeout(4000)
@@ -387,7 +387,7 @@ async def main():
         old_state = {'v': 1, 'qty': {'owner-ssw5111|3/0': 7}, 'status': {}, 'locations': {'1': {'id': '1', 'name': 'Eski konum', 'lat': 38.1234, 'lon': 26.5678, 'bottom': 'kum', 'depth': ''}},
                      'active': '1', 'prefs': {'qty_mode': 'adet'}, 'wx': None, 'seenVersion': '0.2.0'}
         ctx, pg, errs = await new_ctx(b, {'kenny-av-v1': json.dumps(old_state), 'kenny-av-data': json.dumps(od), 'kenny-av-k': 'AAAA'})
-        await pg.goto(BASE + '/dist/'); await pg.wait_for_timeout(3000)
+        await pg.goto(BASE + '/dist/?paket'); await pg.wait_for_timeout(3000)
         check(not await pg.is_visible('#welcome'), 'geçiş: karşılama gösterilmedi')
         check('güncellendi' in await pg.inner_text('#banners'), 'geçiş: yeni sürüm ve paket bandı')
         st = await state(pg)
@@ -406,7 +406,7 @@ async def main():
         # ================================================== D) takılan istek: zaman aşımı ve "Yükleniyor" bitmeli
         HANG['gfs'] = True
         ctx, pg, errs = await new_ctx(b)
-        await pg.goto(BASE + '/dist/'); await pg.wait_for_timeout(800)
+        await pg.goto(BASE + '/dist/?paket'); await pg.wait_for_timeout(800)
         await pg.click('button[data-wel="bos"]'); await pg.wait_for_timeout(300)
         check(await pg.is_visible('#noLoc'), 'boş başla: konum ekle kartı')
         await pg.screenshot(path=SHOTS + '/d_bos.png')
@@ -611,7 +611,9 @@ async def main():
         await pg.screenshot(path=SHOTS + '/j_harita.png')
         await pg.click('#mapCard button[data-mapact="copy"]'); await pg.wait_for_timeout(200)
         check('°' in await pg.inner_text('#toast'), 'J: koordinat kopyalandı: ' + await pg.inner_text('#toast'))
-        await pg.click('#mapCard button[data-mapact="save"]'); await pg.wait_for_timeout(400)
+        await pg.click('#mapCard button[data-mapact="save"]'); await pg.wait_for_timeout(300)
+        check(await pg.input_value('#mpName') == 'Deneme açıkları', 'J: kaydederken ad soruldu, haritadaki ad önerildi')   # v0.28.6
+        await pg.click('#mapCard button[data-named]'); await pg.wait_for_timeout(400)
         st = await state(pg); newl = [v for v in st['locations'].values() if v['name'] == 'Deneme açıkları']
         check(len(st['locations']) == n0 + 1 and newl and newl[0]['depth'] == '54' and st['active'] != newl[0]['id'], 'J: nokta derinliğiyle kaydedildi, seçili konum değişmedi')
         check(await pg.locator('.mpin').count() >= 2, 'J: kaydedilen nokta haritada')
@@ -823,7 +825,7 @@ async def main():
 
         # ================================================== F) Rig Atölyesi: sıfırdan sistem, envanter, alışveriş
         ctx, pg, errs = await new_ctx(b)
-        await pg.goto(BASE + '/dist/'); await pg.wait_for_timeout(1000)
+        await pg.goto(BASE + '/dist/?paket'); await pg.wait_for_timeout(1000)
         await pg.click('button[data-wel="kur"]'); await pg.wait_for_timeout(300)
         check('Rig Atölyesi' in await pg.inner_text('#sheet'), 'F: sihirbaz açıldı')
         # v0.24: "Hangi denizde?" yerine nokta (yeni kullanıcıda kayıtlı nokta yok: harita / koordinat, bölge Ege varsayılır)
@@ -1540,10 +1542,10 @@ async def main():
         await pg.evaluate('window.ALYSSA_QA.pickPoint(38.36476, 26.87316)'); await pg.wait_for_timeout(400)
         card = await pg.inner_text('#mapCard'); print('   kara kartı:', card.replace('\n', ' | ')[:240])
         check('Kara' in card and 'Deniz' not in card and 'açıkları' not in card and 'derinlik' not in card and 'yükselti ≈ 38 m' in card and 'Çelebi, İzmir' in card, 'W: kara noktası Kara, adı “açıkları”sız, derinlik yok, yükselti var')
-        check('Bu noktanın hava durumu' in card and 'yalnız hava durumu' in card, 'W: kara kartında “hava durumu” düğmesi ve notu')
+        check('Kaydetmeden hava durumuna dön' in card and 'yalnız hava durumu' in card, 'W: kara kartında “hava durumu” düğmesi ve notu')
         await pg.screenshot(path=SHOTS + '/w_kara_kart.png')
         n0 = len(calls)
-        await pg.click('#mapCard button[data-mapact="forecast"]'); await pg.wait_for_timeout(2500)
+        await pg.click('#mapCard button[data-mapact="forecast"]'); await pg.wait_for_timeout(2500); await pg.evaluate("() => { const S = window.ALYSSA_QA.state(); Object.values(S.locations).forEach(l => delete l.tmp); }")   # v0.28.7: kaydetmeden bakılan nokta geçici; sonraki adımlar için kalıcı yap
         st = await state(pg); L = st['locations'][st['active']]; lid = L['id']
         check(L.get('kind') == 'kara' and L['name'] == 'Çelebi, İzmir' and L.get('kindBy') == 'yükselti', 'W: kaydedilen konum Kara: ' + json.dumps({k: L.get(k) for k in ('name', 'kind', 'kindBy', 'elev')}, ensure_ascii=False))
         mar = [c for c in calls[n0:] if 'marine' in c]
@@ -1595,7 +1597,7 @@ async def main():
         await pg.evaluate('window.ALYSSA_QA.pickPoint(38.61, 26.91)'); await pg.wait_for_timeout(400)
         card = await pg.inner_text('#mapCard'); print('   kıyı kartı:', card.replace('\n', ' | ')[:200])
         check('Kıyı' in card and 'kıyıya' in card and 'açıkları' not in card and 'Kıyı noktası: kıyıdan av' in card, 'W: kıyı noktası kartı')
-        await pg.click('#mapCard button[data-mapact="forecast"]'); await pg.wait_for_timeout(3500)
+        await pg.click('#mapCard button[data-mapact="forecast"]'); await pg.wait_for_timeout(3500); await pg.evaluate("() => { const S = window.ALYSSA_QA.state(); Object.values(S.locations).forEach(l => delete l.tmp); }")   # v0.28.7: kaydetmeden bakılan nokta geçici; sonraki adımlar için kalıcı yap
         st = await state(pg); L = st['locations'][st['active']]
         check(L.get('kind') == 'kiyi' and await pg.evaluate('ALYSSA_QA.modeNow()') == 'kiyi' and st['mode'] != 'kiyi', 'W: kıyı türü, kıyı modu (kullanıcının Tekne/Kıyı seçimi değişmeden)')
         await pg.click('#modeBtn'); await pg.wait_for_timeout(200)
@@ -1885,7 +1887,7 @@ async def main():
         await pg.evaluate('() => { window.ALYSSA_QA.pickPoint(38.20, 26.75); }'); await pg.wait_for_timeout(3500)
         card = await pg.inner_text('#mapCard'); print('   kart:', card.replace('\n', ' | ')[:300])
         check('taban ≈ Kum (EUSeaMap)' in card, 'AA: nokta kartında taban tahmini')
-        await pg.click('#mapCard button[data-mapact="save"]'); await pg.wait_for_timeout(600)
+        await pg.click('#mapCard button[data-mapact="save"]'); await pg.wait_for_timeout(300); await pg.click('#mapCard button[data-named]'); await pg.wait_for_timeout(600)
         st = await state(pg); NL = [l for l in st['locations'].values() if abs(l['lat'] - 38.20) < 1e-6 and abs(l['lon'] - 26.75) < 1e-6][0]
         check(NL.get('bottomEst') == 'kum' and not NL.get('bottom') and 'infralitoral' in (NL.get('bottomEstTxt') or ''), 'AA: kaydedilen konumda dip boş, taban tahmini kum')
         lc = await pg.inner_text('#mapCard')

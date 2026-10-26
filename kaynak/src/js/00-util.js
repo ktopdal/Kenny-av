@@ -3,6 +3,7 @@ const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
 const CHANGELOG = [
+  {v: '0.28.7', notes: ['Harita kartı: önce “Kaydet”, sonra “Kaydetmeden tahmine dön” (nokta kaydedilmez; başka konuma geçince silinir), sonra Google Haritalar']},
   {v: '0.28.6', notes: ['Haritada “Konumu kaydet”: önce ad sorulur, haritadaki yer adı önerilir', 'Sıfırlamadan sonra seçilen ilk konumun tahmini hemen yüklenir (bekleyip kalmıyordu)']},
   {v: '0.28.5', notes: ['Ayarlar → Sıfırla → “Yeni kullanıcı gibi başla”: kutulara bakmadan envanteri, kendi riglerini, alışverişi, bütün konumları siler ve özel paketi gizler']},
   {v: '0.28.4', notes: ['Yeni kullanıcı özel paketle ilgili hiçbir şey görmez: karşılama ekranında, Daha menüsünde ve Sıfırla bölümünde paket seçenekleri yalnız paketi açılmış cihazda çıkar']},

@@ -100,6 +100,7 @@ async function loadWxFor(L){
   finally { delete MWX_LOAD[L.id]; }
 }
 async function loadWeather(force){
+  Object.keys(S.locations).forEach(id => { if (S.locations[id].tmp && id !== S.active) delete S.locations[id]; });   // kaydedilmeden bakılan nokta: başka konuma geçince silinir
   const L = loc();
   if (!L) { WX = null; setNet('idle', 'Konum yok'); renderAll(); return; }
   const key = wxKey(L);

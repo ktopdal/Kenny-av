@@ -173,7 +173,7 @@ function sheetLocations(){
   const ccount = id => CATCHES.filter(c => c.loc && distKm(c.loc, S.locations[id]) <= 0.5).length;
   const list = Object.values(S.locations);
   return sheetBar('Konumlar', '<button class="btn" type="button" data-open="harita">Harita</button>') + '<div class="stack">' +
-    (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +
+    (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +(L.tmp ? '<span class="chip C">kaydedilmedi · başka konuma geçince silinir</span>' : '') +
       '<div class="sp mono">' + fmtCoord(L.lat, L.lon, true) + (ccount(L.id) ? ' · ' + ccount(L.id) + ' av' : '') + '</div>' +
       (L.sea && L.sea.lat != null ? '<div class="sp">Deniz verisi ' + f1(L.sea.km) + ' km ' + dir8(L.sea.dir) + ' yönündeki noktadan</div>' : '') + '</div>' +
       (S.active === L.id ? '<span class="chip A">Seçili</span>' : '<button class="btn small" type="button" data-use="' + esc(L.id) + '">Seç</button>') + '</div>' + kindBtns(L) +
