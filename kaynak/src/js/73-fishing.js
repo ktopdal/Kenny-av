@@ -81,8 +81,8 @@ function fRecs(dd, part, from, past){
   $('recMoreW').hidden = true; $('recMore').innerHTML = ''; $('fTarget').innerHTML = ''; $('fSpot').hidden = true;
   if (!RIG_LIST.length) {
     $('recNote').textContent = '';
-    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
-      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
+    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur' + /*@ozel*/(pkgDoor() ? ' ya da özel paketini aç' : '') + /*@end*/'.</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button>' + /*@ozel*/(pkgDoor() ? '<button class="btn" type="button" data-open="paket">Özel paketimi aç</button>' : '') + /*@end*/'</div></div>';
     $('recBlockedW').hidden = true; return;
   }
   if (!RIG_LIST.some(r => !r.mode || r.mode === modeNow())) {

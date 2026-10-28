@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Alyssa by Barbossa App derleyici (v0.3+).
+"""Alyssa WF derleyici (v0.3+).
 
-src3/ (shell.html, app.css, app2.css, app3.css, js/*.js)  ->
-  dist/     GitHub Pages sitesi: index.html (rig verisi YOK), paket/ozel.enc.json (Kenny'nin şifreli özel paketi), manifest, sw.js, ikonlar
-  preview/  Claude önizlemesi: tek dosya, özel paket gömülü, örnek hava verisiyle
+src3/ (shell.html, app*.css, js/*.js)  ->
+  dist/      özel (gizli) yayın: index.html (rig verisi YOK), paket/ozel.enc.json (sahibinin şifreli özel paketi), manifest, sw.js, ikonlar
+  dist_pub/  genel yayın: özel paket ve paket arayüzü yok, yorumlar ayıklanır, ayrı depolama ön eki (awf-)
+  preview/   Claude önizlemesi: tek dosya, özel paket gömülü, örnek hava verisiyle
+
+Kaynakta yayına özgü bölümler: /*@ozel*/ … /*@end*/ yalnız özel yayında, /*@genel*/ … /*@end*/ yalnız genel yayında kalır.
 
 Paket şifresi: secret/key.json (pass_, salt, iter). Depoya ASLA girmez.
 Çalıştır: python3 /home/claude/fishapp/app/build_app3.py
@@ -16,11 +19,13 @@ SRC = os.path.join(APP, 'src3')
 DB = os.path.join(ROOT, 'data/kenny_av_db.json')
 SUN = os.path.join(APP, 'vendor/suncalc.js')
 DIST = os.path.join(APP, 'dist')
+DIST_PUB = os.path.join(APP, 'dist_pub')
+TERSER = os.path.join(ROOT, 'tools/node_modules/.bin/terser')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.28.7'
-NAME, SHORT = 'Alyssa by Barbossa App', 'Alyssa'
+VERSION = '0.29.0'
+NAME, SHORT, FULL = 'Alyssa WF', 'Alyssa WF', 'Alyssa Weather & Fishing'
 THEME = '#0B6B7C'
 
 
@@ -113,16 +118,124 @@ def sample():
     return dict(raw=dict(icon=icon, ecmwf=ecm, gfs=gfs, best=best, mf=mf, mbest=mbest), status=status, sample=True)
 
 
-def assemble(preview, data):
-    shell = open(os.path.join(SRC, 'shell.html'), encoding='utf-8').read()
-    css = '\n'.join(open(os.path.join(SRC, f), encoding='utf-8').read() for f in ('app.css', 'app2.css', 'app3.css', 'app4.css') if os.path.exists(os.path.join(SRC, f)))
-    js = '\n'.join(open(f, encoding='utf-8').read() for f in sorted(glob.glob(os.path.join(SRC, 'js', '*.js'))))
+def edition(text, ed):
+    """yayına özgü bölümleri ayıkla (/*@ozel*/…/*@end*/, /*@genel*/…/*@end*/)."""
+    other = 'genel' if ed == 'ozel' else 'ozel'
+    text = re.sub(r'/\*@' + other + r'\*/[\s\S]*?/\*@end\*/', '', text)
+    text = re.sub(r'/\*@' + ed + r'\*/([\s\S]*?)/\*@end\*/', r'\1', text)
+    assert '/*@' not in text, 'kapanmamış yayın işareti'
+    return text
+
+
+def strip_js(js):
+    """genel yayın: yorumları ayıkla (kod aynı kalır; değişken adları değişmez)."""
+    import subprocess, tempfile
+    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False, encoding='utf-8') as f:
+        f.write(js); src = f.name
+    out = subprocess.run([TERSER, src, '--comments', 'false', '--ecma', '2020', '-b', 'beautify=false,semicolons=false'],
+                         capture_output=True, text=True, check=True).stdout
+    os.unlink(src)
+    return out
+
+
+def xlsx_template():
+    """Envanter için örnek Excel: Envanter (boş, açılır listeli), Örnekler, Nasıl doldurulur, Listeler (gizli)."""
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.worksheet.datavalidation import DataValidation
+    src = open(os.path.join(SRC, 'js', '72-ui-rigs-inv.js'), encoding='utf-8').read()
+    cats = re.findall(r"(\w+): '([^']+)'", re.search(r'const CAT_TXT = \{(.*?)\};', src).group(1))
+    pats = re.findall(r"'([^']+)'", re.search(r'const HOOK_PATTERNS = \[(.*?)\];', src).group(1))
+    rods = re.findall(r"\['(\w+)', '([^']+)'\]", re.search(r'const ROD_T = \[(.*?)\];\n', src).group(1))
+    reels = re.findall(r"\['(\w+)', '([^']+)'\]", re.search(r'const REEL_T = \[(.*?)\];\n', src).group(1))
+    durum = ['Var', 'Alınacak', 'Yok']
+    head = ['Kategori', 'Marka', 'Model / ad', 'Özellik', 'Boylar', 'Durum', 'Not', 'İğne tipi', 'Kamış tipi', 'Kamış boyu (m)', 'Kamış en fazla (g)', 'Kamış PE', 'Makine tipi', 'Makine boyu']
+    width = [16, 16, 26, 26, 22, 12, 24, 20, 22, 14, 18, 10, 30, 13]
+    ex = [
+        ['İğne', 'Owner', 'SSW 5111', 'siyah nikel', '1/0, 2/0, 3/0', 'Var', 'mercan için', 'Octopus / beak'],
+        ['İğne', 'Gamakatsu', 'Chinu', '', 'No:2, No:4', 'Alınacak', '', 'Chinu'],
+        ['Florokarbon', 'Seaguar', 'Grand Max FX', '0,33 mm', '', 'Var'],
+        ['Örgü ip', 'YGK', 'X-Braid Upgrade X8', 'PE 1,5 · 200 m', '', 'Var'],
+        ['Kamış', 'Shimano', 'Game Type J', '', '', 'Var', '', '', 'Slow jig', '1,98', '200', '2'],
+        ['Makine', 'Shimano', 'Stella SW', '', '', 'Alınacak', 'hayalimdeki', '', '', '', '', '', 'Spinning (açık makara)', '8000'],
+        ['Kurşun', '', 'Armut kurşun', '', '60 g, 80 g, 100 g', 'Var'],
+        ['Jig / zoka', 'Major Craft', 'Jigpara Slow', 'pembe', '80 g, 100 g', 'Var'],
+        ['Terminal', '', 'Rolling fırdöndü', '', 'No:4, No:6', 'Var'],
+        ['Yem', '', 'Karides', '', '', 'Yok'],
+        ['Ekipman', '', 'Kepçe', '', '', 'Var'],
+    ]
+    wb = Workbook()
+    hfont, hfill = Font(bold=True, color='FFFFFF'), PatternFill('solid', fgColor='0B6B7C')
+
+    def sheet(ws, rows):
+        ws.append(head)
+        for c in ws[1]:
+            c.font, c.fill, c.alignment = hfont, hfill, Alignment(vertical='center', wrap_text=True)
+        ws.row_dimensions[1].height = 30
+        for i, w in enumerate(width):
+            ws.column_dimensions[chr(65 + i)].width = w
+        ws.freeze_panes = 'A2'
+        for r in rows:
+            ws.append(r + [''] * (len(head) - len(r)))
+        for row in ws.iter_rows(min_row=2, max_row=max(300, len(rows) + 1), max_col=len(head)):
+            for c in row:
+                c.number_format = '@'   # 1/0, 2/0 gibi iğne boyları tarihe dönmesin
+    ws = wb.active; ws.title = 'Envanter'; sheet(ws, [])
+    ws2 = wb.create_sheet('Örnekler'); sheet(ws2, ex)
+    L = wb.create_sheet('Listeler')
+    lists = [('Kategori', [t for _, t in cats]), ('Durum', durum), ('İğne tipi', pats), ('Kamış tipi', [t for _, t in rods]), ('Makine tipi', [t for _, t in reels])]
+    for j, (h, vals) in enumerate(lists):
+        L.cell(1, j + 1, h).font = Font(bold=True)
+        for k, v in enumerate(vals):
+            L.cell(k + 2, j + 1, v)
+    L.sheet_state = 'hidden'
+    for w in (ws, ws2):
+        for col, j in (('A', 0), ('F', 1), ('H', 2), ('I', 3), ('M', 4)):
+            n = len(lists[j][1]); L_col = chr(65 + j)
+            dv = DataValidation(type='list', formula1="=Listeler!$%s$2:$%s$%d" % (L_col, L_col, n + 1), allow_blank=True, showErrorMessage=False)
+            w.add_data_validation(dv); dv.add('%s2:%s300' % (col, col))
+    H = wb.create_sheet('Nasıl doldurulur')
+    help_rows = [
+        [FULL + ' · envanter dosyası'],
+        [''],
+        ['1. “Envanter” sayfasına her kalemi bir satıra yaz. İlk satırdaki başlıkları değiştirme.'],
+        ['2. Kategori ve “Model / ad” (ya da Marka) yeterli; diğer sütunlar isteğe bağlı.'],
+        ['3. Kategori, Durum, İğne tipi, Kamış tipi ve Makine tipi hücrelerinde açılır liste var.'],
+        ['4. Boylar: virgülle ayır (ör. 1/0, 2/0  ya da  No:2, No:4  ya da  60 g, 80 g). İp, kamış, makine ve yemde boy yazılmaz; çapı Özellik’e yaz.'],
+        ['5. Durum: Var, Alınacak ya da Yok. Boş bırakırsan Var sayılır. Alınacaklar alışveriş listesine düşer.'],
+        ['6. Kamış ve makinede ilgili sütunları doldurursan rig önerileri bunlara göre yapılır.'],
+        ['7. Kaydet, uygulamada Envanter → “Excel’den yükle” ile seç. Yüklemeden önce özet gösterilir.'],
+        [''],
+        ['“Örnekler” sayfası yalnızca örnektir, yüklenmez. CSV (virgül ya da noktalı virgülle) de olur.'],
+        [''],
+        ['Kategoriler: ' + ', '.join(t for _, t in cats)],
+    ]
+    for r in help_rows:
+        H.append(r)
+    H['A1'].font = Font(bold=True, size=14); H.column_dimensions['A'].width = 120
+    wb.move_sheet(H, offset=-2)   # Envanter, Örnekler, Nasıl doldurulur, Listeler
+    wb.active = 0
+    bio = io.BytesIO(); wb.save(bio)
+    return bio.getvalue()
+
+
+def assemble(preview, data, ed='ozel', tpl=b''):
+    shell = edition(open(os.path.join(SRC, 'shell.html'), encoding='utf-8').read(), ed)
+    css = edition('\n'.join(open(os.path.join(SRC, f), encoding='utf-8').read() for f in ('app.css', 'app2.css', 'app3.css', 'app4.css') if os.path.exists(os.path.join(SRC, f))), ed)
+    js = edition('\n'.join(open(f, encoding='utf-8').read() for f in sorted(glob.glob(os.path.join(SRC, 'js', '*.js')))), ed)
     js = "(function(){\n'use strict';\n" + js + "\n})();"
     js = js.replace('/*__VERSION__*/', VERSION).replace('/*__PREVIEW__*/false', 'true' if preview else 'false')
+    js = js.replace("/*__EDITION__*/'ozel'", "'%s'" % ed)
+    js = js.replace('/*__XLSXTPL__*/null', "'" + base64.b64encode(tpl).decode() + "'" if tpl else 'null')
     fbc = os.path.join(APP, 'firebase.json')   # Firebase web yapılandırması (gizli değil); yoksa giriş kapalı
     js = js.replace('/*__FBCONFIG__*/null', json.dumps(json.load(open(fbc))) if (os.path.exists(fbc) and not preview) else 'null')
     sw = "" if preview else "if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); }"
     js = js.replace('/*__SW__*/', sw)
+    if ed == 'genel':
+        js = strip_js(js)
+        css = re.sub(r'/\*[\s\S]*?\*/', '', css)
+        shell = re.sub(r'<!--(?!__)[\s\S]*?-->', '', shell)
     html = shell.replace('/*__CSS__*/', css).replace('/*__JS__*/', js)
     html = html.replace('/*__SUNCALC__*/', open(SUN, encoding='utf-8').read())
     html = html.replace('/*__DATA__*/', json.dumps(data, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/') if preview else 'null')
@@ -132,7 +245,8 @@ def assemble(preview, data):
     head = ('<meta name="theme-color" content="%s"><link rel="manifest" href="manifest.webmanifest">'
             '<link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes">'
             '<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="%s">'
-            '<meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" href="icon-192.png">') % (THEME, SHORT)
+            '<meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" href="icon-192.png">'
+            '<meta name="description" content="%s: deniz avı için hava, deniz, solunar, av takvimi, rig ve envanter.">') % (THEME, SHORT, FULL)
     html = html.replace('<!--__HEAD__-->', head)
     # başlık, meta, bağlantı ve stil <head> içine; işaretleme ve betikler <body> içine (manifest ve iOS ayarları yalnızca head'de okunur)
     cut = html.index('<style id="userTheme"></style>') + len('<style id="userTheme"></style>')
@@ -142,7 +256,7 @@ def assemble(preview, data):
             + html[:cut] + '</head><body>' + html[cut:] + '</body></html>')
 
 
-def icons():
+def icons(dst):
     """Alyssa ikonu: deniz mavisi zemin, beyaz olta iğnesi, mercan renkli iğne gözü (uygulamadaki logoyla aynı)."""
     from PIL import Image, ImageDraw
     for size in (180, 192, 512):
@@ -154,7 +268,6 @@ def icons():
         white, coral = (244, 248, 249), (255, 139, 96)
         d.line([(16 * s, 6.4 * s), (16 * s, 19 * s)], fill=white, width=w)
         d.arc([(10 * s, 13 * s), (22 * s, 25 * s)], start=0, end=200, fill=white, width=w)
-        # yuvarlak uçlar
         for (x, y) in ((16 * s, 6.4 * s),):
             d.ellipse([(x - w / 2, y - w / 2), (x + w / 2, y + w / 2)], fill=white)
         import math
@@ -163,53 +276,69 @@ def icons():
         r = 2.2 * s
         d.ellipse([(16 * s - r, 4.2 * s - r), (16 * s + r, 4.2 * s + r)], outline=coral, width=max(2, int(1.4 * s)))
         im = im.resize((size, size), Image.LANCZOS)
-        im.save(os.path.join(DIST, 'icon-%d.png' % size))
+        im.save(os.path.join(dst, 'icon-%d.png' % size))
+
+
+def site(dst, ed, data, tpl):
+    """bir yayının statik sitesi: index, manifest, service worker, ikonlar, kütüphaneler, örnek Excel."""
+    if os.path.isdir(dst):
+        shutil.rmtree(dst)
+    os.makedirs(dst)
+    open(os.path.join(dst, 'index.html'), 'w', encoding='utf-8').write(assemble(False, data if ed == 'ozel' else None, ed, tpl))
+    json.dump(dict(name=NAME, short_name=SHORT, description=FULL, id='./', start_url='./', scope='./', display='standalone',
+                   background_color='#E6EEF0', theme_color=THEME, lang='tr',
+                   icons=[dict(src='icon-192.png', sizes='192x192', type='image/png'),
+                          dict(src='icon-512.png', sizes='512x512', type='image/png', purpose='any maskable')]),
+              open(os.path.join(dst, 'manifest.webmanifest'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    pre = 'alyssa-' if ed == 'ozel' else 'awf-'   # iki yayın aynı alan adında olabilir: her biri yalnız kendi önbelleğini siler
+    open(os.path.join(dst, 'sw.js'), 'w', encoding='utf-8').write(
+        "// service worker: önce ağ (güncellemeler hemen gelsin), ağ yoksa son kopya\n"
+        "const P='%s',C=P+'%s';\n"
+        "self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['./','index.html','manifest.webmanifest','icon-192.png'])).catch(()=>{}));self.skipWaiting();});\n"
+        "self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.indexOf(P)===0&&k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});\n"
+        "self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);if(u.origin!==location.origin)return;"
+        "e.respondWith(fetch(r,{cache:'no-store'}).then(res=>{if(res.ok){const cp=res.clone();caches.open(C).then(c=>c.put(r,cp));}return res;}).catch(()=>caches.match(r,{ignoreSearch:true})));});\n" % (pre, VERSION))
+    open(os.path.join(dst, '.nojekyll'), 'w').write('')
+    open(os.path.join(dst, 'robots.txt'), 'w').write('User-agent: *\nDisallow: /\n')
+    lic = ('Güneş ve ay hesapları için [SunCalc](https://github.com/mourner/suncalc) (BSD-2), harita için [Leaflet](https://leafletjs.com) (BSD-2), hesap ve bulut için [Firebase JS SDK](https://github.com/firebase/firebase-js-sdk) (Apache-2.0) kullanılır.\n'
+           'Harita verileri: © OpenStreetMap katkıcıları (Nominatim, Overpass), OpenSeaMap, EMODnet Bathymetry, Geology ve Seabed Habitats (EUSeaMap), Esri uydu görüntüsü.\n')
+    if ed == 'ozel':
+        readme = ('# %s\n\nDeniz avı uygulaması: hava, deniz, solunar, rig sistemleri, envanter ve fotoğraflı av kaydı.\n\n'
+                  'Uygulama boş açılır. Kişisel rig sistemi `paket/ozel.enc.json` içinde şifrelidir (AES-GCM). '
+                  'Bulut yedekleri kullanıcının kendi GitHub deposunda uçtan uca şifreli tutulur. Hava ve deniz verisi Open-Meteo üzerinden gelir.\n' % NAME) + lic + \
+                 '“Usta’ya sor” ve takım danışmanı, kullanıcının kendi yapay zekâ anahtarıyla doğrudan sağlayıcıya sorar; anahtar yalnız kullanıcının cihazında durur.\n'
+    else:
+        readme = ('# %s (%s)\n\nDeniz avı için hava ve deniz tahmini, solunar, av takvimi ve av pencereleri, harita, Rig Atölyesi, envanter, alışveriş listesi ve fotoğraflı av kaydı.\n\n'
+                  'Uygulama: https://ktopdal.github.io/alyssa-fishing/\n\n'
+                  'Veriler kullanıcının cihazında durur; isteğe bağlı hesapla cihazlar arasında eşitlenir. Hava ve deniz verisi Open-Meteo üzerinden gelir.\n' % (NAME, FULL)) + lic + \
+                 'Takım danışmanı, kullanıcının kendi yapay zekâ anahtarıyla doğrudan sağlayıcıya sorar; anahtar yalnız kullanıcının cihazında durur.\n\n© ' + str(dt.date.today().year) + ' ' + NAME + '. Tüm hakları saklıdır.\n'
+    open(os.path.join(dst, 'README.md'), 'w', encoding='utf-8').write(readme)
+    shutil.copy(os.path.join(APP, 'vendor/LICENSE'), os.path.join(dst, 'LICENSE-suncalc.txt'))
+    for lib, fs in (('firebase', ('fb.js', 'LICENSE')), ('leaflet', ('leaflet.js', 'leaflet.css', 'LICENSE'))):
+        os.makedirs(os.path.join(dst, 'vendor', lib), exist_ok=True)
+        for f in fs:
+            shutil.copy(os.path.join(APP, 'vendor', lib, f), os.path.join(dst, 'vendor', lib, f))
+    open(os.path.join(dst, 'ornek-envanter.xlsx'), 'wb').write(tpl)
+    icons(dst)
 
 
 def main():
     k = json.load(open(SECRET, encoding='utf-8'))
     data = app_data()
-    if os.path.isdir(DIST):
-        shutil.rmtree(DIST)
-    os.makedirs(os.path.join(DIST, 'paket')); os.makedirs(PREV, exist_ok=True)
-    open(os.path.join(DIST, 'index.html'), 'w', encoding='utf-8').write(assemble(False, data))
+    tpl = xlsx_template()
+    site(DIST, 'ozel', data, tpl)
+    os.makedirs(os.path.join(DIST, 'paket'))
     json.dump(encrypt(data, k), open(os.path.join(DIST, 'paket', 'ozel.enc.json'), 'w'), separators=(',', ':'))
+    site(DIST_PUB, 'genel', None, tpl)
+    os.makedirs(PREV, exist_ok=True)
     pdata = dict(data); pdata.pop('settings', None)   # önizleme Claude içinde açılır: özel anahtarlar gömülmez
-    open(os.path.join(PREV, 'alyssa_onizleme.html'), 'w', encoding='utf-8').write(assemble(True, pdata))
-    json.dump(dict(name=NAME, short_name=SHORT, id='./', start_url='./', scope='./', display='standalone',
-                   background_color='#E6EEF0', theme_color=THEME, lang='tr',
-                   icons=[dict(src='icon-192.png', sizes='192x192', type='image/png'),
-                          dict(src='icon-512.png', sizes='512x512', type='image/png', purpose='any maskable')]),
-              open(os.path.join(DIST, 'manifest.webmanifest'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    open(os.path.join(DIST, 'sw.js'), 'w', encoding='utf-8').write(
-        "// Alyssa service worker: önce ağ (güncellemeler hemen gelsin), ağ yoksa son kopya\n"
-        "const C='alyssa-%s';\n"
-        "self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['./','index.html','manifest.webmanifest','icon-192.png'])).catch(()=>{}));self.skipWaiting();});\n"
-        "self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});\n"
-        "self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);if(u.origin!==location.origin)return;"
-        "e.respondWith(fetch(r,{cache:'no-store'}).then(res=>{if(res.ok){const cp=res.clone();caches.open(C).then(c=>c.put(r,cp));}return res;}).catch(()=>caches.match(r,{ignoreSearch:true})));});\n" % VERSION)
-    open(os.path.join(DIST, '.nojekyll'), 'w').write('')
-    open(os.path.join(DIST, 'robots.txt'), 'w').write('User-agent: *\nDisallow: /\n')
-    open(os.path.join(DIST, 'README.md'), 'w', encoding='utf-8').write(
-        '# %s\n\nDeniz avı uygulaması: hava, deniz, solunar, rig sistemleri, envanter ve fotoğraflı av kaydı.\n\n'
-        'Uygulama boş açılır. Kişisel rig sistemi `paket/ozel.enc.json` içinde şifrelidir (AES-GCM). '
-        'Bulut yedekleri kullanıcının kendi GitHub deposunda uçtan uca şifreli tutulur. Hava ve deniz verisi Open-Meteo üzerinden gelir.\n'
-        'Güneş ve ay hesapları için [SunCalc](https://github.com/mourner/suncalc) (BSD-2), harita için [Leaflet](https://leafletjs.com) (BSD-2), hesap ve bulut için [Firebase JS SDK](https://github.com/firebase/firebase-js-sdk) (Apache-2.0) kullanılır.\n'
-        'Harita verileri: © OpenStreetMap katkıcıları (Nominatim, Overpass), OpenSeaMap, EMODnet Bathymetry, Geology ve Seabed Habitats (EUSeaMap), Esri uydu görüntüsü.\n'
-        '“Usta’ya sor”, kullanıcının kendi Claude API anahtarıyla doğrudan Anthropic’e sorar; anahtar yalnız kullanıcının cihazında durur.\n' % NAME)
-    shutil.copy(os.path.join(APP, 'vendor/LICENSE'), os.path.join(DIST, 'LICENSE-suncalc.txt'))
-    # harita kütüphanesi (Leaflet, BSD-2): harita ilk açıldığında yüklenir
-    os.makedirs(os.path.join(DIST, 'vendor', 'firebase'), exist_ok=True)
-    for f in ('fb.js', 'LICENSE'):
-        shutil.copy(os.path.join(APP, 'vendor', 'firebase', f), os.path.join(DIST, 'vendor', 'firebase', f))
-    os.makedirs(os.path.join(DIST, 'vendor', 'leaflet'), exist_ok=True)
-    for f in ('leaflet.js', 'leaflet.css', 'LICENSE'):
-        shutil.copy(os.path.join(APP, 'vendor', 'leaflet', f), os.path.join(DIST, 'vendor', 'leaflet', f))
-    icons()
-    for root, _, files in os.walk(DIST):
-        for f in sorted(files):
-            p = os.path.join(root, f)
-            print('%-28s %8d' % (os.path.relpath(p, DIST), os.path.getsize(p)))
+    open(os.path.join(PREV, 'alyssa_onizleme.html'), 'w', encoding='utf-8').write(assemble(True, pdata, 'ozel', tpl))
+    for dst in (DIST, DIST_PUB):
+        print('--', os.path.basename(dst))
+        for root, _, files in os.walk(dst):
+            for f in sorted(files):
+                p = os.path.join(root, f)
+                print('%-28s %8d' % (os.path.relpath(p, dst), os.path.getsize(p)))
     print('preview', os.path.getsize(os.path.join(PREV, 'alyssa_onizleme.html')), 'data_version', data['meta']['data_version'])
 
 

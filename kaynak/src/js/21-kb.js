@@ -104,7 +104,7 @@ const KB = (() => {
     S('trakonya', 'Trakonya', 'Trachinus draco', 'kum', ['kum', 'camur'], [5, 100], null, ['gunduz', 'gece'], {g: ['Mamun', 'Karides'], n: ['Mamun']}, ALL, {porsiyon: '100–300 g'}, 'Sırt ve solungaç dikenleri zehirli; eldivenle tut, dikkatle sök.'),
     S('sarikuyruk', 'Sarıkuyruk', 'Seriola dumerili', 'yirtici', ['kayalik', 'orta-su'], [10, 150], [5, 6, 7, 8, 9, 10], ['safak', 'gunduz'], {g: ['Canlı istavrit', 'Canlı kalamar', 'Sahte yem']}, ['ege', 'akdeniz'], {porsiyon: '3–8 kg', trofe: '10–40 kg'}),
   ];
-  // v0.19 · Ege (İzmir–Seferihisar) av takvimi: ay ay oltaya gelme (Ocak→Aralık; 0 yok · 1 az · 2 iyi · 3 en iyi)
+  // v0.19 · Ege av takvimi: ay ay oltaya gelme (Ocak→Aralık; 0 yok · 1 az · 2 iyi · 3 en iyi)
   // ve su sıcaklığı [en düşük, ideal alt, ideal üst, en yüksek] °C. Genel bilgidir; yıla, noktaya ve suya göre değişir; avların öğretir.
   const CAL = {
     karagoz: ['222222223332', [13, 16, 23, 27]], isparoz: ['111233333221', [14, 18, 26, 28]], izmarit: ['233321111222', [12, 14, 19, 24]],

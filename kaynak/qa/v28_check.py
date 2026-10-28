@@ -240,7 +240,7 @@ async def main():
         ctx, pg, errs = await new_ctx(b)
         await pg.goto(BASE + '/dist/?paket'); await pg.wait_for_timeout(1200)
         check(await pg.is_visible('#welcome'), 'karşılama ekranı görünüyor')
-        check('Alyssa by Barbossa App' in await pg.inner_text('#welcome'), 'uygulama adı karşılamada')
+        check('Alyssa WF' in await pg.inner_text('#welcome'), 'uygulama adı karşılamada')
         await pg.screenshot(path=SHOTS + '/a_welcome.png')
         await pg.click('button[data-wel="kur"]'); await pg.wait_for_timeout(200)
         check(await pg.is_visible('#sheet') and 'Rig Atölyesi' in await pg.inner_text('#sheet'), 'karşılamadan Rig Atölyesi açıldı')
@@ -1526,7 +1526,7 @@ async def main():
                 await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="ayarlar"]'); await pg.wait_for_timeout(300)
                 await pg.click('#sheet button[data-act="gtest"]'); await pg.wait_for_timeout(800)
                 gt = await pg.inner_text('#gTestNote'); print('   Google’ı dene:', gt)
-                check('Website restrictions' in gt and 'ktopdal.github.io/*' in gt, 'V: Google’ı dene: site kısıtı ve doğru tarif')
+                check('Website restrictions' in gt and BASE + '/*' in gt, 'V: Google’ı dene: site kısıtı ve doğru tarif (bu sitenin adresi)')
             errs[:] = [e for e in errs if 'Google Maps JavaScript API' not in e]
             print('V %s errors:' % mode, errs); check(not errs, 'V %s: sayfa hatası yok' % mode)
             await ctx.close()

@@ -62,7 +62,7 @@ function baitHtml(rg, tier){
 // opt: {tune: bugünkü ayar satırları (52-tune.js), foot: kartın altına (Bağladım satırı)}
 function rigCard(rg, dd, why, extra, tier, x, opt){
   tier = tier || 'envanter'; opt = opt || {};
-  if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız 32'lik özel sistemde
+  if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız özel pakette
   const ok = ready(rg), sub = !ok && opt.sub && opt.sub.complete ? opt.sub : null; const ld = leadFor(rg, dd, x);
   const chips = [];
   (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));

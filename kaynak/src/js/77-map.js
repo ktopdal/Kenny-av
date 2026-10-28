@@ -83,7 +83,7 @@ async function seabedAt(lat, lon){
 // Google bir isteği reddederse sebebi GERR'e yazılır ve kullanıcıya Google Cloud'daki adıyla (İngilizce) gösterilir.
 let GERR = null, GOK = false;
 const G_ERR = {
-  RefererNotAllowedMapError: 'Anahtarın Website restrictions listesi bu adresi kapsamıyor. Credentials → anahtar → Application restrictions → Websites: https://ktopdal.github.io/* yaz.',
+  RefererNotAllowedMapError: 'Anahtarın Website restrictions listesi bu adresi kapsamıyor. Credentials → anahtar → Application restrictions → Websites: ' + location.origin + '/* yaz.',
   ApiNotActivatedMapError: 'Maps JavaScript API projede açık değil. APIs & Services → Library → Maps JavaScript API → Enable.',
   ApiTargetBlockedMapError: 'Anahtarın API restrictions listesinde Maps JavaScript API yok. Credentials → anahtar → API restrictions.',
   BillingNotEnabledMapError: 'Projede Billing açık değil. ☰ → Billing → projeyi bir billing account’a bağla.',
@@ -479,7 +479,7 @@ async function mapAct(a, b){
   // v0.28.6: kaydetmeden önce ad sor (haritadaki yer adı önerilir)
   if (a === 'save' && (!p.id || (S.locations[p.id] || {}).tmp) && !b.dataset.named) {
     const card = $('mapCard'); card.hidden = false;
-    card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Sığacık açığı" autocomplete="off"></label>' +
+    card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Liman açığı" autocomplete="off"></label>' +
       (p.name ? '<p class="note">Haritadaki adı önerildi; istersen değiştir.</p>' : '') +
       '<div class="row"><button class="btn primary" type="button" data-mapact="save" data-named="1">Kaydet</button><button class="btn" type="button" data-mapact="namecancel">Vazgeç</button></div></div>';
     const inp = $('mpName'); if (inp) { inp.focus(); inp.select(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('[data-named]').click(); }); }

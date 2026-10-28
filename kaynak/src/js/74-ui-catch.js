@@ -5,7 +5,7 @@ const IDB = (() => {
     if (dbp) return dbp;
     dbp = new Promise((res, rej) => {
       if (!('indexedDB' in window)) { rej(new Error('IndexedDB yok')); return; }
-      const r = indexedDB.open('kenny-av', 1);
+      const r = indexedDB.open(/*@ozel*/'kenny-av'/*@end*//*@genel*/'awf'/*@end*/, 1);
       r.onupgradeneeded = () => { const db = r.result;
         if (!db.objectStoreNames.contains('catches')) db.createObjectStore('catches', {keyPath: 'id'});
         if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos', {keyPath: 'id'}); };

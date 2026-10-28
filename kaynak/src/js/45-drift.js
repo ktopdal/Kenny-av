@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------- 45 · sürüklenme ve kurşun
 // Tekne yere göre: akıntı + rüzgâr payı (rüzgâr hızının %3–6'sı, rüzgârın gittiği yöne).
 // İpe binen akış: sürüklenirken tekne dipteki suya göre (rüzgâr payı + akıntının ~%40'ı; dipte akıntı yüzeyden yavaş),
-// demirliyken akıntının ~%80'i. Kurşun artışı derinlik × akış² ile büyür: 50 m'de 0,4 kn ≈ +30 g (Kenny'nin kuralı).
+// demirliyken akıntının ~%80'i. Kurşun artışı derinlik × akış² ile büyür: 50 m'de 0,4 kn ≈ +30 g (saha kuralı).
 const LEEWAY = {az: 0.03, orta: 0.045, cok: 0.06};
 const LEEWAY_TXT = {az: 'Az (alçak, ağır tekne)', orta: 'Orta', cok: 'Çok (yüksek kabinli, hafif tekne)'};
 const DRIFT_C = 4.2;          // g / (m · kn²)

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------- 76 · Takvim sayfası (v0.27)
-// "Konum 1 Av Takvimi" sayfasının düzeni uygulamanın içinde, her gün güncel veriyle ve kullanıcının seçtiği noktalar için:
+// Av takvimi sayfasının düzeni uygulamanın içinde, her gün güncel veriyle ve kullanıcının seçtiği noktalar için:
 // kahraman (konum çizelgesi), özet ve uygunluk şeridi, dikey gün kartları (ya da eski satır listesi), meteogram, ayrıntılı tablo,
 // solunar şeritleri, en iyi pencereler (rig önerisiyle), yöntem. En çok 3 nokta seçilir; her nokta kendi sekmesinde, "Karşılaştır"
 // sekmesinde günler yan yana dikey kartlarla. İkonlar shell.html'deki ak-* sembollerinden gelir.
@@ -9,8 +9,8 @@ const AK_WXT = {sunny: 'Açık', partly: 'Parçalı bulutlu', cloudy: 'Bulutlu',
 let CAL_DIRTY = true;
 // gün görünümü bu cihaza kaydedilir (telefon ve tablet aynı profili paylaşsa da ayrı seçilir): yoksa telefonda yatay, tablette dikey
 const CV_KEY = 'alyssa-cv';
-function calView(){ let v = null; try { v = localStorage.getItem(CV_KEY); } catch (e) {} return v === 'kart' || v === 'liste' ? v : ((window.innerWidth || 400) >= 700 ? 'kart' : 'liste'); }
-function setCalView(v){ try { localStorage.setItem(CV_KEY, v); } catch (e) {} }
+function calView(){ const v = lsGet(CV_KEY); return v === 'kart' || v === 'liste' ? v : ((window.innerWidth || 400) >= 700 ? 'kart' : 'liste'); }
+function setCalView(v){ lsSet(CV_KEY, v); }
 const akI = (n, c) => '<svg class="' + (c || 't-ic') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ak-' + n + '"/></svg>';
 const akWxI = (k, c) => '<svg class="' + (c || 't-wx') + '" viewBox="0 0 48 48" role="img" aria-label="' + AK_WXT[k] + '"><title>' + AK_WXT[k] + '</title><use href="#ak-w-' + k + '"/></svg>';
 // ok rüzgârın / dalganın gittiği yöne bakar (geldiği yön + 180°); akıntı zaten gittiği yöndür

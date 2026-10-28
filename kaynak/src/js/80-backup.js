@@ -86,8 +86,8 @@ async function submitBackupForm(force){
   const err = m => { $('bkErr').textContent = m; $('bkErr').hidden = false; };
   $('bkErr').hidden = true; $('bkConflict').innerHTML = '';
   const repo = $('bk-repo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, ''), name = slugTR($('bk-name').value), tok = $('bk-tok').value.trim(), pass = $('bk-pass').value;
-  if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) { err('Depoyu kullanıcı/depo biçiminde yaz. Ör. ktopdal/alyssa-yedek'); return; }
-  if (!name) { err('Bir profil adı yaz. Ör. kenny'); return; }
+  if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) { err('Depoyu kullanıcı/depo biçiminde yaz. Ör. kullaniciadi/alyssa-yedek'); return; }
+  if (!name) { err('Bir profil adı yaz. Ör. ali'); return; }
   if (!tok && !lsGet(LS.ghTok)) { err('GitHub anahtarını yapıştır.'); return; }
   const changed = repo !== S.backup.repo || name !== S.backup.name;
   S.backup.repo = repo; S.backup.name = name; S.backup.auto = $('bk-auto').checked; S.backup.photosOn = $('bk-photos').checked;
@@ -159,7 +159,7 @@ async function doRestore(passFromForm){
   } catch (e) { setBusy(false); const el = $('bkErr'); if (el) { el.textContent = e.message || String(e); el.hidden = false; } else toast(e.message || String(e)); }
 }
 
-// v0.28 · profili sıfırla: özel paket (32 rig sistemi) ve ayarlar kalır
+// v0.28 · profili sıfırla: özel paket ve ayarlar kalır
 async function resetProfile(av, locs, pk, hide){
   S.pkg.hidden = !!hide;
   Object.keys(S.systems).forEach(k => { if (k !== 'ozel') delete S.systems[k]; });

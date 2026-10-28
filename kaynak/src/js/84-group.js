@@ -60,10 +60,10 @@ function sheetGroup(){
     '<p class="sub">Kapalı bir grubun (sen, Ogün, birkaç arkadaş) paylaştığı avlar ortak haritada görünür. Her av baştan gizlidir; paylaşmak istediğini avın sayfasından seçersin. Nokta 1–2 km’lik kareye yuvarlanır.</p>' +
     '<p class="note">Bir davet bağlantın varsa ona dokun; uygulama seni gruba katar. Grubu sen kuracaksan:</p>' +
     '<form class="panel stack" id="grpForm" novalidate><div class="fields">' +
-    '<label class="f wide">Depo (kullanıcı/depo)<input id="gp-repo" placeholder="ör. ktopdal/alyssa-grup" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">Depo (kullanıcı/depo)<input id="gp-repo" placeholder="ör. kullaniciadi/alyssa-grup" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
     '<label class="f wide">GitHub anahtarı (yalnızca bu depo)<input id="gp-tok" type="password" autocomplete="off" placeholder="github_pat_…"></label>' +
-    '<label class="f">Grubun adı<input id="gp-name" placeholder="ör. Seferihisar avcıları"></label>' +
-    '<label class="f">Senin adın<input id="gp-me" value="' + esc(S.profile.name || '') + '" placeholder="ör. Kenny"></label></div>' +
+    '<label class="f">Grubun adı<input id="gp-name" placeholder="ör. Hafta sonu avcıları"></label>' +
+    '<label class="f">Senin adın<input id="gp-me" value="' + esc(S.profile.name || '') + '" placeholder="ör. Ali"></label></div>' +
     '<p class="err" id="gpErr" hidden></p><button class="btn primary" type="submit">Grubu kur</button></form>' +
     '<details class="panel"><summary>GitHub’da depo ve anahtar nasıl hazırlanır?</summary><ol class="steps">' +
     '<li>GitHub’da yeni bir <b>özel</b> depo aç (ör. alyssa-grup). Yedek deponu kullanma.</li>' +

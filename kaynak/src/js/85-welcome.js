@@ -9,9 +9,10 @@ function showWelcome(){
     (cloudOn() ? '<button class="btn primary bigbtn" type="button" data-wel="hesap">Hesabımla giriş yap</button>' : '') +
     '<button class="btn ' + (cloudOn() ? '' : 'primary ') + 'bigbtn" type="button" data-wel="kur">Rig sistemimi kur</button>' +
     '<p class="note" id="welKurNote" hidden>Rig Atölyesi bir sonraki sürümde geliyor: nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel sistemi kuracak. Şimdilik boş başlayabilir, konum ve envanter ekleyebilirsin.</p>' +
-    (pkgDoor() ? '<button class="btn bigbtn" type="button" data-wel="paket">Özel paketimi aç</button>' : '') +
-    '<form id="welPkg" class="stack" hidden novalidate><label class="f">Paket şifresi<input id="wel-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    /*@ozel*/(pkgDoor() ? '<button class="btn bigbtn" type="button" data-wel="paket">Özel paketimi aç</button>' : '')/*@end*//*@genel*/''/*@end*/ +
+    /*@ozel*/'<form id="welPkg" class="stack" hidden novalidate><label class="f">Paket şifresi<input id="wel-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
     '<p class="err" id="welErr" hidden></p><button class="btn primary" type="submit" id="welBtn">Aç</button></form>' +
+    /*@end*/
     '<button class="btn bigbtn" type="button" data-wel="bulut">Buluttan geri yükle</button>' +
     '<button class="btn linkish" type="button" data-wel="bos">Boş başla</button>' +
     '</div>';
@@ -25,14 +26,15 @@ async function welcomeAction(a){
   if (a === 'hesap') { hideWelcome(true); openMore('hesap'); return; }
   if (a === 'bos') { hideWelcome(); renderAll(); return; }
 }
-async function welcomePkg(){
+/*@ozel*/async function welcomePkg(){
   const btn = $('welBtn'); btn.disabled = true; btn.textContent = 'Açılıyor…'; $('welErr').hidden = true;
   const r = await pkgUnlock($('wel-pass').value);
   btn.disabled = false; btn.textContent = 'Aç';
   if (!r.ok) { $('welErr').textContent = r.err; $('welErr').hidden = false; return; }
   importPackage(D); indexAll(); hideWelcome(); renderAll(); loadWeather(); toast('Özel paket açıldı: ' + D.rigs.length + ' rig');
 }
-// bulunduğun yeri konum olarak ekle (Bugün ekranındaki düğme)
+/*@end*//*@genel*/async function welcomePkg(){}
+/*@end*/// bulunduğun yeri konum olarak ekle (Bugün ekranındaki düğme)
 function gpsToLocation(){
   if (!navigator.geolocation) { toast('Konum servisi yok'); return; }
   toast('Konum alınıyor…');

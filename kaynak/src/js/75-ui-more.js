@@ -4,8 +4,8 @@ const MORE = [
   ['ayarlar', 'Ayarlar', () => 'Tema, renkler, rüzgâr renkleri, yazı boyutu, tekne'],
   ['gorunum', 'Görünüm', () => 'Tablo satırları, Bugün kartları, birimler, hava modeli'],
   ['yedek', 'Bulut yedek', () => bkReady() ? (S.backup.err ? '⚠ ' + S.backup.err : S.backup.lastAt ? 'Son yedek ' + fmtDT(new Date(S.backup.lastAt)) : 'Bağlı, henüz yedek yok') : 'Kapalı · GitHub deponda şifreli yedek'],
-  ['paket', 'Özel paket', () => S.pkg.need ? '⚠ Güncellendi, yeni şifreyle aç' : pkgOn() ? 'Açık · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem' : 'Kapalı'],
-  ['harita', 'Harita', () => 'Nokta seç: yer adı, derece-dakika koordinat, derinlik, deniz işaretleri'],
+/*@ozel*/  ['paket', 'Özel paket', () => S.pkg.need ? '⚠ Güncellendi, yeni şifreyle aç' : pkgOn() ? 'Açık · ' + D.rigs.length + ' rig, ' + D.items.length + ' kalem' : 'Kapalı'],
+/*@end*/  ['harita', 'Harita', () => 'Nokta seç: yer adı, derece-dakika koordinat, derinlik, deniz işaretleri'],
   ['liste', 'Çıkış listesi ve güvenlik', () => 'Bugünün rigleri, ' + (shoreMode() ? 'kıyı ekipmanı' : 'tekne güvenliği') + ', WhatsApp güvenlik mesajı'],
   ['uyari', 'Takvim uyarısı', () => { const c = alertCfg(), n = alertLocs(c).length; return 'Rüzgâr ≤ ' + c.bft + ' Bft, dalga ≤ ' + fmtNum(c.wave, 1) + ' m, balık ≥ ' + c.fish + (c.sp ? ', ' + spName(c.sp) : '') + (n > 1 ? ' · ' + n + ' nokta' : '') + ' → telefon takvimine'; }],
   ['paylas', 'Paylaş ve geri bildirim', () => 'Envanterini ya da rig sistemini bağlantıyla paylaş'],
@@ -24,7 +24,7 @@ const MORE = [
 function renderMore(){
   const land = landMode();
   $('moreMenu').innerHTML = MORE.filter(r => (r[0] !== 'paket' || pkgDoor()) && (r[0] !== 'hesap' || cloudOn()) && !(land && (r[0] === 'uyari' || r[0] === 'liste'))).map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
-  $('about').textContent = APP_NAME + ' v' + APP_VERSION + (pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + ' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
+  $('about').textContent = APP_NAME + ' v' + APP_VERSION + /*@ozel*/(pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + /*@end*/' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
 }
 function renderNewVersion(){
   const el = $('banners'); const out = [];
@@ -37,7 +37,7 @@ function renderNewVersion(){
   // iki cihaz için: hesap varken girilmemişse bir kez hatırlat (kapatılabilir)
   if (cloudOn() && CLOUD.resolved && !CLOUD.user && hasProfileData() && !S.settings.syncHintOff)
     out.push('<div class="newver"><b>Tablet ve telefonda aynı veri</b><span class="note">İki cihazda da aynı hesapla giriş yaparsan rigler, envanter, konumlar ve avlar kendiliğinden eşitlenir.</span><div class="row"><button class="btn small primary" type="button" data-open="hesap">Giriş yap</button><button class="btn small" type="button" data-act="syncHintOff">Gerek yok</button></div></div>');
-  if (S.pkg.need) out.push('<div class="newver warn"><b>Rig sistemin güncellendi</b><span class="note">Özel paketin yeni şifreyle şifrelendi. Bir kez yeni şifreyi gir; telefon hatırlar.</span><div><button class="btn small primary" type="button" data-open="paket">Şifreyi gir</button></div></div>');
+/*@ozel*/  if (S.pkg.need) out.push('<div class="newver warn"><b>Rig sistemin güncellendi</b><span class="note">Özel paketin yeni şifreyle şifrelendi. Bir kez yeni şifreyi gir; telefon hatırlar.</span><div><button class="btn small primary" type="button" data-open="paket">Şifreyi gir</button></div></div>');/*@end*/
   el.innerHTML = out.join('');
 }
 function openMore(name, keep){
@@ -71,13 +71,13 @@ function sheetSettings(){
       '<p class="note">Makine, kamış, ip, terminal, kurşun ve yemde adet sorulmaz: var, alınacak ya da yok. Jig ve zokada istersen adet.</p></section>' +
     '<section class="set"><h4>Usta’ya sor (Claude)</h4><p class="note">' + (ustaKey() ? 'Anahtar bu cihazda kayıtlı · model ' + esc(ustaModel()[1]) + '.' : 'Claude API anahtarı girilmemiş. Anahtar yalnız bu cihazda durur.') + '</p><button class="btn small" type="button" data-open="usta">' + (ustaKey() ? 'Usta’ya sor' : 'Anahtarı gir') + '</button></section>' +
     '<section class="set"><h4>Harita</h4><label class="f wide">Google Maps API anahtarı (isteğe bağlı)<input id="gkey" data-setk="gkey" value="' + esc(st.gkey || '') + '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="AIza…"></label>' +
-    '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>https://ktopdal.github.io/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
+    '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>' + esc(location.origin) + '/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
     '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
-    '<section class="set"><h4>Sıfırla</h4><p class="note">Envanterin, kendi kurduğun rig sistemleri ve rig ayarların, alışveriş listesi, hedef türler ve danışman önerileri silinir; uygulama ilk kurulduğu gibi olur.' + (S.pkg.unlocked ? ' Özel paketin kalır.' : '') + '</p>' +
-    (D && S.systems.ozel && S.pkg.unlocked ? '<label class="row note chk"><input type="checkbox" id="rs-hide"' + (S.pkg.hidden ? ' checked' : '') + '> Özel paketi tamamen gizle (32 rig ve kalemleri görünmez; yeni kullanıcı gibi). Daha → Özel paket’ten geri getirirsin</label>' : '') + (D && S.systems.ozel && S.pkg.unlocked ? '<label class="row note chk"><input type="checkbox" id="rs-pk" checked> Paketteki envanteri de boşalt (hepsi “yok” olur; 32 rig eksik görünür, rigler silinmez)</label>' : '') + '<label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Konumlarımı da sil</label>' +
-    '<div class="row wrap"><button class="btn" type="button" data-act="resetProfile" style="color:var(--D)">Profilimi sıfırla</button>' + (D && S.systems.ozel && S.pkg.unlocked ? '<button class="btn" type="button" data-act="resetNew" style="color:var(--D)">Yeni kullanıcı gibi başla</button>' : '') + '</div>' +
-    (D && S.systems.ozel && S.pkg.unlocked ? '<p class="note"><b>Yeni kullanıcı gibi başla:</b> kutulara bakmadan her şeyi siler: envanter, kendi rigler, alışveriş, konumların (Konum 1 dahil) ve özel paketi gizler. Yalnız avların kalır (yukarıda işaretlersen onlar da gider). Paketi geri getirmek: Daha → Özel paket.</p>' : '') + '</section>' +
+    '<section class="set"><h4>Sıfırla</h4><p class="note">Envanterin, kendi kurduğun rig sistemleri ve rig ayarların, alışveriş listesi, hedef türler ve danışman önerileri silinir; uygulama ilk kurulduğu gibi olur.' + /*@ozel*/(S.pkg.unlocked ? ' Özel paketin kalır.' : '')/*@end*//*@genel*/''/*@end*/ + '</p>' +
+    /*@ozel*/(D && S.systems.ozel && S.pkg.unlocked ? '<label class="row note chk"><input type="checkbox" id="rs-hide"' + (S.pkg.hidden ? ' checked' : '') + '> Özel paketi tamamen gizle (32 rig ve kalemleri görünmez; yeni kullanıcı gibi). Daha → Özel paket’ten geri getirirsin</label>' : '') + /*@end*//*@ozel*/(D && S.systems.ozel && S.pkg.unlocked ? '<label class="row note chk"><input type="checkbox" id="rs-pk" checked> Paketteki envanteri de boşalt (hepsi “yok” olur; 32 rig eksik görünür, rigler silinmez)</label>' : '')/*@end*//*@genel*/''/*@end*/ + '<label class="row note chk"><input type="checkbox" id="rs-av"> Avlarımı da sil</label><label class="row note chk"><input type="checkbox" id="rs-loc"> Konumlarımı da sil</label>' +
+    '<div class="row wrap"><button class="btn" type="button" data-act="resetProfile" style="color:var(--D)">Profilimi sıfırla</button>' + /*@ozel*/(D && S.systems.ozel && S.pkg.unlocked ? '<button class="btn" type="button" data-act="resetNew" style="color:var(--D)">Yeni kullanıcı gibi başla</button>' : '')/*@end*//*@genel*/''/*@end*/ + '</div>' +
+    /*@ozel*/(D && S.systems.ozel && S.pkg.unlocked ? '<p class="note"><b>Yeni kullanıcı gibi başla:</b> kutulara bakmadan her şeyi siler: envanter, kendi rigler, alışveriş, konumların (Konum 1 dahil) ve özel paketi gizler. Yalnız avların kalır (yukarıda işaretlersen onlar da gider). Paketi geri getirmek: Daha → Özel paket.</p>' : '')/*@end*//*@genel*/''/*@end*/ + '</section>' +
     '</div>';
 }
 function setSetting(name, val){
@@ -130,8 +130,8 @@ function sheetBackup(){
     (ready ? '<div class="panel stack"><b>Bağlı: ' + esc(b.repo) + ' · profil: ' + esc(bkCfg().name) + '</b><span class="note" id="bkStatus">' + esc(bkStatusText()) + '</span>' +
       '<div class="row"><button class="btn primary" type="button" data-act="bkNow">Şimdi yedekle</button><button class="btn" type="button" data-act="bkRestoreAsk">Buluttan geri yükle</button></div></div>' : '') +
     '<form class="panel stack" id="bkForm" novalidate><div class="fields">' +
-    '<label class="f wide">Depo (kullanıcı/depo)<input id="bk-repo" value="' + esc(b.repo || '') + '" placeholder="ör. ktopdal/alyssa-yedek" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
-    '<label class="f wide">Profil adı<input id="bk-name" value="' + esc(b.name || slugTR(S.profile.name || '')) + '" placeholder="ör. kenny" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">Depo (kullanıcı/depo)<input id="bk-repo" value="' + esc(b.repo || '') + '" placeholder="ör. kullaniciadi/alyssa-yedek" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">Profil adı<input id="bk-name" value="' + esc(b.name || slugTR(S.profile.name || '')) + '" placeholder="ör. ali" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
     '<label class="f wide">GitHub anahtarı (token)' + (tok ? ' · kayıtlı ✓' : '') + '<input id="bk-tok" type="password" autocomplete="off" placeholder="' + (tok ? 'değiştirmek için yeni anahtarı yapıştır' : 'github_pat_…') + '"></label>' +
     '<label class="f wide">Yedek şifresi' + (lsGet(LS.bkKey) ? ' · kayıtlı ✓' : '') + '<input id="bk-pass" type="password" autocomplete="off" placeholder="' + (lsGet(LS.bkKey) ? 'değiştirmek gerekmez' : 'yedeği açacak şifre') + '"></label>' +
     '</div><label class="row note chk"><input type="checkbox" id="bk-auto"' + (b.auto ? ' checked' : '') + '> Otomatik yedekle (değişiklikten 1 dakika sonra)</label>' +
@@ -146,7 +146,7 @@ function sheetBackup(){
     '<li>Oluşan <code>github_pat_…</code> anahtarını buraya yapıştır. Süresi dolarsa uygulama haber verir; yenisini yapıştırman yeter.</li></ol></details>' +
     '</div>';
 }
-// ---- Özel paket
+/*@ozel*/// ---- Özel paket
 function sheetPackage(){
   const on = pkgOn();
   if (S.pkg.hidden && D && S.systems.ozel) return sheetBar('Özel paket') + '<div class="stack"><div class="panel stack"><b>Gizli</b><span class="note">Özel paket bu profilde gizli: rigleri ve kalemleri hiçbir yerde görünmüyor, yeni bir kullanıcı gibi kullanıyorsun. Paket silinmedi; istediğinde geri getirirsin.</span><div class="row"><button class="btn primary" type="button" data-act="pkgShow">Paketi geri getir</button></div></div></div>';
@@ -168,7 +168,9 @@ async function submitPkg(){
   importPackage(D); indexAll(); closeSheet(); renderAll(); loadWeather(); toast('Özel paket açıldı: ' + D.rigs.length + ' rig');
   return true;
 }
-// ---- Konumlar
+/*@end*//*@genel*/function sheetPackage(){ return ''; }
+async function submitPkg(){ return false; }
+/*@end*/// ---- Konumlar
 function sheetLocations(){
   const ccount = id => CATCHES.filter(c => c.loc && distKm(c.loc, S.locations[id]) <= 0.5).length;
   const list = Object.values(S.locations);
@@ -182,7 +184,7 @@ function sheetLocations(){
       (!L.bottom && L.bottomEst ? '<p class="note">Taban tahmini (EUSeaMap): <b>' + esc(L.bottomEstTxt || BOTTOM_TXT[L.bottomEst]) + '</b>. Öneride yarım ağırlıkla sayılır; biliyorsan Dip’i seç.</p>' : '')) +
       (list.length > 1 ? '<div><button class="btn small" type="button" data-del="' + esc(L.id) + '">Sil</button></div>' : '') + '</div>').join('') : '<div class="empty">Henüz konum yok.</div>') +
     '<form class="panel" id="locForm" novalidate><h4 style="font-size:16px">Yeni konum</h4><div class="fields" style="margin-top:8px">' +
-    '<label class="f wide">Ad<input id="nl-name" placeholder="Ör. Sığacık açığı"></label>' +
+    '<label class="f wide">Ad<input id="nl-name" placeholder="Ör. Liman açığı"></label>' +
     '<label class="f">Enlem (°)<input id="nl-lat" inputmode="decimal" placeholder="ör. 38.1234"></label>' +
     '<label class="f">Boylam (°)<input id="nl-lon" inputmode="decimal" placeholder="ör. 26.5678"></label>' +
     '<label class="f">Dip (biliyorsan)<select id="nl-bottom">' + BOTTOM.map(([k, t]) => '<option value="' + k + '">' + t + '</option>').join('') + '</select></label>' +
@@ -201,7 +203,7 @@ function addLocation(name, lat, lon, bottom, depth, activate, noDetect){
 // konum türü düğmeleri (Konumlar sayfası)
 function kindBtns(L){
   const k = locKind(L);
-  const how = L.kind ? (L.kindAuto ? 'otomatik bulundu' + (L.kindBy ? ' (' + L.kindBy + ')' : '') : 'elle seçildi') : L.pkg ? 'özel paketin deniz noktası' : L.kindTried ? 'belirlenemedi, deniz sayılıyor' : 'belirleniyor…';
+  const how = L.kind ? (L.kindAuto ? 'otomatik bulundu' + (L.kindBy ? ' (' + L.kindBy + ')' : '') : 'elle seçildi') : /*@ozel*/L.pkg ? 'özel paketin deniz noktası' : /*@end*/L.kindTried ? 'belirlenemedi, deniz sayılıyor' : 'belirleniyor…';
   return '<div class="kindrow"><span class="k">Tür</span><div class="seg">' + ['deniz', 'kiyi', 'kara'].map(v => '<button class="btn small" type="button" data-lkind="' + esc(L.id) + '|' + v + '" aria-pressed="' + (k === v) + '">' + KIND_TXT[v] + '</button>').join('') + '</div>' +
     '<span class="note">' + esc(how) + (L.coastKm != null ? ' · kıyıya ' + (L.coastKm < 0.05 ? '<50 m' : kmTxt(L.coastKm)) : '') + '</span></div>';
 }
@@ -281,8 +283,8 @@ async function exportBackup(){
 async function importBackup(file){
   try {
     const j = JSON.parse(await file.text());
-    if (j.app === 'kenny-av' && j.state) { const st = newState(); migrateV1(st, Object.assign({v: 1}, j.state)); S = normalizeState(Object.assign(st, {onboarded: true})); }
-    else if (j.app === 'alyssa' && j.state) { S = normalizeState(Object.assign(newState(), j.state)); }
+    /*@ozel*/if (j.app === 'kenny-av' && j.state) { const st = newState(); migrateV1(st, Object.assign({v: 1}, j.state)); S = normalizeState(Object.assign(st, {onboarded: true})); }
+    else /*@end*/if (j.app === 'alyssa' && j.state) { S = normalizeState(Object.assign(newState(), j.state)); }
     else throw new Error('x');
     persist();
     if (j.photos) for (const pid of Object.keys(j.photos)) await IDB.put('photos', {id: pid, big: await dataUrlToBlob(j.photos[pid].big), thumb: await dataUrlToBlob(j.photos[pid].thumb)});

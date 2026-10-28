@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------- 22 · rig sistemleri, envanter dizini, türler
 // Genel rig biçimi: her rigin "yuvaları" (üst/orta/hırsız iğne, ana ip, beden, köstek…) ve her yuva için malzeme seviyeleri:
-// dunya (dünyanın en iyisi: yalnız 32'lik özel sistemde, yalnız Rigler seçicisinde), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
+// dunya (dünyanın en iyisi: yalnız özel pakette, yalnız Rigler seçicisinde), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
 const TIERS = ['dunya', 'turkiye', 'envanter'];
 const TIER_TXT = {dunya: 'Dünyanın en iyisi', turkiye: "Türkiye'de en iyi", envanter: 'Envanterimden'};
 const SLOT_LBL = {ust: 'Üst', orta: 'Orta', hirsiz: 'Hırsız', braid: 'Ana ip', beden: 'Beden', kostek: 'Köstek'};
@@ -10,8 +10,8 @@ const SPECIES_BASE = KB.SPECIES;   // 21-kb.js
 let ITEMS = {}, SPECIES = {}, RIGS = {}, RIG_LIST = [], SETUPS = {};
 // özel paket kapısı yalnız sahibine: paket bu cihazda açılmışsa, adres ?paket ile açıldıysa ya da Daha'daki sürüm yazısına 5 kez dokunulduysa
 let PKG_TAPS = 0;
-const pkgDoor = () => !!(S && S.pkg && S.pkg.unlocked) || PKG_TAPS >= 5 || /[?&#]paket\b/.test(location.href) || /[?&]qa=1\b/.test(location.search);
-const pkgOn = () => !!(D && S.systems.ozel && !S.pkg.hidden);   // v0.28.3: gizlenen paket hiç görünmez (rigler, kalemler, kurulumlar)
+const pkgDoor = () => EDITION === 'ozel' && (!!(S && S.pkg && S.pkg.unlocked) || PKG_TAPS >= 5 || /[?&#]paket\b/.test(location.href) || /[?&]qa=1\b/.test(location.search));
+const pkgOn = () => !!(EDITION === 'ozel' && D && S.systems.ozel && !S.pkg.hidden);   // v0.28.3: gizlenen paket hiç görünmez (rigler, kalemler, kurulumlar)
 function pkgRigs(){
   if (!pkgOn() || S.systems.ozel.active === false) return [];
   const setups = Object.fromEntries(D.setups.map(s => [s.id, s]));

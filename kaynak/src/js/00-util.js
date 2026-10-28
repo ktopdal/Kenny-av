@@ -1,8 +1,18 @@
 // ---------------------------------------------------------------- 00 · yardımcılar
-const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
+const APP_NAME = 'Alyssa WF', APP_SHORT = 'Alyssa WF', APP_FULL = 'Alyssa Weather & Fishing';
 const APP_VERSION = '/*__VERSION__*/';
 const PREVIEW = /*__PREVIEW__*/false;
-const CHANGELOG = [
+// sürüm: 'genel' herkese açık yayın (özel paket yok), 'ozel' sahibinin gizli yayını (şifreli özel paketle). Derleyici yazar.
+const EDITION = /*__EDITION__*/'ozel';
+const CHANGELOG = EDITION === 'genel' ? [
+  {v: '0.29.0', notes: ['Alyssa WF (Alyssa Weather & Fishing) ilk genel sürüm',
+    'Bugün, saatlik tablo ve 16 güne kadar av takvimi: rüzgâr, dalga, akıntı, deniz suyu sıcaklığı, solunar ve av pencereleri',
+    'Harita: nokta seç, adını ver, kaydet; deniz derinliği, zemin ve kıyı bilgisi',
+    'Rig Atölyesi, envanter, alışveriş listesi ve fotoğraflı av kaydı',
+    'Envanter: örnek Excel dosyasını indir, doldur, tek seferde yükle',
+    'Takım danışmanı: kendi yapay zekâ anahtarınla (Claude, Gemini, ChatGPT) ya da Google AI Modu ile']}
+] : /*@ozel*/[
+  {v: '0.29.0', notes: ['Yeni ad: Alyssa WF (Alyssa Weather & Fishing)', 'Envanter: örnek Excel dosyasını indir, doldur, “Excel’den yükle” ile tek seferde envantere aktar', 'Genel sürüm ayrı yayında (özel paket yok); bu senin gizli sürümün']},
   {v: '0.28.7', notes: ['Harita kartı: önce “Kaydet”, sonra “Kaydetmeden tahmine dön” (nokta kaydedilmez; başka konuma geçince silinir), sonra Google Haritalar']},
   {v: '0.28.6', notes: ['Haritada “Konumu kaydet”: önce ad sorulur, haritadaki yer adı önerilir', 'Sıfırlamadan sonra seçilen ilk konumun tahmini hemen yüklenir (bekleyip kalmıyordu)']},
   {v: '0.28.5', notes: ['Ayarlar → Sıfırla → “Yeni kullanıcı gibi başla”: kutulara bakmadan envanteri, kendi riglerini, alışverişi, bütün konumları siler ve özel paketi gizler']},
@@ -202,7 +212,7 @@ const CHANGELOG = [
     'Tüm tablolarda birimler (cm, g, m, kn, Bft, °C, hPa, %)',
   ]},
   {v: '0.1.0', notes: ['İlk sürüm: Bugün, 15 günlük takvim, rigler, adetli envanter, alışveriş, konumlar, yedek']},
-];
+]/*@end*//*@genel*/[]/*@end*/;
 document.documentElement.lang = 'tr';
 const verGt = (a, b) => { const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number); for (let i = 0; i < 3; i++) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); } return false; };
 const $ = id => document.getElementById(id);

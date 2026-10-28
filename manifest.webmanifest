@@ -1,6 +1,7 @@
 {
- "name": "Alyssa by Barbossa App",
- "short_name": "Alyssa",
+ "name": "Alyssa WF",
+ "short_name": "Alyssa WF",
+ "description": "Alyssa Weather & Fishing",
  "id": "./",
  "start_url": "./",
  "scope": "./",

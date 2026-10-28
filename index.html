@@ -1,7 +1,7 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style><title>Alyssa by Barbossa App</title>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style><title>Alyssa WF</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0B6B7C"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Alyssa"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#0B6B7C"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Alyssa WF"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" href="icon-192.png"><meta name="description" content="Alyssa Weather & Fishing: deniz avı için hava, deniz, solunar, av takvimi, rig ve envanter.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
@@ -814,7 +814,7 @@ button.crow.takim .v{text-decoration:none}
 .mats .pk input{width:64px;font:inherit;padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 .mats.done input:checked+span{text-decoration:none;color:inherit}
 
-/* v0.27 · Takvim sayfası: "Konum 1 Av Takvimi" sayfasının düzeni. Bütün sınıflar .atk içinde ve t- ön ekli (uygulamanın diğer sınıflarıyla çakışmaz). */
+/* v0.27 · Takvim sayfası: Av takvimi sayfasının düzeni. Bütün sınıflar .atk içinde ve t- ön ekli (uygulamanın diğer sınıflarıyla çakışmaz). */
 :root{
   --bg-2:#DAE6E9;--gold-soft:#F5E6B4;--sea:#23729F;--sun:#EFA51A;--rain:#2A79B2;
   --cloud-fill:#E2EDF0;--cloud-back:#B7C9D0;--cloud-edge:#6A8693;
@@ -1265,7 +1265,7 @@ button.crow.takim .v{text-decoration:none}
 <header class="top">
   <div class="wrap">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v14a6 6 0 1 1-6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="currentColor"/></svg>
-    <button class="locbtn" id="locBtn" aria-label="Konumlar"><b id="locName">Alyssa</b><span id="locSub"></span></button>
+    <button class="locbtn" id="locBtn" aria-label="Konumlar"><b id="locName">Alyssa WF</b><span id="locSub"></span></button>
     <button class="modebtn" id="modeBtn" type="button" aria-label="Tekne ya da kıyı modu"></button>
     <button class="compass" id="compass" type="button" aria-label="Rüzgâr, dalga ve akıntı yönü" hidden></button>
     <button class="netstate" id="net" data-s="idle" aria-live="polite" style="border:0;background:none;cursor:pointer" aria-label="Veriyi yenile"><i></i><span>—</span></button>
@@ -1369,6 +1369,9 @@ button.crow.takim .v{text-decoration:none}
     <div class="sec-head"><span class="eyebrow" id="invEyebrow">Envanter</span><h2>Envanter</h2>
       <p class="sub">Elindekini işaretle: var, alınacak ya da yok. Adet yalnızca iğnede (adet ya da paket) ve jig/zokada, istersen. Hazır listelerden seç; tek tek girmen gerekmez. Bitti ya da alınacak işaretlediğin her şey alışveriş listesine düşer.</p></div>
     <button class="btn primary bigbtn" id="addItem" type="button">+ Kalem ekle</button>
+    <div class="row wrap xlrow" style="margin-top:8px"><button class="btn small" type="button" data-xl="tpl">Örnek Excel dosyasını indir</button><button class="btn small" type="button" data-xl="pick">Excel’den yükle</button>
+      <input type="file" id="xlFile" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden></div>
+    <p class="note" style="margin-top:4px">Çok kalemin mi var? Örnek dosyayı indir, her kalemi bir satıra yaz, buradan yükle.</p>
     <div class="seg" id="invSeg" style="margin-top:12px"></div>
     <div class="stack" id="invList" style="margin-top:12px"></div>
   </section>
@@ -1719,10 +1722,20 @@ else window.SunCalc = SunCalc;
 (function(){
 'use strict';
 // ---------------------------------------------------------------- 00 · yardımcılar
-const APP_NAME = 'Alyssa by Barbossa App', APP_SHORT = 'Alyssa';
-const APP_VERSION = '0.28.7';
+const APP_NAME = 'Alyssa WF', APP_SHORT = 'Alyssa WF', APP_FULL = 'Alyssa Weather & Fishing';
+const APP_VERSION = '0.29.0';
 const PREVIEW = false;
-const CHANGELOG = [
+// sürüm: 'genel' herkese açık yayın (özel paket yok), 'ozel' sahibinin gizli yayını (şifreli özel paketle). Derleyici yazar.
+const EDITION = 'ozel';
+const CHANGELOG = EDITION === 'genel' ? [
+  {v: '0.29.0', notes: ['Alyssa WF (Alyssa Weather & Fishing) ilk genel sürüm',
+    'Bugün, saatlik tablo ve 16 güne kadar av takvimi: rüzgâr, dalga, akıntı, deniz suyu sıcaklığı, solunar ve av pencereleri',
+    'Harita: nokta seç, adını ver, kaydet; deniz derinliği, zemin ve kıyı bilgisi',
+    'Rig Atölyesi, envanter, alışveriş listesi ve fotoğraflı av kaydı',
+    'Envanter: örnek Excel dosyasını indir, doldur, tek seferde yükle',
+    'Takım danışmanı: kendi yapay zekâ anahtarınla (Claude, Gemini, ChatGPT) ya da Google AI Modu ile']}
+] : [
+  {v: '0.29.0', notes: ['Yeni ad: Alyssa WF (Alyssa Weather & Fishing)', 'Envanter: örnek Excel dosyasını indir, doldur, “Excel’den yükle” ile tek seferde envantere aktar', 'Genel sürüm ayrı yayında (özel paket yok); bu senin gizli sürümün']},
   {v: '0.28.7', notes: ['Harita kartı: önce “Kaydet”, sonra “Kaydetmeden tahmine dön” (nokta kaydedilmez; başka konuma geçince silinir), sonra Google Haritalar']},
   {v: '0.28.6', notes: ['Haritada “Konumu kaydet”: önce ad sorulur, haritadaki yer adı önerilir', 'Sıfırlamadan sonra seçilen ilk konumun tahmini hemen yüklenir (bekleyip kalmıyordu)']},
   {v: '0.28.5', notes: ['Ayarlar → Sıfırla → “Yeni kullanıcı gibi başla”: kutulara bakmadan envanteri, kendi riglerini, alışverişi, bütün konumları siler ve özel paketi gizler']},
@@ -2040,9 +2053,11 @@ const LS = {state: 'alyssa-v1', pkgData: 'alyssa-pd', pkgKey: 'alyssa-pk', bkKey
   oldState: 'kenny-av-v1', oldData: 'kenny-av-data', oldKey: 'kenny-av-k'};
 const PKG_URL = 'paket/ozel.enc.json';
 const EMBED = (() => { try { const t = $('appdata').textContent.trim(); return t && t[0] === '{' ? JSON.parse(t) : null; } catch (e) { return null; } })();
-const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } };
-const lsDel = k => { try { localStorage.removeItem(k); } catch (e) {} };
+// genel ve özel yayın aynı alan adında (github.io) olabilir: genel yayının anahtarları ayrı ön ekle tutulur, profiller karışmaz
+const lsK = k => EDITION === 'genel' ? String(k).replace(/^alyssa-/, 'awf-') : k;
+const lsGet = k => { if (!k) return null; try { return localStorage.getItem(lsK(k)); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(lsK(k), v); return true; } catch (e) { return false; } };
+const lsDel = k => { if (!k) return; try { localStorage.removeItem(lsK(k)); } catch (e) {} };
 function b64d(s){ const b = atob(s || ''); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
 function b64e(u){ let s = ''; const C = 0x8000; for (let i = 0; i < u.length; i += C) s += String.fromCharCode.apply(null, u.subarray(i, i + C)); return btoa(s); }
 const b64eUtf8 = str => b64e(new TextEncoder().encode(str));
@@ -2067,10 +2082,12 @@ async function decryptPkg(pkg, raw){
   return JSON.parse(new TextDecoder().decode(pt));
 }
 async function fetchPkg(){
+  if (EDITION !== 'ozel') return null;
   try { const r = await fetchT(PKG_URL + '?t=' + Date.now(), {cache: 'no-store'}, 15000); if (r.ok) return await r.json(); } catch (e) {}
   return null;
 }
 function pkgLoadCached(){
+  if (EDITION !== 'ozel') { D = null; return; }
   if (EMBED) { D = EMBED; return; }
   try { D = JSON.parse(lsGet(LS.pkgData) || 'null'); } catch (e) { D = null; }
   if (D && !D.rigs) D = null;
@@ -2397,7 +2414,7 @@ function sheetAccount(){
       '<section class="set"><h4>Cihazlar arası eşitleme</h4><p class="note">Tablet ve telefonda aynı hesapla giriş yap. Bir cihazdaki değişiklik birkaç saniyede hesabına yazılır; diğer cihaz açıksa en geç 30 saniyede, kapalıysa açılınca gelir.</p>' +
       '<p class="note">İki cihazda aynı anda değişiklik olursa birleştirilir: tabletteki yeni rig sistemi ve telefondaki envanter değişikliği ikisi de kalır. Aynı şey iki yerde değiştiyse son değiştiren kazanır.</p>' +
       (prevInfo() ? '<p class="note">Son birleştirmeden önceki hâl ' + esc(new Date(prevInfo().at).toLocaleString('tr-TR', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'})) + ' tarihinde saklandı.</p><div class="row"><button class="btn small" type="button" data-acc="prev">Önceki hâline dön</button></div>' : '') + '</section>' +
-      '<p class="note">Rigler, envanter, konumlar, ayarlar ve av kayıtları hesabına yazılır. Fotoğraflar çekildiği cihazda kalır (Bulut yedek açıksa GitHub’a da gider). Özel paketin şifresi buluta gitmez; yeni cihazda bir kez girersin. Yazı boyutu, haritanın son görünümü ve bilgi alanının açık/kapalı hâli her cihazda ayrı.</p>' +
+      '<p class="note">Rigler, envanter, konumlar, ayarlar ve av kayıtları hesabına yazılır. Fotoğraflar çekildiği cihazda kalır (Bulut yedek açıksa GitHub’a da gider). ' + 'Özel paketin şifresi buluta gitmez; yeni cihazda bir kez girersin. ' + 'Yazı boyutu, haritanın son görünümü ve bilgi alanının açık/kapalı hâli her cihazda ayrı.</p>' +
       '<p class="note">Deneme için: çıkış yap, başka bir e-postayla (ör. ad+deneme@gmail.com) kayıt ol, “kopyasıyla başla”yı seç. Asıl hesabına dönünce kendi verin geri gelir.</p>';
   } else {
     body = '<p class="sub">Hesapla girersen verin telefona bağlı kalmaz: telefon değişse de, iki cihazda da aynı rigler, envanter ve avlar. Giriş isteğe bağlı; girmezsen uygulama yalnızca bu telefonda çalışır.</p>' +
@@ -2439,14 +2456,15 @@ function normalizeState(st){
   for (const k of Object.keys(n)) if (st[k] === undefined || st[k] === null && typeof n[k] === 'object' && k !== 'wx' && k !== 'active') st[k] = n[k];
   for (const g of ['settings', 'inv', 'pkg', 'backup', 'profile']) for (const k of Object.keys(n[g])) if (st[g][k] === undefined) st[g][k] = n[g][k];
   if (!st.locations[st.active]) st.active = Object.keys(st.locations)[0] || null;
+  if (EDITION !== 'ozel') st.pkg = n.pkg;   // genel yayında paket kilidi hep kapalı (cihaza özgü; buluta gitmez). Profildeki diğer kayıtlara dokunulmaz.
   if (st.wx && !st.wx.raw) st.wx = null;
   // v0.15: rüzgâr/hamle satırları yeni düzene (Karma + 3 model rüzgâr + 3 model hamle) varsayılan yerleriyle gelir
   if (hrv0 < 15) { if (Array.isArray(st.settings.hrows)) st.settings.hrows = st.settings.hrows.filter(e => !/^(ruzgar|r_icon|r_ecmwf|r_gfs|h_icon|h_ecmwf|h_gfs|hamle|yon|uyum)$/.test(e && e[0])); st.settings.hrv = 15; }
-  // v0.16: saatlik tablonun yeni varsayılan düzeni (Kenny'nin düzeni) herkese bir kez uygulanır; Bulut ve Solunar satırı kalktı
+  // v0.16: saatlik tablonun yeni varsayılan düzeni (sahibinin düzeni) herkese bir kez uygulanır; Bulut ve Solunar satırı kalktı
   if (hrv0 < 16) { st.settings.hrows = null; st.settings.hrv = 16; }
   return st;
 }
-// v0.2 (Kenny Av) → v0.3: adetler, durumlar, konumlar, hava önbelleği ve açılmış paket taşınır
+// v0.2 → v0.3: adetler, durumlar, konumlar, hava önbelleği ve açılmış paket taşınır
 function migrateV1(st, old){
   st.inv.qty = old.qty || {}; st.inv.status = old.status || {};
   st.locations = old.locations || {}; st.active = old.active || null;
@@ -2475,14 +2493,14 @@ function persist(){ persistQuiet(); if (typeof markDirty === 'function') markDir
 const loc = () => (S && S.active && S.locations[S.active]) || (S ? Object.values(S.locations)[0] : null) || null;
 const nextLocId = () => String(Math.max(0, ...Object.keys(S.locations).map(Number).filter(isFinite)) + 1);
 // konum türü: deniz (tekne ya da kıyı), kıyı (kıyıdan av: kıyı modu), kara (yalnız hava durumu; balık, rig, su verisi yok)
-// tür bilinmiyorsa deniz gibi davranılır; özel paketin konumları Kenny'nin deniz noktalarıdır
+// tür bilinmiyorsa deniz gibi davranılır; özel paketin konumları deniz noktalarıdır
 const KIND_TXT = {deniz: 'Deniz', kiyi: 'Kıyı', kara: 'Kara'};
 const kmTxt = km => km == null ? '' : km < 1 ? Math.max(10, Math.round(km * 100) * 10) + ' m' : f1(km) + ' km';   // 1 km altı metre
 const locKind = L => !L ? null : L.kind && KIND_TXT[L.kind] ? L.kind : 'deniz';
 const landMode = () => locKind(loc()) === 'kara';
 // geçerli av modu: karada 'kara', kıyı türünde her zaman 'kiyi', denizde kullanıcının seçimi (Tekne/Kıyı)
 const modeNow = () => { const k = locKind(loc()); return k === 'kara' ? 'kara' : k === 'kiyi' ? 'kiyi' : (S.mode === 'kiyi' ? 'kiyi' : 'tekne'); };
-const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + L.name + (L.tmp ? ' (kaydedilmedi)' : '');
+const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + '' + L.name + (L.tmp ? ' (kaydedilmedi)' : '');
 
 // ---------------------------------------------------------------- stok
 // durum: var | az (adette azalmış) | bitti (sayı 0 ya da "bitti" işareti; alınacak sayılır) | alinacak (istek, henüz yok) | yok
@@ -2657,7 +2675,7 @@ const KB = (() => {
     S('trakonya', 'Trakonya', 'Trachinus draco', 'kum', ['kum', 'camur'], [5, 100], null, ['gunduz', 'gece'], {g: ['Mamun', 'Karides'], n: ['Mamun']}, ALL, {porsiyon: '100–300 g'}, 'Sırt ve solungaç dikenleri zehirli; eldivenle tut, dikkatle sök.'),
     S('sarikuyruk', 'Sarıkuyruk', 'Seriola dumerili', 'yirtici', ['kayalik', 'orta-su'], [10, 150], [5, 6, 7, 8, 9, 10], ['safak', 'gunduz'], {g: ['Canlı istavrit', 'Canlı kalamar', 'Sahte yem']}, ['ege', 'akdeniz'], {porsiyon: '3–8 kg', trofe: '10–40 kg'}),
   ];
-  // v0.19 · Ege (İzmir–Seferihisar) av takvimi: ay ay oltaya gelme (Ocak→Aralık; 0 yok · 1 az · 2 iyi · 3 en iyi)
+  // v0.19 · Ege av takvimi: ay ay oltaya gelme (Ocak→Aralık; 0 yok · 1 az · 2 iyi · 3 en iyi)
   // ve su sıcaklığı [en düşük, ideal alt, ideal üst, en yüksek] °C. Genel bilgidir; yıla, noktaya ve suya göre değişir; avların öğretir.
   const CAL = {
     karagoz: ['222222223332', [13, 16, 23, 27]], isparoz: ['111233333221', [14, 18, 26, 28]], izmarit: ['233321111222', [12, 14, 19, 24]],
@@ -2794,7 +2812,7 @@ function regionOf(L){
 
 // ---------------------------------------------------------------- 22 · rig sistemleri, envanter dizini, türler
 // Genel rig biçimi: her rigin "yuvaları" (üst/orta/hırsız iğne, ana ip, beden, köstek…) ve her yuva için malzeme seviyeleri:
-// dunya (dünyanın en iyisi: yalnız 32'lik özel sistemde, yalnız Rigler seçicisinde), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
+// dunya (dünyanın en iyisi: yalnız özel pakette, yalnız Rigler seçicisinde), turkiye (Türkiye'de bulunabilen en iyi), envanter (envanterden; hazır olma buna göre).
 const TIERS = ['dunya', 'turkiye', 'envanter'];
 const TIER_TXT = {dunya: 'Dünyanın en iyisi', turkiye: "Türkiye'de en iyi", envanter: 'Envanterimden'};
 const SLOT_LBL = {ust: 'Üst', orta: 'Orta', hirsiz: 'Hırsız', braid: 'Ana ip', beden: 'Beden', kostek: 'Köstek'};
@@ -2804,8 +2822,8 @@ const SPECIES_BASE = KB.SPECIES;   // 21-kb.js
 let ITEMS = {}, SPECIES = {}, RIGS = {}, RIG_LIST = [], SETUPS = {};
 // özel paket kapısı yalnız sahibine: paket bu cihazda açılmışsa, adres ?paket ile açıldıysa ya da Daha'daki sürüm yazısına 5 kez dokunulduysa
 let PKG_TAPS = 0;
-const pkgDoor = () => !!(S && S.pkg && S.pkg.unlocked) || PKG_TAPS >= 5 || /[?&#]paket\b/.test(location.href) || /[?&]qa=1\b/.test(location.search);
-const pkgOn = () => !!(D && S.systems.ozel && !S.pkg.hidden);   // v0.28.3: gizlenen paket hiç görünmez (rigler, kalemler, kurulumlar)
+const pkgDoor = () => EDITION === 'ozel' && (!!(S && S.pkg && S.pkg.unlocked) || PKG_TAPS >= 5 || /[?&#]paket\b/.test(location.href) || /[?&]qa=1\b/.test(location.search));
+const pkgOn = () => !!(EDITION === 'ozel' && D && S.systems.ozel && !S.pkg.hidden);   // v0.28.3: gizlenen paket hiç görünmez (rigler, kalemler, kurulumlar)
 function pkgRigs(){
   if (!pkgOn() || S.systems.ozel.active === false) return [];
   const setups = Object.fromEntries(D.setups.map(s => [s.id, s]));
@@ -3210,7 +3228,7 @@ function resolveSlot(sp){
 // sihirbaz rigini o anki envanterle çöz (envanter değişince rigler kendiliğinden güncellenir)
 function resolveRig(rg){
   const base = rg.slots.some(sl => sl.kind === 'rod') ? rg.slots : rg.slots.concat(reqSlots(rg));   // kamış, makine ve terminal yuvaları (27-req.js)
-  // "Dünyanın en iyisi" yalnız Kenny'nin 32'lik özel sisteminde; diğer sistemlerde (eski kayıtlarda da) atılır
+  // "Dünyanın en iyisi" yalnız özel pakette; diğer sistemlerde (eski kayıtlarda da) atılır
   const noW = t => { const o = Object.assign({}, t || {}); delete o.dunya; return o; };
   const slots = base.map(sl => {
     if (!sl.sp) return Object.assign({}, sl, {t: noW(sl.t)});
@@ -4184,7 +4202,7 @@ function winLabel(w){
 // ---------------------------------------------------------------- 45 · sürüklenme ve kurşun
 // Tekne yere göre: akıntı + rüzgâr payı (rüzgâr hızının %3–6'sı, rüzgârın gittiği yöne).
 // İpe binen akış: sürüklenirken tekne dipteki suya göre (rüzgâr payı + akıntının ~%40'ı; dipte akıntı yüzeyden yavaş),
-// demirliyken akıntının ~%80'i. Kurşun artışı derinlik × akış² ile büyür: 50 m'de 0,4 kn ≈ +30 g (Kenny'nin kuralı).
+// demirliyken akıntının ~%80'i. Kurşun artışı derinlik × akış² ile büyür: 50 m'de 0,4 kn ≈ +30 g (saha kuralı).
 const LEEWAY = {az: 0.03, orta: 0.045, cok: 0.06};
 const LEEWAY_TXT = {az: 'Az (alçak, ağır tekne)', orta: 'Orta', cok: 'Çok (yüksek kabinli, hafif tekne)'};
 const DRIFT_C = 4.2;          // g / (m · kn²)
@@ -4409,7 +4427,7 @@ function recommend(dd, night, from, at){
 
 // ---------------------------------------------------------------- 52 · tür takvimi, su sıcaklığı ve koşula göre ölçüler (v0.19)
 // Tür takvimi (KB.CAL, Ege için genel bilgi): türün "şimdi" değeri = ay puanı (0–3) × su sıcaklığı uyumu. Rig puanına, rigin türlerinden
-// bu ay ve bu suda en uygun olanı katkı verir ve nedeni yazılır. Kenny'nin paketindeki Ekim–Kasım tahmini (1–5) varsa o ay için o kullanılır.
+// bu ay ve bu suda en uygun olanı katkı verir ve nedeni yazılır. Özel paketteki Ekim–Kasım tahmini (1–5) varsa o ay için o kullanılır.
 // Bugünkü ayar (yalnız öneri; rigin kendi ölçüsü değişmez): kurşun (derinlik ve akış), köstek boyu (akış), köstek kalınlığı (ışık ve dip),
 // hedef boy (porsiyon / trofe) ve dişli tür (lüfer, palamut) uyarısı.
 const MON_LONG = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -5260,7 +5278,7 @@ const USTA = {msgs: [], busy: false, err: null};
 const ustaKey = () => (lsGet(LSU.key) || '').trim();
 const ustaModel = () => { const m = lsGet(LSU.model); return USTA_MODELS.find(x => x[0] === m) || USTA_MODELS[0]; };
 const USTA_Q = ['Bugün hangi rigi bağlayayım?', 'Kurşun ve köstek ne olsun?', 'Hangi saatte, nasıl avlanayım?', 'Yem olarak ne kullanayım?', 'Bu hava çıkmaya uygun mu?'];
-const USTA_SYS = 'Sen Ege’de (İzmir–Seferihisar) tekneden ve kıyıdan olta balıkçılığında uzun yıllar deneyimli bir ustasın. Alyssa uygulamasını kullanan, kendi rig sistemi olan ' +
+const USTA_SYS = 'Sen Türkiye kıyılarında (en çok Ege’de) tekneden ve kıyıdan olta balıkçılığında uzun yıllar deneyimli bir ustasın. Alyssa uygulamasını kullanan, kendi rig sistemi olan ' +
   'deneyimli bir amatör balıkçıya bugünkü koşullara göre kısa, net ve uygulanabilir cevap veriyorsun.\n' +
   'Kurallar:\n- Önce BAĞLAM’daki verilere dayan (hava, deniz, solunar, sürüklenme, rigler, envanter, bildirimler, avlar). Bağlamda olmayan bir şey söylüyorsan genel bilgi olduğunu belirt.\n' +
   '- Rig önerirken uygulamanın rig kodlarını ve adlarını kullan. Envanterde olmayan bir şey önerirsen “alınacak” de.\n' +
@@ -5381,7 +5399,7 @@ function sheetUsta(){
       (USTA.busy ? '<div class="umsg a busy"><p>Usta düşünüyor…</p></div>' : '') +
       (USTA.err ? '<div class="banner bad">' + esc(USTA.err) + '</div>' : '') +
       '<div class="uq">' + USTA_Q.map(q => '<button class="bchip" type="button" data-usta="q" data-q="' + esc(q) + '"' + (USTA.busy ? ' disabled' : '') + '>' + esc(q) + '</button>').join('') + '</div>' +
-      '<label class="f wide">Sorun<textarea id="ustaQ" rows="3" placeholder="Ör. Akşam 3 saatim var; Sığacık’ta hangi rigle başlayayım?"' + (USTA.busy ? ' disabled' : '') + '></textarea></label>' +
+      '<label class="f wide">Sorun<textarea id="ustaQ" rows="3" placeholder="Ör. Akşam 3 saatim var; bu noktada hangi rigle başlayayım?"' + (USTA.busy ? ' disabled' : '') + '></textarea></label>' +
       '<div class="row"><button class="btn primary" type="button" data-usta="ask"' + (USTA.busy ? ' disabled' : '') + '>Sor</button></div>' +
       '<p class="note">Giden: konum adı, dip, derinlik, seçili gün ve bölümün hava/deniz özeti, solunar, önerilen riglerin ve malzemen, son bildirim ve avların. Koordinat gitmez. Cevap genel tavsiyedir; denize çıkma kararı senin.</p>' +
       '<details><summary class="note">Anahtar ve model</summary>' + ustaKeyBox(false) + '</details>') + '</div>';
@@ -6607,7 +6625,7 @@ function baitHtml(rg, tier){
 // opt: {tune: bugünkü ayar satırları (52-tune.js), foot: kartın altına (Bağladım satırı)}
 function rigCard(rg, dd, why, extra, tier, x, opt){
   tier = tier || 'envanter'; opt = opt || {};
-  if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız 32'lik özel sistemde
+  if (tier === 'dunya' && rg.sys !== 'ozel') tier = 'turkiye';   // dünya seviyesi yalnız özel pakette
   const ok = ready(rg), sub = !ok && opt.sub && opt.sub.complete ? opt.sub : null; const ld = leadFor(rg, dd, x);
   const chips = [];
   (rg.bottom || []).forEach(b => chips.push('<span class="chip">' + esc(BOTTOM_TXT[b] || b) + '</span>'));
@@ -6828,7 +6846,7 @@ function moonSvg(p, size){
   return '<svg class="moon" viewBox="0 0 14 14" width="' + (size || 14) + '" height="' + (size || 14) + '" aria-hidden="true"><circle cx="7" cy="7" r="6"/><path d="M7 1A6 6 0 0 ' + so + ' 7 13A' + rx.toFixed(2) + ' 6 0 0 ' + si + ' 7 1Z"/></svg>';
 }
 // ---- satırlar
-// varsayılan sıra ve açık/kapalı satırlar Kenny'nin düzeni (v0.16); Bulut ve Solunar satırı yok: bulut % Hava hücresinde, solunar Balık hücresinde
+// varsayılan sıra ve açık/kapalı satırlar sahibinin düzeni (v0.16); Bulut ve Solunar satırı yok: bulut % Hava hücresinde, solunar Balık hücresinde
 const HROWS = [
   {id: 'saat', t: 'Saat', fixed: true},
   {id: 'gunes', t: 'Güneş ve ay'},
@@ -7013,7 +7031,7 @@ function renderRigs(){
     sys.map(sy => '<button class="btn small" data-sys="' + esc(sy.id) + '" aria-pressed="' + (ui.sys === sy.id || sys.length === 1) + '">' + esc(sy.name) + '</button>').join('') +
     '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button><button class="btn small" type="button" data-open="turler">Türlerim</button>';
   const one = sys.length === 1 ? sys[0] : S.systems[ui.sys];
-  const wOk = !!(one && one.source === 'paket');   // "Dünyanın en iyisi" yalnız 32'lik özel sistemde, yalnız bu seçicide
+  const wOk = !!(one && one.source === 'paket');   // "Dünyanın en iyisi" yalnız özel pakette, yalnız bu seçicide
   const tier = S.settings.tier === 'dunya' && !wOk ? 'turkiye' : (S.settings.tier || 'envanter');
   $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : one.source === 'tur' ? 'Tür planından' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
       (one.source === 'sihirbaz' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
@@ -7025,7 +7043,7 @@ function renderRigs(){
     $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
     if (sys.length) { $('rigList').innerHTML = '<div class="empty">Açık sistemde rig yok. Kapalı bir sistemi açabilir ya da yeni sistem kurabilirsin.</div>'; return; }
     $('rigList').innerHTML = '<div class="panel stack"><h3>Rig sistemini kur</h3><p class="sub">Uygulama boş başlar. Nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel bir rig sistemi kurar; her rig için envanterinden ve Türkiye\'de bulunabilen en iyi olmak üzere iki malzeme seviyesi verir.</p>' +
-      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button>' + (pkgDoor() ? '<button class="btn" type="button" data-open="paket">Özel paketimi aç</button>' : '') + '</div></div>';
     return;
   }
   $('rigSearch').hidden = false;
@@ -7246,6 +7264,200 @@ function buyAdd(key){
   persist(); indexAll(); noteRigChanges(true); renderAll(); openMore('alisveris', true); toast(nm + ' envantere eklendi');
 }
 
+// ---------------------------------------------------------------- 72b · Excel ile toplu envanter
+// Örnek dosya (ornek-envanter.xlsx) derleyicide üretilir ve buraya gömülür: çevrimdışı da indirilir.
+// Yükleme tarayıcıda: .xlsx bir zip'tir; merkezi dizin okunur, dosyalar DecompressionStream('deflate-raw') ile açılır,
+// workbook → ilişkiler → sayfa XML'i ve paylaşılan metinler okunur. CSV (virgül, noktalı virgül ya da sekme) de olur.
+// Başlıklar adından tanınır (sütun sırası önemli değil). Önce özet gösterilir; onaylanınca kalemler kullanıcının envanterine eklenir.
+const XLSX_TPL = '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s3ojQD/3G1dxPAI9h0z49tfbuzfvX19e3h/8+e31zfvvnr2+v3/39fPn739+ffn24v0/3b67vHmQX27v3l7cP/zy7tXz9+/uLi9eftz09vr59sWLk+dvL65unn3/7cfP/fHu+29vP9xfX91c/vHu4P2Ht28v7n774fL69tfvnm2ePX3in69evb5//MTz7799d/Hq8sfL+39998e7h189/3KVl1dvL2/eX93eHNxd/vLdsz9svu6HL1487vi45N+uLn99P/z84PFr+en29s3jL9LL7569ePZ47ZvLg99+fHd99fHRDu5v39XLX+7N5fX1wxW3zw4ufr6/+r+Xf3xY9t2zn27v72/fPvrDfd5f3D986pe7279c3nx8zMvry4e1D3fz7r8s/nSRzxd9/CL/8/MdP/vyBT3e1Pjzpzv3H5/Zh2fqp4v3l+b2+t+vXt6//u7Z2bODl5e/XHy4vv/n21/j5edn6/jxej/fXr//+PHg109rNyfPDn7+8P7hbj5vfriDt1c3n368+PPnZ/mv2bD9vGG72rBVGw4/bzj8azccfd5wtN6wFRuOP284Xn8NasPJ5w0n60c4EhtOP284XW94ITacfd5w9td+DeefN5yvvwZ1S5sXT8m9WG85U1u+hP1f0lZfx+Yp7s0670O55SnwzTrxR5lveYp88zHz55+O78ezby/uL77/9u7214O7j+sfz/juob+c+oeX8c+PKz6+sj69ir97dnXz+A7z4/3dg149XPD++/Lwgn11e3f17fP7h4d5/Nzznz/v/IF3tou7NxeTbWbPttuXl9cHzw8uXk72Wt77j/+w3Rx985eHd4yrN5Pdjnf/cPvb9cXdZJ/nffbD3Ye3k22Bt/Xb+8mmuO8rPHxx9M3D13l2+s3De/D91btZMmlfpm8fr3P8cJ3D48036ir5v3eVn25/+3Dw+7f/c3Kl8t+70uXNwS8Xf7m+OPj9q9nV6n/van90k2u0fWf3zZV+evtftfnx+Vhufv7wovzyytx+eQFuP15t+1clPnsZ8v7//evN5exQG97244//fnC82WxmL0Le+f7qt4vXBzdXby6vZ69B3rx5/uKrg+3jh8PnL2YvRd7+b9PXb+BNby/vfr64Obh6eI4PN99c3cxelXue458fvgP68P7hXeuny4vZO09S+3cvtr0ryt4Vde+KtndFpxWLA3z45QAf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mvqUllns5u6j2WD4OQtJRpPV5DR5TUFT1JQ0ZU1FU9XUNPUpLbPYzd1Heu7WZDRZTU6T1xQ0RU1JU9ZUNFVNTVOf0jKL4W960XO3JqPJanKavKagKWpKmrKmoqlqapr6lJZZ7ObuIz13azKarCanyWsKmqKmpClrKpqqpqapT2mZxW7uPtJztyajyWpymrymoClqSpqypqKpamqa+pSWWezm7iM9d2symqwmp8lrCpqipqQpayqaqqamqU9pmcVu7j7Sc7cmo8lqcpq8pqApakqasqaiqWpqmvqUllns5u4jPXdrMpqsJqfJawqaoqakKWsqmqqmpqlPafl3me3m7mM9d2symqwmp8lrCpqipqQpayqaqqamqU9pmcVu7j7Wc7cmo8lqcpq8pqApakqasqaiqWpqmvqUllns5u7j2WD4OQtJRpPV5DR5TUFT1JQ0ZU1FU9XUNPUpLbPYzd3Heu7WZDRZTU6T1xQ0RU1JU9ZUNFVNTVOf0jKL3dx9rOduTUaT1eQ0eU1BU9SUNGVNRVPV1DT1KS2zGP4iUj13azKarCanyWsKmqKmpClrKpqqpqapT2mZxW7uPtZztyajyWpymrymoClqSpqypqKpamqa+pSWWezm7mM9d2symqwmp8lrCpqipqQpayqaqqamqU9pmcVu7j7Wc7cmo8lqcpq8pqApakqasqaiqWpqmvqUllns5u5jPXdrMpqsJqfJawqaoqakKWsqmqqmpqlPaflXOe/m7hM9d2symqwmp8lrCpqipqQpayqaqqamqU9pmcVu7j7Rc7cmo8lqcpq8pqApakqasqaiqWpqmvqUllns5u6T2WD4OQtJRpPV5DR5TUFT1JQ0ZU1FU9XUNPUpLbPYzd0neu7WZDRZTU6T1xQ0RU1JU9ZUNFVNTVOf0jKL3dx9ouduTUaT1eQ0eU1BU9SUNGVNRVPV1DT1KS2z2M3dJ3ru1mQ0WU1Ok9cUNEVNSVPWVDRVTU1Tn9Iyi+HfxNBztyajyWpymrymoClqSpqypqKpamqa+pSWWezm7hM9d2symqwmp8lrCpqipqQpayqaqqamqU9pmcVu7j7Rc7cmo8lqcpq8pqApakqasqaiqWpqmvqUllns5u4TPXdrMpqsJqfJawqaoqakKWsqmqqmpqlPafkv1Ozm7lM9d2symqwmp8lrCpqipqQpayqaqqamqU9p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';
+const XL_NAME = 'ornek-envanter.xlsx';
+let XL = null;   // {file, items, skip, dup}
+
+const xlNorm = s => trLower(String(s == null ? '' : s)).replace(/[*:.()\/]+/g, ' ').replace(/\s+/g, ' ').trim();
+const XL_COLS = {cat: ['kategori', 'kategori tur', 'tur', 'category'], brand: ['marka', 'brand'], model: ['model ad', 'model', 'ad', 'urun', 'ürün', 'urun adi', 'ürün adı', 'name'],
+  spec: ['özellik', 'ozellik', 'özellikler', 'cap', 'çap'], sizes: ['boylar', 'boy', 'numara', 'numaralar', 'gramaj', 'sizes'], st: ['durum', 'stok', 'status'],
+  note: ['not', 'notlar', 'açıklama', 'aciklama', 'note'], pattern: ['iğne tipi', 'igne tipi'], rodt: ['kamış tipi', 'kamis tipi'], rodl: ['kamış boyu m', 'kamış boyu', 'kamis boyu m', 'kamis boyu'],
+  rodm: ['kamış en fazla g', 'kamış en fazla', 'en fazla g', 'kamis en fazla g'], rodp: ['kamış pe', 'kamis pe', 'pe'], reelt: ['makine tipi'], reels: ['makine boyu', 'makine boy']};
+const XL_CAT_ALIAS = [[/^(iğne|igne|hook)/, 'hook'], [/örgü|orgu|braid|^pe\b/, 'braid'], [/floro|^fc\b|lider|şok|sok/, 'fc'], [/misina|naylon|mono/, 'mono'],
+  [/makine|makara|reel|çıkrık|cikrik/, 'reel'], [/kamış|kamis|rod|olta kam/, 'rod'], [/jig|zoka|inchiku|tai/, 'jig'], [/sahte|rapala|maket|lure|kaşık|kasik|silikon|egi/, 'lure'],
+  [/terminal|fırdöndü|firdondu|klips|halka|boncuk|swivel/, 'terminal'], [/kurşun|kursun|sinker/, 'sinker'], [/^yem|bait/, 'bait'], [/ekipman|ekip|aksesuar|diğer|diger/, 'ekip']];
+const XL_NOSIZE = ['rod', 'reel', 'bait', 'braid', 'fc', 'mono'];
+
+function xlCat(v){
+  const n = xlNorm(v); if (!n) return null;
+  const k = Object.keys(CAT_TXT).find(c => xlNorm(CAT_TXT[c]) === n || c === n); if (k) return k;
+  const a = XL_CAT_ALIAS.find(x => x[0].test(n)); return a ? a[1] : null;
+}
+function xlSt(v){
+  const n = xlNorm(v); if (!n) return 'var';
+  if (/^(var|evet|x|1|✓|elimde|mevcut)/.test(n)) return 'var';
+  if (/^(al|alınacak|alinacak|istek|lazım|lazim|bitti)/.test(n)) return 'alinacak';
+  if (/^(yok|hayır|hayir|0|-)/.test(n)) return 'yok';
+  return null;
+}
+const xlPick = (list, v) => { const n = xlNorm(v); if (!n) return null; const f = list.find(([k, t]) => k === n || xlNorm(t) === n || xlNorm(t).indexOf(n) === 0); return f ? f[0] : null; };
+
+// ---- zip ve xlsx okuma
+async function xlUnzip(buf){
+  const u = new Uint8Array(buf), dv = new DataView(buf);
+  let e = u.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('zip');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const files = {};
+  for (let i = 0; i < n && dv.getUint32(p, true) === 0x02014b50; i++) {
+    const meth = dv.getUint16(p + 10, true), csz = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    files[new TextDecoder().decode(u.subarray(p + 46, p + 46 + nl)).replace(/^\/+/, '')] = {meth, csz, off};
+    p += 46 + nl + xl + cl;
+  }
+  const read = async name => {
+    const f = files[String(name).replace(/^\/+/, '')]; if (!f) return null;
+    const s = f.off + 30 + dv.getUint16(f.off + 26, true) + dv.getUint16(f.off + 28, true); const data = u.subarray(s, s + f.csz);
+    if (f.meth === 0) return new TextDecoder().decode(data);
+    if (f.meth !== 8 || typeof DecompressionStream !== 'function') throw new Error('sıkıştırma');
+    return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  };
+  return read;
+}
+const xlXml = t => new DOMParser().parseFromString(t, 'application/xml');
+const xlTags = (el, name) => Array.from(el.getElementsByTagNameNS('*', name));
+const xlColIx = ref => { const m = /^([A-Z]+)/.exec(ref || ''); if (!m) return -1; let n = 0; for (const ch of m[1]) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+async function xlReadXlsx(buf){
+  const read = await xlUnzip(buf);
+  const wb = xlXml(await read('xl/workbook.xml') || '');
+  const sheets = xlTags(wb, 'sheet').map(s => ({name: s.getAttribute('name') || '', rid: s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || s.getAttribute('r:id')}));
+  if (!sheets.length) throw new Error('sayfa');
+  const sh = sheets.find(s => xlNorm(s.name) === 'envanter') || sheets.find(s => !/örnek|ornek|nasıl|nasil|liste/.test(xlNorm(s.name))) || sheets[0];
+  const rels = xlXml(await read('xl/_rels/workbook.xml.rels') || '<r/>');
+  const rel = xlTags(rels, 'Relationship').find(r => r.getAttribute('Id') === sh.rid);
+  let target = rel ? rel.getAttribute('Target') : 'worksheets/sheet1.xml';
+  target = target.charAt(0) === '/' ? target.slice(1) : 'xl/' + target.replace(/^\.\//, '');
+  const ssT = await read('xl/sharedStrings.xml');
+  const ss = ssT ? xlTags(xlXml(ssT), 'si').map(si => xlTags(si, 't').filter(t => !(t.parentNode && t.parentNode.localName === 'rPh')).map(t => t.textContent).join('')) : [];
+  const ws = xlXml(await read(target) || '');
+  return xlTags(ws, 'row').map(r => {
+    const out = []; let ix = 0;
+    xlTags(r, 'c').forEach(c => {
+      const ci = c.getAttribute('r') ? xlColIx(c.getAttribute('r')) : ix; ix = ci + 1;
+      const t = c.getAttribute('t'); const v = xlTags(c, 'v')[0];
+      let val = '';
+      if (t === 's') val = v ? ss[+v.textContent] || '' : '';
+      else if (t === 'inlineStr') val = xlTags(c, 't').map(x => x.textContent).join('');
+      else if (t === 'b') val = v && v.textContent === '1' ? 'evet' : '';
+      else val = v ? v.textContent : '';
+      if (t !== 's' && t !== 'inlineStr' && t !== 'str' && /^-?\d+\.\d{6,}$/.test(val)) val = String(+(+val).toFixed(4));   // 1.9800000001 → 1.98
+      out[ci] = String(val).trim();
+    });
+    return Array.from(out, x => x || '');
+  });
+}
+function xlReadCsv(text){
+  text = text.replace(/^﻿/, '');
+  const first = text.split(/\r?\n/)[0] || '';
+  const d = [';', '\t', ','].map(c => [c, first.split(c).length]).sort((a, b) => b[1] - a[1])[0][0];
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; continue; }
+    if (ch === '"') q = true; else if (ch === d) { row.push(cell.trim()); cell = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cell.trim()); rows.push(row); row = []; cell = ''; }
+    else cell += ch;
+  }
+  if (cell || row.length) { row.push(cell.trim()); rows.push(row); }
+  return rows;
+}
+
+// ---- satırlardan kalemler
+function xlParse(rows){
+  const hi = rows.findIndex(r => r.some(c => XL_COLS.cat.includes(xlNorm(c))));
+  if (hi < 0) return {err: 'Başlık satırı bulunamadı. İlk satırda en az “Kategori” ve “Model / ad” sütunları olmalı (örnek dosyadaki gibi).'};
+  const head = rows[hi].map(xlNorm); const col = {};
+  Object.keys(XL_COLS).forEach(k => { const i = head.findIndex(h => XL_COLS[k].includes(h)); if (i >= 0) col[k] = i; });
+  if (col.model == null && col.brand == null) return {err: '“Model / ad” ya da “Marka” sütunu bulunamadı.'};
+  const have = new Set(Object.values(S.inv.items).map(it => it.cat + '|' + trLower(it.name) + '|' + trLower(it.spec || '')));
+  const items = [], skip = [], dup = [];
+  rows.slice(hi + 1).forEach((r, i) => {
+    const n = hi + i + 2; const g = k => col[k] != null ? String(r[col[k]] || '').trim() : '';
+    if (!r.some(c => String(c || '').trim())) return;
+    const brand = g('brand'), model = g('model');
+    if (!brand && !model) { skip.push([n, 'ad yok']); return; }
+    const cat = xlCat(g('cat'));
+    if (!cat) { skip.push([n, g('cat') ? '“' + g('cat') + '” kategorisi tanınmadı' : 'kategori yok']); return; }
+    const st = xlSt(g('st'));
+    if (!st) { skip.push([n, '“' + g('st') + '” durumu tanınmadı (Var, Alınacak ya da Yok)']); return; }
+    let spec = g('spec'); const raw = g('sizes').split(/[,;]+/).map(s => s.trim()).filter(Boolean);
+    let sizes = XL_NOSIZE.includes(cat) ? [] : Array.from(new Set(raw));
+    if (XL_NOSIZE.includes(cat) && g('sizes')) spec = [spec, g('sizes')].filter(Boolean).join(' · ');   // ipte çap, kamışta boy: olduğu gibi özelliğe
+    let pattern = '';
+    if (cat === 'hook' && g('pattern')) { const p = HOOK_PATTERNS.find(x => xlNorm(x) === xlNorm(g('pattern')) || xlNorm(x).indexOf(xlNorm(g('pattern'))) === 0); if (p) pattern = p; else spec = [spec, g('pattern')].filter(Boolean).join(' · '); }
+    const name = [brand, model].filter(Boolean).join(' ');
+    const key = cat + '|' + trLower(name) + '|' + trLower(spec);
+    if (have.has(key)) { dup.push([n, name]); return; }
+    have.add(key);
+    const it = {id: 'u-' + (slugTR(brand + '-' + model).slice(0, 40) || 'kalem') + '-' + Math.random().toString(36).slice(2, 6), cat, brand, model, name, pattern, spec, note: g('note'),
+      sizes, stock: Object.fromEntries((sizes.length ? sizes : ['-']).map(s => [s, st])), src: 'kullanici', created: new Date().toISOString(), xlRow: n};
+    if (cat === 'rod') { it.rod = {type: xlPick(ROD_T, g('rodt')) || 'tekne', len: num(g('rodl')), max: num(g('rodm')), pe: num(g('rodp'))}; }
+    if (cat === 'reel') it.reel = {type: xlPick(REEL_T, g('reelt')) || 'spin', size: num(g('reels'))};
+    items.push(it);
+  });
+  return {items, skip, dup};
+}
+
+// ---- arayüz
+async function xlTemplate(){
+  let bytes = null;
+  if (XLSX_TPL) bytes = b64d(XLSX_TPL);
+  else { try { const r = await fetch(XL_NAME); if (r.ok) bytes = new Uint8Array(await r.arrayBuffer()); } catch (e) {} }
+  if (!bytes) { toast('Örnek dosya bulunamadı'); return; }
+  const r = await deliverFile(XL_NAME, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', bytes);
+  if (r !== 'abort') toast('Örnek dosya hazır: “Envanter” sayfasını doldur, sonra “Excel’den yükle”');
+}
+async function xlLoad(file){
+  if (!file) return;
+  let rows;
+  try {
+    if (/\.csv$/i.test(file.name) || /csv|text\/plain/.test(file.type)) rows = xlReadCsv(await file.text());
+    else rows = await xlReadXlsx(await file.arrayBuffer());
+  } catch (e) {
+    XL = {file: file.name, err: e && e.message === 'sıkıştırma' ? 'Bu tarayıcı Excel dosyasını açamıyor. Dosyayı CSV olarak kaydedip onu yükle.' : 'Dosya okunamadı. Excel (.xlsx) ya da CSV olmalı.'};
+    xlSheet(); return;
+  }
+  XL = Object.assign({file: file.name}, xlParse(rows || []));
+  xlSheet();
+}
+function xlSheet(){
+  ui.sheet = 'xlimp'; const x = XL || {};
+  const row = it => '<li><b>' + esc(it.name) + '</b> <span class="chip">' + esc(CAT_TXT[it.cat]) + '</span>' + (it.spec ? ' <small>' + esc(it.spec) + '</small>' : '') + (it.sizes.length ? ' <small>· ' + esc(it.sizes.join(', ')) + '</small>' : '') +
+    ' <small class="note">' + esc(ST_TXT[it.stock[it.sizes[0] || '-']] || '') + '</small></li>';
+  const by = {}; (x.items || []).forEach(it => { by[it.cat] = (by[it.cat] || 0) + 1; });
+  openSheet(sheetBar('Excel’den yükle', x.items && x.items.length ? '<button class="btn primary" type="button" data-xl="ok">Ekle</button>' : '') + '<div class="stack">' +
+    '<p class="sub">' + esc(x.file || '') + '</p>' +
+    (x.err ? '<div class="banner">' + esc(x.err) + '</div><div class="row"><button class="btn" type="button" data-xl="tpl">Örnek Excel dosyasını indir</button><button class="btn" type="button" data-xl="pick">Başka dosya seç</button></div>' :
+      '<div class="panel stack"><b>' + x.items.length + ' kalem eklenecek</b>' + (x.items.length ? '<span class="note">' + Object.keys(by).map(c => esc(CAT_TXT[c]) + ' ' + by[c]).join(' · ') + '</span>' : '') +
+        (x.dup.length ? '<span class="note">' + x.dup.length + ' kalem zaten envanterde, atlanacak.</span>' : '') +
+        (x.skip.length ? '<span class="note" style="color:var(--D)">' + x.skip.length + ' satır okunamadı (aşağıda).</span>' : '') + '</div>' +
+      (x.items.length ? '<ul class="steps">' + x.items.slice(0, 60).map(row).join('') + (x.items.length > 60 ? '<li class="note">… ve ' + (x.items.length - 60) + ' kalem daha</li>' : '') + '</ul>' : '<div class="empty">Eklenecek kalem yok.</div>') +
+      (x.skip.length ? '<section class="set"><h4>Okunamayan satırlar</h4><ul class="steps">' + x.skip.slice(0, 40).map(([n, w]) => '<li>Satır ' + n + ': ' + esc(w) + '</li>').join('') + '</ul></section>' : '') +
+      (x.dup.length ? '<section class="set"><h4>Zaten envanterde</h4><p class="note">' + x.dup.slice(0, 40).map(([n, w]) => esc(w) + ' (satır ' + n + ')').join(', ') + '</p></section>' : '') +
+      '<div class="row wrap">' + (x.items.length ? '<button class="btn primary" type="button" data-xl="ok">' + x.items.length + ' kalemi envantere ekle</button>' : '') + '<button class="btn" type="button" data-xl="pick">Başka dosya seç</button></div>') +
+    '</div>');
+}
+function xlCommit(){
+  const x = XL; if (!x || !x.items || !x.items.length) return;
+  x.items.forEach(it => { const o = Object.assign({}, it); delete o.xlRow; S.inv.items[o.id] = o;
+    if (o.cat === 'bait') (o.sizes.length ? o.sizes : ['-']).forEach(sz => { if (o.stock[sz] === 'var') S.inv.status[o.id + '|' + sz] = 'var'; }); });
+  const n = x.items.length, cat = x.items[0].cat; XL = null;
+  persist(); indexAll(); noteRigChanges(true); closeSheet();
+  ui.inv = (INV_SEG.find(([k]) => INV_CATS[k].includes(cat)) || INV_SEG[0])[0]; renderAll();
+  toast(n + ' kalem envantere eklendi');
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-xl]'); if (!b) return;
+  const a = b.dataset.xl;
+  if (a === 'tpl') xlTemplate();
+  else if (a === 'pick') { const f = $('xlFile'); if (f) { f.value = ''; f.click(); } }
+  else if (a === 'ok') xlCommit();
+});
+document.addEventListener('change', e => { if (e.target && e.target.id === 'xlFile') { const f = e.target.files && e.target.files[0]; e.target.value = ''; xlLoad(f); } });   // aynı dosya yeniden seçilebilsin
+
 // ---------------------------------------------------------------- 73 · Fishing sekmesi (uygulamanın asıl yeri)
 // Sıra: gün + gündüz/gece seç → o bölümün solunar pencereleri → yalnızca en uygun 3 rig (Bunu bağla) → en altta 3 saatlik dilimlerle sürüklenme ve kurşun.
 // Gündüz: gün doğumundan 75 dk önce → gün batımından 45 dk sonra · Gece: gün batımından 30 dk önce → ertesi gün doğumundan 45 dk önce (partRange).
@@ -7329,8 +7541,8 @@ function fRecs(dd, part, from, past){
   $('recMoreW').hidden = true; $('recMore').innerHTML = ''; $('fTarget').innerHTML = ''; $('fSpot').hidden = true;
   if (!RIG_LIST.length) {
     $('recNote').textContent = '';
-    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur ya da özel paketini aç.</p>' +
-      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
+    $('recList').innerHTML = offNote + '<div class="panel stack"><h3>' + (offSys.length ? 'Açık rig sistemin yok' : 'Henüz rig sistemin yok') + '</h3><p class="sub">Önerilerin senin rig sistemine göre gelir. Sihirbazla kendi sistemini kur' + (pkgDoor() ? ' ya da özel paketini aç' : '') + '.</p>' +
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button>' + (pkgDoor() ? '<button class="btn" type="button" data-open="paket">Özel paketimi aç</button>' : '') + '</div></div>';
     $('recBlockedW').hidden = true; return;
   }
   if (!RIG_LIST.some(r => !r.mode || r.mode === modeNow())) {
@@ -7824,7 +8036,7 @@ function sheetSettings(){
       '<p class="note">Makine, kamış, ip, terminal, kurşun ve yemde adet sorulmaz: var, alınacak ya da yok. Jig ve zokada istersen adet.</p></section>' +
     '<section class="set"><h4>Usta’ya sor (Claude)</h4><p class="note">' + (ustaKey() ? 'Anahtar bu cihazda kayıtlı · model ' + esc(ustaModel()[1]) + '.' : 'Claude API anahtarı girilmemiş. Anahtar yalnız bu cihazda durur.') + '</p><button class="btn small" type="button" data-open="usta">' + (ustaKey() ? 'Usta’ya sor' : 'Anahtarı gir') + '</button></section>' +
     '<section class="set"><h4>Harita</h4><label class="f wide">Google Maps API anahtarı (isteğe bağlı)<input id="gkey" data-setk="gkey" value="' + esc(st.gkey || '') + '" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="AIza…"></label>' +
-    '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>https://ktopdal.github.io/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
+    '<p class="note">Anahtar girilince haritada <b>Google</b> ve <b>Google uydu</b> altlıkları açılır, yer adları Google’dan da sorulur. Google Cloud’da: <b>APIs &amp; Services → Library</b>’den “Maps JavaScript API” ve “Geocoding API” <b>Enable</b>; <b>Credentials</b> → anahtar → <b>Application restrictions: Websites</b> → <b>' + esc(location.origin) + '/*</b>; <b>API restrictions</b>: bu iki API; projede <b>Billing</b> açık olmalı. Ayda 10.000 sorgu ücretsiz.</p>' +
     '<div class="row" style="margin-top:6px"><button class="btn small" type="button" data-act="gtest"' + (st.gkey ? '' : ' disabled') + '>Google’ı dene</button></div><p class="note" id="gTestNote" aria-live="polite"></p></section>' +
     '<section class="set"><h4>Profil</h4><label class="f">Adın (isteğe bağlı)<input id="pf-name" data-setp="name" value="' + esc(S.profile.name || '') + '" placeholder="Ör. Kaptan"></label></section>' +
     '<section class="set"><h4>Sıfırla</h4><p class="note">Envanterin, kendi kurduğun rig sistemleri ve rig ayarların, alışveriş listesi, hedef türler ve danışman önerileri silinir; uygulama ilk kurulduğu gibi olur.' + (S.pkg.unlocked ? ' Özel paketin kalır.' : '') + '</p>' +
@@ -7883,8 +8095,8 @@ function sheetBackup(){
     (ready ? '<div class="panel stack"><b>Bağlı: ' + esc(b.repo) + ' · profil: ' + esc(bkCfg().name) + '</b><span class="note" id="bkStatus">' + esc(bkStatusText()) + '</span>' +
       '<div class="row"><button class="btn primary" type="button" data-act="bkNow">Şimdi yedekle</button><button class="btn" type="button" data-act="bkRestoreAsk">Buluttan geri yükle</button></div></div>' : '') +
     '<form class="panel stack" id="bkForm" novalidate><div class="fields">' +
-    '<label class="f wide">Depo (kullanıcı/depo)<input id="bk-repo" value="' + esc(b.repo || '') + '" placeholder="ör. ktopdal/alyssa-yedek" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
-    '<label class="f wide">Profil adı<input id="bk-name" value="' + esc(b.name || slugTR(S.profile.name || '')) + '" placeholder="ör. kenny" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">Depo (kullanıcı/depo)<input id="bk-repo" value="' + esc(b.repo || '') + '" placeholder="ör. kullaniciadi/alyssa-yedek" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">Profil adı<input id="bk-name" value="' + esc(b.name || slugTR(S.profile.name || '')) + '" placeholder="ör. ali" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
     '<label class="f wide">GitHub anahtarı (token)' + (tok ? ' · kayıtlı ✓' : '') + '<input id="bk-tok" type="password" autocomplete="off" placeholder="' + (tok ? 'değiştirmek için yeni anahtarı yapıştır' : 'github_pat_…') + '"></label>' +
     '<label class="f wide">Yedek şifresi' + (lsGet(LS.bkKey) ? ' · kayıtlı ✓' : '') + '<input id="bk-pass" type="password" autocomplete="off" placeholder="' + (lsGet(LS.bkKey) ? 'değiştirmek gerekmez' : 'yedeği açacak şifre') + '"></label>' +
     '</div><label class="row note chk"><input type="checkbox" id="bk-auto"' + (b.auto ? ' checked' : '') + '> Otomatik yedekle (değişiklikten 1 dakika sonra)</label>' +
@@ -7935,7 +8147,7 @@ function sheetLocations(){
       (!L.bottom && L.bottomEst ? '<p class="note">Taban tahmini (EUSeaMap): <b>' + esc(L.bottomEstTxt || BOTTOM_TXT[L.bottomEst]) + '</b>. Öneride yarım ağırlıkla sayılır; biliyorsan Dip’i seç.</p>' : '')) +
       (list.length > 1 ? '<div><button class="btn small" type="button" data-del="' + esc(L.id) + '">Sil</button></div>' : '') + '</div>').join('') : '<div class="empty">Henüz konum yok.</div>') +
     '<form class="panel" id="locForm" novalidate><h4 style="font-size:16px">Yeni konum</h4><div class="fields" style="margin-top:8px">' +
-    '<label class="f wide">Ad<input id="nl-name" placeholder="Ör. Sığacık açığı"></label>' +
+    '<label class="f wide">Ad<input id="nl-name" placeholder="Ör. Liman açığı"></label>' +
     '<label class="f">Enlem (°)<input id="nl-lat" inputmode="decimal" placeholder="ör. 38.1234"></label>' +
     '<label class="f">Boylam (°)<input id="nl-lon" inputmode="decimal" placeholder="ör. 26.5678"></label>' +
     '<label class="f">Dip (biliyorsan)<select id="nl-bottom">' + BOTTOM.map(([k, t]) => '<option value="' + k + '">' + t + '</option>').join('') + '</select></label>' +
@@ -8074,7 +8286,7 @@ function duzenApply(code){
 }
 
 // ---------------------------------------------------------------- 76 · Takvim sayfası (v0.27)
-// "Konum 1 Av Takvimi" sayfasının düzeni uygulamanın içinde, her gün güncel veriyle ve kullanıcının seçtiği noktalar için:
+// Av takvimi sayfasının düzeni uygulamanın içinde, her gün güncel veriyle ve kullanıcının seçtiği noktalar için:
 // kahraman (konum çizelgesi), özet ve uygunluk şeridi, dikey gün kartları (ya da eski satır listesi), meteogram, ayrıntılı tablo,
 // solunar şeritleri, en iyi pencereler (rig önerisiyle), yöntem. En çok 3 nokta seçilir; her nokta kendi sekmesinde, "Karşılaştır"
 // sekmesinde günler yan yana dikey kartlarla. İkonlar shell.html'deki ak-* sembollerinden gelir.
@@ -8084,8 +8296,8 @@ const AK_WXT = {sunny: 'Açık', partly: 'Parçalı bulutlu', cloudy: 'Bulutlu',
 let CAL_DIRTY = true;
 // gün görünümü bu cihaza kaydedilir (telefon ve tablet aynı profili paylaşsa da ayrı seçilir): yoksa telefonda yatay, tablette dikey
 const CV_KEY = 'alyssa-cv';
-function calView(){ let v = null; try { v = localStorage.getItem(CV_KEY); } catch (e) {} return v === 'kart' || v === 'liste' ? v : ((window.innerWidth || 400) >= 700 ? 'kart' : 'liste'); }
-function setCalView(v){ try { localStorage.setItem(CV_KEY, v); } catch (e) {} }
+function calView(){ const v = lsGet(CV_KEY); return v === 'kart' || v === 'liste' ? v : ((window.innerWidth || 400) >= 700 ? 'kart' : 'liste'); }
+function setCalView(v){ lsSet(CV_KEY, v); }
 const akI = (n, c) => '<svg class="' + (c || 't-ic') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ak-' + n + '"/></svg>';
 const akWxI = (k, c) => '<svg class="' + (c || 't-wx') + '" viewBox="0 0 48 48" role="img" aria-label="' + AK_WXT[k] + '"><title>' + AK_WXT[k] + '</title><use href="#ak-w-' + k + '"/></svg>';
 // ok rüzgârın / dalganın gittiği yöne bakar (geldiği yön + 180°); akıntı zaten gittiği yöndür
@@ -9040,7 +9252,7 @@ async function seabedAt(lat, lon){
 // Google bir isteği reddederse sebebi GERR'e yazılır ve kullanıcıya Google Cloud'daki adıyla (İngilizce) gösterilir.
 let GERR = null, GOK = false;
 const G_ERR = {
-  RefererNotAllowedMapError: 'Anahtarın Website restrictions listesi bu adresi kapsamıyor. Credentials → anahtar → Application restrictions → Websites: https://ktopdal.github.io/* yaz.',
+  RefererNotAllowedMapError: 'Anahtarın Website restrictions listesi bu adresi kapsamıyor. Credentials → anahtar → Application restrictions → Websites: ' + location.origin + '/* yaz.',
   ApiNotActivatedMapError: 'Maps JavaScript API projede açık değil. APIs & Services → Library → Maps JavaScript API → Enable.',
   ApiTargetBlockedMapError: 'Anahtarın API restrictions listesinde Maps JavaScript API yok. Credentials → anahtar → API restrictions.',
   BillingNotEnabledMapError: 'Projede Billing açık değil. ☰ → Billing → projeyi bir billing account’a bağla.',
@@ -9436,7 +9648,7 @@ async function mapAct(a, b){
   // v0.28.6: kaydetmeden önce ad sor (haritadaki yer adı önerilir)
   if (a === 'save' && (!p.id || (S.locations[p.id] || {}).tmp) && !b.dataset.named) {
     const card = $('mapCard'); card.hidden = false;
-    card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Sığacık açığı" autocomplete="off"></label>' +
+    card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Liman açığı" autocomplete="off"></label>' +
       (p.name ? '<p class="note">Haritadaki adı önerildi; istersen değiştir.</p>' : '') +
       '<div class="row"><button class="btn primary" type="button" data-mapact="save" data-named="1">Kaydet</button><button class="btn" type="button" data-mapact="namecancel">Vazgeç</button></div></div>';
     const inp = $('mpName'); if (inp) { inp.focus(); inp.select(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('[data-named]').click(); }); }
@@ -9903,7 +10115,7 @@ function sheetSpeciesCal(){
     return '<button type="button" class="tcal-r" data-tur="' + esc(s.id) + '"><span class="nm">' + esc(s.name) + (mine.has(s.id) && all ? ' <i class="mk" aria-label="sistemimde"></i>' : '') + '</span>' +
       MON3.map((x, i) => '<span class="c c' + calMonth(s.id, i + 1) + (i + 1 === month ? ' now' : '') + '"></span>').join('') +
       '<span class="su ' + (w === 'ideal' ? 'ok' : /soğuk/.test(w) ? 'cold' : /sıcak/.test(w) ? 'hot' : '') + '">' + f0(tempNum(c[1][1])) + '–' + f0(tempNum(c[1][2])) + '</span></button>'; }).join('');
-  return sheetBar('Tür takvimi') + '<div class="stack"><p class="sub">Ege (İzmir–Seferihisar) için ay ay oltaya gelme ve türün sevdiği su sıcaklığı. Genel bilgidir; yıla ve noktaya göre değişir. Avların ve “tuttu / tutmadı” bildirimlerin önerileri senin noktana göre ayarlar.</p>' +
+  return sheetBar('Tür takvimi') + '<div class="stack"><p class="sub">Ege için ay ay oltaya gelme ve türün sevdiği su sıcaklığı. Genel bilgidir; yıla ve noktaya göre değişir. Avların ve “tuttu / tutmadı” bildirimlerin önerileri senin noktana göre ayarlar.</p>' +
     (mine.size ? '<div class="seg wrapseg"><button class="btn small" type="button" data-tcal="mine" aria-pressed="' + !all + '">Sistemimdeki türler</button><button class="btn small" type="button" data-tcal="all" aria-pressed="' + all + '">Bölgenin türleri</button></div>' : '') +
     (sst != null ? '<p class="note">Bugün su <b>' + tempTxt(sst, true) + '</b> (' + esc(locLabel(L)) + '). Sağdaki sütun türün sevdiği su: yeşil uygun, mavi soğuk, kırmızı sıcak.</p>' : '<p class="note">Su sıcaklığı deniz noktası seçilince gelir.</p>') +
     '<div class="tcal">' + head + rows + '</div>' +
@@ -9998,8 +10210,8 @@ async function submitBackupForm(force){
   const err = m => { $('bkErr').textContent = m; $('bkErr').hidden = false; };
   $('bkErr').hidden = true; $('bkConflict').innerHTML = '';
   const repo = $('bk-repo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, ''), name = slugTR($('bk-name').value), tok = $('bk-tok').value.trim(), pass = $('bk-pass').value;
-  if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) { err('Depoyu kullanıcı/depo biçiminde yaz. Ör. ktopdal/alyssa-yedek'); return; }
-  if (!name) { err('Bir profil adı yaz. Ör. kenny'); return; }
+  if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) { err('Depoyu kullanıcı/depo biçiminde yaz. Ör. kullaniciadi/alyssa-yedek'); return; }
+  if (!name) { err('Bir profil adı yaz. Ör. ali'); return; }
   if (!tok && !lsGet(LS.ghTok)) { err('GitHub anahtarını yapıştır.'); return; }
   const changed = repo !== S.backup.repo || name !== S.backup.name;
   S.backup.repo = repo; S.backup.name = name; S.backup.auto = $('bk-auto').checked; S.backup.photosOn = $('bk-photos').checked;
@@ -10071,7 +10283,7 @@ async function doRestore(passFromForm){
   } catch (e) { setBusy(false); const el = $('bkErr'); if (el) { el.textContent = e.message || String(e); el.hidden = false; } else toast(e.message || String(e)); }
 }
 
-// v0.28 · profili sıfırla: özel paket (32 rig sistemi) ve ayarlar kalır
+// v0.28 · profili sıfırla: özel paket ve ayarlar kalır
 async function resetProfile(av, locs, pk, hide){
   S.pkg.hidden = !!hide;
   Object.keys(S.systems).forEach(k => { if (k !== 'ozel') delete S.systems[k]; });
@@ -10132,7 +10344,7 @@ function sheetShare(){
     '<section class="set"><h4>Rig sistemimi paylaş</h4>' + (wiz.length ? '<p class="note">Rig Atölyesi’nde kurduğun sistemlerin cevapları gider; açan kişide aynı sistem kendi envanterine göre kurulur.</p>' +
       wiz.map(sy => '<label class="chk"><input type="checkbox" data-sharesys="' + esc(sy.id) + '" checked> ' + esc(sy.name) + ' (' + (sy.rigs || []).length + ' rig)</label>').join('') +
       '<button class="btn primary" type="button" data-share="sistem">Bağlantı oluştur</button>' : '<p class="note">Rig Atölyesi’nde kurulmuş sistemin yok.</p>') +
-    '<p class="note">Özel paketindeki rigler bu yolla paylaşılmaz; paketin şifresini bilen kendi telefonunda açabilir.</p></section>' +
+    '<p class="note">Özel paketindeki rigler bu yolla paylaşılmaz; paketin şifresini bilen kendi telefonunda açabilir.</p>' + '</section>' +
     '<div id="shareOut"></div>' +
     '<section class="set"><h4>Geri bildirim</h4><p class="note">Bir hata ya da öneri için WhatsApp mesajı hazırlar; sürüm ve telefon bilgisi eklenir, kime gideceğini sen seçersin.</p><button class="btn" type="button" data-share="geri">Geri bildirim yaz</button></section>' +
     '</div>';
@@ -10422,7 +10634,7 @@ function sumText(z){
 function prepAlarmTxt(s){ const p = s.best.prep; return 'Yarın ' + winTxt(s.best.w) + ' ' + locLabel(s.best.L) + ': ' + [p.bait.length ? 'yem: ' + p.bait.join(', ') : '', p.miss.length ? 'eksik: ' + p.miss.join(' · ') : '', p.rigs.length ? 'rigler: ' + p.codes.join(', ') : ''].filter(Boolean).join(' · '); }
 function buildIcs(res){
   const cfg = res.cfg, now = new Date(), sent = alsGet(), seq = u => ((sent.seq || {})[u] || 0) + 1;
-  const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Alyssa by Barbossa App//TR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Alyssa av pencereleri'];
+  const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//' + APP_NAME + '//TR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Alyssa av pencereleri'];
   const ev = (uid, a, b, title, desc, extra, alarms) => { out.push('BEGIN:VEVENT', 'UID:' + uid, 'DTSTAMP:' + icsDate(now), 'SEQUENCE:' + seq(uid), 'DTSTART:' + icsDate(a), 'DTEND:' + icsDate(b), 'SUMMARY:' + icsEsc(title), 'DESCRIPTION:' + icsEsc(desc), ...(extra || []));
     (alarms || []).forEach(([trig, txt]) => out.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(txt), trig, 'END:VALARM')); out.push('END:VEVENT'); };
   res.slots.forEach(s => {
@@ -10660,10 +10872,10 @@ function sheetGroup(){
     '<p class="sub">Kapalı bir grubun (sen, Ogün, birkaç arkadaş) paylaştığı avlar ortak haritada görünür. Her av baştan gizlidir; paylaşmak istediğini avın sayfasından seçersin. Nokta 1–2 km’lik kareye yuvarlanır.</p>' +
     '<p class="note">Bir davet bağlantın varsa ona dokun; uygulama seni gruba katar. Grubu sen kuracaksan:</p>' +
     '<form class="panel stack" id="grpForm" novalidate><div class="fields">' +
-    '<label class="f wide">Depo (kullanıcı/depo)<input id="gp-repo" placeholder="ör. ktopdal/alyssa-grup" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
+    '<label class="f wide">Depo (kullanıcı/depo)<input id="gp-repo" placeholder="ör. kullaniciadi/alyssa-grup" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
     '<label class="f wide">GitHub anahtarı (yalnızca bu depo)<input id="gp-tok" type="password" autocomplete="off" placeholder="github_pat_…"></label>' +
-    '<label class="f">Grubun adı<input id="gp-name" placeholder="ör. Seferihisar avcıları"></label>' +
-    '<label class="f">Senin adın<input id="gp-me" value="' + esc(S.profile.name || '') + '" placeholder="ör. Kenny"></label></div>' +
+    '<label class="f">Grubun adı<input id="gp-name" placeholder="ör. Hafta sonu avcıları"></label>' +
+    '<label class="f">Senin adın<input id="gp-me" value="' + esc(S.profile.name || '') + '" placeholder="ör. Ali"></label></div>' +
     '<p class="err" id="gpErr" hidden></p><button class="btn primary" type="submit">Grubu kur</button></form>' +
     '<details class="panel"><summary>GitHub’da depo ve anahtar nasıl hazırlanır?</summary><ol class="steps">' +
     '<li>GitHub’da yeni bir <b>özel</b> depo aç (ör. alyssa-grup). Yedek deponu kullanma.</li>' +
@@ -10766,6 +10978,7 @@ function showWelcome(){
     (pkgDoor() ? '<button class="btn bigbtn" type="button" data-wel="paket">Özel paketimi aç</button>' : '') +
     '<form id="welPkg" class="stack" hidden novalidate><label class="f">Paket şifresi<input id="wel-pass" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>' +
     '<p class="err" id="welErr" hidden></p><button class="btn primary" type="submit" id="welBtn">Aç</button></form>' +
+    
     '<button class="btn bigbtn" type="button" data-wel="bulut">Buluttan geri yükle</button>' +
     '<button class="btn linkish" type="button" data-wel="bos">Boş başla</button>' +
     '</div>';
@@ -10878,7 +11091,7 @@ function bindEvents(){
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
     const kg = e.target.closest && e.target.closest('g[data-knot]'); if (kg) { knotFrom(kg.dataset.knot); return; }   // şemadaki düğüm noktası
-    if (e.target.id === 'about' && !pkgDoor()) { PKG_TAPS++; if (PKG_TAPS >= 5) { renderMore(); toast('Özel paket açıldı: Daha → Özel paket'); } return; }   // gizli kapı (yalnız sahibi bilir)
+    if (e.target.id === 'about' && EDITION === 'ozel' && !pkgDoor()) { PKG_TAPS++; if (PKG_TAPS >= 5) { renderMore(); toast('Özel paket açıldı: Daha → Özel paket'); } return; }   // gizli kapı (yalnız sahibi bilir)
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }

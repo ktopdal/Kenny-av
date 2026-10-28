@@ -82,7 +82,7 @@ function resolveSlot(sp){
 // sihirbaz rigini o anki envanterle çöz (envanter değişince rigler kendiliğinden güncellenir)
 function resolveRig(rg){
   const base = rg.slots.some(sl => sl.kind === 'rod') ? rg.slots : rg.slots.concat(reqSlots(rg));   // kamış, makine ve terminal yuvaları (27-req.js)
-  // "Dünyanın en iyisi" yalnız Kenny'nin 32'lik özel sisteminde; diğer sistemlerde (eski kayıtlarda da) atılır
+  // "Dünyanın en iyisi" yalnız özel pakette; diğer sistemlerde (eski kayıtlarda da) atılır
   const noW = t => { const o = Object.assign({}, t || {}); delete o.dunya; return o; };
   const slots = base.map(sl => {
     if (!sl.sp) return Object.assign({}, sl, {t: noW(sl.t)});

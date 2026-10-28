@@ -80,7 +80,7 @@ function bindEvents(){
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
     const kg = e.target.closest && e.target.closest('g[data-knot]'); if (kg) { knotFrom(kg.dataset.knot); return; }   // şemadaki düğüm noktası
-    if (e.target.id === 'about' && !pkgDoor()) { PKG_TAPS++; if (PKG_TAPS >= 5) { renderMore(); toast('Özel paket açıldı: Daha → Özel paket'); } return; }   // gizli kapı (yalnız sahibi bilir)
+    if (e.target.id === 'about' && EDITION === 'ozel' && !pkgDoor()) { PKG_TAPS++; if (PKG_TAPS >= 5) { renderMore(); /*@ozel*/toast('Özel paket açıldı: Daha → Özel paket'); /*@end*/} return; }   // gizli kapı (yalnız sahibi bilir)
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
@@ -195,7 +195,7 @@ function bindEvents(){
       if (a === 'baitReset') { Object.values(ITEMS).forEach(i => { if (i.cat === 'bait') { delete S.inv.status[i.id + '|-']; delete S.inv.qty[i.id + '|-']; } }); persist(); renderAll(); toast('Bütün yemler “yok”'); return; }
       if (a === 'resetProfile') { if (!armOnce(b, 'Emin misin? Sıfırlamak için tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, !!($('rs-loc') || {}).checked, !!($('rs-pk') || {}).checked, !!($('rs-hide') || {}).checked); return; }
       if (a === 'resetNew') { if (!armOnce(b, 'Her şey silinecek: tekrar dokun')) return; resetProfile(!!($('rs-av') || {}).checked, true, true, true); return; }
-      if (a === 'pkgShow') { S.pkg.hidden = false; persist(); indexAll(); renderAll(); openMore('paket', true); toast('Özel paket geri geldi'); return; }
+      if (a === 'pkgShow') { S.pkg.hidden = false; persist(); indexAll(); renderAll(); openMore('paket', true); /*@ozel*/toast('Özel paket geri geldi');/*@end*/ return; }
       if (a === 'resetColors') { S.settings.brand = ''; S.settings.accent = ''; persist(); applyTheme(); openMore('ayarlar', true); return; }
       if (a === 'resetBft') { S.settings.bft = null; persist(); renderAll(); openMore('ayarlar', true); return; }
       if (a === 'bkNow') { const p = backupNow(true); setBkStatus(); await p; if (ui.sheet === 'yedek') openMore('yedek', true); return; }

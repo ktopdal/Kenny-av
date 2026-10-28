@@ -10,7 +10,7 @@ const USTA = {msgs: [], busy: false, err: null};
 const ustaKey = () => (lsGet(LSU.key) || '').trim();
 const ustaModel = () => { const m = lsGet(LSU.model); return USTA_MODELS.find(x => x[0] === m) || USTA_MODELS[0]; };
 const USTA_Q = ['Bugün hangi rigi bağlayayım?', 'Kurşun ve köstek ne olsun?', 'Hangi saatte, nasıl avlanayım?', 'Yem olarak ne kullanayım?', 'Bu hava çıkmaya uygun mu?'];
-const USTA_SYS = 'Sen Ege’de (İzmir–Seferihisar) tekneden ve kıyıdan olta balıkçılığında uzun yıllar deneyimli bir ustasın. Alyssa uygulamasını kullanan, kendi rig sistemi olan ' +
+const USTA_SYS = 'Sen Türkiye kıyılarında (en çok Ege’de) tekneden ve kıyıdan olta balıkçılığında uzun yıllar deneyimli bir ustasın. Alyssa uygulamasını kullanan, kendi rig sistemi olan ' +
   'deneyimli bir amatör balıkçıya bugünkü koşullara göre kısa, net ve uygulanabilir cevap veriyorsun.\n' +
   'Kurallar:\n- Önce BAĞLAM’daki verilere dayan (hava, deniz, solunar, sürüklenme, rigler, envanter, bildirimler, avlar). Bağlamda olmayan bir şey söylüyorsan genel bilgi olduğunu belirt.\n' +
   '- Rig önerirken uygulamanın rig kodlarını ve adlarını kullan. Envanterde olmayan bir şey önerirsen “alınacak” de.\n' +
@@ -131,7 +131,7 @@ function sheetUsta(){
       (USTA.busy ? '<div class="umsg a busy"><p>Usta düşünüyor…</p></div>' : '') +
       (USTA.err ? '<div class="banner bad">' + esc(USTA.err) + '</div>' : '') +
       '<div class="uq">' + USTA_Q.map(q => '<button class="bchip" type="button" data-usta="q" data-q="' + esc(q) + '"' + (USTA.busy ? ' disabled' : '') + '>' + esc(q) + '</button>').join('') + '</div>' +
-      '<label class="f wide">Sorun<textarea id="ustaQ" rows="3" placeholder="Ör. Akşam 3 saatim var; Sığacık’ta hangi rigle başlayayım?"' + (USTA.busy ? ' disabled' : '') + '></textarea></label>' +
+      '<label class="f wide">Sorun<textarea id="ustaQ" rows="3" placeholder="Ör. Akşam 3 saatim var; bu noktada hangi rigle başlayayım?"' + (USTA.busy ? ' disabled' : '') + '></textarea></label>' +
       '<div class="row"><button class="btn primary" type="button" data-usta="ask"' + (USTA.busy ? ' disabled' : '') + '>Sor</button></div>' +
       '<p class="note">Giden: konum adı, dip, derinlik, seçili gün ve bölümün hava/deniz özeti, solunar, önerilen riglerin ve malzemen, son bildirim ve avların. Koordinat gitmez. Cevap genel tavsiyedir; denize çıkma kararı senin.</p>' +
       '<details><summary class="note">Anahtar ve model</summary>' + ustaKeyBox(false) + '</details>') + '</div>';

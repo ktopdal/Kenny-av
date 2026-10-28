@@ -46,7 +46,7 @@ function sheetShare(){
     '<section class="set"><h4>Rig sistemimi paylaş</h4>' + (wiz.length ? '<p class="note">Rig Atölyesi’nde kurduğun sistemlerin cevapları gider; açan kişide aynı sistem kendi envanterine göre kurulur.</p>' +
       wiz.map(sy => '<label class="chk"><input type="checkbox" data-sharesys="' + esc(sy.id) + '" checked> ' + esc(sy.name) + ' (' + (sy.rigs || []).length + ' rig)</label>').join('') +
       '<button class="btn primary" type="button" data-share="sistem">Bağlantı oluştur</button>' : '<p class="note">Rig Atölyesi’nde kurulmuş sistemin yok.</p>') +
-    '<p class="note">Özel paketindeki rigler bu yolla paylaşılmaz; paketin şifresini bilen kendi telefonunda açabilir.</p></section>' +
+    /*@ozel*/'<p class="note">Özel paketindeki rigler bu yolla paylaşılmaz; paketin şifresini bilen kendi telefonunda açabilir.</p>' + /*@end*/'</section>' +
     '<div id="shareOut"></div>' +
     '<section class="set"><h4>Geri bildirim</h4><p class="note">Bir hata ya da öneri için WhatsApp mesajı hazırlar; sürüm ve telefon bilgisi eklenir, kime gideceğini sen seçersin.</p><button class="btn" type="button" data-share="geri">Geri bildirim yaz</button></section>' +
     '</div>';

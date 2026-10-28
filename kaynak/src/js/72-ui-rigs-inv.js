@@ -9,9 +9,9 @@ function renderRigs(){
     sys.map(sy => '<button class="btn small" data-sys="' + esc(sy.id) + '" aria-pressed="' + (ui.sys === sy.id || sys.length === 1) + '">' + esc(sy.name) + '</button>').join('') +
     '<button class="btn small" type="button" data-act="wizard">+ Yeni sistem</button><button class="btn small" type="button" data-open="turler">Türlerim</button>';
   const one = sys.length === 1 ? sys[0] : S.systems[ui.sys];
-  const wOk = !!(one && one.source === 'paket');   // "Dünyanın en iyisi" yalnız 32'lik özel sistemde, yalnız bu seçicide
+  const wOk = !!(one && one.source === 'paket');   // "Dünyanın en iyisi" yalnız özel pakette, yalnız bu seçicide
   const tier = S.settings.tier === 'dunya' && !wOk ? 'turkiye' : (S.settings.tier || 'envanter');
-  $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(one.source === 'paket' ? 'Özel paket' : one.source === 'tur' ? 'Tür planından' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
+  $('sysTools').innerHTML = (one ? '<div class="systools"><span class="note">' + esc(/*@ozel*/one.source === 'paket' ? 'Özel paket' : /*@end*/one.source === 'tur' ? 'Tür planından' : 'Rig Atölyesi') + (one.active === false ? ' · kapalı, önerilere girmez' : '') + '</span>' +
       (one.source === 'sihirbaz' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
       '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
       (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
@@ -21,7 +21,7 @@ function renderRigs(){
     $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
     if (sys.length) { $('rigList').innerHTML = '<div class="empty">Açık sistemde rig yok. Kapalı bir sistemi açabilir ya da yeni sistem kurabilirsin.</div>'; return; }
     $('rigList').innerHTML = '<div class="panel stack"><h3>Rig sistemini kur</h3><p class="sub">Uygulama boş başlar. Nasıl avlandığını, hangi türü hedeflediğini ve takım tercihini sorup sana özel bir rig sistemi kurar; her rig için envanterinden ve Türkiye\'de bulunabilen en iyi olmak üzere iki malzeme seviyesi verir.</p>' +
-      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button><button class="btn" type="button" data-open="paket">Özel paketimi aç</button></div></div>';
+      '<div class="row"><button class="btn primary" type="button" data-act="wizard">Rig sistemimi kur</button>' + /*@ozel*/(pkgDoor() ? '<button class="btn" type="button" data-open="paket">Özel paketimi aç</button>' : '') + /*@end*/'</div></div>';
     return;
   }
   $('rigSearch').hidden = false;

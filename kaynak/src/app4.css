@@ -1,4 +1,4 @@
-/* v0.27 · Takvim sayfası: "Konum 1 Av Takvimi" sayfasının düzeni. Bütün sınıflar .atk içinde ve t- ön ekli (uygulamanın diğer sınıflarıyla çakışmaz). */
+/* v0.27 · Takvim sayfası: Av takvimi sayfasının düzeni. Bütün sınıflar .atk içinde ve t- ön ekli (uygulamanın diğer sınıflarıyla çakışmaz). */
 :root{
   --bg-2:#DAE6E9;--gold-soft:#F5E6B4;--sea:#23729F;--sun:#EFA51A;--rain:#2A79B2;
   --cloud-fill:#E2EDF0;--cloud-back:#B7C9D0;--cloud-edge:#6A8693;

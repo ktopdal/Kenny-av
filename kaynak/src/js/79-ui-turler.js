@@ -198,7 +198,7 @@ function sheetSpeciesCal(){
     return '<button type="button" class="tcal-r" data-tur="' + esc(s.id) + '"><span class="nm">' + esc(s.name) + (mine.has(s.id) && all ? ' <i class="mk" aria-label="sistemimde"></i>' : '') + '</span>' +
       MON3.map((x, i) => '<span class="c c' + calMonth(s.id, i + 1) + (i + 1 === month ? ' now' : '') + '"></span>').join('') +
       '<span class="su ' + (w === 'ideal' ? 'ok' : /soğuk/.test(w) ? 'cold' : /sıcak/.test(w) ? 'hot' : '') + '">' + f0(tempNum(c[1][1])) + '–' + f0(tempNum(c[1][2])) + '</span></button>'; }).join('');
-  return sheetBar('Tür takvimi') + '<div class="stack"><p class="sub">Ege (İzmir–Seferihisar) için ay ay oltaya gelme ve türün sevdiği su sıcaklığı. Genel bilgidir; yıla ve noktaya göre değişir. Avların ve “tuttu / tutmadı” bildirimlerin önerileri senin noktana göre ayarlar.</p>' +
+  return sheetBar('Tür takvimi') + '<div class="stack"><p class="sub">Ege için ay ay oltaya gelme ve türün sevdiği su sıcaklığı. Genel bilgidir; yıla ve noktaya göre değişir. Avların ve “tuttu / tutmadı” bildirimlerin önerileri senin noktana göre ayarlar.</p>' +
     (mine.size ? '<div class="seg wrapseg"><button class="btn small" type="button" data-tcal="mine" aria-pressed="' + !all + '">Sistemimdeki türler</button><button class="btn small" type="button" data-tcal="all" aria-pressed="' + all + '">Bölgenin türleri</button></div>' : '') +
     (sst != null ? '<p class="note">Bugün su <b>' + tempTxt(sst, true) + '</b> (' + esc(locLabel(L)) + '). Sağdaki sütun türün sevdiği su: yeşil uygun, mavi soğuk, kırmızı sıcak.</p>' : '<p class="note">Su sıcaklığı deniz noktası seçilince gelir.</p>') +
     '<div class="tcal">' + head + rows + '</div>' +

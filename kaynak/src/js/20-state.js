@@ -27,14 +27,15 @@ function normalizeState(st){
   for (const k of Object.keys(n)) if (st[k] === undefined || st[k] === null && typeof n[k] === 'object' && k !== 'wx' && k !== 'active') st[k] = n[k];
   for (const g of ['settings', 'inv', 'pkg', 'backup', 'profile']) for (const k of Object.keys(n[g])) if (st[g][k] === undefined) st[g][k] = n[g][k];
   if (!st.locations[st.active]) st.active = Object.keys(st.locations)[0] || null;
+  if (EDITION !== 'ozel') st.pkg = n.pkg;   // genel yayında paket kilidi hep kapalı (cihaza özgü; buluta gitmez). Profildeki diğer kayıtlara dokunulmaz.
   if (st.wx && !st.wx.raw) st.wx = null;
   // v0.15: rüzgâr/hamle satırları yeni düzene (Karma + 3 model rüzgâr + 3 model hamle) varsayılan yerleriyle gelir
   if (hrv0 < 15) { if (Array.isArray(st.settings.hrows)) st.settings.hrows = st.settings.hrows.filter(e => !/^(ruzgar|r_icon|r_ecmwf|r_gfs|h_icon|h_ecmwf|h_gfs|hamle|yon|uyum)$/.test(e && e[0])); st.settings.hrv = 15; }
-  // v0.16: saatlik tablonun yeni varsayılan düzeni (Kenny'nin düzeni) herkese bir kez uygulanır; Bulut ve Solunar satırı kalktı
+  // v0.16: saatlik tablonun yeni varsayılan düzeni (sahibinin düzeni) herkese bir kez uygulanır; Bulut ve Solunar satırı kalktı
   if (hrv0 < 16) { st.settings.hrows = null; st.settings.hrv = 16; }
   return st;
 }
-// v0.2 (Kenny Av) → v0.3: adetler, durumlar, konumlar, hava önbelleği ve açılmış paket taşınır
+// v0.2 → v0.3: adetler, durumlar, konumlar, hava önbelleği ve açılmış paket taşınır
 function migrateV1(st, old){
   st.inv.qty = old.qty || {}; st.inv.status = old.status || {};
   st.locations = old.locations || {}; st.active = old.active || null;
@@ -63,14 +64,14 @@ function persist(){ persistQuiet(); if (typeof markDirty === 'function') markDir
 const loc = () => (S && S.active && S.locations[S.active]) || (S ? Object.values(S.locations)[0] : null) || null;
 const nextLocId = () => String(Math.max(0, ...Object.keys(S.locations).map(Number).filter(isFinite)) + 1);
 // konum türü: deniz (tekne ya da kıyı), kıyı (kıyıdan av: kıyı modu), kara (yalnız hava durumu; balık, rig, su verisi yok)
-// tür bilinmiyorsa deniz gibi davranılır; özel paketin konumları Kenny'nin deniz noktalarıdır
+// tür bilinmiyorsa deniz gibi davranılır; özel paketin konumları deniz noktalarıdır
 const KIND_TXT = {deniz: 'Deniz', kiyi: 'Kıyı', kara: 'Kara'};
 const kmTxt = km => km == null ? '' : km < 1 ? Math.max(10, Math.round(km * 100) * 10) + ' m' : f1(km) + ' km';   // 1 km altı metre
 const locKind = L => !L ? null : L.kind && KIND_TXT[L.kind] ? L.kind : 'deniz';
 const landMode = () => locKind(loc()) === 'kara';
 // geçerli av modu: karada 'kara', kıyı türünde her zaman 'kiyi', denizde kullanıcının seçimi (Tekne/Kıyı)
 const modeNow = () => { const k = locKind(loc()); return k === 'kara' ? 'kara' : k === 'kiyi' ? 'kiyi' : (S.mode === 'kiyi' ? 'kiyi' : 'tekne'); };
-const locLabel = L => !L ? '' : (L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + L.name + (L.tmp ? ' (kaydedilmedi)' : '');
+const locLabel = L => !L ? '' : /*@ozel*/(L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + /*@end*/'' + L.name + (L.tmp ? ' (kaydedilmedi)' : '');
 
 // ---------------------------------------------------------------- stok
 // durum: var | az (adette azalmış) | bitti (sayı 0 ya da "bitti" işareti; alınacak sayılır) | alinacak (istek, henüz yok) | yok

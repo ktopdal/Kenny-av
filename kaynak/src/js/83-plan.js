@@ -201,7 +201,7 @@ function sumText(z){
 function prepAlarmTxt(s){ const p = s.best.prep; return 'Yarın ' + winTxt(s.best.w) + ' ' + locLabel(s.best.L) + ': ' + [p.bait.length ? 'yem: ' + p.bait.join(', ') : '', p.miss.length ? 'eksik: ' + p.miss.join(' · ') : '', p.rigs.length ? 'rigler: ' + p.codes.join(', ') : ''].filter(Boolean).join(' · '); }
 function buildIcs(res){
   const cfg = res.cfg, now = new Date(), sent = alsGet(), seq = u => ((sent.seq || {})[u] || 0) + 1;
-  const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Alyssa by Barbossa App//TR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Alyssa av pencereleri'];
+  const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//' + APP_NAME + '//TR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Alyssa av pencereleri'];
   const ev = (uid, a, b, title, desc, extra, alarms) => { out.push('BEGIN:VEVENT', 'UID:' + uid, 'DTSTAMP:' + icsDate(now), 'SEQUENCE:' + seq(uid), 'DTSTART:' + icsDate(a), 'DTEND:' + icsDate(b), 'SUMMARY:' + icsEsc(title), 'DESCRIPTION:' + icsEsc(desc), ...(extra || []));
     (alarms || []).forEach(([trig, txt]) => out.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(txt), trig, 'END:VALARM')); out.push('END:VEVENT'); };
   res.slots.forEach(s => {

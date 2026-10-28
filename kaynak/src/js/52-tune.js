@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------- 52 · tür takvimi, su sıcaklığı ve koşula göre ölçüler (v0.19)
 // Tür takvimi (KB.CAL, Ege için genel bilgi): türün "şimdi" değeri = ay puanı (0–3) × su sıcaklığı uyumu. Rig puanına, rigin türlerinden
-// bu ay ve bu suda en uygun olanı katkı verir ve nedeni yazılır. Kenny'nin paketindeki Ekim–Kasım tahmini (1–5) varsa o ay için o kullanılır.
+// bu ay ve bu suda en uygun olanı katkı verir ve nedeni yazılır. Özel paketteki Ekim–Kasım tahmini (1–5) varsa o ay için o kullanılır.
 // Bugünkü ayar (yalnız öneri; rigin kendi ölçüsü değişmez): kurşun (derinlik ve akış), köstek boyu (akış), köstek kalınlığı (ışık ve dip),
 // hedef boy (porsiyon / trofe) ve dişli tür (lüfer, palamut) uyarısı.
 const MON_LONG = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];

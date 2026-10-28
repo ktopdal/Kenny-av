@@ -37,7 +37,7 @@ function moonSvg(p, size){
   return '<svg class="moon" viewBox="0 0 14 14" width="' + (size || 14) + '" height="' + (size || 14) + '" aria-hidden="true"><circle cx="7" cy="7" r="6"/><path d="M7 1A6 6 0 0 ' + so + ' 7 13A' + rx.toFixed(2) + ' 6 0 0 ' + si + ' 7 1Z"/></svg>';
 }
 // ---- satırlar
-// varsayılan sıra ve açık/kapalı satırlar Kenny'nin düzeni (v0.16); Bulut ve Solunar satırı yok: bulut % Hava hücresinde, solunar Balık hücresinde
+// varsayılan sıra ve açık/kapalı satırlar sahibinin düzeni (v0.16); Bulut ve Solunar satırı yok: bulut % Hava hücresinde, solunar Balık hücresinde
 const HROWS = [
   {id: 'saat', t: 'Saat', fixed: true},
   {id: 'gunes', t: 'Güneş ve ay'},
