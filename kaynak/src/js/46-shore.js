@@ -8,6 +8,10 @@ const angDiff = (a, b) => Math.abs((((a - b) % 360) + 540) % 360 - 180);
 function shoreRel(wdir, facing){ if (wdir == null || facing == null) return null; const d = angDiff(wdir, facing); return d <= 50 ? 'vuran' : d >= 130 ? 'esen' : 'yandan'; }
 const REL_TXT = {vuran: 'kıyıya vuran (denizden)', esen: 'kıyıdan esen (karadan)', yandan: 'kıyıya yandan'};
 const SHORE_TOP = ['levrek', 'cipura', 'sargoz', 'mirmir', 'karagoz', 'istavrit', 'zargana'];
+// kıyıdan (kayalık, iskele, kumsal, mendirek) oltaya gelen türler; diğerleri (orkinos, lahos, fangri, kalkan…) tekne ister
+const SHORE_SP = new Set(['karagoz', 'isparoz', 'izmarit', 'kupes', 'melanurya', 'mirmir', 'sargoz', 'cipura', 'minakop', 'kirma', 'eskina', 'iskorpit', 'hani', 'kaya-baligi',
+  'akya', 'levrek', 'lufer', 'palamut', 'zargana', 'istavrit', 'kolyoz', 'uskumru', 'kefal', 'tekir', 'barbunya', 'mezgit', 'dil', 'trakonya', 'kalamar', 'murekkep', 'ahtapot']);
+const spShore = id => SHORE_SP.has(id);
 // kıyı için deniz sınıfı: kıyıya vuran rüzgâr ve kıyıdaki dalga belirleyici
 function shoreClass(x, facing){
   if (!x || x.wind == null) return null;

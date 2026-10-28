@@ -5,13 +5,16 @@ const PREVIEW = /*__PREVIEW__*/false;
 // sürüm: 'genel' herkese açık yayın (özel paket yok), 'ozel' sahibinin gizli yayını (şifreli özel paketle). Derleyici yazar.
 const EDITION = /*__EDITION__*/'ozel';
 const CHANGELOG = EDITION === 'genel' ? [
-  {v: '0.29.0', notes: ['Alyssa WF (Alyssa Weather & Fishing) ilk genel sürüm',
+  {v: '0.29.1', notes: ['Alyssa WF (Alyssa Weather & Fishing) ilk genel sürüm',
     'Bugün, saatlik tablo ve 16 güne kadar av takvimi: rüzgâr, dalga, akıntı, deniz suyu sıcaklığı, solunar ve av pencereleri',
     'Harita: nokta seç, adını ver, kaydet; deniz derinliği, zemin ve kıyı bilgisi',
     'Rig Atölyesi, envanter, alışveriş listesi ve fotoğraflı av kaydı',
     'Envanter: örnek Excel dosyasını indir, doldur, tek seferde yükle',
     'Takım danışmanı: kendi yapay zekâ anahtarınla (Claude, Gemini, ChatGPT) ya da Google AI Modu ile']}
 ] : /*@ozel*/[
+  {v: '0.29.1', notes: ['Rig Atölyesi acemiye göre: kıyıdan avlanıyorsan yalnız kıyı teknikleri ve kıyıdan tutulan türler çıkar (dip avı tekneye, orkinos ve lahos gibi türler tekneye özel)',
+    '“Bilmiyorum, sen seç”: teknik bilmeyene en kolay teknikler seçilir; tür seçmek zorunlu değil, seçmezsen bölgende tutulanların hepsi için sade bir sistem kurulur',
+    'iPhone ve iPad: yazı alanına dokununca sayfanın kendi kendine büyümesi düzeldi; sayfa yana kaymaz']},
   {v: '0.29.0', notes: ['Yeni ad: Alyssa WF (Alyssa Weather & Fishing)', 'Envanter: örnek Excel dosyasını indir, doldur, “Excel’den yükle” ile tek seferde envantere aktar', 'Genel sürüm ayrı yayında (özel paket yok); bu senin gizli sürümün']},
   {v: '0.28.7', notes: ['Harita kartı: önce “Kaydet”, sonra “Kaydetmeden tahmine dön” (nokta kaydedilmez; başka konuma geçince silinir), sonra Google Haritalar']},
   {v: '0.28.6', notes: ['Haritada “Konumu kaydet”: önce ad sorulur, haritadaki yer adı önerilir', 'Sıfırlamadan sonra seçilen ilk konumun tahmini hemen yüklenir (bekleyip kalmıyordu)']},

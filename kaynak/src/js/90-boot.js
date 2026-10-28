@@ -85,7 +85,7 @@ function bindEvents(){
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
     if (d.acc) { e.preventDefault(); accAct(d.acc, b); return; }
-    if (WZ && ui.sheet === 'wizard' && (d.wzloc || d.wzmap || d.wzcoord || d.wzm || d.wzr || d.wzt || d.wzs || d.wzsadd || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
+    if (WZ && ui.sheet === 'wizard' && (d.wzloc || d.wzmap || d.wzcoord || d.wzm || d.wzr || d.wzt || d.wztx || d.wzs || d.wzsx || d.wzsadd || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
     if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
     if (d.systool) {
       const sy = S.systems[d.sid]; if (!sy) return;

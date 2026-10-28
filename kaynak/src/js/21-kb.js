@@ -168,14 +168,14 @@ const KB = (() => {
   };
   // teknikler ve takım düzenleri
   const TECH = {
-    dip: {name: 'Dip avı (yemli)', modes: ['tekne', 'kiyi'], fams: ['sk', 'so', 'sg', 'kaya', 'kum', 'yirtici', 'buyukdip'], lay: ['hirsizli', 'iki', 'tek', 'kaydirmali'], code: 'D', desc: 'Kurşunla dipte, doğal yemle: hırsızlı, 2 iğneli, tek iğneli ya da kaydırmalı takım.'},
+    dip: {name: 'Dip avı (tekneden, yemli)', modes: ['tekne'], fams: ['sk', 'so', 'sg', 'kaya', 'kum', 'yirtici', 'buyukdip'], lay: ['hirsizli', 'iki', 'tek', 'kaydirmali'], code: 'D', desc: 'Tekneden, kurşunla dipte, doğal yemle: hırsızlı, 2 iğneli, tek iğneli ya da kaydırmalı takım.'},
     canli: {name: 'Canlı yemle büyük av', modes: ['tekne'], fams: ['sg', 'yirtici', 'buyukdip'], lay: ['canli'], code: 'C', desc: 'Canlı kalamar, istavrit ya da kefalle sinarit, akya, lahos, kalkan.'},
     jig: {name: 'Jig (slow jig, tai rubber, inchiku)', modes: ['tekne'], fams: ['so', 'sg', 'kaya', 'yirtici', 'buyukdip'], lay: ['slowjig', 'tairubber', 'inchiku'], code: 'J', desc: 'Dikey sahte yemlerle dip ve orta su; çipura, fangri, sinarit, lahos.'},
     capari: {name: 'Çapari', modes: ['tekne', 'kiyi'], fams: ['pelajikk', 'sk'], lay: ['capari'], code: 'Ç', desc: 'İstavrit, kolyoz, uskumru, izmarit için çok iğneli takım.'},
     eging: {name: 'Kalamar, mürekkep ve ahtapot', modes: ['tekne', 'kiyi'], fams: ['kafadan'], lay: ['egi', 'ahtapot'], code: 'E', desc: 'Egi (kalamar zokası) ve ahtapot zokası; kalamar için gece ışıkta.'},
     sirti: {name: 'Sırtı (trolling)', modes: ['tekne'], fams: ['pelajikb', 'yirtici'], lay: ['sirti'], code: 'S', desc: 'Seyir hâlinde sahte yem çekme: palamut, lüfer, lambuka, akya.'},
     orkinos: {name: 'Orkinos (büyük oyun)', modes: ['tekne'], fams: ['buyuk'], lay: ['canliagir', 'chunking', 'popping', 'agirjig', 'agirsirti'], code: 'O', desc: 'Kurşunlu ağır canlı yem (çiftlik kenarı ve derin akıntılı mera), chunking, popping, ağır jig ve ağır sırtı. Ağır takım ve tecrübe ister.'},
-    surf: {name: 'Surf (kıyıdan dibe atma)', modes: ['kiyi'], fams: ['sk', 'so', 'kum', 'yirtici'], lay: ['paternoster', 'kaydirmali'], code: 'K', desc: 'Uzun kamışla dibe atma: çipura, mırmır, sargoz, levrek, minakop.'},
+    surf: {name: 'Surf (kıyıdan dibe atma)', modes: ['kiyi'], fams: ['sk', 'so', 'kum', 'kaya', 'yirtici'], lay: ['paternoster', 'kaydirmali'], code: 'K', desc: 'Uzun kamışla dibe atma: çipura, mırmır, sargoz, levrek, minakop.'},
     lrf: {name: 'LRF (hafif kıyı)', modes: ['kiyi'], fams: ['sk', 'kaya', 'pelajikk', 'yirtici'], lay: ['lrf'], code: 'L', desc: '1–7 g jighead ve silikonla istavrit, iskorpit, isparoz, küçük levrek.'},
     spin: {name: 'Spin (sahte yem atıp sarma)', modes: ['kiyi', 'tekne'], fams: ['yirtici', 'pelajikb'], lay: ['spin'], code: 'P', desc: 'Maket balık ve metal jigle levrek, lüfer, palamut, akya.'},
     samandira: {name: 'Şamandıralı', modes: ['kiyi', 'tekne'], fams: ['sk', 'kefal', 'pelajikk', 'yirtici'], lay: ['samandira'], code: 'Ş', desc: 'Kefal, melanurya, zargana, izmarit; canlı karidesle levrek.'},

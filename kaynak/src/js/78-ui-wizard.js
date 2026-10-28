@@ -54,7 +54,11 @@ function wzLocStep(a){
 }
 const wzTechs = () => Object.keys(KB.TECH).filter(id => WZ.ans.mode === 'ikisi' || KB.TECH[id].modes.includes(WZ.ans.mode));
 function wzFams(){ const f = new Set(); WZ.ans.techs.forEach(t => KB.TECH[t].fams.forEach(x => f.add(x))); return f; }
-const wzSpecies = () => { const f = wzFams(); const list = KB.SPECIES.filter(s => f.has(s.fam) && s.bol.includes(WZ.ans.region));
+// kıyıda yalnız kıyıdan tutulan türler (orkinos, lahos, fangri… tekne ister)
+const wzSpOk = s => WZ.ans.mode !== 'kiyi' || spShore(s.id);
+// "Bilmiyorum": acemiye en kolay teknikler
+const WZ_EASY = {tekne: ['dip', 'capari'], kiyi: ['surf', 'samandira'], ikisi: ['dip', 'surf']};
+const wzSpecies = () => { const f = wzFams(); const list = KB.SPECIES.filter(s => f.has(s.fam) && s.bol.includes(WZ.ans.region) && wzSpOk(s));
   if (WZ.ans.mode === 'kiyi') list.sort((a, b) => (SHORE_TOP.includes(b.id) ? 1 : 0) - (SHORE_TOP.includes(a.id) ? 1 : 0)); return list; };
 const optBtn = (attr, val, on, label, sub) => '<button type="button" class="opt" ' + attr + '="' + esc(val) + '" aria-pressed="' + !!on + '"><b>' + esc(label) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
 const segWz = (name, opts, cur) => '<div class="seg wrapseg">' + opts.map(([v, t]) => '<button class="btn small" type="button" data-wzset="' + name + '" data-val="' + v + '" aria-pressed="' + (cur === v) + '">' + esc(t) + '</button>').join('') + '</div>';
@@ -73,7 +77,7 @@ function wzSummary(){
 function wzValid(){
   const a = WZ.ans, st = WZ.step;
   if (st === 1) return a.techs.length > 0;
-  if (st === 2) return a.species.length > 0;
+  if (st === 2) return a.species.length > 0 || wzSpecies().length > 0;   // tür seçmek zorunlu değil: boşsa bölgedekilerin hepsi
   if (st === 5) return a.techs.length > 0 && a.species.length > 0 && genSystem(a).length > 0;
   return true;
 }
@@ -96,11 +100,16 @@ function renderWizard(keep){
     body = '<h3>Nereden avlanıyorsun?</h3><div class="opts">' + [['tekne', 'Tekneden', 'Dip, jig, sırtı, canlı yem, orkinos'], ['kiyi', 'Kıyıdan', 'Surf, LRF, spin, şamandıra'], ['ikisi', 'İkisinden de', 'Bütün teknikler']].map(([v, t, s]) => optBtn('data-wzm', v, a.mode === v, t, s)).join('') + '</div>' +
       wzLocStep(a);
   } else if (st === 1) {
-    body = '<h3>Nasıl avlanıyorsun?</h3><p class="note">Birden çok seçebilirsin; her teknik için ayrı rigler kurulur.</p><div class="opts">' + wzTechs().map(id => optBtn('data-wzt', id, a.techs.includes(id), KB.TECH[id].name, KB.TECH[id].desc)).join('') + '</div>';
+    const easy = WZ_EASY[a.mode] || WZ_EASY.tekne;
+    body = '<h3>Nasıl avlanıyorsun?</h3><p class="note">Birden çok seçebilirsin; her teknik için ayrı rigler kurulur.' +
+      (a.mode === 'kiyi' ? ' Kıyıdan avlandığın için yalnız kıyı teknikleri var; tekne teknikleri için geri dönüp “Tekneden” ya da “İkisinden de” seç.' : a.mode === 'tekne' ? ' Tekneden avlandığın için tekne teknikleri var.' : '') + '</p>' +
+      '<div class="opts">' + optBtn('data-wztx', '1', !!a.techAuto, 'Bilmiyorum, sen seç', 'Yeni başlayana en kolayı: ' + easy.map(t => KB.TECH[t].name.replace(/\s*\(.*?\)/g, '')).join(' ve ')) + '</div>' +
+      '<div class="opts">' + wzTechs().map(id => optBtn('data-wzt', id, a.techs.includes(id), KB.TECH[id].name, KB.TECH[id].desc)).join('') + '</div>';
   } else if (st === 2) {
     const by = {}; wzSpecies().forEach(s => { (by[s.fam] = by[s.fam] || []).push(s); });
     const rg0 = (KB.REGIONS.find(r => r[0] === a.region) || [0, ''])[1];
-    body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve noktanın bölgesine (' + esc(rg0) + ') uyan türler. Altlarındaki aylar genel bilgidir.</p>' +
+    body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve noktanın bölgesine (' + esc(rg0) + ') uyan türler' + (a.mode === 'kiyi' ? ', yalnız kıyıdan tutulanlar' : '') + '. Altlarındaki aylar genel bilgidir. Bilmiyorsan seçmeden geç: bölgende tutulanların hepsi için kurulur.</p>' +
+      '<div class="opts">' + optBtn('data-wzsx', '1', !!a.spAuto, 'Bilmiyorum, hepsi', rg0 + ' bölgesinde bu tekniklerle tutulan ' + wzSpecies().length + ' tür') + '</div>' +
       (Object.keys(by).map(f => '<div class="famgrp"><div class="row" style="justify-content:space-between"><span class="eyebrow">' + esc((KB.FAM[f] || {}).name || f) + '</span><button class="linkbtn" type="button" data-wzall="' + f + '">Hepsini seç</button></div><div class="opts sp">' +
         by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>') +
       (a.species.filter(id => !wzSpecies().some(s => s.id === id)).length ? '<p class="note">Aramadan eklenenler: ' + esc(a.species.filter(id => !wzSpecies().some(s => s.id === id)).map(id => (spById(id) || {}).name).filter(Boolean).join(', ')) + '</p>' : '') +
@@ -133,7 +142,10 @@ function renderWizard(keep){
 function wzToggle(arr, v){ const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
 function wzClick(d){
   const a = WZ.ans;
-  if (d.wzm) { a.mode = d.wzm; a.techs = a.techs.filter(t => wzTechs().includes(t)); }
+  if (d.wzm) { a.mode = d.wzm; a.techs = a.techs.filter(t => wzTechs().includes(t)); a.species = a.species.filter(id => { const s = spById(id); return s && wzSpOk(s); });
+    if (a.techAuto) { a.techs = (WZ_EASY[a.mode] || []).slice(); a.techs.forEach(t => { if (!(a.lay[t] || []).length) a.lay[t] = [KB.TECH[t].lay[0]]; }); } }
+  else if (d.wztx) { a.techAuto = !a.techAuto; a.techs = a.techAuto ? (WZ_EASY[a.mode] || WZ_EASY.tekne).filter(t => wzTechs().includes(t)) : []; a.techs.forEach(t => { if (!(a.lay[t] || []).length) a.lay[t] = [KB.TECH[t].lay[0]]; }); }
+  else if (d.wzsx) { a.spAuto = !a.spAuto; a.species = a.spAuto ? wzSpecies().map(s => s.id) : []; if (a.spAuto && !a.sizeSet) a.size = 'sade'; }
   else if (d.wzr) { a.region = d.wzr; }
   else if (d.wzloc) { wzUseLoc(d.wzloc); }
   else if (d.wzmap) { ui.mapFor = 'wizard'; ui.back = () => { ui.mapFor = null; if (WZ) { ui.sheet = 'wizard'; renderWizard(); } else closeSheet(); }; openMap(); return; }
@@ -143,25 +155,26 @@ function wzClick(d){
     const n = nearestLoc({lat, lon}); const id = n && n.d <= 0.2 ? n.L.id : addLocation('Rig noktası ' + lat.toFixed(3) + ', ' + lon.toFixed(3), +lat.toFixed(6), +lon.toFixed(6), '', '', false);
     wzUseLoc(id); toast(locLabel(S.locations[id]) + ' seçildi');
   }
-  else if (d.wzt) { wzToggle(a.techs, d.wzt); if (a.techs.includes(d.wzt) && !(a.lay[d.wzt] || []).length) a.lay[d.wzt] = [KB.TECH[d.wzt].lay[0]]; }
-  else if (d.wzs) { wzToggle(a.species, d.wzs); }
+  else if (d.wzt) { a.techAuto = false; wzToggle(a.techs, d.wzt); if (a.techs.includes(d.wzt) && !(a.lay[d.wzt] || []).length) a.lay[d.wzt] = [KB.TECH[d.wzt].lay[0]]; }
+  else if (d.wzs) { a.spAuto = false; wzToggle(a.species, d.wzs); }
   else if (d.wzsadd) {   // aramadan tür: uygun tekniği de ekle
-    const sp = spById(d.wzsadd); if (!sp) return;
+    const sp = spById(d.wzsadd); if (!sp || !wzSpOk(sp)) return; a.spAuto = false;
     const tid = techsFor(sp).find(t => wzTechs().includes(t)) || null;
     if (tid && !a.techs.includes(tid)) { a.techs.push(tid); if (!(a.lay[tid] || []).length) a.lay[tid] = [KB.TECH[tid].lay[0]]; }
     if (!a.species.includes(sp.id)) a.species.push(sp.id);
     toast(sp.name + (tid ? ' eklendi · teknik: ' + KB.TECH[tid].name.replace(/\s*\(.*?\)/g, '') : ' eklendi'));
   }
   else if (d.wzy) { if (!Array.isArray(a.baits)) a.baits = []; wzToggle(a.baits, d.wzy); }
-  else if (d.wzall) { const ids = wzSpecies().filter(s => s.fam === d.wzall).map(s => s.id); const all = ids.every(i => a.species.includes(i)); ids.forEach(i => { const k = a.species.indexOf(i); if (all && k >= 0) a.species.splice(k, 1); if (!all && k < 0) a.species.push(i); }); }
+  else if (d.wzall) { a.spAuto = false; const ids = wzSpecies().filter(s => s.fam === d.wzall).map(s => s.id); const all = ids.every(i => a.species.includes(i)); ids.forEach(i => { const k = a.species.indexOf(i); if (all && k >= 0) a.species.splice(k, 1); if (!all && k < 0) a.species.push(i); }); }
   else if (d.wzl) { const [t, l] = d.wzl.split('|'); a.lay[t] = a.lay[t] || []; wzToggle(a.lay[t], l); }
   else if (d.wzset) { a[d.wzset] = d.val; }
   else if (d.wzb) { if (a.bottomsAuto) { a.bottomsAuto = false; } wzToggle(a.bottoms, d.wzb); }
-  else if (d.wzz) { a.size = d.wzz; }
+  else if (d.wzz) { a.size = d.wzz; a.sizeSet = true; }
   else if (d.wz === 'back') { WZ.step = Math.max(0, WZ.step - 1); renderWizard(); return; }
   else if (d.wz === 'next') {
     if (!wzValid()) return;
-    if (WZ.step === 1) { const f = wzFams(); a.species = a.species.filter(id => { const s = KB.SPECIES.find(x => x.id === id); return s && f.has(s.fam); }); }
+    if (WZ.step === 1) { const f = wzFams(); a.species = a.species.filter(id => { const s = KB.SPECIES.find(x => x.id === id); return s && f.has(s.fam) && wzSpOk(s); }); if (a.spAuto) a.species = wzSpecies().map(s => s.id); }
+    if (WZ.step === 2 && !a.species.length) { a.species = wzSpecies().map(s => s.id); a.spAuto = true; if (!a.sizeSet) a.size = 'sade'; toast('Tür seçmedin: bölgende tutulan ' + a.species.length + ' türün hepsi için kuruluyor'); }
     WZ.step = Math.min(5, WZ.step + 1); renderWizard(); return;
   }
   else if (d.wz === 'done') { wzFinish(); return; }
@@ -186,5 +199,6 @@ function wzFinish(){
 
 function wzSpSearch(q){
   const el = $('wzSpRes'); if (!el) return;
-  el.innerHTML = speciesSearch(q).map(r => '<button type="button" class="catpick" data-wzsadd="' + esc(r.s.id) + '"><b>' + esc(r.s.name) + (WZ.ans.species.includes(r.s.id) ? ' ✓' : '') + '</b><small>' + esc((KB.FAM[r.s.fam] || {}).name || '') + '</small></button>').join('') || (slugTR(q).length >= 2 ? '<p class="note">Bulunamadı. Türlerim ekranında “benzer tür” seçerek ekleyebilirsin.</p>' : '');
+  el.innerHTML = speciesSearch(q).map(r => wzSpOk(r.s) ? '<button type="button" class="catpick" data-wzsadd="' + esc(r.s.id) + '"><b>' + esc(r.s.name) + (WZ.ans.species.includes(r.s.id) ? ' ✓' : '') + '</b><small>' + esc((KB.FAM[r.s.fam] || {}).name || '') + '</small></button>' :
+    '<button type="button" class="catpick" disabled><b>' + esc(r.s.name) + '</b><small>Kıyıdan tutulmaz; tekne gerekir</small></button>').join('') || (slugTR(q).length >= 2 ? '<p class="note">Bulunamadı. Türlerim ekranında “benzer tür” seçerek ekleyebilirsin.</p>' : '');
 }
