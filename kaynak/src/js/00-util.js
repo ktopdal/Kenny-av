@@ -5,13 +5,17 @@ const PREVIEW = /*__PREVIEW__*/false;
 // sürüm: 'genel' herkese açık yayın (özel paket yok), 'ozel' sahibinin gizli yayını (şifreli özel paketle). Derleyici yazar.
 const EDITION = /*__EDITION__*/'ozel';
 const CHANGELOG = EDITION === 'genel' ? [
-  {v: '0.29.1', notes: ['Alyssa WF (Alyssa Weather & Fishing) ilk genel sürüm',
+  {v: APP_VERSION, notes: ['Alyssa WF (Alyssa Weather & Fishing) ilk genel sürüm',
     'Bugün, saatlik tablo ve 16 güne kadar av takvimi: rüzgâr, dalga, akıntı, deniz suyu sıcaklığı, solunar ve av pencereleri',
     'Harita: nokta seç, adını ver, kaydet; deniz derinliği, zemin ve kıyı bilgisi',
     'Rig Atölyesi, envanter, alışveriş listesi ve fotoğraflı av kaydı',
     'Envanter: örnek Excel dosyasını indir, doldur, tek seferde yükle',
     'Takım danışmanı: kendi yapay zekâ anahtarınla (Claude, Gemini, ChatGPT) ya da Google AI Modu ile']}
 ] : /*@ozel*/[
+  {v: '0.29.2', notes: ['Üst satır: konumun adı, koordinatı ve türü (deniz/kıyı, dip) ayrı satırlarda; yarısı görünmüyordu',
+    'Konuma dokununca önce Konumlar listesi açılır; harita listenin en üstündeki “Haritadan seç” bandından',
+    'Rig Atölyesi: seçili nokta kıyıysa kıyıdan, denizse tekneden kurar; ayrıca sorulmaz',
+    'iPhone: haritada konuma ad verirken kart üste çıkar, klavye kapatmaz']},
   {v: '0.29.1', notes: ['Rig Atölyesi acemiye göre: kıyıdan avlanıyorsan yalnız kıyı teknikleri ve kıyıdan tutulan türler çıkar (dip avı tekneye, orkinos ve lahos gibi türler tekneye özel)',
     '“Bilmiyorum, sen seç”: teknik bilmeyene en kolay teknikler seçilir; tür seçmek zorunlu değil, seçmezsen bölgende tutulanların hepsi için sade bir sistem kurulur',
     'iPhone ve iPad: yazı alanına dokununca sayfanın kendi kendine büyümesi düzeldi; sayfa yana kaymaz']},

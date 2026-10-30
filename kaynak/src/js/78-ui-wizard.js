@@ -15,15 +15,25 @@ function wzDefLoc(region){
   return wzLocs().find(L => !region || regionOf(L) === region) || null;
 }
 const WZ_BOTTOM = {kum: 'kum', 'kum-kayalik': 'kum-kayalik', kayalik: 'kayalik', 'saf-kayalik': 'kayalik', karma: 'karma', camur: 'camur'};
+// v0.29.2: noktanın türü avlanma yerini belirler: kıyı noktası → kıyıdan, deniz noktası → tekneden (ayrıca sorulmaz)
+// seçili konumda üstteki Tekne/Kıyı düğmesi de geçerlidir (deniz noktasında kıyı modu seçilmişse kıyıdan)
+const wzModeOf = L => { if (!L) return null; const k = locKind(L); if (k === 'kara') return null; if (L.id === S.active) return modeNow() === 'kiyi' ? 'kiyi' : 'tekne'; return k === 'kiyi' ? 'kiyi' : 'tekne'; };
+function wzSetMode(m){
+  const a = WZ.ans; if (!m || a.mode === m) return;
+  a.mode = m; a.techs = a.techs.filter(t => wzTechs().includes(t));
+  a.species = a.species.filter(id => { const s = spById(id); return s && wzSpOk(s); });
+  if (a.techAuto) { a.techs = (WZ_EASY[a.mode] || []).slice(); a.techs.forEach(t => { if (!(a.lay[t] || []).length) a.lay[t] = [KB.TECH[t].lay[0]]; }); }
+}
 function wzUseLoc(id){
   const a = WZ.ans, L = S.locations[id]; if (!L) return;
   a.locId = id; a.region = regionOf(L);
   const b = WZ_BOTTOM[L.bottom || L.bottomEst || ''];
   if (b && (!a.bottoms.length || a.bottomsAuto)) { a.bottoms = [b]; a.bottomsAuto = true; }
+  wzSetMode(wzModeOf(L));
 }
 function wzDefaults(){
   const L = wzDefLoc();
-  const a = {mode: S.mode || 'tekne', region: regionOf(L || loc()), locId: L ? L.id : null, techs: [], species: [], baits: (S.profile.baits || []).slice(), lay: {}, klass: 'ikisi', time: 'ikisi', bottoms: [], size: 'dengeli', rodMax: '', name: ''};
+  const a = {mode: wzModeOf(L) || S.mode || 'tekne', region: regionOf(L || loc()), locId: L ? L.id : null, techs: [], species: [], baits: (S.profile.baits || []).slice(), lay: {}, klass: 'ikisi', time: 'ikisi', bottoms: [], size: 'dengeli', rodMax: '', name: ''};
   return a;
 }
 function startWizard(editId){
@@ -31,6 +41,7 @@ function startWizard(editId){
   WZ = {step: 0, ans: sy && sy.answers ? JSON.parse(JSON.stringify(sy.answers)) : wzDefaults(), editId: sy ? editId : null};
   if (!Array.isArray(WZ.ans.baits)) WZ.ans.baits = (S.profile.baits || []).slice();
   if (!WZ.ans.locId || !S.locations[WZ.ans.locId]) { const L = wzDefLoc(WZ.ans.region); WZ.ans.locId = L ? L.id : null; }
+  if (WZ.ans.locId && S.locations[WZ.ans.locId]) wzSetMode(wzModeOf(S.locations[WZ.ans.locId]));
   ui.sheet = 'wizard'; renderWizard();
 }
 // koordinat: "38,4192" ya da "38.4192"; derece-dakika (38°25,152') da olur
@@ -43,8 +54,8 @@ function wzParseCoord(v){
 function wzLocStep(a){
   const Ls = wzLocs(), L = a.locId && S.locations[a.locId];
   const reg = (KB.REGIONS.find(r => r[0] === a.region) || [0, 'Ege'])[1];
-  const sub = x => [(KB.REGIONS.find(r => r[0] === regionOf(x)) || [0, ''])[1], x.depth ? x.depth + ' m' : '', x.bottom ? BOTTOM_TXT[x.bottom] : x.bottomEst ? 'tahmini ' + trLower(BOTTOM_TXT[x.bottomEst] || '') : '', locKind(x) === 'kiyi' ? 'kıyı' : ''].filter(Boolean).join(' · ');
-  return '<h3>Hangi noktada avlanıyorsun?</h3><p class="note">Deniz bölgesi, dip ve derinlik noktadan alınır; türler bölgeye göre süzülür.</p>' +
+  const sub = x => [(KB.REGIONS.find(r => r[0] === regionOf(x)) || [0, ''])[1], x.depth ? x.depth + ' m' : '', x.bottom ? BOTTOM_TXT[x.bottom] : x.bottomEst ? 'tahmini ' + trLower(BOTTOM_TXT[x.bottomEst] || '') : '', locKind(x) === 'kiyi' ? 'kıyı' : 'deniz'].filter(Boolean).join(' · ');
+  return '<h3>Hangi noktada avlanıyorsun?</h3><p class="note">Kıyıdan mı tekneden mi avlanacağın, deniz bölgesi, dip ve derinlik noktadan alınır; türler bölgeye göre süzülür.</p>' +
     (Ls.length ? '<div class="opts">' + Ls.map(x => optBtn('data-wzloc', x.id, a.locId === x.id, locLabel(x), sub(x))).join('') + '</div>' : '<p class="note">Kayıtlı deniz noktan yok.</p>') +
     '<div class="row wzlocb"><button class="btn small" type="button" data-wzmap="1">Haritadan yeni nokta seç</button></div>' +
     '<details class="wzmore"><summary>Koordinatla gir</summary><div class="fields"><label class="f">Enlem (K)<input id="wz-lat" inputmode="decimal" placeholder="Ör. 38,1234"></label><label class="f">Boylam (D)<input id="wz-lon" inputmode="decimal" placeholder="Ör. 26,6543"></label></div>' +
@@ -97,8 +108,10 @@ function wzBaitStep(a){
 function renderWizard(keep){
   const a = WZ.ans; const st = WZ.step; let body = '';
   if (st === 0) {
-    body = '<h3>Nereden avlanıyorsun?</h3><div class="opts">' + [['tekne', 'Tekneden', 'Dip, jig, sırtı, canlı yem, orkinos'], ['kiyi', 'Kıyıdan', 'Surf, LRF, spin, şamandıra'], ['ikisi', 'İkisinden de', 'Bütün teknikler']].map(([v, t, s]) => optBtn('data-wzm', v, a.mode === v, t, s)).join('') + '</div>' +
-      wzLocStep(a);
+    const L0 = a.locId && S.locations[a.locId], m0 = wzModeOf(L0);
+    body = wzLocStep(a) + (m0 ? '<div class="panel stack wzmode"><b>' + (m0 === 'kiyi' ? (locKind(L0) === 'kiyi' ? 'Kıyı noktası' : 'Kıyı modu') + ': kıyıdan avlanma' : 'Deniz noktası: tekneden avlanma') + '</b><span class="note">' +
+        (m0 === 'kiyi' ? 'Yalnız kıyı teknikleri ve kıyıdan tutulan türler gelir.' : 'Yalnız tekne teknikleri gelir.') + ' Noktanın türünü Daha → Konumlar’dan, seçili noktada modu üstteki Tekne/Kıyı düğmesinden değiştirebilirsin.</span></div>' :
+      '<h3>Nereden avlanıyorsun?</h3><div class="opts">' + [['tekne', 'Tekneden', 'Dip, jig, sırtı, canlı yem'], ['kiyi', 'Kıyıdan', 'Surf, LRF, spin, şamandıra'], ['ikisi', 'İkisinden de', 'Bütün teknikler']].map(([v, t, s]) => optBtn('data-wzm', v, a.mode === v, t, s)).join('') + '</div>');
   } else if (st === 1) {
     const easy = WZ_EASY[a.mode] || WZ_EASY.tekne;
     body = '<h3>Nasıl avlanıyorsun?</h3><p class="note">Birden çok seçebilirsin; her teknik için ayrı rigler kurulur.' +
@@ -142,8 +155,7 @@ function renderWizard(keep){
 function wzToggle(arr, v){ const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
 function wzClick(d){
   const a = WZ.ans;
-  if (d.wzm) { a.mode = d.wzm; a.techs = a.techs.filter(t => wzTechs().includes(t)); a.species = a.species.filter(id => { const s = spById(id); return s && wzSpOk(s); });
-    if (a.techAuto) { a.techs = (WZ_EASY[a.mode] || []).slice(); a.techs.forEach(t => { if (!(a.lay[t] || []).length) a.lay[t] = [KB.TECH[t].lay[0]]; }); } }
+  if (d.wzm) { wzSetMode(d.wzm); }
   else if (d.wztx) { a.techAuto = !a.techAuto; a.techs = a.techAuto ? (WZ_EASY[a.mode] || WZ_EASY.tekne).filter(t => wzTechs().includes(t)) : []; a.techs.forEach(t => { if (!(a.lay[t] || []).length) a.lay[t] = [KB.TECH[t].lay[0]]; }); }
   else if (d.wzsx) { a.spAuto = !a.spAuto; a.species = a.spAuto ? wzSpecies().map(s => s.id) : []; if (a.spAuto && !a.sizeSet) a.size = 'sade'; }
   else if (d.wzr) { a.region = d.wzr; }

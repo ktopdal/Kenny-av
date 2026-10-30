@@ -4,7 +4,9 @@ function renderTop(){
   const L = loc();
   $('locName').textContent = L ? locLabel(L) : APP_SHORT;
   const kind = locKind(L);
-  $('locSub').textContent = L ? fmtCoord(L.lat, L.lon) + ' · ' + (kind === 'kara' ? 'kara · yalnız hava durumu' : kind === 'kiyi' ? 'kıyı' + (facingOf(L) != null ? ' · bakış ' + dir8(facingOf(L)) : '') : 'dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor')) : 'Konum seçilmedi';
+  // v0.29.2: koordinat ve tür/dip ayrı satırlarda (tek satırda yarısı görünmüyordu)
+  const info = L ? (kind === 'kara' ? 'kara · yalnız hava durumu' : kind === 'kiyi' ? 'kıyı' + (facingOf(L) != null ? ' · bakış ' + dir8(facingOf(L)) : '') + (L.depth ? ' · ' + L.depth + ' m' : '') : 'deniz · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') + (L.depth ? ' · ' + L.depth + ' m' : '')) : '';
+  $('locSub').innerHTML = L ? '<span class="ls-c">' + esc(fmtCoord(L.lat, L.lon)) + '</span><span class="ls-i">' + esc(info) + '</span>' : '<span class="ls-c">Konum seçilmedi</span>';
   // Tekne/Kıyı düğmesi: karada yok; kıyı türündeki konumda hep Kıyı (değiştirmek için konumun türü değişir)
   const mb = $('modeBtn'); const sh = modeNow() === 'kiyi';
   mb.hidden = kind === 'kara'; mb.classList.toggle('fixed', kind === 'kiyi');
@@ -70,7 +72,8 @@ async function pkgCheck(manual){
 }
 function bindEvents(){
   document.querySelector('.tabbar').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) show(b.dataset.v); });
-  $('locBtn').addEventListener('click', () => openMap());
+  $('locBtn').addEventListener('click', () => openMore('konumlar'));   // v0.29.2: önce liste; harita listenin üstündeki banttan
+  $('locSub').addEventListener('click', () => openMore('konumlar'));
   $('net').addEventListener('click', () => loadWeather(true));
   $('compass').addEventListener('click', () => { const x = nowHour(); if (x) toast(compassTxt(x)); });
   $('modeBtn').addEventListener('click', () => { const k = locKind(loc()); if (k === 'kara') return;

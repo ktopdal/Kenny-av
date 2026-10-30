@@ -24,7 +24,7 @@ TERSER = os.path.join(ROOT, 'tools/node_modules/.bin/terser')
 PREV = os.path.join(APP, 'preview')
 SECRET = os.path.join(ROOT, 'secret/key.json')
 FISHCAL = '/home/claude/fishcal/data'
-VERSION = '0.29.1'
+VERSION = '0.29.2'
 NAME, SHORT, FULL = 'Alyssa WF', 'Alyssa WF', 'Alyssa Weather & Fishing'
 THEME = '#0B6B7C'
 

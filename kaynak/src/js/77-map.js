@@ -414,6 +414,7 @@ function coordBlock(lat, lon){
 const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lon.toFixed(6);
 function renderPick(){
   const p = MPICK, el = $('mapCard'); if (!el || !p) return;
+  el.classList.remove('naming');
   const facts = [p.kind ? KIND_TXT[p.kind] : '', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + kmTxt(p.coastKm)) : p.sea && p.coastChecked ? 'kıyı 6 km’den uzak' : '',
     p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.bed && p.sea !== false ? 'taban ≈ ' + p.bed.label + ' (EUSeaMap)' : '', p.sea === false && p.elev != null && p.elev >= 1 ? 'yükselti ≈ ' + p.elev + ' m' : '',
     p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean);
@@ -430,6 +431,7 @@ function renderPick(){
 }
 async function locCard(id){
   const Lc = S.locations[id], el = $('mapCard'); if (!Lc || !el) return;
+  el.classList.remove('naming');
   MPICK = {lat: Lc.lat, lon: Lc.lon, id, name: Lc.name};
   if (MAPL && MAPL.pick) { MAP.removeLayer(MAPL.pick); MAPL.pick = null; }
   const k = locKind(Lc);
@@ -478,11 +480,11 @@ async function mapAct(a, b){
   }
   // v0.28.6: kaydetmeden önce ad sor (haritadaki yer adı önerilir)
   if (a === 'save' && (!p.id || (S.locations[p.id] || {}).tmp) && !b.dataset.named) {
-    const card = $('mapCard'); card.hidden = false;
+    const card = $('mapCard'); card.hidden = false; card.classList.add('naming');   // v0.29.2: klavye kartı kapatmasın: ad sorulurken kart üstte
     card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Liman açığı" autocomplete="off"></label>' +
       (p.name ? '<p class="note">Haritadaki adı önerildi; istersen değiştir.</p>' : '') +
       '<div class="row"><button class="btn primary" type="button" data-mapact="save" data-named="1">Kaydet</button><button class="btn" type="button" data-mapact="namecancel">Vazgeç</button></div></div>';
-    const inp = $('mpName'); if (inp) { inp.focus(); inp.select(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('[data-named]').click(); }); }
+    const inp = $('mpName'); if (inp) { inp.focus({preventScroll: true}); inp.select(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('[data-named]').click(); }); }
     return;
   }
   if (a === 'namecancel') { pickPoint(p.lat, p.lon); return; }

@@ -601,7 +601,7 @@ async def main():
         await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
         n0 = len((await state(pg))['locations'])
-        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(600)
+        await pg.click('#locBtn'); await pg.click('#sheet .mapbanner'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(600)
         check(await pg.is_visible('#map') and await pg.locator('.mpin').count() >= 1, 'J: harita açıldı, konum işaretleri var (%d)' % await pg.locator('.mpin').count())
         check(any('tile.openstreetmap.org' in u for u in MAP_LOG) and any('openseamap' in u for u in MAP_LOG) and any('contours' in u for u in MAP_LOG), 'J: OSM, deniz işaretleri ve derinlik eğrisi katmanları istendi')
         bb = await pg.locator('#map').bounding_box()
@@ -634,7 +634,7 @@ async def main():
         await pg.click('#mapCard button[data-mapact="use"]'); await pg.wait_for_timeout(1500)
         st = await state(pg); check(st['active'] == newl[0]['id'] and not await pg.is_visible('#sheet') and 'Deneme' in await pg.inner_text('#locName'), 'J: harita noktası seçildi, Bugün ekranına dönüldü')
         await pg.set_viewport_size({'width': 320, 'height': 700}); await pg.wait_for_timeout(200)
-        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
+        await pg.click('#locBtn'); await pg.click('#sheet .mapbanner'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
         await overflow(pg, 'J 320 px harita')
         bb = await pg.locator('#map').bounding_box(); await pg.mouse.click(bb['x'] + bb['width'] * 0.6, bb['y'] + bb['height'] * 0.3); await pg.wait_for_timeout(1800)
         await pg.screenshot(path=SHOTS + '/j_harita_320.png'); await overflow(pg, 'J 320 px kart')
@@ -670,7 +670,7 @@ async def main():
         st = await state(pg); check(st['locations'][st['active']].get('facing') == '270', 'K: pusulayla kıyının bakışı alındı: ' + str(st['locations'][st['active']].get('facing')))
         # kıyı sistemi kur: surf
         await pg.click('#recList button[data-act="wizard"]'); await pg.wait_for_timeout(300)
-        check(await pg.get_attribute('button[data-wzm="kiyi"]', 'aria-pressed') == 'true', 'K: sihirbaz kıyı modunda açıldı')
+        check('kıyıdan avlanma' in await pg.inner_text('#sheet') and await pg.locator('button[data-wzm]').count() == 0, 'K: sihirbaz kıyı modunda açıldı (soru sorulmadı)')
         await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         await pg.click('button[data-wzt="surf"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         first = await pg.locator('button[data-wzs]').first.get_attribute('data-wzs'); check(first in ('levrek', 'cipura', 'sargoz', 'mirmir', 'karagoz', 'istavrit', 'zargana'), 'K: kıyıda öne çıkan türler önce: ' + str(first))
@@ -830,7 +830,7 @@ async def main():
         check('Rig Atölyesi' in await pg.inner_text('#sheet'), 'F: sihirbaz açıldı')
         # v0.24: "Hangi denizde?" yerine nokta (yeni kullanıcıda kayıtlı nokta yok: harita / koordinat, bölge Ege varsayılır)
         check('Hangi noktada' in await pg.inner_text('#sheet') and await pg.locator('#sheet button[data-wzr]').count() == 0 and 'Ege varsayıldı' in await pg.inner_text('#sheet'), 'F: sihirbaz deniz yerine nokta soruyor')
-        await pg.click('button[data-wzm="tekne"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
+        (await pg.click('button[data-wzm="tekne"]')) if (await pg.locator('button[data-wzm="tekne"]').count()) else None; await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         check(await pg.is_disabled('button[data-wz="next"]'), 'F: teknik seçmeden ilerlenemez')
         await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wzt="orkinos"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         for sp in ['karagoz', 'mercan', 'orkinos']: await pg.click(f'button[data-wzs="{sp}"]')
@@ -1161,7 +1161,7 @@ async def main():
         check(any('Ocea Jigger' in (ALN or '') for ALN in await pg.evaluate('ALYSSA_QA.shoppingList().map(n => n.item ? ALYSSA_QA.items()[n.item].name : n.name)')), 'P: hayaldeki kamış alışveriş listesinde')
         # Rig Atölyesi: tür arama tekniği de ekler
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('#sysBar button[data-act="wizard"]'); await pg.wait_for_timeout(250)
-        await pg.click('button[data-wzm="tekne"]'); await pg.click('button[data-wz="next"]'); await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(200)
+        (await pg.click('button[data-wzm="tekne"]')) if (await pg.locator('button[data-wzm="tekne"]').count()) else None; await pg.click('button[data-wz="next"]'); await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(200)
         await pg.fill('#wz-spq', 'istavrit'); await pg.wait_for_timeout(200); await pg.click('#wzSpRes button[data-wzsadd="istavrit"]'); await pg.wait_for_timeout(250)
         st = await pg.evaluate('() => null')
         wz = await pg.evaluate("() => { const t = [...document.querySelectorAll('#sheet button[data-wzs]')].filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.dataset.wzs); return t; }")
@@ -1463,7 +1463,7 @@ async def main():
         check('Uygulanamadı' in await pg.inner_text('#toast'), 'U: geçersiz kod reddedildi')
         await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
         # harita: denizde, Nominatim yakın adres verip derinlik servisi hata verse de "Deniz"; ad ve bilgiler geldikçe yazılır
-        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
+        await pg.click('#locBtn'); await pg.click('#sheet .mapbanner'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
         await pg.evaluate('() => { window.ALYSSA_QA.pickPoint(38.31, 26.71); }'); await pg.wait_for_timeout(1300)   # beklemeden: kart yanıtlar geldikçe dolmalı
         c1 = await pg.inner_text('#mapCard'); print('   ara kart:', c1.replace('\n', ' | ')[:200])
         check('Tuzak Mahallesi' in c1 and 'aranıyor' in c1, 'U: yer adı Overpass beklenmeden göründü')
@@ -1498,7 +1498,7 @@ async def main():
             await ctx.route('https://maps.googleapis.com/**', mock_gmaps)
             await pg.goto(BASE + '/dist/?qa=1'); await pg.wait_for_timeout(1000)
             await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
-            await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
+            await pg.click('#locBtn'); await pg.click('#sheet .mapbanner'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(500)
             await pg.evaluate('window.ALYSSA_QA.pickPoint(38.20, 26.75)'); await pg.wait_for_timeout(2200)
             card = await pg.inner_text('#mapCard'); print('   %s kart:' % mode, card.replace('\n', ' | ')[:220])
             if mode == 'ok':
@@ -1538,7 +1538,7 @@ async def main():
         await pg.click('button[data-wel="paket"]'); await pg.fill('#wel-pass', KEY['pass_']); await pg.click('#welBtn'); await pg.wait_for_timeout(6000)
         st = await state(pg); check(not st['locations']['1'].get('kind') and await pg.evaluate('ALYSSA_QA.modeNow()') == 'tekne', 'W: özel paketin Konum 1’i deniz (türü sorulmadı)')
         # Kenny'nin ekranı: karada nokta, Overpass yanıt vermiyor, EMODnet 13 m diyor → yine Kara, adında "açıkları" yok
-        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(400)
+        await pg.click('#locBtn'); await pg.click('#sheet .mapbanner'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(400)
         await pg.evaluate('window.ALYSSA_QA.pickPoint(38.36476, 26.87316)'); await pg.wait_for_timeout(400)
         card = await pg.inner_text('#mapCard'); print('   kara kartı:', card.replace('\n', ' | ')[:240])
         check('Kara' in card and 'Deniz' not in card and 'açıkları' not in card and 'derinlik' not in card and 'yükselti ≈ 38 m' in card and 'Çelebi, İzmir' in card, 'W: kara noktası Kara, adı “açıkları”sız, derinlik yok, yükselti var')
@@ -1593,7 +1593,7 @@ async def main():
         check(L77.get('kind') == 'kara' and L77['name'] == 'Güzelbahçe', 'W: eski “Güzelbahçe açıkları” → Kara, adı “Güzelbahçe”: ' + json.dumps({k: L77.get(k) for k in ('name', 'kind')}, ensure_ascii=False))
         check(L78.get('kind') == 'deniz' and L78['name'] == 'Elle deniz', 'W: elle seçilmiş türe dokunulmadı')
         # haritadan kıyı noktası: kıyı türü, kıyı modu sabit, Fishing'de kıyı ve kurşun
-        await pg.click('#locBtn'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(400)
+        await pg.click('#locBtn'); await pg.click('#sheet .mapbanner'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(400)
         await pg.evaluate('window.ALYSSA_QA.pickPoint(38.61, 26.91)'); await pg.wait_for_timeout(400)
         card = await pg.inner_text('#mapCard'); print('   kıyı kartı:', card.replace('\n', ' | ')[:200])
         check('Kıyı' in card and 'kıyıya' in card and 'açıkları' not in card and 'Kıyı noktası: kıyıdan av' in card, 'W: kıyı noktası kartı')

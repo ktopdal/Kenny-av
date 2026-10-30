@@ -353,7 +353,7 @@ async def main():
         await pg.click('#sheet details.wzmore summary'); await pg.fill('#wz-lat', '41,25'); await pg.fill('#wz-lon', '29,10'); await pg.click('#sheet button[data-wzcoord]'); await pg.wait_for_timeout(400)
         st = await state(pg); kd = [l for l in st['locations'].values() if l['name'].startswith('Rig noktası')]
         check(len(kd) == 1 and 'Karadeniz' in await pg.inner_text('#sheet .wzreg'), 'AE: koordinatla nokta eklendi, bölge Karadeniz')
-        await pg.click('button[data-wzm="tekne"]'); await pg.click('button[data-wz="next"]'); await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(250)
+        (await pg.click('button[data-wzm="tekne"]')) if (await pg.locator('button[data-wzm="tekne"]').count()) else None; await pg.click('button[data-wz="next"]'); await pg.click('button[data-wzt="dip"]'); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(250)
         check('(Karadeniz)' in await pg.inner_text('#sheet'), 'AE: türler noktanın bölgesine göre (Karadeniz)')
         await pg.click('button[data-wz="back"]'); await pg.click('button[data-wz="back"]'); await pg.wait_for_timeout(200)
         # haritadan nokta: Rig Atölyesinde kullan
