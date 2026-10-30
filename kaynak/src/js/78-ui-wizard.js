@@ -58,8 +58,8 @@ function wzLocStep(a){
   const reg = (KB.REGIONS.find(r => r[0] === a.region) || [0, 'Ege'])[1];
   const sub = x => [(KB.REGIONS.find(r => r[0] === regionOf(x)) || [0, ''])[1], x.depth ? x.depth + ' m' : '', x.bottom ? BOTTOM_TXT[x.bottom] : x.bottomEst ? 'tahmini ' + trLower(BOTTOM_TXT[x.bottomEst] || '') : '', locKind(x) === 'kiyi' ? 'kıyı' : 'deniz'].filter(Boolean).join(' · ');
   // v0.29.4: seçili noktanın kartı dokunulur: derinlik, dip ve avlanma şekli burada değişir (açılır kart, kapanınca bu adıma döner)
-  const miss = L ? [!L.depth ? 'derinlik' : '', !L.bottom ? 'dip' : ''].filter(Boolean) : [];
-  const info = L ? [L.depth ? 'derinlik ' + (L.depthAuto ? '≈ ' : '') + L.depth + ' m' : 'derinlik yazılmamış', L.bottom ? 'dip: ' + trLower(BOTTOM_TXT[L.bottom]) + (L.bottomAuto ? ' (tahmini)' : '') : L.bottomEst ? 'taban tahmini: ' + (L.bottomEstTxt || trLower(BOTTOM_TXT[L.bottomEst])) : 'dip bilinmiyor'].join(' · ') : '';
+  const miss = L ? [!L.depth && !L.depthTried ? 'derinlik' : '', !L.bottom && !L.bottomNo && !L.bottomTried ? 'dip' : ''].filter(Boolean) : [];   // "Bilmiyorum" ya da haritada bulunamayan için istenmez
+  const info = L ? [L.depth ? 'derinlik ' + (L.depthAuto ? '≈ ' : '') + L.depth + ' m' : 'derinlik yazılmamış', L.bottom ? 'dip: ' + trLower(BOTTOM_TXT[L.bottom]) + (L.bottomAuto ? ' (tahmini)' : '') : L.bottomEst && !L.bottomNo ? 'taban tahmini: ' + (L.bottomEstTxt || trLower(BOTTOM_TXT[L.bottomEst])) : L.bottomNo || L.bottomTried ? 'dip: bilmiyorum (Karma)' : 'dip bilinmiyor'].join(' · ') : '';
   return '<h3 class="ih">' + ic('pin') + 'Hangi noktada avlanıyorsun?</h3><p class="note">Kıyıdan mı tekneden mi avlanacağın, deniz bölgesi, dip ve derinlik noktadan alınır; türler bölgeye göre süzülür.</p>' +
     (Ls.length ? '<div class="opts">' + Ls.map(x => optBtn('data-wzloc', x.id, a.locId === x.id, locLabel(x), sub(x), ic(locKind(x) === 'kiyi' ? 'shore' : 'boat', null, 'sm'))).join('') + '</div>' : '<p class="note">Kayıtlı deniz noktan yok.</p>') +
     '<div class="row wzlocb"><button class="btn small" type="button" data-wzmap="1">Haritadan yeni nokta seç</button></div>' +
@@ -257,7 +257,7 @@ function wzFinish(){
   rigs.forEach(r => { r.id = id + ':' + r.code; });
   const old = S.systems[id] || {};
   S.systems[id] = Object.assign({}, old, {id, name, source: 'sihirbaz', active: old.active !== false, created: old.created || new Date().toISOString(), updated: new Date().toISOString(), answers: JSON.parse(JSON.stringify(a)), rigs});
-  if (a.mode !== 'ikisi') S.mode = a.mode;
+  if (a.mode !== 'ikisi' && a.locId === S.active) S.mode = a.mode;   // v0.29.4: yalnız seçili nokta için kurulduysa (başka noktada kıyı modu kalmasın)
   if (Array.isArray(a.baits)) S.profile.baits = a.baits.slice();
   S.onboarded = true; persist(); indexAll();
   const edit = !!WZ.editId; WZ = null; closeSheet();
