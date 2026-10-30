@@ -131,6 +131,7 @@ const GEAR_EX = {
   popping: {rod: ['Shimano Grappler Type C'], reel: ['Shimano Stella SW', 'Daiwa Saltiga']},
   canliagir: {rod: ['Shimano Grappler Type J', 'Daiwa Saltiga J'], reel: ['Shimano Talica', 'Penn Fathom Lever Drag']},
   paternoster: {rod: ['Daiwa Crosscast Surf'], reel: ['Daiwa Crosscast', 'Shimano Ultegra']},
+  surfhirsiz: {rod: ['Daiwa Crosscast Surf'], reel: ['Daiwa Crosscast', 'Shimano Ultegra']},
   lrf: {rod: ['Shimano Soare', 'Daiwa Gekkabijin'], reel: ['Shimano Sahara', 'Daiwa Ninja LT']},
   spin: {rod: ['Daiwa Ninja', 'Shimano Catana'], reel: ['Shimano Nasci', 'Daiwa Ninja LT']},
   samandira: {rod: [], reel: ['Shimano Sahara', 'Daiwa Ninja LT']},
@@ -163,7 +164,7 @@ function gearRow(rg, sl){
   if (it && have && sl.fit === 'bad') { stTxt = 'Uygun değil'; dot = 'yok'; } else if (it && have && sl.fit === 'warn') { stTxt = 'Sınırda'; dot = 'az'; }
   const why = it && sl.fitWhy && sl.fitWhy.length ? (sl.fit === 'bad' ? (sl.user ? 'Senin seçimin, uygun değil: ' : 'Envanterden girildi ama uygun değil: ') : 'Sınırda: ') + sl.fitWhy[0] : '';
   const sug = gearSugShort(rg, sl);
-  return '<button type="button" class="crow tap gear" data-gear="' + esc(rg.id) + '"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(it ? it.name : (e.name || '— (envanterde yok)')) +
+  return '<button type="button" class="crow tap gear" data-gear="' + esc(rg.id) + '"><span class="k">' + ic(slotIc(sl), null, 'sm') + esc(sl.label) + '</span><span class="v">' + esc(it ? it.name : (e.name || '— (envanterde yok)')) +
     (sl.user && sl.fit !== 'bad' ? ' <small class="ovt">senin seçimin</small>' : '') + (spec ? '<small class="gspec">' + esc(spec) + '</small>' : '') +
     (why ? '<small class="fitwhy ' + (sl.fit || '') + '">' + esc(why) + '</small>' : '') + (sug ? '<small class="gsug">' + esc(sug) + '</small>' : '') +
     '</span><span class="s"><span class="dot ' + dot + '"></span>' + esc(stTxt) + '<i class="chev" aria-hidden="true">›</i></span></button>';

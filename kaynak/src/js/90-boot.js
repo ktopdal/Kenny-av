@@ -5,7 +5,7 @@ function renderTop(){
   $('locName').textContent = L ? locLabel(L) : APP_SHORT;
   const kind = locKind(L);
   // v0.29.2: koordinat ve tür/dip ayrı satırlarda (tek satırda yarısı görünmüyordu)
-  const info = L ? (kind === 'kara' ? 'kara · yalnız hava durumu' : kind === 'kiyi' ? 'kıyı' + (facingOf(L) != null ? ' · bakış ' + dir8(facingOf(L)) : '') + (L.depth ? ' · ' + L.depth + ' m' : '') : 'deniz · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') + (L.depth ? ' · ' + L.depth + ' m' : '')) : '';
+  const info = L ? (kind === 'kara' ? 'kara · yalnız hava durumu' : kind === 'kiyi' ? 'kıyı' + (facingOf(L) != null ? ' · bakış ' + dir8(facingOf(L)) : '') + (L.depth ? ' · ' + L.depth + ' m' : '') : 'deniz · dip: ' + (BOTTOM_TXT[L.bottom || ''] || 'bilinmiyor') + (L.bottom && L.bottomAuto ? ' (tahmini)' : '') + (L.depth ? ' · ' + L.depth + ' m' : '')) : '';
   $('locSub').innerHTML = L ? '<span class="ls-c">' + esc(fmtCoord(L.lat, L.lon)) + '</span><span class="ls-i">' + esc(info) + '</span>' : '<span class="ls-c">Konum seçilmedi</span>';
   // Tekne/Kıyı düğmesi: karada yok; kıyı türündeki konumda hep Kıyı (değiştirmek için konumun türü değişir)
   const mb = $('modeBtn'); const sh = modeNow() === 'kiyi';
@@ -84,10 +84,23 @@ function bindEvents(){
   document.addEventListener('click', async e => {
     const kg = e.target.closest && e.target.closest('g[data-knot]'); if (kg) { knotFrom(kg.dataset.knot); return; }   // şemadaki düğüm noktası
     const hg = e.target.closest && e.target.closest('g[data-part]'); if (hg) { backTo(); const [r, k] = hg.dataset.part.split('|'); openPart(r, k); return; }   // şemadaki iğne (v0.29.3)
+    if (e.target && e.target.id === 'modal') { closeModal(); return; }   // v0.29.4: açılır kartın dışına dokununca kapanır
     if (e.target.id === 'about' && EDITION === 'ozel' && !pkgDoor()) { PKG_TAPS++; if (PKG_TAPS >= 5) { renderMore(); /*@ozel*/toast('Özel paket açıldı: Daha → Özel paket'); /*@end*/} return; }   // gizli kapı (yalnız sahibi bilir)
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
     if (d.wel) { welcomeAction(d.wel); return; }
+    // v0.29.4: açılır kart, konum kartı, haritada avlanma şekli, rig seç/sil/birleştir
+    if (d.mclose != null) { closeModal(); return; }
+    if (d.mlkind || d.mlbot) { locModalAct(d, b); return; }
+    if (d.wzloccard && WZ) { const id = d.wzloccard; openLocModal(id, () => { if (WZ && ui.sheet === 'wizard') { wzUseLoc(id); renderWizard(true); } }); return; }
+    if (d.avk && MPICK) { if (b.getAttribute('aria-disabled') === 'true') { toast(mpKinds(MPICK).why || 'Bu noktada seçilemez'); return; } MPICK.avk = d.avk; document.querySelectorAll('#mpAvk [data-avk]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.avk === d.avk))); return; }
+    if (d.rigpick) { const sl = ui.rigSel || (ui.rigSel = []); const i = sl.indexOf(d.rigpick); if (i >= 0) sl.splice(i, 1); else sl.push(d.rigpick); renderRigs(); return; }
+    if (d.rigdel) { if (!armIcon(b, 'Sil?')) return; const rg = RIGS[d.rigdel], r = rigDelete([d.rigdel]); renderAll(); toast(r.gizli ? 'Paket rigi gizlendi; Rigler’in altından geri getirebilirsin' : r.silindi ? (rg ? (rg.code || rg.name) + ' silindi' : 'Rig silindi') : 'Bu rig silinemedi'); return; }
+    if (d.rigact) {
+      if (d.rigact === 'cancel') { ui.rigSel = null; renderRigs(); return; }
+      if (d.rigact === 'del') { if (!armIcon(b, 'Silmek için tekrar dokun')) return; const r = rigDelete(ui.rigSel || []); ui.rigSel = null; renderAll(); toast((r.silindi ? r.silindi + ' rig silindi' : '') + (r.silindi && r.gizli ? ', ' : '') + (r.gizli ? r.gizli + ' paket rigi gizlendi' : '')); return; }
+      if (d.rigact === 'merge') { const r = rigMerge(ui.rigSel || []); if (r.err) { openModal(mergeErrHtml(r), {kind: 'merge'}); return; } ui.rigSel = null; ui.rigSeg = 'all'; renderAll(); toast('Birleştirildi: ' + (r.code ? r.code + ' · ' : '') + r.name); return; }
+    }
     if (d.acc) { e.preventDefault(); accAct(d.acc, b); return; }
     if (WZ && ui.sheet === 'wizard' && (d.wzloc || d.wzmap || d.wzcoord || d.wzm || d.wzr || d.wzt || d.wztx || d.wzs || d.wzsx || d.wzsadd || d.wzy || d.wzall || d.wzl || d.wzset || d.wzb || d.wzz || d.wz)) { wzClick(d); return; }
     if (d.tier) { S.settings.tier = d.tier; persist(); renderRigs(); return; }
@@ -187,6 +200,8 @@ function bindEvents(){
       if (a === 'icsAll') { await alertExport(); return; }
       if (a === 'rigRefresh') { rigRefresh(); return; }
       if (a === 'rigChClose') { ui.rigCh = null; renderRigs(); return; }
+      if (a === 'rigSelect') { ui.rigSel = ui.rigSel ? null : []; renderRigs(); return; }
+      if (a === 'rigUnhide') { S.rigHide = {}; persist(); indexAll(); renderAll(); toast('Gizlenen paket rigleri geri geldi'); return; }
       if (a === 'driftmap') { ui.mapDrift = true; const c = mapCfg(); if (!c.drift) { c.drift = true; S.settings.map = c; persistQuiet(); } openMore('harita'); return; }
       if (a === 'baitShop') { const ds = days(), dd = ds.find(x => x.key === ui.fday) || ds[0], part = ui.fpart || 'gun', now = new Date(); if (!dd) return;
         const R = recommend(dd, part === 'gece', dd.key === dateKey(now) ? now : null), p = baitPlan(dd, part, R); if (!p || p.none || !p.items.length) { toast('Yem gerekmiyor'); return; }
@@ -248,7 +263,7 @@ function bindEvents(){
     if (el.id === 'tr-q') { trSearch(el.value); return; }
     if (el.id === 'wz-spq' && WZ) { wzSpSearch(el.value); return; }
     if (el.id === 'wz-rod' && WZ) { WZ.ans.rodMax = el.value.trim(); return; }
-    if (el.id === 'wz-name' && WZ) { WZ.ans.name = el.value; return; }
+    if (el.id === 'wz-name' && WZ) { WZ.ans.name = el.value; const bd = document.querySelector('#sheet [data-wz="done"]'); if (bd) bd.disabled = !wzValid(); return; }
     if (el.id === 'ed-name' && RED) { RED.name = el.value; return; }
     if (el.id === 'cf-t') { const v = el.value ? new Date(el.value) : null; if (v && !isNaN(v)) $('cf-tlbl').textContent = fmtDT(v); return; }
   });
@@ -270,7 +285,7 @@ function bindEvents(){
       if ((cur == null ? '' : String(cur)) === v) return;
       setQtyVal(k, v); persist(); setTimeout(() => { indexAll(); renderAll(); reShop(); }, 250); toast('Kaydedildi'); return;
     }
-    if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; if (!L) return; L[el.dataset.f] = el.value.trim() || (el.dataset.f === 'name' ? L.name : ''); if (el.dataset.f === 'name') delete L.tmp; persist(); renderAll(); toast('Kaydedildi'); return; }
+    if (el.dataset.lk) { const L = S.locations[el.dataset.lk]; if (!L) return; if (el.dataset.f === 'depth') delete L.depthAuto; if (el.dataset.f === 'bottom') { delete L.bottomAuto; if (el.value) delete L.bottomNo; else L.bottomNo = true; } L[el.dataset.f] = el.value.trim() || (el.dataset.f === 'name' ? L.name : ''); if (el.dataset.f === 'name') delete L.tmp; persist(); renderAll(); if (MODAL && MODAL.kind === 'loc' && MODAL.arg === L.id) renderLocModal(); toast('Kaydedildi'); return; }
     if (el.dataset.setc) { S.settings[el.dataset.setc] = el.value; persist(); applyTheme(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.bft != null && el.dataset.bft !== '') { const p = bftPal().slice(); p[Number(el.dataset.bft)] = el.value; S.settings.bft = p; persist(); renderAll(); openMore('ayarlar', true); return; }
     if (el.dataset.setb) { S.settings[el.dataset.setb] = el.checked; persist(); renderAll(); return; }
@@ -332,10 +347,12 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   danParse, danCheck, danPrompt, danRig, danOwn, mdTables, danToInv, openDan, aiProv, dan: () => DAN,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
   vp: () => VP, partPickList, partKind, kindAllowed, kindBase, wzMain: () => WZ ? wzMainSp() : null, wz: () => WZ,
-  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, prepUse, openDone, applyDone, undoDone, rigToDraft, draftToRig, edWarn, openEditor, rigPh, allPhotoIds, addRigPhotos, red: () => RED, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
+  spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, prepUse, openDone, applyDone, undoDone, rigToDraft, draftToRig, edWarn, openEditor, rigPh, allPhotoIds, addRigPhotos, red: () => RED, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable,
+  gReason, mergeWhy, rigMerge, rigDelete, rigHidden, avkWhy, mpKinds, ic, icRaw, modal: () => MODAL, rigsById: () => RIGS};
 (async () => {
   loadState();
   if (Object.values(S.locations).map(kindFix).some(Boolean)) persistQuiet();   // v0.29.3: tür kuralına aykırı eski seçimler
+  if (!S.settings.mapAll) { S.settings.map = Object.assign({}, S.settings.map || {}, {seamark: true, depth: true, contours: true, habitat: true, substrate: true, locs: true, catches: true, grup: true, drift: true}); S.settings.mapAll = 1; persistQuiet(); }   // v0.29.4: harita katmanları bir kez hepsi açık
   pkgLoadCached();
   if (D && (EMBED || S.pkg.unlocked)) importPackage(D);
   applyTheme();

@@ -27,7 +27,7 @@ function compRow(rg, sl, tier){
     const u = it ? unitOf(it) : 'durum'; const q = e.item && u !== 'durum' ? qtyOf(e.item + '|' + (e.size || '-')) : null;
     const nm = it ? it.name : (e.name || (sl.t.turkiye && sl.t.turkiye.name ? '— (envanterde yok)' : '—'));
     // v0.23: satıra dokununca parça sayfası (55-part.js): envanter, yedekler, yerine alınabilecekler
-    return '<button type="button" class="crow tap" data-part="' + esc(rg.id + '|' + sl.k) + '"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') + (sl.ov ? ' <small class="ovt">değiştirildi</small>' : '') +
+    return '<button type="button" class="crow tap" data-part="' + esc(rg.id + '|' + sl.k) + '"><span class="k">' + ic(slotIc(sl), null, 'sm') + esc(sl.label) + '</span><span class="v">' + esc(nm) + (e.size ? ' <b>' + esc(e.size) + '</b>' : '') + (sl.ov ? ' <small class="ovt">değiştirildi</small>' : '') +
       '</span><span class="s"><span class="dot ' + st + '"></span>' + ST_TXT[st] + (q != null && q > 0 ? ' · ' + q + ' ' + (u === 'paket' ? 'paket' : 'adet') : '') + '<i class="chev" aria-hidden="true">›</i></span></button>';
   }
   const t = sl.t[tier] || {};
@@ -35,7 +35,7 @@ function compRow(rg, sl, tier){
   const right = tier === 'turkiye' ? (t.item ? '<span class="dot var"></span>Envanterde' : t.store ? '<span class="dot alinacak"></span>Mağaza ' + esc(t.store) : '<span class="dot alinacak"></span>Alınacak') : '';
   // v0.29.3: mağaza seviyesinde de satır dokunulur: kamış/makine → "Kamış ve makine", diğerleri → parça sayfası (değiştir)
   const gear = sl.kind === 'rod' || sl.kind === 'reel';
-  return '<button type="button" class="crow tap" ' + (gear ? 'data-gear="' + esc(rg.id) + '"' : 'data-part="' + esc(rg.id + '|' + sl.k) + '"') + '><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (t.size ? ' <b>' + esc(t.size) + '</b>' : '') + '</span><span class="s">' + right + '<i class="chev" aria-hidden="true">›</i></span></button>';
+  return '<button type="button" class="crow tap" ' + (gear ? 'data-gear="' + esc(rg.id) + '"' : 'data-part="' + esc(rg.id + '|' + sl.k) + '"') + '><span class="k">' + ic(slotIc(sl), null, 'sm') + esc(sl.label) + '</span><span class="v">' + esc(nm) + (t.size ? ' <b>' + esc(t.size) + '</b>' : '') + '</span><span class="s">' + right + '<i class="chev" aria-hidden="true">›</i></span></button>';
 }
 function lengthsTxt(ld, rg){
   if (!ld) return '';
@@ -43,9 +43,9 @@ function lengthsTxt(ld, rg){
   const parts = rg && rg.legs ? rg.legs.map((l, i) => { const cm = l.trail && ld.short && ld.hirsiz != null ? ld.hirsiz : l.cm, t = trLower(l.label) + ' ' + cm + ' cm' + (l.trail && ld.short ? ' (akış için %' + (ld.short === true ? 20 : ld.short) + ' kısa)' : ''); return i === 0 ? t.charAt(0).toLocaleUpperCase('tr') + t.slice(1) : t; }).concat(rg.legs.length > 1 && ld.ara ? ['köstek arası ' + ld.ara + ' cm'] : [])
     : Object.keys(LEN_LBL).filter(k => ld[k] != null).map((k, i) => (i === 0 ? LEN_LBL[k].charAt(0).toUpperCase() + LEN_LBL[k].slice(1) : LEN_LBL[k]) + ' ' + ld[k] + ' cm' + (k === 'hirsiz' && ld.short ? ' (akış için %' + (ld.short === true ? 20 : ld.short) + ' kısa)' : ''));
   if (ld.kursun && ld.shore) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g ' + ld.shoreWhy.join(' ve ') + ' için, çapalı kurşun)' : '') + (ld.over ? ' · <b class="warn">atış sınırı ' + ld.max + ' g: daha korunaklı bir nokta seç</b>' : ''));
-  else if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü kamış sınırı' : '') + ')' : '') +
+  else if (ld.kursun) parts.push('kurşun <b>' + ld.kursun + '</b>' + (ld.extra ? ' (+' + ld.extra + ' g sürüklenme' + (ld.depth ? '' : ', ' + DEPTH_REF + ' m varsayıldı') + (ld.capped ? ', üstü ' + (ld.capBy === 'rig' ? 'rigin' : 'kamış') + ' sınırı' : '') + ')' : '') +
     (ld.rodCap && !ld.over ? ' · kamışın en fazla ' + ld.max + ' g taşır' : '') +
-    (ld.over ? ' · <b class="warn">gereken ≈ ' + ld.need + ' g, kamış sınırı ' + ld.max + ' g: paraşüt çapa at, motorla karşıla ya da demirle</b>' : ''));
+    (ld.over ? ' · <b class="warn">gereken ≈ ' + ld.need + ' g, ' + (ld.capBy === 'rig' ? 'rigin' : 'kamış') + ' sınırı ' + ld.max + ' g: paraşüt çapa at, motorla karşıla ya da demirle</b>' : ''));
   return parts.join(' · ');
 }
 // yem satırı: rigin kendi yemleri (elinde mi), elinde başka uygun yem varsa o; hiçbiri yoksa "gitmeden al"
@@ -90,17 +90,22 @@ function rigCard(rg, dd, why, extra, tier, x, opt){
   const head = (rg.code ? rg.code + ' · ' : '') + (rg.groupName || sysName(rg.sys));
   const bait = baitHtml(rg, tier);
   const succ = rg.success && rg.success[tier] ? 'başarı %' + rg.success[tier] : '';
-  return '<article class="rig' + (ok || sub ? '' : ' off') + '"><div class="rig-h"><div><div class="code">' + esc(head) + '</div><h3>' + esc(rg.name) + '</h3>' +
-    '<div class="tg">' + esc(rg.target || '') + (rg.baitText ? ' · ' + esc(rg.baitText) : '') + '</div></div>' +
-    (ok ? '<span class="chip A">Hazır</span>' : sub ? '<span class="chip B">Yedekle hazır</span>' : '<span class="chip buy">Tamamlanmadı</span>') + '</div>' +
+  // v0.29.4: kart başında tekniğin ikonu; Rigler sayfasında (opt.manage) sil düğmesi ya da seçim kutusu
+  const pick = opt.manage && ui.rigSel ? ui.rigSel.includes(rg.id) : null;
+  return '<article class="rig' + (ok || sub ? '' : ' off') + (pick ? ' picked' : '') + '"><div class="rig-h"><div class="rh-l">' +
+    (pick != null ? '<button type="button" class="rigpick" data-rigpick="' + esc(rg.id) + '" aria-pressed="' + pick + '" aria-label="Rigi seç">' + icRaw('check') + '</button>' : '') +
+    ic(TECH_IC[rg.tech] || 'rig') + '<div class="rh-t"><div class="code">' + esc(head) + '</div><h3>' + esc(rg.name) + '</h3>' +
+    '<div class="tg">' + esc(rg.target || '') + (rg.baitText ? ' · ' + esc(rg.baitText) : '') + '</div></div></div><div class="rh-r">' +
+    (ok ? '<span class="chip A">Hazır</span>' : sub ? '<span class="chip B">Yedekle hazır</span>' : '<span class="chip buy">Tamamlanmadı</span>') +
+    (opt.manage && pick == null ? '<button type="button" class="rigdel" data-rigdel="' + esc(rg.id) + '" aria-label="Bu rigi sil" title="Bu rigi sil">' + icRaw('trash') + '</button>' : '') + '</div></div>' +
     (why && why.length ? '<div class="meta why">' + esc(why.join(' · ')) + '</div>' : '') + (extra || '') +
     (chips.length ? '<div class="meta chips">' + chips.join('') + '</div>' : '') +
     (tier !== 'envanter' ? '<div class="tierline">' + esc(TIER_TXT[tier]) + '</div>' : '') +
     rg.slots.map(sl => compRow(rg, sl, tier)).join('') +
-    (sub ? '<div class="crow subrow"><span class="k">Yedek</span><span class="v">' + sub.list.map(c => esc(c.txt)).join('<br>') + '</span><span class="s"><span class="dot var"></span>elinde</span></div>' : '') +
-    (bait ? '<div class="crow"><span class="k">Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
+    (sub ? '<div class="crow subrow"><span class="k">' + ic('check', null, 'sm') + 'Yedek</span><span class="v">' + sub.list.map(c => esc(c.txt)).join('<br>') + '</span><span class="s"><span class="dot var"></span>elinde</span></div>' : '') +
+    (bait ? '<div class="crow"><span class="k">' + ic('bait', null, 'sm') + 'Yem</span><span class="v">' + bait + '</span><span class="s">' + succ + '</span></div>' : '') +
     // v0.25: Takım satırı → şema, düğümler ve hazırlama (59-prep.js)
-    '<button type="button" class="crow tap takim" data-prep="' + esc(rg.id) + '"><span class="k">Takım</span><span class="v">' + (ld && lengthsTxt(ld, rg) ? lengthsTxt(ld, rg) + (rg.own ? ' (kayalık, kısa)' : '') : 'Şema, düğümler ve hazırlama') + '</span><span class="s">Şema<i class="chev" aria-hidden="true">›</i></span></button>' +
+    '<button type="button" class="crow tap takim" data-prep="' + esc(rg.id) + '"><span class="k">' + ic('rig', null, 'sm') + 'Takım</span><span class="v">' + (ld && lengthsTxt(ld, rg) ? lengthsTxt(ld, rg) + (rg.own ? ' (kayalık, kısa)' : '') : 'Şema, düğümler ve hazırlama') + '</span><span class="s">Şema<i class="chev" aria-hidden="true">›</i></span></button>' +
     (opt.tune && opt.tune.length ? '<div class="tune"><b class="tuneh">Bugünkü ayar</b>' + opt.tune.map(t => '<div class="tl' + (t.warn ? ' warn' : '') + '"><span class="k">' + esc(t.k) + '</span><span class="v">' + esc(t.t) + '</span></div>').join('') + '</div>' : '') +
     '<details><summary>Notlar ve diğer seviyeler</summary><div class="more">' + notes.join('') + alt + '</div></details>' + (opt.foot || '') + '</article>';
 }

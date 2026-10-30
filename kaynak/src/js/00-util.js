@@ -12,6 +12,11 @@ const CHANGELOG = EDITION === 'genel' ? [
     'Envanter: örnek Excel dosyasını indir, doldur, tek seferde yükle',
     'Takım danışmanı: kendi yapay zekâ anahtarınla (Claude, Gemini, ChatGPT) ya da Google AI Modu ile']}
 ] : /*@ozel*/[
+  {v: '0.29.4', notes: ['Görsellik: sihirbazda, rig kartlarında ve konum kartında pastel ikonlar (iğne, kamış, makine, ip, güneş/ay, dip türleri); Daha menüsünde, Envanter kategorilerinde, Konumlar ve Avlar listesinde de; koyu temada düğme yazısı okunur',
+    'Harita: yer adı ve deniz bilgisi gelirken “Bekleyiniz” işareti; Google hatası anlaşılır; katmanların hepsi açık; dip ve derinlik sormadan yazılır; ad verirken “Denizden av / Karadan av” seçimi',
+    'Rig Atölyesi: seçili noktanın kartına dokununca derinlik, dip ve avlanma şekli orada değişir (X ile kapanır, adıma geri dönülür)',
+    'Rig Atölyesi: surf için hırsızlı takım; her seçenekte kaç rig kurulacağı; Karma dip sonda ve seçili; keşif rigi ayrıca sorulur; kamış sınırı sorulmaz (envanterdeki kamış kullanılır, yoksa rig kartı uygun kamışı yazar); sistemin adı en altta ve zorunlu',
+    'Rigler: kartlar ayrışır; satırlarda ikonlar; “Bu rigi sil”; birden çok rigi seçip birleştir ya da sil (farklı av için olanlar birleşmez, nedeni yazılır); paket rigi silinmez, gizlenir ve Rigler’in altından geri getirilir']},
   {v: '0.29.3', notes: ['iPhone: alttaki sekme çubuğu klavye açıkken gizlenir; klavye kapanınca yerine oturur, sürükleyince ekranın ortasına kaymaz',
     '“Bilmiyorum, sen seç” (türler): hepsi yerine bölgende bu ay en çok tutulan en fazla 4 tür seçilir; istediğini sonra eklersin',
     'Rig parçaları değiştirilebilir: iğneye (ip, sahte yem) dokun → “Başka iğne seç” ile envanterindeki herhangi bir iğneyi bu rigde ya da aynı parçayı kullanan bütün riglerde kullan; listede yoksa envantere ekleyip dön. Hazırlama sayfasında malzemede “Değiştir”, şemada iğneye dokunmak da aynı sayfayı açar',

@@ -29,6 +29,7 @@ const GEAR = {
   canliagir: {rod: {types: ['jig', 'buyuk', 'slowjig', 'tekne'], cls: ['XH', 'H'], name: 'Ağır canlı yem kamışı', spec: '1,65–2,0 m · 200–400 g · PE 4–6 · tetikli'}, reel: {types: ['cikrik', 'spin'], cls: ['L', 'XL'], name: 'Makine', spec: 'çıkrık (tercihen 2 hızlı) ya da spinning 10000–14000'}},
   agirjig: {rod: {types: ['jig', 'buyuk'], cls: ['XH'], name: 'Ağır jig kamışı', spec: '200–400 g · PE 4–6'}, reel: {types: ['spin', 'cikrik'], cls: ['XL', 'L'], name: 'Makine', spec: 'spinning 10000–14000 ya da çıkrık'}},
   paternoster: {rod: {types: ['surf'], cls: ['M', 'H'], minLen: 3.6, name: 'Surf kamışı', spec: '3,9–4,5 m · 100–200 g'}, reel: {types: ['spin'], cls: ['L', 'M'], name: 'Surf makinesi', spec: 'spinning 5000–8000'}},
+  surfhirsiz: {rod: {types: ['surf'], cls: ['M', 'H'], minLen: 3.6, name: 'Surf kamışı', spec: '3,9–4,5 m · 100–200 g'}, reel: {types: ['spin'], cls: ['L', 'M'], name: 'Surf makinesi', spec: 'spinning 5000–8000'}},
   lrf: {rod: {types: ['lrf'], cls: ['UL'], name: 'LRF kamışı', spec: '1,8–2,3 m · 1–7 g'}, reel: {types: ['spin'], cls: ['S'], name: 'Makine', spec: 'spinning 1000–2500'}},
   spin: {rod: {types: ['spin', 'lrf', 'egi'], cls: ['L', 'M'], name: 'Spin kamışı', spec: '2,4–3,0 m · 10–40 g'}, reel: {types: ['spin'], cls: ['M', 'S'], name: 'Makine', spec: 'spinning 3000–4000'}},
   samandira: {rod: {types: ['samandira', 'spin'], cls: ['L', 'M', 'UL'], minLen: 3, name: 'Bolonez / şamandıra kamışı', spec: '4–6 m · 5–25 g'}, reel: {types: ['spin'], cls: ['S', 'M'], name: 'Makine', spec: 'spinning 2500–4000'}},
@@ -51,6 +52,7 @@ const TERM = {
   agirsirti: [['Rulmanlı fırdöndü', ['rulmanli']], ['Sıkıştırma burcu', ['burc']], ['Burç pensesi', ['burcpense']]],
   popping: [['Halka', ['splitring', 'solidring']], ['Rulmanlı fırdöndü', ['rulmanli']]],
   paternoster: [['T-fırdöndü ya da boom', ['tfirdondu', 'tfirdondub', 'boom']], ['Fırdöndü', ['firdondu', 'klipsfirdondu']], ['Boncuk', ['boncuk', 'stop']], ['Kurşun', ['k-piramit', 'k-capali'], 1]],
+  surfhirsiz: [['T-fırdöndü', ['tfirdondu', 'tfirdondub', 'boom']], ['Fırdöndü', ['firdondu', 'klipsfirdondu']], ['Boncuk', ['boncuk', 'stop']], ['Kurşun', ['k-piramit', 'k-capali'], 1]],
   spin: [['Hızlı klips', ['klips', 'klipsfirdondu']]], samandira: [['Stop', ['stop']], ['Saçma kurşun', ['k-sacma']], ['Fırdöndü', ['firdondu']]],
 };
 const gearKey = (lay, mode) => lay === 'kaydirmali' && mode === 'kiyi' ? 'kaydirmaliKiyi' : lay;

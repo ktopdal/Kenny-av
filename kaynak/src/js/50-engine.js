@@ -48,7 +48,8 @@ function recommend(dd, night, from, at){
     const why = []; let sc = 0;
     if (rg.core) { sc += 3; why.push('12 ay geçerli'); }
     // dip: seçilen dip; yoksa EUSeaMap tahmini (yarım ağırlık, keşif rigleri de önde kalır)
-    const est = L && !L.bottom && L.bottomEst ? L.bottomEst : null, bE = est ? bottomMatch(rg, est) : null;
+    // v0.29.4: haritadan kendiliğinden yazılan dip (bottomAuto) de tahmin sayılır
+    const est = L && L.bottom && L.bottomAuto ? L.bottom : L && !L.bottom && L.bottomEst ? L.bottomEst : null, bE = est ? bottomMatch(rg, est) : null;
     const bm = est ? Math.round((0.5 * bottomMatch(rg, null) + 0.6 * bE) * 10) / 10 : bottomMatch(rg, L && L.bottom);
     sc += bm;
     if (est && bE >= 2) why.push('taban tahmini: ' + (BOTTOM_TXT[est] || '') + ' (EUSeaMap)');

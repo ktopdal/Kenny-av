@@ -19,10 +19,10 @@ function rigMaterials(rg, ch){
   const bed = N.find(n => n.t === 'gap' && n.l);
   if (ana && ana.l) out.push({k: 'ana', t: 'Ana ip', v: lineNm(ana.l), q: 'makarada', item: ana.l.item});
   const sok = N.find(n => n.t === 'line' && n.role === 'sok'); if (sok && sok.l) out.push({k: 'sok', t: 'Şok lider', v: lineNm(sok.l), q: '≈ 10 m', item: sok.l.item, cm: 1000});
-  if (bed && tees.length && (ch.lay === 'hirsizli' || ch.lay === 'iki' || ch.lay === 'tek' || ch.lay === 'canli' || ch.lay === 'paternoster')) {
+  if (bed && tees.length && (ch.lay === 'hirsizli' || ch.lay === 'iki' || ch.lay === 'tek' || ch.lay === 'canli' || ch.lay === 'paternoster' || ch.lay === 'surfhirsiz')) {
     const gaps = N.filter(n => n.t === 'gap' && n.cm).reduce((a, n) => a + n.cm, 0);
     const cm = PREP_TOP + gaps + PREP_BOT + PREP_KNOT * (tees.length + 2);
-    out.push({k: 'beden', t: ch.lay === 'paternoster' ? 'Beden (şok lider)' : 'Beden', v: lineNm(bed.l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm, item: bed.l.item});
+    out.push({k: 'beden', t: ch.lay === 'paternoster' || ch.lay === 'surfhirsiz' ? 'Beden (şok lider)' : 'Beden', v: lineNm(bed.l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm, item: bed.l.item});
   }
   if (legs.length) { const cm = legs.reduce((a, n) => a + n.cm + PREP_KNOT, 0), l = legs[0].line;
     out.push({k: 'kostek', t: 'Köstek', v: lineNm(l), q: '≈ ' + fmtNum(cm / 100, 1) + ' m', cm, item: l ? l.item : null}); }
@@ -52,11 +52,11 @@ function prepSteps(rg, ch, ld){
   const tees = N.filter(n => n.t === 'tee' || n.t === 'trailTee'), trails = N.filter(n => n.t === 'trail'), legs = tees.concat(trails);
   const sw = N.find(n => n.t === 'swivel'), k0 = N.find(n => n.t === 'knot');
   const anaT = ana && ana.l ? lineNm(ana.l) : 'ana ip';
-  if (ch.lay === 'hirsizli' || ch.lay === 'iki' || ch.lay === 'tek' || ch.lay === 'canli' || ch.lay === 'paternoster') {
-    if (ch.lay === 'paternoster') push('Ana ipi (' + anaT + ') şok lidere ' + K('ciftuni') + ' ile ekle; şok lider makarada en az 5–6 tur kalsın.');
+  if (ch.lay === 'hirsizli' || ch.lay === 'iki' || ch.lay === 'tek' || ch.lay === 'canli' || ch.lay === 'paternoster' || ch.lay === 'surfhirsiz') {
+    if (ch.lay === 'paternoster' || ch.lay === 'surfhirsiz') push('Ana ipi (' + anaT + ') şok lidere ' + K('ciftuni') + ' ile ekle; şok lider makarada en az 5–6 tur kalsın.');
     else push('Ana ipi (' + anaT + ') fırdöndüye ' + K(k0 ? k0.k : 'palomar') + ' ile bağla.');
     const bed = N.find(n => n.t === 'gap' && n.l), bl = bed && bed.l ? bed.l.txt : '';
-    const seq = [ch.lay === 'paternoster' ? 'şok lider' : 'fırdöndü', PREP_TOP + ' cm'];
+    const seq = [ch.lay === 'paternoster' || ch.lay === 'surfhirsiz' ? 'şok lider' : 'fırdöndü', PREP_TOP + ' cm'];
     N.forEach(n => { if (n.t === 'tee' || n.t === 'trailTee') seq.push(trLower(n.label) + ' T-fırdöndüsü'); else if (n.t === 'gap' && n.cm) seq.push(n.cm + ' cm'); });
     const hAlt = trails.length > 0;
     seq.push(PREP_BOT + ' cm', hAlt ? 'kurşun (üst halka)' : 'kurşun klipsi');

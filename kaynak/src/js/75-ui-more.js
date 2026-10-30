@@ -21,9 +21,12 @@ const MORE = [
   ['kaynak', 'Veri kaynakları', () => { const st = (S.wx && S.wx.status) || {}; const k = Object.keys(SRC); const ok = k.filter(i => st[i] === 'ok').length; return S.wx ? ok + '/' + k.length + ' kaynak çalışıyor' : 'Henüz veri yok'; }],
   ['surum', 'Sürüm notları', () => 'v' + APP_VERSION],
 ];
+// v0.29.4: Daha menüsünde her satırın ikonu
+const MORE_IC = {hesap: 'key', ayarlar: 'gear', gorunum: 'photo', yedek: 'cloud', paket: 'box', harita: 'map', liste: 'shield', uyari: 'bell', paylas: 'chat', grup: 'group', konumlar: 'pin',
+  turler: 'fishes', danisman: 'spark', turtakvim: 'calendar', alisveris: 'cart', dugumler: 'rig', standart: 'rod', dosya: 'box', kaynak: 'info', surum: 'book'};
 function renderMore(){
   const land = landMode();
-  $('moreMenu').innerHTML = MORE.filter(r => (r[0] !== 'paket' || pkgDoor()) && (r[0] !== 'hesap' || cloudOn()) && !(land && (r[0] === 'uyari' || r[0] === 'liste'))).map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
+  $('moreMenu').innerHTML = MORE.filter(r => (r[0] !== 'paket' || pkgDoor()) && (r[0] !== 'hesap' || cloudOn()) && !(land && (r[0] === 'uyari' || r[0] === 'liste'))).map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '">' + ic(MORE_IC[k] || 'info') + '<span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
   $('about').textContent = APP_NAME + ' v' + APP_VERSION + /*@ozel*/(pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + /*@end*/' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem' + (VP.fix ? ' · ekran ' + VP.fix + ' kez düzeltildi' : '') + '. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
 }
 function renderNewVersion(){
@@ -177,7 +180,7 @@ function sheetLocations(){
   return sheetBar('Konumlar') + '<div class="stack">' +
     '<button class="mapbanner" type="button" data-open="harita"><svg viewBox="0 0 120 64" aria-hidden="true"><rect width="120" height="64" rx="10" fill="#9fd3e6"/><path d="M0 0h64c-6 10-18 14-30 18C20 22 8 30 0 34z" fill="#efe9dc"/><path d="M0 0h64c-6 10-18 14-30 18C20 22 8 30 0 34" fill="none" stroke="#b9ad93" stroke-width="1.2"/><path d="M6 52c22-6 44-12 66-22s32-22 44-30M30 64c20-8 40-14 60-24s22-18 30-26" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1" stroke-dasharray="3 3"/><path d="M84 18c-6 0-10 4.6-10 10 0 7.2 10 16 10 16s10-8.8 10-16c0-5.4-4-10-10-10z" fill="#d6453d"/><circle cx="84" cy="28" r="3.6" fill="#fff"/></svg>' +
       '<span><b>Haritadan seç</b><small>Yeni nokta işaretle, kaydet ya da kaydetmeden tahmine bak</small></span><i aria-hidden="true">›</i></button>' +
-    (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +(L.tmp ? '<span class="chip C">kaydedilmedi · başka konuma geçince silinir</span>' : '') +
+    (list.length ? list.map(L => '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start">' + ic(locKind(L) === 'kiyi' ? 'shore' : locKind(L) === 'kara' ? 'cloud' : 'boat') + '<div style="min-width:0;flex:1"><input class="nameedit" data-lk="' + esc(L.id) + '" data-f="name" value="' + esc(L.name) + '" aria-label="Konum adı">' +(L.tmp ? '<span class="chip C">kaydedilmedi · başka konuma geçince silinir</span>' : '') +
       '<div class="sp mono">' + fmtCoord(L.lat, L.lon, true) + (ccount(L.id) ? ' · ' + ccount(L.id) + ' av' : '') + '</div>' +
       (L.sea && L.sea.lat != null ? '<div class="sp">Deniz verisi ' + f1(L.sea.km) + ' km ' + dir8(L.sea.dir) + ' yönündeki noktadan</div>' : '') + '</div>' +
       (S.active === L.id ? '<span class="chip A">Seçili</span>' : '<button class="btn small" type="button" data-use="' + esc(L.id) + '">Seç</button>') + '</div>' + kindBtns(L) +

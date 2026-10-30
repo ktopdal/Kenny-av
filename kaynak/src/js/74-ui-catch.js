@@ -110,7 +110,7 @@ async function renderCatches(){
     (ls.model != null ? '<span>Uygulamanın 3 ve üstü balık (%41+) gösterdiği saatlerde gelen balıkların oranı: <b>%' + ls.model + '</b></span>' : ''));
   if (!CATCHES.length) { $('catchList').innerHTML = '<div class="empty">Henüz av yok. İlk balığını “+ Av ekle” ile kaydet.</div>'; return; }
   $('catchList').innerHTML = CATCHES.map(c => { const l = catchLine(c);
-    return '<button class="catch" type="button" data-catch="' + esc(c.id) + '">' + (c.photos && c.photos.length ? '<img class="th" alt="" data-ph="' + esc(c.photos[0]) + '">' : '<span class="th ph">🐟</span>') +
+    return '<button class="catch" type="button" data-catch="' + esc(c.id) + '">' + (c.photos && c.photos.length ? '<img class="th" alt="" data-ph="' + esc(c.photos[0]) + '">' : '<span class="th ph">' + ic('fish', null, 'lg') + '</span>') +
       '<span><b>' + esc(l.sp) + '</b><br><span class="m">' + esc(l.bits || '—') + (c.rig ? ' · ' + esc(rigShort(c.rig)) : '') + '</span><br>' +
       '<span class="s">' + l.d.getDate() + ' ' + MON3[l.d.getMonth()] + ' ' + l.d.getFullYear() + ' ' + hm(l.d) + (c.loc && c.loc.name ? ' · ' + esc(c.loc.name) : '') + '</span></span></button>'; }).join('');
   document.querySelectorAll('#catchList img[data-ph]').forEach(async im => { const u = await photoUrl(im.dataset.ph, 'thumb'); if (u) im.src = u; });
@@ -125,8 +125,11 @@ function openSheet(html, keepScroll){
   sh.innerHTML = '<div class="sin">' + html + '</div>'; sh.hidden = false; sh.scrollTop = keepScroll ? top : 0; document.body.style.overflow = 'hidden';
   if (wasHidden) { try { history.pushState({sheet: 1}, ''); } catch (e) {} }
 }
-function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; const backToWel = !!(WZ && WZ.fromWel && !S.onboarded); closeMap(); sh.classList.remove('full'); sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; WZ = null; ui.sheet = null; ui.sheetArg = null; ui.back = null; ui.mapFor = null; if (!fromPop) { try { history.back(); } catch (e) {} } if (backToWel && !hasProfileData()) showWelcome(); }
-window.addEventListener('popstate', () => { if (!$('sheet').hidden) closeSheet(true); });
+function closeSheet(fromPop){ const sh = $('sheet'); if (sh.hidden) return; closeModal(true); const backToWel = !!(WZ && WZ.fromWel && !S.onboarded); closeMap(); sh.classList.remove('full'); sh.hidden = true; sh.innerHTML = ''; document.body.style.overflow = ''; FORM = null; WZ = null; ui.sheet = null; ui.sheetArg = null; ui.back = null; ui.mapFor = null; if (!fromPop) { try { history.back(); } catch (e) {} } if (backToWel && !hasProfileData()) showWelcome(); }
+window.addEventListener('popstate', () => {
+  if (MODAL && !$('modal').hidden && !$('sheet').hidden) { closeModal(); try { history.pushState({sheet: 1}, ''); } catch (e) {} return; }   // v0.29.4: geri tuşu önce açılır kartı kapatır, sayfa kalır
+  if (!$('sheet').hidden) closeSheet(true);
+});
 function toLocalInput(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function nearestLoc(p){ if (!p || p.lat == null) return null; let best = null; Object.values(S.locations).forEach(L => { const d = distKm(L, p); if (!best || d < best.d) best = {L, d}; }); return best; }
 const CATCH_TECH = ['Jig', 'Slow jig', 'Inchiku', 'Tai rubber', 'Kalamar zokası', 'Çapari', 'Sırtı (trolling)', 'Surf', 'LRF', 'Spin', 'Şamandıra', 'Diğer'];

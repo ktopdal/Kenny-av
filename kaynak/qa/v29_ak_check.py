@@ -288,7 +288,7 @@ async def main():
         check('Hangi yemlerle' in await pg.inner_text('#sheet'), 'AK: türsüz ileri: yem adımı')
         await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150); await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(200)
         n = await pg.inner_text('#wzCount'); print('   ', n, '·', (await pg.inner_text('#sheet .panel .note'))[:300])
-        await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(700)
+        await pg.fill('#wz-name', 'Kıyı sistemim'); await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(700)
         st = await pg.evaluate('JSON.parse(localStorage.getItem("awf-v1"))')
         sy = [v for v in st['systems'].values() if v.get('source') == 'sihirbaz']
         check(sy and sy[0]['rigs'] and all(r['mode'] == 'kiyi' for r in sy[0]['rigs']) and all(r['tech'] in ('surf', 'samandira') for r in sy[0]['rigs']), 'AK: kıyı sistemi yalnız kıyı rigleri (%d)' % (len(sy[0]['rigs']) if sy else 0))

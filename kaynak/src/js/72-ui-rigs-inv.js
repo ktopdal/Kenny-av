@@ -15,7 +15,9 @@ function renderRigs(){
       (one.source === 'sihirbaz' ? '<button class="linkbtn" type="button" data-systool="edit" data-sid="' + esc(one.id) + '">Cevapları düzenle</button>' : '') +
       '<button class="linkbtn" type="button" data-systool="toggle" data-sid="' + esc(one.id) + '">' + (one.active === false ? 'Aç' : 'Kapat') + '</button>' +
       (one.source !== 'paket' ? '<button class="linkbtn" type="button" data-systool="del" data-sid="' + esc(one.id) + '">Sil</button>' : '') + '</div>' : '') +
-    (sys.length ? '<div class="row rigref"><button class="btn small" type="button" data-act="rigRefresh">Rigleri envantere göre güncelle</button><span class="note">Rig satırına dokun: parça, stok ve yedekler.</span></div>' + rigChangesHtml() : '') +
+    (sys.length ? '<div class="row rigref rigtools"><button class="btn small" type="button" data-act="rigRefresh">Rigleri envantere göre güncelle</button>' +
+      '<button class="btn small" type="button" data-act="rigSelect" aria-pressed="' + !!ui.rigSel + '">' + ic('check', null, 'sm') + (ui.rigSel ? 'Seçimi bitir' : 'Seç: birleştir ya da sil') + '</button>' +
+      '<span class="note">Rig satırına dokun: parça, stok ve yedekler.</span></div>' + rigChangesHtml() : '') +
     (sys.length ? '<div class="seg wrapseg tiers">' + TIERS.slice().reverse().filter(t => t !== 'dunya' || wOk).map(t => '<button class="btn small" type="button" data-tier="' + t + '" aria-pressed="' + (tier === t) + '">' + esc(TIER_TXT[t]) + '</button>').join('') + '</div>' : '');
   if (!all.length) {
     $('rigSeg').innerHTML = ''; $('rigSearch').hidden = true;
@@ -38,9 +40,18 @@ function renderRigs(){
     if (!q) return true;
     return trLower([rg.code, rg.name, rg.target, rg.baitText].concat(rg.slots.map(sl => (sl.t.envanter && sl.t.envanter.name) || '')).join(' ')).includes(q);
   });
-  $('rigList').innerHTML = list.length ? list.map(rg => rigCard(rg, dd, null, null, tier)).join('') : '<div class="empty">Bu filtrede rig yok.</div>';
+  // v0.29.4: kartta sil; "Seç" ile birden çok rig seçilip birleştirilir ya da silinir (29-rigops.js); gizlenen paket rigleri geri getirilebilir
+  if (ui.rigSel) ui.rigSel = ui.rigSel.filter(id => RIGS[id]);
+  const nh = Object.keys(S.rigHide || {}).length, nSel = ui.rigSel ? ui.rigSel.length : 0;
+  $('rigList').innerHTML = (list.length ? list.map(rg => rigCard(rg, dd, null, null, tier, null, {manage: true})).join('') : '<div class="empty">Bu filtrede rig yok.</div>') +
+    (nh ? '<div class="hidnote">' + ic('box', null, 'sm') + nh + ' paket rigi gizli <button class="linkbtn" type="button" data-act="rigUnhide">Geri getir</button></div>' : '') +
+    (ui.rigSel ? '<div class="selbar"><b>' + (nSel ? nSel + ' rig seçildi' : 'Rigleri seç') + '</b>' +
+      '<button class="btn small primary" type="button" data-rigact="merge"' + (nSel >= 2 ? '' : ' disabled') + '>' + icRaw('merge') + 'Birleştir</button>' +
+      '<button class="btn small" type="button" data-rigact="del"' + (nSel ? '' : ' disabled') + '>' + icRaw('trash') + 'Sil</button>' +
+      '<button class="btn small" type="button" data-rigact="cancel">Vazgeç</button></div>' : '');
 }
 const INV_SEG = [['hook', 'İğneler'], ['line', 'İp ve florokarbon'], ['gear', 'Makine ve kamış'], ['jig', 'Jig, zoka, sahte'], ['terminal', 'Terminal ve kurşun'], ['bait', 'Yem'], ['ekip', 'Ekipman']];
+const INV_IC = {hook: 'hook', line: 'line', gear: 'reel', jig: 'jig', terminal: 'sinker', bait: 'bait', ekip: 'box'};
 const INV_CATS = {hook: ['hook'], line: ['braid', 'fc', 'mono'], gear: ['reel', 'rod'], jig: ['jig', 'lure'], terminal: ['terminal', 'sinker'], bait: ['bait'], ekip: ['ekip']};
 const CAT_TXT = {hook: 'İğne', braid: 'Örgü ip', fc: 'Florokarbon', mono: 'Misina (naylon)', reel: 'Makine', rod: 'Kamış', jig: 'Jig / zoka', lure: 'Sahte yem', terminal: 'Terminal', sinker: 'Kurşun', bait: 'Yem', ekip: 'Ekipman'};
 const HOOK_PATTERNS = ['Chinu', 'Maruseigo', 'Iseama', 'Octopus / beak', 'Mutsu / circle', 'Circle', 'J (dövme, güçlü)', 'Baitholder (palalı)', 'Aberdeen (ince tel)', 'Canlı yem', 'Assist (jig)', 'Üçlü (treble)', 'Jighead', 'Diğer'];
@@ -99,7 +110,7 @@ function stdRow(it){
 }
 const openAttr = k => ui.open && ui.open[k] ? ' open' : '';
 function renderInventory(){
-  $('invSeg').innerHTML = INV_SEG.map(([k, t]) => '<button class="btn small" data-iseg="' + k + '" aria-pressed="' + (ui.inv === k) + '">' + t + '</button>').join('');
+  $('invSeg').innerHTML = INV_SEG.map(([k, t]) => '<button class="btn small" data-iseg="' + k + '" aria-pressed="' + (ui.inv === k) + '">' + ic(INV_IC[k] || 'box', null, 'sm') + t + '</button>').join('');   // v0.29.4: ikonlu
   const all = Object.values(ITEMS);
   const mine = all.filter(i => !i.std || itemSum(i).have || itemSum(i).buy);
   const nHave = mine.filter(i => i.cat !== 'bait' && itemSum(i).have).length, nBuy = shoppingList().length;

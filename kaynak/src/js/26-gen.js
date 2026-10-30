@@ -178,10 +178,12 @@ function makeRig(ans, tid, lay, fam, list, klass, time, rock, n){
   else if (lay === 'kaydirmali') sinker = ans.mode === 'kiyi' || tid === 'surf' ? {g: [30, 80], max: rodMax || 120} : {g: [60, 120], max: rodMax || 150};
   else if (lay === 'canli') sinker = {g: [150, 300], max: rodMax || 300};
   else if (lay === 'canliagir') sinker = {g: X.g.slice(), max: rodMax || X.g[1]};
-  else if (lay === 'paternoster' || lay === 'capari' || lay === 'samandira') sinker = X.g ? {g: X.g.slice(), max: rodMax || X.g[1]} : null;
+  else if (lay === 'paternoster' || lay === 'surfhirsiz' || lay === 'capari' || lay === 'samandira') sinker = X.g ? {g: X.g.slice(), max: rodMax || X.g[1]} : null;
   const months = list.every(s => s.m) ? [...new Set(list.flatMap(s => s.m))].sort((a, b) => a - b) : null;
   const hab = [...new Set(list.flatMap(s => s.hab))].filter(b => b !== 'orta-su');
-  let bottom = rock ? ['kayalik', 'saf-kayalik'] : (ans.bottoms && ans.bottoms.length ? ans.bottoms.filter(b => hab.includes(b) || (b === 'karma')) : hab);
+  // v0.29.4: Karma (karışık dip) türlerin bütün diplerini kapsar; yalnız seçilen dipler o diplere süzer
+  const bs = ans.bottoms || [];
+  let bottom = rock ? ['kayalik', 'saf-kayalik'] : !bs.length ? hab : bs.includes('karma') ? [...new Set(hab.concat(['karma']))] : bs.filter(b => hab.includes(b));
   if (!bottom.length) bottom = hab.length ? hab : ['karma'];
   const baits = prefBaits(topBaits(list, time), ans.baits, fam);
   const names = list.map(s => s.name);
@@ -207,11 +209,11 @@ function genSystem(ans){
   const chosen = ans.species.map(id => KB.SPECIES.find(s => s.id === id)).filter(Boolean);
   const klassAns = ans.klass === 'ikisi' ? ['porsiyon', 'trofe'] : [ans.klass || 'porsiyon'];
   const timeAns = ans.time === 'ikisi' ? ['gunduz', 'gece'] : [ans.time || 'gunduz'];
-  const rockOk = !ans.bottoms || !ans.bottoms.length || ans.bottoms.some(b => b === 'kayalik' || b === 'saf-kayalik');
+  const rockOk = !ans.bottoms || !ans.bottoms.length || ans.bottoms.some(b => b === 'kayalik' || b === 'saf-kayalik' || b === 'karma');
   ans.techs.forEach(tid => {
     const T = KB.TECH[tid]; if (!T) return;
     let lays = (ans.lay && ans.lay[tid] && ans.lay[tid].length) ? ans.lay[tid].filter(l => T.lay.includes(l)) : [T.lay[0]];
-    if (ans.size === 'sade') lays = lays.slice(0, 1);
+    // v0.29.4: sade sistemde de seçilen her takım düzeni kurulur (varsayılan zaten tek düzen)
     const groups = {};
     chosen.filter(s => T.fams.includes(s.fam)).forEach(s => {
       let g = s.fam;
@@ -237,8 +239,8 @@ function genSystem(ans){
           out.push(makeRig(ans, tid, lay, fam, list.filter(s => s.hab.some(h => h === 'kayalik' || h === 'saf-kayalik')), k, tm, true, next(key)));
       })));
     });
-    // keşif rigi: dip bilinmiyorsa karışık türlerle (dip seçilmediyse ya da "bilmiyorum")
-    if (tid === 'dip' && ans.size === 'tam' && (!ans.bottoms || !ans.bottoms.length)) {
+    // keşif rigi: dibi bilinmeyen yerde karışık türlerle; v0.29.4: yalnız kullanıcı isterse ("Keşif rigi kurmak ister misin?")
+    if (tid === 'dip' && ans.kesif) {
       const mixed = chosen.filter(s => ['sk', 'so'].includes(s.fam));
       if (mixed.length > 1) timeAns.forEach(tm => { const key = (tm === 'gece' ? 'N' : 'G') + 'P'; const r = makeRig(ans, tid, lays[0], mixed.some(s => s.fam === 'so') ? 'so' : 'sk', mixed, 'porsiyon', tm, false, next(key)); r.bottom = ['bilinmeyen']; r.name = 'Keşif · karma dip · ' + KB.LAY[lays[0]].name; r.notes.unshift({k: 'Keşif', t: 'Dibi bilinmeyen noktada ilk takım; av gelince dip öğrenilir.'}); out.push(r); });
     }

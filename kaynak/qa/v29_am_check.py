@@ -353,7 +353,7 @@ async def main():
         for _ in range(2): await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(200)
         cnt = await pg.inner_text('#wzCount'); n = int(re.search(r'(\d+)', cnt).group(1))
         check(1 <= n <= 8, 'AM: sade sistem az rig (%s)' % cnt)
-        await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(600)
+        await pg.fill('#wz-name', 'Dip sistemim'); await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(600)
         nr = await pg.locator('#rigList article.rig').count()
         check(nr == n, 'AM: %d rig kuruldu' % nr)
         # ---- rig parçası: iğne satırı → başka iğne seç

@@ -41,7 +41,7 @@ function pkgRigs(){
   });
 }
 function allRigs(){
-  let out = pkgRigs();
+  let out = pkgRigs().filter(r => !rigHidden(r.id));   // v0.29.4: gizlenen paket rigleri (29-rigops.js)
   Object.values(S.systems).forEach(sy => { if (sy.source !== 'paket' && sy.active !== false && Array.isArray(sy.rigs)) out = out.concat(sy.rigs.map(r => resolveRig(Object.assign({sys: sy.id}, r)))); });
   // v0.23: rig parçası sayfasından seçilen değişim (S.rigOv["rigId|yuva"] = {item, size}); kalem envanterden silinmişse yok sayılır
   const ov = S.rigOv || {};

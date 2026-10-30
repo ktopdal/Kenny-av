@@ -2,7 +2,7 @@
 // Leaflet (BSD-2) uygulamayla birlikte gelir (vendor/leaflet), harita ilk açılışta yüklenir.
 // Altlık: OpenStreetMap ya da Esri uydu · Katmanlar: OpenSeaMap deniz işaretleri, EMODnet derinlik renkleri ve eğrileri, EMODnet dip türü (AB suları)
 // Yer adı: OpenStreetMap Nominatim (karada) ve Overpass (denizde en yakın yer, koy, kıyıya uzaklık) · Derinlik: EMODnet Bathymetry
-const MAP_DEF = {base: 'osm', seamark: true, depth: false, contours: true, habitat: false, substrate: false, locs: true, catches: true, grup: true, drift: true};
+const MAP_DEF = {base: 'osm', seamark: true, depth: true, contours: true, habitat: true, substrate: true, locs: true, catches: true, grup: true, drift: true};   // v0.29.4: katmanların hepsi açık gelir
 const mapCfg = () => Object.assign({}, MAP_DEF, S.settings.map || {});
 const NOMI = 'https://nominatim.openstreetmap.org/reverse';
 // Overpass: ana sunucu sık sık yoğun; iki sunucuya birden sorulur, ilk yanıt alınır
@@ -95,6 +95,7 @@ function gReason(msg){
   const m = String(msg || ''), seen = (/with referer:\s*(\S+)/i.exec(m) || [])[1];
   if (/billing/i.test(m)) return G_ERR.BillingNotEnabledMapError;
   if (/site or mobile application|referer|referrer|RefererNotAllowed/i.test(m)) return G_ERR.RefererNotAllowedMapError + (seen ? ' (Google’ın gördüğü adres: ' + seen + ')' : '');
+  if (/not allowed to use the geocoder/i.test(m)) return 'Anahtar Geocoding API’ye izin vermiyor. Google Cloud → APIs & Services → Library → Geocoding API → Enable; Credentials → anahtar → API restrictions listesine Geocoding API’yi ekle.';
   if (/API key is not authorized|ApiTargetBlocked/i.test(m)) return 'Anahtarın API restrictions listesinde Geocoding API yok. Credentials → anahtar → API restrictions → Geocoding API’yi ekle.';
   if (/API project is not authorized|has not been used|disabled|not activated|ApiNotActivated/i.test(m)) return 'Geocoding API projede açık değil. APIs & Services → Library → Geocoding API → Enable.';
   if (/OVER_QUERY_LIMIT|quota/i.test(m)) return 'Google kotası doldu.';
@@ -351,8 +352,11 @@ function googleFallback(){
   if (!$('mapLayers').hidden) renderLayers();
 }
 async function setGoogleBase(k){
-  const box = MAP.getContainer();
-  try { await loadGoogle(); } catch (e) { if (MAP && MAP.getContainer() === box) googleFallback(); return; }
+  const box = MAP.getContainer(), msg = $('mapMsg');
+  const wait = !(window.google && window.google.maps && window.google.maps.Geocoder);
+  if (wait && msg) { msg.innerHTML = '<span class="waitline"><span class="spin"></span>Google haritası yükleniyor, bekleyiniz…</span>'; msg.hidden = false; }   // v0.29.4
+  try { await loadGoogle(); } catch (e) { if (msg) msg.hidden = true; if (MAP && MAP.getContainer() === box) googleFallback(); return; }
+  if (msg) msg.hidden = true;
   if (!MAP || MAP.getContainer() !== box || mapCfg().base !== k || MAPL.base) return;
   if (!GDIV || !box.contains(GDIV)) {
     GDIV = document.createElement('div'); GDIV.className = 'gbase'; box.insertBefore(GDIV, box.firstChild);
@@ -425,18 +429,31 @@ function coordBlock(lat, lon){
     '<div class="mc-d mono">' + lat.toFixed(5) + '°, ' + lon.toFixed(5) + '°</div>';
 }
 const gmapsUrl = (lat, lon) => 'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lon.toFixed(6);
+// v0.29.4: ad sorulurken nereden avlanılacağı da sorulur: Denizden av (tekne) / Karadan av (kıyı) / Yalnız hava; tür kuralına uymayan kapalı
+function mpKinds(p){
+  const tmp = {kindDet: p.kind || null, kindDetStrong: !!p.strong || p.kind === 'kiyi', coastKm: p.coastKm, coastFar: p.coastKm == null && !!p.coastChecked};
+  const ok = p.busy || !p.kind ? ['deniz', 'kiyi', 'kara'] : kindAllowed(tmp);
+  const kinds = ['deniz', 'kiyi'].concat(ok.includes('kara') ? ['kara'] : []);
+  return {ok, kinds, def: p.kind && ok.includes(p.kind) ? p.kind : ok[0], why: !p.busy && p.kind ? avkWhy(tmp, ok) : ''};
+}
+function mpAvkHtml(p){
+  const ka = mpKinds(p); if (!p.avk || !ka.ok.includes(p.avk)) p.avk = ka.def;
+  return '<b>' + ic('compass', null, 'sm') + 'Nereden avlanacaksın?</b>' + avkTiles(ka.kinds, p.avk, ka.ok, 'data-avk') + (ka.why ? '<p class="avk-note">' + esc(ka.why) + '</p>' : p.busy ? '<p class="avk-note waitline"><span class="spin"></span>Nokta inceleniyor…</p>' : '');
+}
 function renderPick(){
   const p = MPICK, el = $('mapCard'); if (!el || !p) return;
-  el.classList.remove('naming');
+  if (el.classList.contains('naming')) { const box = $('mpAvk'); if (box) box.innerHTML = mpAvkHtml(p); return; }   // ad yazılırken kart yenilenmez
   const facts = [p.kind ? KIND_TXT[p.kind] : '', p.coastKm != null ? (p.coastKm < 0.05 ? 'kıyıda' : 'kıyıya ' + kmTxt(p.coastKm)) : p.sea && p.coastChecked ? 'kıyı 6 km’den uzak' : '',
     p.depth != null ? 'derinlik ≈ ' + p.depth + ' m (EMODnet)' : '', p.bed && p.sea !== false ? 'taban ≈ ' + p.bed.label + ' (EUSeaMap)' : '', p.sea === false && p.elev != null && p.elev >= 1 ? 'yükselti ≈ ' + p.elev + ' m' : '',
     p.facing != null ? 'kıyının bakışı ' + dir8(p.facing) : ''].filter(Boolean);
   const kNote = !p.busy && p.kind === 'kara' ? '<div class="mc-k">Kara noktası: yalnız hava durumu (balık, rig ve deniz verisi yok).</div>' :
     !p.busy && p.kind === 'kiyi' ? '<div class="mc-k">Kıyı noktası: kıyıdan av; deniz verisi en yakın deniz noktasından.</div>' : '';
-  const info = p.busy ? (facts.length ? facts.join(' · ') + ' · ' : '') + 'aranıyor…' : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servisler yanıt vermedi). Koordinatlar doğru; yine kaydedebilirsin.' : facts.join(' · ');
-  const gNote = !p.busy && S.settings.gkey && GERR ? '<div class="mc-g">Google kullanılamadı: ' + esc(GERR) + '</div>' : '';
+  const info = p.busy ? facts.join(' · ') : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servisler yanıt vermedi). Koordinatlar doğru; yine kaydedebilirsin.' : facts.join(' · ');
+  // v0.29.4: sorgular sürerken dönen işaret ve "Bekleyiniz"; Google hatası kısa, ayrıntısı açılır
+  const wait = p.busy ? '<div class="waitline"><span class="spin"></span>Bekleyiniz… ' + (S.settings.gkey ? 'Google ve ' : '') + 'deniz bilgisi soruluyor</div>' : '';
+  const gNote = !p.busy && S.settings.gkey && GERR ? '<div class="mc-g">Google’dan yer adı alınamadı; OpenStreetMap adı kullanıldı.<details><summary>Neden?</summary>' + esc(GERR) + '</details></div>' : '';
   el.innerHTML = '<div class="mc-h"><b>' + esc(p.name || 'Seçilen nokta') + (p.busy && p.name ? ' …' : '') + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
-    coordBlock(p.lat, p.lon) + '<div class="mc-i">' + esc(info) + '</div>' + kNote + gNote +
+    coordBlock(p.lat, p.lon) + (info ? '<div class="mc-i">' + esc(info) + '</div>' : '') + wait + kNote + gNote +
     (ui.mapFor === 'wizard' && WZ ? '<div class="row"><button class="btn primary" type="button" data-mapact="wzuse">Rig Atölyesinde kullan</button></div>' : '') +
     '<div class="row"><button class="btn' + (ui.mapFor === 'wizard' ? '' : ' primary') + '" type="button" data-mapact="save">Kaydet</button><button class="btn" type="button" data-mapact="forecast">' + (p.kind === 'kara' ? 'Kaydetmeden hava durumuna dön' : 'Kaydetmeden tahmine dön') + '</button>' +
     '<a class="btn" href="' + gmapsUrl(p.lat, p.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
@@ -451,16 +468,16 @@ async function locCard(id){
   const draw = dep => {
     el.innerHTML = '<div class="mc-h"><b>' + esc(locLabel(Lc)) + '</b>' + (S.active === id ? '<span class="chip A">Seçili</span>' : '') + '<button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
       coordBlock(Lc.lat, Lc.lon) + (k === 'kara' ? '<div class="mc-i">Kara · yalnız hava durumu' + (Lc.elev != null ? ' · yükselti ≈ ' + Lc.elev + ' m' : '') + '</div>' : '<div class="mc-i">' + KIND_TXT[k] + ' · dip: ' + esc(BOTTOM_TXT[Lc.bottom || ''] || 'bilinmiyor') + ' · derinlik: ' + (Lc.depth ? esc(Lc.depth) + ' m' : 'yazılmamış') +
-      (dep != null && !Lc.depth ? ' · EMODnet ≈ ' + dep + ' m <button class="linkbtn" type="button" data-mapact="setdepth" data-dep="' + dep + '">derinlik olarak yaz</button>' : '') +
-      (!Lc.bottom && Lc.bottomEst ? ' · taban tahmini: ' + esc(Lc.bottomEstTxt || BOTTOM_TXT[Lc.bottomEst]) + ' <button class="linkbtn" type="button" data-mapact="setbed">dip olarak yaz</button>' : '') + '</div>') +
+      (Lc.bottomAuto || Lc.depthAuto ? ' · ' + [Lc.depthAuto ? 'derinlik EMODnet' : '', Lc.bottomAuto ? 'dip EUSeaMap' : ''].filter(Boolean).join(', ') + ' (tahmini)' : '') + '</div>') +
       (ui.mapFor === 'wizard' && WZ && k !== 'kara' ? '<div class="row"><button class="btn primary" type="button" data-mapact="wzuse">Rig Atölyesinde kullan</button></div>' : '') +
       '<div class="row">' + (S.active === id ? '<button class="btn primary" type="button" data-mapact="today">Tahmine dön</button>' : '<button class="btn primary" type="button" data-mapact="use">' + (k === 'kara' ? 'Seç · hava durumu' : 'Seç ve tahmin') + '</button>') +
       '<a class="btn" href="' + gmapsUrl(Lc.lat, Lc.lon) + '" target="_blank" rel="noopener">Google Haritalar</a></div>';
     el.hidden = false;
   };
   draw(null);
-  if (!Lc.bottom && !Lc.bottomEst && k !== 'kara') seabedAt(Lc.lat, Lc.lon).then(bed => { if (bed && bed.bottom && S.locations[id] && !Lc.bottom) { setBedEst(Lc, bed); persistQuiet(); if (MPICK && MPICK.id === id) draw(null); } }, () => {});
-  if (!Lc.depth && k !== 'kara') { const d = await depthAt(Lc.lat, Lc.lon).catch(() => null); if (MPICK && MPICK.id === id && d != null && d > 0.5) draw(Math.round(d)); }
+  // v0.29.4: eksik dip ve derinlik sormadan yazılır (tahmini işaretiyle)
+  if (!Lc.bottom && !Lc.bottomNo && k !== 'kara') seabedAt(Lc.lat, Lc.lon).then(bed => { if (bed && bed.bottom && S.locations[id] && !Lc.bottom) { setBedEst(Lc, bed); Lc.bottom = bed.bottom; Lc.bottomAuto = true; persist(); indexAll(); if (MPICK && MPICK.id === id) draw(null); } }, () => {});
+  if (!Lc.depth && k !== 'kara') { const d = await depthAt(Lc.lat, Lc.lon).catch(() => null); if (S.locations[id] && !Lc.depth && d != null && d > 0.5) { Lc.depth = String(Math.round(d)); Lc.depthAuto = true; persist(); if (MPICK && MPICK.id === id) draw(null); } }
 }
 async function mapAct(a, b){
   const p = MPICK;
@@ -495,12 +512,12 @@ async function mapAct(a, b){
   if (a === 'save' && (!p.id || (S.locations[p.id] || {}).tmp) && !b.dataset.named) {
     const card = $('mapCard'); card.hidden = false; card.classList.add('naming');   // v0.29.2: klavye kartı kapatmasın: ad sorulurken kart üstte
     card.innerHTML = '<div class="stack"><b>Konumun adı</b><label class="f wide">Ad<input id="mpName" value="' + esc(p.name || '') + '" placeholder="Ör. Liman açığı" autocomplete="off"></label>' +
-      (p.name ? '<p class="note">Haritadaki adı önerildi; istersen değiştir.</p>' : '') +
+      (p.name ? '<p class="note">Haritadaki adı önerildi; istersen değiştir.</p>' : '') + '<div class="msec" id="mpAvk">' + mpAvkHtml(p) + '</div>' +
       '<div class="row"><button class="btn primary" type="button" data-mapact="save" data-named="1">Kaydet</button><button class="btn" type="button" data-mapact="namecancel">Vazgeç</button></div></div>';
     const inp = $('mpName'); if (inp) { inp.focus({preventScroll: true}); inp.select(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('[data-named]').click(); }); }
     return;
   }
-  if (a === 'namecancel') { pickPoint(p.lat, p.lon); return; }
+  if (a === 'namecancel') { $('mapCard').classList.remove('naming'); pickPoint(p.lat, p.lon); return; }
   if (a === 'save' || a === 'forecast') {
     const nm = b.dataset.named && $('mpName') ? $('mpName').value.trim() : '';
     if (nm) p.name = nm;
@@ -508,6 +525,9 @@ async function mapAct(a, b){
     const isNew = !p.id && !(nearestLoc(p) && nearestLoc(p).d <= 0.2);
     const id = mapSavePoint(p, a === 'forecast');
     if (nm && S.locations[id]) S.locations[id].name = nm;
+    // v0.29.4: ad kartında seçilen avlanma şekli (yalnız yeni noktada)
+    const NL = S.locations[id];
+    if (b.dataset.named && NL && p.avk && (isNew || NL.tmp) && p.avk !== locKind(NL) && mpKinds(p).ok.includes(p.avk)) { kindSnap(NL); NL.kind = p.avk; NL.kindAuto = false; NL.kindBy = ''; delete NL.kindFixed; }
     if (a === 'save' && S.locations[id]) delete S.locations[id].tmp;
     if (a === 'forecast' && isNew && S.locations[id]) S.locations[id].tmp = true;   // kaydetmeden: başka konuma geçince silinir
     if (a === 'forecast') { S.active = id; persist(); WX = null; closeSheet(); show('bugun'); renderAll(); loadWeather(); toast(locLabel(S.locations[id]) + ' tahmini'); return; }
@@ -524,7 +544,8 @@ function mapSavePoint(p, activate){
     const NL = S.locations[id];
     if (p.kind && !p.busy) applyKind(NL, p); else NL.kindTried = null;   // tür biliniyorsa hemen; yoksa arka planda bulunur
     if (p.facing != null && (NL.facing == null || NL.facing === '')) NL.facing = String(p.facing);
-    if (p.bed && p.bed.bottom && p.sea !== false) setBedEst(NL, p.bed);
+    if (p.bed && p.bed.bottom && p.sea !== false) { setBedEst(NL, p.bed); NL.bottom = p.bed.bottom; NL.bottomAuto = true; }   // v0.29.4: dip sormadan
+    if (p.depth != null && NL.depth) NL.depthAuto = true;
     if (!NL.kind) setTimeout(ensureKinds, 50);
   }
   return id;

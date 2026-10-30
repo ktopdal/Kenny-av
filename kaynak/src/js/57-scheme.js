@@ -75,6 +75,13 @@ function rigChain(rg, ld){
     tee('ust', 'Üst iğne', len.kostek || 35, {line: kostek}); add({t: 'gap', cm: len.ara || 60, l: sok});
     tee('alt', 'Alt iğne', len.kostek || 35, {line: kostek}); add({t: 'gap', cm: null, l: sok, h: 22});
     add({t: 'sinker', g: kursun, shape: 'piramit'}); add({t: 'bed'});
+  } else if (lay === 'surfhirsiz') {
+    // v0.29.4: hırsızlı surf: ana ip → şok lider → üst köstek (T) → kurşunun üstünden dibe yatan uzun hırsız → piramit kurşun
+    add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 30}); add({t: 'knot', k: 'ciftuni', where: 'Ana ip → şok lider'});
+    add({t: 'line', role: 'sok', label: 'Şok lider', l: sok, h: 30});
+    tee('ust', 'Üst iğne', len.ust || 35, {line: kostek}); add({t: 'gap', cm: len.ara || 60, l: sok});
+    add({t: 'trailTee', k: 'hirsiz', label: 'Hırsız', cm: len.hirsiz || 100, short: 0, hook: slotHook(sl('hirsiz')), line: kostek});
+    add({t: 'gap', cm: null, l: sok, h: 24}); add({t: 'sinker', g: kursun, shape: 'piramit'}); add({t: 'bed'});
   } else if (lay === 'capari') {
     add({t: 'line', role: 'ana', label: 'Ana ip', l: ana, h: 34}); add({t: 'knot', k: anaKnot('swivel'), where: 'Ana ip → klipsli fırdöndü'}); add({t: 'swivel', label: 'Klipsli fırdöndü'});
     add({t: 'sabiki', label: lure ? lure.name : 'Çapari', size: lure ? lure.size : ''}); add({t: 'swivel', label: 'Klips'}); add({t: 'sinker', g: kursun}); add({t: 'bed'});
