@@ -23,6 +23,59 @@ function partBuyAlts(sl){
   return CATALOG.filter(c => nd.cats.includes(c.cat) && cur.indexOf(trLower(c.model)) < 0).sort((a, b) => nd.cats.indexOf(a.cat) - nd.cats.indexOf(b.cat)).slice(0, 4)
     .map(c => ({name: c.name, size: mmTxt(mm), cat: c.cat, sp: {kind: 'line', cats: [c.cat], lo: mm * 0.95, hi: mm * 1.05}}));
 }
+// v0.29.3 · istediğin parçayı seç: envanterdeki aynı türden bütün kalemler (iğnede bütün iğneler ve boyları, ipte bütün ipler,
+// sahte yemde aynı tip yemler). Uyumlu olmasa da seçilebilir; rigin istediğinden farkı yanında yazar. Asıl rig ve paket değişmez:
+// seçim S.rigOv'da bu rige (ya da aynı parçayı kullanan bütün riglere) yazılır, "Asıl parçaya dön" geri alır.
+function partKind(sl){
+  if (slotIsHook(sl) || sl.kind === 'assist' || sl.kind === 'jighead') return 'hook';
+  if (slotIsLine(sl)) return 'line';
+  if (sl.kind === 'lure' || (sl.sp && sl.sp.kind === 'lure')) return 'lure';
+  return null;
+}
+const PART_PL = {hook: 'iğneler', line: 'ipler', lure: 'sahte yemler'}, PART_ONE = {hook: 'iğne', line: 'ip', lure: 'sahte yem'};
+function partPickList(sl){
+  const pk = partKind(sl); if (!pk) return [];
+  const e = sl.t.envanter || {}, nd = slotNeed(sl), cur = (e.item || '') + '|' + (e.size || '-');
+  const lt = pk === 'lure' ? (sl.sp && sl.sp.lt) || (e.item && ITEMS[e.item] ? lureTypeOf(ITEMS[e.item]) : null) : null, okT = lt ? (LURE_OK[lt] || [lt]) : null;
+  const cats = pk === 'hook' ? (sl.kind === 'jighead' ? ['hook', 'jig'] : ['hook']) : pk === 'line' ? ['braid', 'fc', 'mono'] : okT ? ['jig', 'lure', 'hook', 'terminal'] : ['jig', 'lure'];
+  const out = [];
+  Object.values(ITEMS).forEach(it => {
+    if (!cats.includes(it.cat) || (okT && !okT.includes(lureTypeOf(it)))) return;
+    sizesOf(it).forEach(sz => {
+      const v = it.id + '|' + sz; if (v === cur) return;
+      const st = stockOf(it.id, sz), have = usable(st), diff = [];
+      let sc = 0;   // rigin istediğine yakınlık: aynı desen ve boy önce
+      if (pk === 'hook' && nd && nd.hook) {
+        const p = patOf(it), h = hookIdx(sz), same = p === nd.p0, cp = !!p && patCompat(p, nd.p0);
+        if (p && !same) diff.push(cp ? 'benzer desen' : 'farklı desen');
+        if (h && h.sc === nd.h0.sc && h.v !== nd.h0.v) diff.push(Math.abs(h.v - nd.h0.v) + ' boy ' + (h.v > nd.h0.v ? 'büyük' : 'küçük'));
+        sc = (same ? 0 : cp ? 2 : 6) + (h && h.sc === nd.h0.sc ? Math.abs(h.v - nd.h0.v) : 4);
+      }
+      if (pk === 'line' && nd && nd.line) {
+        const mm = lineMm(it), d = mm ? (mm - nd.mm0) / nd.mm0 : 1;
+        if (!nd.cats.includes(it.cat)) diff.push(trLower(CAT_TXT[it.cat] || it.cat));
+        if (mm && Math.abs(d) >= 0.12) diff.push(d > 0 ? 'kalın' : 'ince');
+        sc = Math.abs(d) * 10 + (nd.cats.includes(it.cat) ? 0 : 4);
+      }
+      out.push({v, have, sc, txt: it.name + (sz !== '-' ? ' ' + sz : '') + (diff.length ? ' (' + diff.join(', ') + ')' : '')});
+    });
+  });
+  return out.sort((a, b) => (b.have - a.have) || (a.sc - b.sc) || trCmp(a.txt, b.txt));
+}
+function partPickHtml(rid, k, sl, same){
+  const pk = partKind(sl); if (!pk) return '';
+  const L = partPickList(sl), sel = ui.partSel && L.some(x => x.v === ui.partSel) ? ui.partSel : '';
+  const nd = slotNeed(sl), newCat = pk === 'hook' ? 'hook' : pk === 'line' ? ((nd && nd.cats) || ['fc'])[0] : 'lure';
+  const opt = x => '<option value="' + esc(x.v) + '"' + (x.v === sel ? ' selected' : '') + '>' + esc(x.txt) + '</option>';
+  const yes = L.filter(x => x.have), no = L.filter(x => !x.have);
+  const add = '<p class="note">Listede yoksa <button class="linkbtn" type="button" data-partnew="' + esc(rid + '|' + k + '|' + newCat) + '">envantere yeni ' + PART_ONE[pk] + ' ekle</button>; kaydedince buraya döner.</p>';
+  if (!L.length) return '<p class="note">Envanterinde başka ' + PART_ONE[pk] + ' yok.</p>' + add;
+  return '<p class="note">Envanterindeki bütün ' + PART_PL[pk] + '. Rigin istediğinden farklıysa yanında yazar; elinde olmayanı seçersen rig “eksik” görünür ve alışveriş listesine düşer.</p>' +
+    '<select class="edsel partsel" id="partPick" aria-label="Başka ' + PART_ONE[pk] + ' seç"><option value="">— ' + PART_ONE[pk] + ' seç —</option>' +
+    (yes.length ? '<optgroup label="Elinde">' + yes.map(opt).join('') + '</optgroup>' : '') + (no.length ? '<optgroup label="Elinde yok">' + no.map(opt).join('') + '</optgroup>' : '') + '</select>' +
+    '<div class="row partbtns"><button class="btn small primary" type="button" data-partpick="' + esc('use|' + rid + '|' + k) + '">Bu rigde kullan</button>' +
+    (same ? '<button class="btn small" type="button" data-partpick="' + esc('all|' + rid + '|' + k) + '">' + (same + 1) + ' rigde kullan</button>' : '') + '</div>' + add;
+}
 function openPart(rid, k, keep){
   const {rg, sl} = partSlot(rid, k); if (!rg || !sl) { toast('Parça bulunamadı'); return; }
   ui.sheet = 'parca'; ui.sheetArg = rid + '|' + k;
@@ -43,14 +96,16 @@ function openPart(rid, k, keep){
       (ov && sl.orig ? '<p class="note">Bu rig için değiştirdin; asıl parça: ' + esc((sl.orig.item && ITEMS[sl.orig.item] ? ITEMS[sl.orig.item].name : sl.orig.name || '—') + (sl.orig.size ? ' ' + sl.orig.size : '')) + '. <button class="linkbtn" type="button" data-partorig="' + esc(rid + '|' + k) + '">Asıl parçaya dön</button></p>' : '')) +
     (it ? sec('Envanterde', itemCard(it) + (it.src === 'paket' || it.std ? '<p class="note">' + (it.std ? 'Hazır listeden' : /*@ozel*/'Özel paketten'/*@end*//*@genel*/'Paketten'/*@end*/) + ' gelen kalem: silinmez; “Yok” yapabilirsin.</p>' : '') +
       (users.length ? '<p class="note">Bu parça ' + users.length + ' rigde: ' + esc(users.slice(0, 12).map(r => r.code || r.name).join(', ')) + (users.length > 12 ? '…' : '') + '</p>' : '')) : '') +
-    sec('Elindeki yedekler', cands.length ? '<p class="note">Envanterinde var olan uyumlu parçalar' + (slotIsHook(sl) ? ' (aynı ya da benzer desen, en çok bir boy fark)' : ' (aynı tür, çap ±%12)') + '.</p>' +
+    (!cands.length && partKind(sl) && !slotNeed(sl) ? '' : sec('Elindeki yedekler', cands.length ? '<p class="note">Envanterinde var olan uyumlu parçalar' + (slotIsHook(sl) ? ' (aynı ya da benzer desen, en çok bir boy fark)' : ' (aynı tür, çap ±%12)') + '.</p>' +
       cands.map(c => '<div class="altrow"><span class="v">' + esc(c.txt) + '</span><span class="row"><button class="btn small" type="button" data-partuse="' + esc(rid + '|' + k + '|' + c.item + '|' + c.size) + '">Bu rigde kullan</button>' +
         (same ? '<button class="btn small" type="button" data-partall="' + esc(rid + '|' + k + '|' + c.item + '|' + c.size) + '">' + (same + 1) + ' rigde kullan</button>' : '') + '</span></div>').join('')
-      : '<p class="note">' + (slotNeed(sl) ? 'Envanterinde buna uyan başka bir parça yok.' : 'Bu parça için yedek aranmaz (kamış, makine, fırdöndü ve kurşun elindekidir).') + '</p>') +
+      : '<p class="note">' + (slotNeed(sl) ? 'Envanterinde buna uyan başka bir parça yok.' : 'Bu parça için yedek aranmaz (kamış, makine, fırdöndü ve kurşun elindekidir).') + '</p>')) +
+    (partKind(sl) ? sec('Başka ' + PART_ONE[partKind(sl)] + ' seç', partPickHtml(rid, k, sl, same)) : '') +
     (buy.length ? sec('Bulamazsan yerine alınabilecekler', '<p class="note">Aynı iş görür; mağazada stok yoksa bunlardan birini al. Listeye eklersen aldığında “Aldım, envantere ekle” der.</p>' +
       buy.map((b, i) => '<div class="altrow"><span class="v">' + esc(b.name) + ' <b>' + esc(b.size) + '</b>' + (b.same === false ? ' <small>(benzer desen)</small>' : '') + '</span><button class="btn small" type="button" data-partbuy="' + esc(rid + '|' + k + '|' + i) + '">Listeye ekle</button></div>').join('')) : '') +
     (tk.name && !tk.item && trLower(tk.name) !== trLower(it ? it.name : '') ? '<p class="note">Türkiye’de bulunur: ' + esc(tk.name + (tk.size ? ' ' + tk.size : '')) + (tk.store ? ' · mağaza ' + esc(tk.store) : '') + '</p>' : '') +
     '</div>', keep);
+  ui.partSel = null;
 }
 function specTxt(sp){
   if (sp.kind === 'hook' && sp.sc) return (sp.p || []).map(p => KB.PAT[p] ? KB.PAT[p].name : p).join(' / ') + ' ' + (sp.lo === sp.hi ? hookFmt(sp.sc, sp.lo) : hookFmt(sp.sc, sp.lo) + '–' + hookFmt(sp.sc, sp.hi));

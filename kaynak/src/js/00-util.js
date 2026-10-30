@@ -12,6 +12,10 @@ const CHANGELOG = EDITION === 'genel' ? [
     'Envanter: örnek Excel dosyasını indir, doldur, tek seferde yükle',
     'Takım danışmanı: kendi yapay zekâ anahtarınla (Claude, Gemini, ChatGPT) ya da Google AI Modu ile']}
 ] : /*@ozel*/[
+  {v: '0.29.3', notes: ['iPhone: alttaki sekme çubuğu klavye açıkken gizlenir; klavye kapanınca yerine oturur, sürükleyince ekranın ortasına kaymaz',
+    '“Bilmiyorum, sen seç” (türler): hepsi yerine bölgende bu ay en çok tutulan en fazla 4 tür seçilir; istediğini sonra eklersin',
+    'Rig parçaları değiştirilebilir: iğneye (ip, sahte yem) dokun → “Başka iğne seç” ile envanterindeki herhangi bir iğneyi bu rigde ya da aynı parçayı kullanan bütün riglerde kullan; listede yoksa envantere ekleyip dön. Hazırlama sayfasında malzemede “Değiştir”, şemada iğneye dokunmak da aynı sayfayı açar',
+    'Konum türü kuralı: kıyıdaki nokta deniz, denizdeki nokta kara, karadaki nokta deniz yapılamaz']},
   {v: '0.29.2', notes: ['Üst satır: konumun adı, koordinatı ve türü (deniz/kıyı, dip) ayrı satırlarda; yarısı görünmüyordu',
     'Konuma dokununca önce Konumlar listesi açılır; harita listenin en üstündeki “Haritadan seç” bandından',
     'Rig Atölyesi: seçili nokta kıyıysa kıyıdan, denizse tekneden kurar; ayrıca sorulmaz',

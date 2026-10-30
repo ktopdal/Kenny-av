@@ -71,6 +71,32 @@ const wzSpOk = s => WZ.ans.mode !== 'kiyi' || spShore(s.id);
 const WZ_EASY = {tekne: ['dip', 'capari'], kiyi: ['surf', 'samandira'], ikisi: ['dip', 'surf']};
 const wzSpecies = () => { const f = wzFams(); const list = KB.SPECIES.filter(s => f.has(s.fam) && s.bol.includes(WZ.ans.region) && wzSpOk(s));
   if (WZ.ans.mode === 'kiyi') list.sort((a, b) => (SHORE_TOP.includes(b.id) ? 1 : 0) - (SHORE_TOP.includes(a.id) ? 1 : 0)); return list; };
+// v0.29.3 · "Bilmiyorum, sen seç": bölgenin başlıca türlerinden, seçilen tekniklerle tutulan ve bu ay mevsiminde olan en çok 4 tür
+// (önce noktanın av kayıtlarında tutanlar; seçilen her teknikten en az bir tür). Acemiye sade bir başlangıç; isteyen sonra ekler.
+const WZ_MAX = 4;
+const WZ_MAIN = {
+  tekne: {ege: ['istavrit', 'mercan', 'karagoz', 'barbunya', 'isparoz', 'sargoz', 'kupes', 'tekir', 'izmarit', 'kolyoz', 'iskorpit', 'hani', 'kalamar', 'cipura'],
+    akdeniz: ['istavrit', 'mercan', 'karagoz', 'sargoz', 'barbunya', 'isparoz', 'tekir', 'iskorpit', 'hani', 'kupes', 'kalamar', 'cipura'],
+    marmara: ['istavrit', 'mezgit', 'uskumru', 'barbunya', 'lufer', 'iskorpit', 'kalkan', 'palamut', 'izmarit', 'kefal', 'kalamar'],
+    karadeniz: ['istavrit', 'mezgit', 'barbunya', 'uskumru', 'kalkan', 'iskorpit', 'lufer', 'palamut', 'kefal']},
+  kiyi: {ege: ['cipura', 'levrek', 'sargoz', 'mirmir', 'karagoz', 'istavrit', 'kefal', 'zargana', 'isparoz', 'kupes', 'melanurya', 'kalamar'],
+    akdeniz: ['cipura', 'levrek', 'sargoz', 'mirmir', 'karagoz', 'istavrit', 'kefal', 'zargana', 'melanurya', 'kalamar'],
+    marmara: ['istavrit', 'levrek', 'lufer', 'kefal', 'zargana', 'cipura', 'sargoz', 'izmarit', 'kalamar'],
+    karadeniz: ['istavrit', 'levrek', 'kefal', 'zargana', 'lufer', 'iskorpit', 'barbunya']}};
+function wzMainSp(){
+  const a = WZ.ans, list = wzSpecies(); if (!list.length) return [];
+  const pri = WZ_MAIN[a.mode === 'kiyi' ? 'kiyi' : 'tekne'], top = pri[a.region] || pri.ege;
+  const mon = new Date().getMonth(), cal = id => { const c = KB.CAL[id]; return c ? +c[0][mon] : 1; };
+  const L = a.locId && S.locations[a.locId], sm = L ? spotMemory(L) : null, here = sm ? sm.sp.map(x => x[0]) : [];
+  const sc = s => { const i = top.indexOf(s.id), h = here.indexOf(s.id); return (h >= 0 ? h - 50 : 0) + (i < 0 ? 40 : i) - cal(s.id) * 3; };
+  const inSeason = list.filter(s => cal(s.id) > 0 || here.includes(s.id));
+  const ok = (inSeason.length ? inSeason : list).slice().sort((x, y) => sc(x) - sc(y));
+  const pick = [];
+  a.techs.forEach(t => { if (pick.length >= WZ_MAX || !KB.TECH[t]) return; const f = KB.TECH[t].fams; const s = ok.find(x => f.includes(x.fam) && !pick.includes(x)); if (s) pick.push(s); });
+  ok.forEach(s => { if (pick.length < WZ_MAX && !pick.includes(s)) pick.push(s); });
+  return pick.sort((x, y) => sc(x) - sc(y)).map(s => s.id);
+}
+const wzSpNames = ids => ids.map(id => (spById(id) || {}).name).filter(Boolean).join(', ');
 const optBtn = (attr, val, on, label, sub) => '<button type="button" class="opt" ' + attr + '="' + esc(val) + '" aria-pressed="' + !!on + '"><b>' + esc(label) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
 const segWz = (name, opts, cur) => '<div class="seg wrapseg">' + opts.map(([v, t]) => '<button class="btn small" type="button" data-wzset="' + name + '" data-val="' + v + '" aria-pressed="' + (cur === v) + '">' + esc(t) + '</button>').join('') + '</div>';
 function wzSummary(){
@@ -88,7 +114,7 @@ function wzSummary(){
 function wzValid(){
   const a = WZ.ans, st = WZ.step;
   if (st === 1) return a.techs.length > 0;
-  if (st === 2) return a.species.length > 0 || wzSpecies().length > 0;   // tür seçmek zorunlu değil: boşsa bölgedekilerin hepsi
+  if (st === 2) return a.species.length > 0 || wzSpecies().length > 0;   // tür seçmek zorunlu değil: boşsa bölgenin başlıca en çok 4 türü
   if (st === 5) return a.techs.length > 0 && a.species.length > 0 && genSystem(a).length > 0;
   return true;
 }
@@ -121,8 +147,8 @@ function renderWizard(keep){
   } else if (st === 2) {
     const by = {}; wzSpecies().forEach(s => { (by[s.fam] = by[s.fam] || []).push(s); });
     const rg0 = (KB.REGIONS.find(r => r[0] === a.region) || [0, ''])[1];
-    body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve noktanın bölgesine (' + esc(rg0) + ') uyan türler' + (a.mode === 'kiyi' ? ', yalnız kıyıdan tutulanlar' : '') + '. Altlarındaki aylar genel bilgidir. Bilmiyorsan seçmeden geç: bölgende tutulanların hepsi için kurulur.</p>' +
-      '<div class="opts">' + optBtn('data-wzsx', '1', !!a.spAuto, 'Bilmiyorum, hepsi', rg0 + ' bölgesinde bu tekniklerle tutulan ' + wzSpecies().length + ' tür') + '</div>' +
+    body = '<h3>Hangi balıkları hedefliyorsun?</h3><p class="note">Seçtiğin tekniklere ve noktanın bölgesine (' + esc(rg0) + ') uyan türler' + (a.mode === 'kiyi' ? ', yalnız kıyıdan tutulanlar' : '') + '. Altlarındaki aylar genel bilgidir. Bilmiyorsan “Bilmiyorum, sen seç”e dokun: bölgende bu ay en çok tutulan en fazla ' + WZ_MAX + ' tür seçilir; istediğini sonra eklersin.</p>' +
+      '<div class="opts">' + optBtn('data-wzsx', '1', !!a.spAuto, 'Bilmiyorum, sen seç', (wzMainSp().length ? rg0 + (/[aıou][^aeıioöuü]*$/i.test(rg0) ? '’da' : '’de') + ' bu ay başlıca: ' + wzSpNames(wzMainSp()) : 'Önce bir teknik seç')) + '</div>' +
       (Object.keys(by).map(f => '<div class="famgrp"><div class="row" style="justify-content:space-between"><span class="eyebrow">' + esc((KB.FAM[f] || {}).name || f) + '</span><button class="linkbtn" type="button" data-wzall="' + f + '">Hepsini seç</button></div><div class="opts sp">' +
         by[f].map(s => optBtn('data-wzs', s.id, a.species.includes(s.id), s.name, s.m ? s.m.map(m => MON3[m - 1]).join(' ') : 'yıl boyu')).join('') + '</div></div>').join('') || '<div class="empty">Önce bir teknik seç.</div>') +
       (a.species.filter(id => !wzSpecies().some(s => s.id === id)).length ? '<p class="note">Aramadan eklenenler: ' + esc(a.species.filter(id => !wzSpecies().some(s => s.id === id)).map(id => (spById(id) || {}).name).filter(Boolean).join(', ')) + '</p>' : '') +
@@ -157,7 +183,7 @@ function wzClick(d){
   const a = WZ.ans;
   if (d.wzm) { wzSetMode(d.wzm); }
   else if (d.wztx) { a.techAuto = !a.techAuto; a.techs = a.techAuto ? (WZ_EASY[a.mode] || WZ_EASY.tekne).filter(t => wzTechs().includes(t)) : []; a.techs.forEach(t => { if (!(a.lay[t] || []).length) a.lay[t] = [KB.TECH[t].lay[0]]; }); }
-  else if (d.wzsx) { a.spAuto = !a.spAuto; a.species = a.spAuto ? wzSpecies().map(s => s.id) : []; if (a.spAuto && !a.sizeSet) a.size = 'sade'; }
+  else if (d.wzsx) { a.spAuto = !a.spAuto; a.species = a.spAuto ? wzMainSp() : []; if (a.spAuto && !a.sizeSet) a.size = 'sade'; }
   else if (d.wzr) { a.region = d.wzr; }
   else if (d.wzloc) { wzUseLoc(d.wzloc); }
   else if (d.wzmap) { ui.mapFor = 'wizard'; ui.back = () => { ui.mapFor = null; if (WZ) { ui.sheet = 'wizard'; renderWizard(); } else closeSheet(); }; openMap(); return; }
@@ -185,8 +211,8 @@ function wzClick(d){
   else if (d.wz === 'back') { WZ.step = Math.max(0, WZ.step - 1); renderWizard(); return; }
   else if (d.wz === 'next') {
     if (!wzValid()) return;
-    if (WZ.step === 1) { const f = wzFams(); a.species = a.species.filter(id => { const s = KB.SPECIES.find(x => x.id === id); return s && f.has(s.fam) && wzSpOk(s); }); if (a.spAuto) a.species = wzSpecies().map(s => s.id); }
-    if (WZ.step === 2 && !a.species.length) { a.species = wzSpecies().map(s => s.id); a.spAuto = true; if (!a.sizeSet) a.size = 'sade'; toast('Tür seçmedin: bölgende tutulan ' + a.species.length + ' türün hepsi için kuruluyor'); }
+    if (WZ.step === 1) { const f = wzFams(); a.species = a.species.filter(id => { const s = KB.SPECIES.find(x => x.id === id); return s && f.has(s.fam) && wzSpOk(s); }); if (a.spAuto) a.species = wzMainSp(); }
+    if (WZ.step === 2 && !a.species.length) { a.species = wzMainSp(); a.spAuto = true; if (!a.sizeSet) a.size = 'sade'; toast('Tür seçmedin: ' + wzSpNames(a.species) + ' için kuruluyor; istersen geri dönüp ekle'); }
     WZ.step = Math.min(5, WZ.step + 1); renderWizard(); return;
   }
   else if (d.wz === 'done') { wzFinish(); return; }

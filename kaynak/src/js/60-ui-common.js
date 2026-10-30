@@ -33,7 +33,9 @@ function compRow(rg, sl, tier){
   const t = sl.t[tier] || {};
   const nm = t.item && ITEMS[t.item] ? ITEMS[t.item].name : (t.name || '—');
   const right = tier === 'turkiye' ? (t.item ? '<span class="dot var"></span>Envanterde' : t.store ? '<span class="dot alinacak"></span>Mağaza ' + esc(t.store) : '<span class="dot alinacak"></span>Alınacak') : '';
-  return '<div class="crow"><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (t.size ? ' <b>' + esc(t.size) + '</b>' : '') + '</span><span class="s">' + right + '</span></div>';
+  // v0.29.3: mağaza seviyesinde de satır dokunulur: kamış/makine → "Kamış ve makine", diğerleri → parça sayfası (değiştir)
+  const gear = sl.kind === 'rod' || sl.kind === 'reel';
+  return '<button type="button" class="crow tap" ' + (gear ? 'data-gear="' + esc(rg.id) + '"' : 'data-part="' + esc(rg.id + '|' + sl.k) + '"') + '><span class="k">' + esc(sl.label) + '</span><span class="v">' + esc(nm) + (t.size ? ' <b>' + esc(t.size) + '</b>' : '') + '</span><span class="s">' + right + '<i class="chev" aria-hidden="true">›</i></span></button>';
 }
 function lengthsTxt(ld, rg){
   if (!ld) return '';

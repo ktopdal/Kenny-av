@@ -77,12 +77,13 @@ function bindEvents(){
   $('net').addEventListener('click', () => loadWeather(true));
   $('compass').addEventListener('click', () => { const x = nowHour(); if (x) toast(compassTxt(x)); });
   $('modeBtn').addEventListener('click', () => { const k = locKind(loc()); if (k === 'kara') return;
-    if (k === 'kiyi') { toast('Bu konum kıyıda: kıyıdan av. Tekne için Konumlar’dan türünü Deniz yap.'); return; }
+    if (k === 'kiyi') { toast(kindAllowed(loc()).includes('deniz') ? 'Bu konum kıyı: kıyıdan av. Tekne için Konumlar’dan türünü Deniz yap.' : 'Bu nokta kıyıda: kıyıdan av. Tekneyle avlanmak için haritadan denizde bir nokta seç.'); return; }
     const m = S.mode === 'kiyi' ? 'tekne' : 'kiyi'; setSetting('mode', m); toast(m === 'kiyi' ? 'Kıyı modu: kıyı rigleri, kıyıya göre rüzgâr' : 'Tekne modu: tekne rigleri, sürüklenme ve kurşun'); });
   $('addCatch').addEventListener('click', () => catchForm(null));
   $('addItem').addEventListener('click', () => itemForm(null));
   document.addEventListener('click', async e => {
     const kg = e.target.closest && e.target.closest('g[data-knot]'); if (kg) { knotFrom(kg.dataset.knot); return; }   // şemadaki düğüm noktası
+    const hg = e.target.closest && e.target.closest('g[data-part]'); if (hg) { backTo(); const [r, k] = hg.dataset.part.split('|'); openPart(r, k); return; }   // şemadaki iğne (v0.29.3)
     if (e.target.id === 'about' && EDITION === 'ozel' && !pkgDoor()) { PKG_TAPS++; if (PKG_TAPS >= 5) { renderMore(); /*@ozel*/toast('Özel paket açıldı: Daha → Özel paket'); /*@end*/} return; }   // gizli kapı (yalnız sahibi bilir)
     const b = e.target.closest('button'); if (!b) return;
     const d = b.dataset;
@@ -133,6 +134,9 @@ function bindEvents(){
     if (d.fday) { ui.fday = d.fday; renderFishing(); return; }
     if (d.fpart) { ui.fpart = d.fpart; renderFishing(); return; }
     if (d.part) { backTo(); const [r, k] = d.part.split('|'); openPart(r, k); return; }
+    // v0.29.3: parça sayfasında listeden başka parça seç; listede yoksa envantere ekleyip geri dön
+    if (d.partpick) { const [kind, r, k] = d.partpick.split('|'); const v = $('partPick') ? $('partPick').value : ''; if (!v) { toast('Önce listeden seç'); return; } partAct(kind, r + '|' + k + '|' + v); return; }
+    if (d.partnew) { const [r, k, c] = d.partnew.split('|'), pb = ui.back; ui.partRet = {r, k, pb}; ui.back = () => { ui.partRet = null; ui.back = pb; openPart(r, k, true); }; itemForm(null, c); return; }
     if (d.gear) { backTo(); openGear(d.gear); return; }
     if (d.gearuse) { gearAct('use', d.gearuse); return; }
     if (d.gearall) { gearAct('all', d.gearall); return; }
@@ -327,13 +331,15 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   spNow, rigSeason, seasonNow, tempFit, tuneRig, lightAt, learnRig, learnFb, fbAll, fbAdd, fbSet, fbPending, kb: () => KB, calMonth, monthRuns, habitatClass, seabedAt, ustaContext, mdLite, usta: () => USTA,
   danParse, danCheck, danPrompt, danRig, danOwn, mdTables, danToInv, openDan, aiProv, dan: () => DAN,
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
+  vp: () => VP, partPickList, partKind, kindAllowed, kindBase, wzMain: () => WZ ? wzMainSp() : null, wz: () => WZ,
   spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, prepUse, openDone, applyDone, undoDone, rigToDraft, draftToRig, edWarn, openEditor, rigPh, allPhotoIds, addRigPhotos, red: () => RED, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable};
 (async () => {
   loadState();
+  if (Object.values(S.locations).map(kindFix).some(Boolean)) persistQuiet();   // v0.29.3: tür kuralına aykırı eski seçimler
   pkgLoadCached();
   if (D && (EMBED || S.pkg.unlocked)) importPackage(D);
   applyTheme();
-  indexAll(); bindEvents();
+  indexAll(); bindEvents(); vpInit();
   const h = (location.hash || '').slice(1);
   const shareRaw = h.indexOf('al=') === 0 ? h.slice(3) : null, grpRaw = h.indexOf('grup=') === 0 ? h.slice(5) : null, avRaw = h.indexOf('av=') === 0 ? h.slice(3) : null;
   show(VIEWS.includes(h) ? h : 'bugun');

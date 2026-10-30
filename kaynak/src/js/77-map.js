@@ -243,7 +243,9 @@ async function placeInfo(lat, lon, onPart, opt){
 // kara ya da kıyı çıkarsa ve karar güçlüyse haritadan gelmiş "… açıkları" adı düzeltilir
 function applyKind(L, r){
   L.kind = r.kind; L.kindAuto = true; L.kindBy = r.by; L.kindAt = Date.now();
+  L.kindDet = r.kind; L.kindDetStrong = !!r.strong;   // v0.29.3: temel tür (elle değişse de kalır; tür kuralı buna bakar)
   if (r.coastKm != null) L.coastKm = Math.round(r.coastKm * 100) / 100;
+  L.coastFar = r.coastKm == null && !!r.coastChecked;   // 6 km içinde kıyı çizgisi yok
   if (r.elev != null) L.elev = r.elev;
   if (r.kind === 'kiyi' && r.facing != null && (L.facing == null || L.facing === '')) L.facing = String(r.facing);
   if (r.kind !== 'deniz' && r.strong) {
@@ -261,7 +263,18 @@ function ensureKinds(){
 }
 async function kindPass(){
   for (const L of Object.values(S.locations)) {
-    if (!S.locations[L.id] || L.kind || L.pkg || L.kindTried) continue;
+    if (!S.locations[L.id] || L.pkg) continue;
+    // v0.29.3: elle türü seçilmiş eski konumların temel türü bir kez bulunur (tür kuralı için; seçim değişmez, kurala aykırıysa düzelir)
+    if (L.kind && !L.kindAuto && !L.kindDet && !L.kindDetTried) {
+      const r = await placeInfo(L.lat, L.lon, null, {lite: true}).catch(() => null);
+      if (!S.locations[L.id]) continue;
+      if (r && r.ok) L.kindDetTried = Date.now();
+      if (r && r.kind && !L.kindDet) { L.kindDet = r.kind; L.kindDetStrong = !!r.strong; if (r.coastKm != null && L.coastKm == null) L.coastKm = Math.round(r.coastKm * 100) / 100; L.coastFar = r.coastKm == null && !!r.coastChecked; const before = locKind(L);
+        if (kindFix(L)) { persist(); if (S.active === L.id && (before === 'kara') !== (L.kind === 'kara')) loadWeather(true); renderAll(); } }
+      persistQuiet(); if (ui.sheet === 'konumlar') openMore('konumlar', true);
+      continue;
+    }
+    if (L.kind || L.kindTried) continue;
     const r = await placeInfo(L.lat, L.lon, null, {lite: true}).catch(() => null);
     if (!S.locations[L.id] || L.kind) continue;           // bu arada silindi ya da elle seçildi
     if (r && r.ok) L.kindTried = Date.now();               // ağ yoksa sonraki açılışta yeniden denenir

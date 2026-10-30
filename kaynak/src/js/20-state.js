@@ -69,6 +69,38 @@ const KIND_TXT = {deniz: 'Deniz', kiyi: 'Kıyı', kara: 'Kara'};
 const kmTxt = km => km == null ? '' : km < 1 ? Math.max(10, Math.round(km * 100) * 10) + ' m' : f1(km) + ' km';   // 1 km altı metre
 const locKind = L => !L ? null : L.kind && KIND_TXT[L.kind] ? L.kind : 'deniz';
 const landMode = () => locKind(loc()) === 'kara';
+// v0.29.3 · tür kuralı: kıyıda bulunan nokta deniz yapılamaz (kıyı ya da kara olur), denizde bulunan nokta kara yapılamaz, karada bulunan
+// nokta deniz yapılamaz. Temel, otomatik bulunan türdür (kindDet; elle değiştirilince de saklanır). Bulma zayıfsa (yalnız adresten) ya da
+// bilinmiyorsa üçü de seçilebilir. Kıyı türü her zaman kıyı çizgisinden bulunur (güçlü).
+const KIND_OK = {deniz: ['deniz', 'kiyi'], kiyi: ['kiyi', 'kara'], kara: ['kara', 'kiyi']};
+const kindStrongBy = by => /kıyı çizgisi|^yükselti$|kıyıya uzaklık/.test(by || '');
+function kindSnap(L){   // eski kayıtlar: otomatik bulunmuş türü temel olarak sakla (elle değiştirmeden önce)
+  if (!L || L.kindDet || !L.kindAuto || !KIND_OK[L.kind]) return;
+  L.kindDet = L.kind; L.kindDetStrong = L.kind === 'kiyi' || kindStrongBy(L.kindBy);
+}
+function kindBase(L){
+  if (!L) return null;
+  /*@ozel*/if (L.pkg) return 'deniz';/*@end*/
+  const b = L.kindDet || (L.kindAuto ? L.kind : null); if (!KIND_OK[b]) return null;
+  const strong = L.kindDet ? (L.kindDetStrong != null ? !!L.kindDetStrong : b === 'kiyi') : b === 'kiyi' || kindStrongBy(L.kindBy);
+  return strong ? b : null;
+}
+// kıyıdan 1 km'den uzak (ya da 6 km içinde kıyı çizgisi yok) deniz/kara noktası kıyı da yapılamaz (iskele, mendirek payı 1 km)
+const kindFar = L => (L.coastKm != null && L.coastKm > 1) || !!L.coastFar;
+function kindAllowed(L){
+  const b = kindBase(L); if (!b) return ['deniz', 'kiyi', 'kara'];
+  return b !== 'kiyi' && kindFar(L) ? KIND_OK[b].filter(k => k !== 'kiyi') : KIND_OK[b];
+}
+function kindRuleTxt(L){
+  const b = kindBase(L); if (!b) return '';
+  const no = ['deniz', 'kiyi', 'kara'].filter(k => !kindAllowed(L).includes(k)).map(k => trLower(KIND_TXT[k]));
+  return 'nokta ' + {deniz: 'denizde', kiyi: 'kıyıda', kara: 'karada'}[b] + (b !== 'kiyi' && kindFar(L) ? ' ve kıyıdan uzak' : '') + ': ' + no.join(' ve ') + ' yapılamaz';
+}
+// kurala aykırı eski elle seçimi düzelt (temel türe döner); değiştiyse true
+function kindFix(L){
+  const b = kindBase(L); if (!b || !L.kind || kindAllowed(L).includes(L.kind)) return false;
+  L.kind = b; L.kindFixed = Date.now(); return true;
+}
 // geçerli av modu: karada 'kara', kıyı türünde her zaman 'kiyi', denizde kullanıcının seçimi (Tekne/Kıyı)
 const modeNow = () => { const k = locKind(loc()); return k === 'kara' ? 'kara' : k === 'kiyi' ? 'kiyi' : (S.mode === 'kiyi' ? 'kiyi' : 'tekne'); };
 const locLabel = L => !L ? '' : /*@ozel*/(L.id === '1' && L.pkg ? 'Konum 1 · ' : '') + /*@end*/'' + L.name + (L.tmp ? ' (kaydedilmedi)' : '');

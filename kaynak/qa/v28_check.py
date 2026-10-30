@@ -1574,24 +1574,25 @@ async def main():
             for v in ['bugun', 'fishing', 'takvim']:
                 await pg.click(f'.tabbar button[data-v="{v}"]'); await pg.wait_for_timeout(150); await overflow(pg, 'W %d px %s (kara)' % (w, v))
         await pg.set_viewport_size({'width': 390, 'height': 860})
-        # türü elle Deniz yap → balık ve deniz verisi geri gelir; sonra yine Kara
+        # v0.29.3 tür kuralı: karada bulunan nokta elle Deniz yapılamaz (deniz verisi istenmez); Kara kalır
         await pg.click('.tabbar button[data-v="daha"]'); await pg.click('#moreMenu button[data-open="konumlar"]'); await pg.wait_for_timeout(300)
         check('otomatik bulundu (yükselti)' in await pg.inner_text('#sheet'), 'W: Konumlar’da tür ve nasıl bulunduğu yazıyor')
         n1 = len(calls)
-        await pg.click('#sheet button[data-lkind="%s|deniz"]' % lid); await pg.wait_for_timeout(3000)
-        st = await state(pg); L = st['locations'][lid]; lb = await pg.locator('#hTable th.lbl b').all_text_contents()
-        check(L.get('kind') == 'deniz' and L.get('kindAuto') is False and 'Balık' in lb and any('marine' in c for c in calls[n1:]), 'W: elle Deniz: balık satırları ve deniz verisi geldi')
+        await pg.click('#sheet button[data-lkind="%s|deniz"]' % lid, force=True); await pg.wait_for_timeout(1500)
+        st = await state(pg); L = st['locations'][lid]; lb = await pg.locator('#hTable th.lbl b').all_text_contents(); tt = await pg.inner_text('#toast')
+        check(L.get('kind') == 'kara' and 'Balık' not in lb and not any('marine' in c for c in calls[n1:]) and 'deniz yapılamaz' in tt, 'W: karada bulunan nokta elle Deniz yapılamadı (tür kuralı): ' + tt)
         await pg.click('#sheet button[data-lkind="%s|kara"]' % lid); await pg.wait_for_timeout(1500)
         lb = await pg.locator('#hTable th.lbl b').all_text_contents(); check('Balık' not in lb and 'Dalga' not in lb, 'W: elle Kara: yine yalnız hava')
         await pg.locator('#sheet [data-close]').first.click(); await pg.wait_for_timeout(200)
-        # eski sürümde haritadan kaydedilmiş kara noktası "Güzelbahçe açıkları": açılışta Kara bulunur, adı düzeltilir; elle seçilen türe dokunulmaz
+        # eski sürümde haritadan kaydedilmiş kara noktası "Güzelbahçe açıkları": açılışta Kara bulunur, adı düzeltilir
+        # v0.29.3: karada bulunan noktaya eskiden elle verilmiş Deniz türü kurala aykırı: temel tür bulunur, Kara olur (ad değişmez)
         await pg.evaluate("""async () => { const Q = window.ALYSSA_QA, S = Q.state();
           S.locations['77'] = {id: '77', name: 'Güzelbahçe açıkları', lat: 38.3649, lon: 26.8735, bottom: '', depth: '13'};
           S.locations['78'] = {id: '78', name: 'Elle deniz', lat: 38.3651, lon: 26.8739, bottom: '', depth: '', kind: 'deniz', kindAuto: false};
           await Q.ensureKinds(); }""")
         st = await state(pg); L77 = st['locations']['77']; L78 = st['locations']['78']
         check(L77.get('kind') == 'kara' and L77['name'] == 'Güzelbahçe', 'W: eski “Güzelbahçe açıkları” → Kara, adı “Güzelbahçe”: ' + json.dumps({k: L77.get(k) for k in ('name', 'kind')}, ensure_ascii=False))
-        check(L78.get('kind') == 'deniz' and L78['name'] == 'Elle deniz', 'W: elle seçilmiş türe dokunulmadı')
+        check(L78.get('kind') == 'kara' and L78.get('kindDet') == 'kara' and L78['name'] == 'Elle deniz', 'W: karadaki eski elle Deniz seçimi tür kuralıyla Kara oldu, adı aynı: ' + json.dumps({k: L78.get(k) for k in ('kind', 'kindDet', 'kindDetStrong')}))
         # haritadan kıyı noktası: kıyı türü, kıyı modu sabit, Fishing'de kıyı ve kurşun
         await pg.click('#locBtn'); await pg.click('#sheet .mapbanner'); await pg.wait_for_selector('#map.leaflet-container', timeout=10000); await pg.wait_for_timeout(400)
         await pg.evaluate('window.ALYSSA_QA.pickPoint(38.61, 26.91)'); await pg.wait_for_timeout(400)
@@ -1601,7 +1602,7 @@ async def main():
         st = await state(pg); L = st['locations'][st['active']]
         check(L.get('kind') == 'kiyi' and await pg.evaluate('ALYSSA_QA.modeNow()') == 'kiyi' and st['mode'] != 'kiyi', 'W: kıyı türü, kıyı modu (kullanıcının Tekne/Kıyı seçimi değişmeden)')
         await pg.click('#modeBtn'); await pg.wait_for_timeout(200)
-        check('Bu konum kıyıda' in await pg.inner_text('#toast') and (await state(pg))['mode'] == st['mode'], 'W: kıyı noktasında mod düğmesi değiştirmiyor, nedenini söylüyor')
+        check('Bu nokta kıyıda' in await pg.inner_text('#toast') and 'denizde bir nokta seç' in await pg.inner_text('#toast') and (await state(pg))['mode'] == st['mode'], 'W: kıyı noktasında mod düğmesi değiştirmiyor, nedenini söylüyor (v0.29.3: kıyı noktası deniz yapılamaz)')
         lb = await pg.locator('#hTable th.lbl b').all_text_contents(); check('Kıyıya göre' in lb and 'Balık' in lb, 'W: kıyıda balık ve kıyıya göre satırları')
         await pg.click('.tabbar button[data-v="fishing"]'); await pg.wait_for_timeout(300)
         check('Kıyı ve kurşun' in await pg.inner_text('#driftPanel'), 'W: Fishing’de kıyı ve kurşun')

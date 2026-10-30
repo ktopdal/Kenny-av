@@ -459,3 +459,18 @@ html, body, #sheet { overflow-x: clip; }
 .mapcard.naming{top:8px;bottom:auto;max-height:46%;z-index:1100}
 /* v0.29.2 · dar ekranda (iPhone SE gibi) durum yalnız renkli nokta: konum adına yer kalsın */
 @media (max-width:359px){.netstate span{display:none}}
+/* v0.29.3 · iPhone: klavye ya da seçim çarkı açıkken alt çubuk gizli (klavyenin üstünde, ekranın ortasında yüzmesin; 07-vp.js);
+   çubuk kendi katmanında; sayfa ve açılan sayfalar (sheet) kenarda esneyip altını sürüklemesin */
+body.kb .tabbar{visibility:hidden;pointer-events:none}
+.tabbar{-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0)}
+html{overscroll-behavior-y:none}
+body{min-height:100vh}
+.sheet{overscroll-behavior:contain}
+/* v0.29.3 · hazırlama malzemesinde iğne/ip/yem "Değiştir"; parça sayfasında başka parça seçimi */
+.mats li.chg{display:flex;align-items:center;gap:6px}
+.mats li.chg label{flex:1;min-width:0}
+.mats .mchg{flex:none;padding:8px 4px;font-size:13px}
+.partsel{width:100%;margin:6px 0;flex:none;min-height:44px}
+.partbtns{gap:8px;flex-wrap:wrap}
+.kindrow .btn.kno{opacity:.42}
+svg g.hk{cursor:pointer}

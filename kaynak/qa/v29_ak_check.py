@@ -279,7 +279,7 @@ async def main():
         sps = await pg.eval_on_selector_all('button[data-wzs]', 'els => els.map(e => e.dataset.wzs)')
         print('   kıyı türleri:', sps)
         check(sps and not any(s in sps for s in ('orkinos', 'lahos', 'orfoz', 'fangri', 'kalkan', 'sinarit', 'lambuka')), 'AK: kıyıda tekne türleri yok')
-        check(not await pg.is_disabled('button[data-wz="next"]') and 'Bilmiyorum, hepsi' in await pg.inner_text('#sheet'), 'AK: tür seçmeden ileri gidilebilir')
+        check(not await pg.is_disabled('button[data-wz="next"]') and 'Bilmiyorum, sen seç' in await pg.inner_text('#sheet'), 'AK: tür seçmeden ileri gidilebilir')
         await pg.fill('#wz-spq', 'orkinos'); await pg.wait_for_timeout(400)
         res = await pg.inner_text('#wzSpRes')
         check('Kıyıdan tutulmaz' in res and await pg.locator('#wzSpRes button[data-wzsadd="orkinos"]').count() == 0, 'AK: aramada orkinos kıyıdan tutulmaz diye kapalı')

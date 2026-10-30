@@ -144,6 +144,8 @@ function schemeSvg(rg, opt){
   const kn = (k, where, yy, side) => { knots.push({k, where}); out.push(scKnot(X, yy, k, P, true, side)); };
   const mc = l => l ? P[l.mat] || P.fc : P.fc;
   let bedY = null, bedLab = false;
+  // v0.29.3: iğne ve adı dokunulur (ekrandaki şemada; kayıtlı rigde): parça sayfası, orada başka iğne seçilir
+  const hkTap = (k, svg) => opt.pal !== 'print' && k && RIGS[rg.id] && rg.slots.some(sl => sl.k === k) ? '<g class="hk" data-part="' + esc(rg.id + '|' + k) + '" role="button" tabindex="0" aria-label="İğneyi değiştir">' + svg + '</g>' : svg;
   ch.nodes.forEach((n, i) => {
     if (n.t === 'line') { out.push(scLine(X, y, X, y + n.h, mc(n.l), n.l && n.l.mat === 'braid' ? 1.8 : 2.2)); if (n.label) out.push(scLbl(y + n.h / 2 - 2, n.label, n.l ? n.l.txt : '', P)); y += n.h; }
     else if (n.t === 'knot') kn(n.k, n.where, y);
@@ -167,9 +169,9 @@ function schemeSvg(rg, opt){
       if (n.t === 'tee') {
         const x2 = x1 + L, y2 = y + 12;
         out.push(scPath('M' + x1 + ' ' + (y + 1) + ' C' + (x1 + L * 0.4) + ' ' + (y + 1) + ' ' + (x1 + L * 0.75) + ' ' + (y + 4) + ' ' + x2 + ' ' + y2, c, 1.6));
-        out.push(scHook(x2, y2, P));
         out.push(scT(x1 + 4, y - 6, n.label + ' · ' + cm + ' cm', {fs: 10.5, w: 600, c: P.txt}));
-        if (n.hook) { const ht = scCut(n.hook.name + (n.hook.size ? ' ' + n.hook.size : ''), 34), hw = ht.length * 5.4; out.push(scT(Math.max(hw / 2 + 4, Math.min(SC_W - hw / 2 - 4, x2 + 6)), y2 + 33, ht, {fs: 10, c: P.mut, a: 'middle'})); }
+        { const ht = n.hook ? scCut(n.hook.name + (n.hook.size ? ' ' + n.hook.size : ''), 34) : '', hw = ht.length * 5.4;
+          out.push(hkTap(n.k, scHook(x2, y2, P) + (ht ? scT(Math.max(hw / 2 + 4, Math.min(SC_W - hw / 2 - 4, x2 + 6)), y2 + 33, ht, {fs: 10, c: P.mut, a: 'middle'}) : ''))); }
         knots.push({k: 'uni', where: n.label + ' → T-fırdöndü'}); out.push(scKnot(x1, y + 1, 'uni', P, false));
         knots.push({k: 'snell', where: n.label + ' → iğne'}); out.push(scKnot(x2, y2, 'snell', P, false));
         y += 52;
@@ -201,7 +203,7 @@ function schemeSvg(rg, opt){
     else if (n.t === 'leader') {
       const h = Math.max(46, Math.min(96, (n.cm || 100) * 0.22)), c = mc(n.l);
       out.push(scLine(X, y, X, y + h, c, 2) + scLbl(y + h / 2 - 2, n.label + ' · ' + n.cm + ' cm', n.l ? n.l.txt : '', P)); y += h;
-      if (n.end && n.end.t === 'hook') { knots.push({k: 'snell', where: n.label + ' → iğne'}); out.push(scKnot(X, y, 'snell', P, true)); out.push(scHook(X, y + 2, P)); if (n.end.hook) out.push(scT(X + 22, y + 22, scCut(n.end.hook.name + ' ' + (n.end.hook.size || ''), 30), {fs: 10, c: P.mut})); y += 30; }
+      if (n.end && n.end.t === 'hook') { knots.push({k: 'snell', where: n.label + ' → iğne'}); out.push(scKnot(X, y, 'snell', P, true)); out.push(hkTap('igne', scHook(X, y + 2, P) + (n.end.hook ? scT(X + 22, y + 22, scCut(n.end.hook.name + ' ' + (n.end.hook.size || ''), 30), {fs: 10, c: P.mut}) : ''))); y += 30; }
     }
     else if (n.t === 'lure') {
       out.push(scLure(X, y + 2, n.lt, P));
@@ -222,9 +224,9 @@ function schemeSvg(rg, opt){
     const L = Math.min(196, Math.max(40, n.cm * 1.5)), c = n._c || mc(n.line), yy = yb - 3;
     const xe = Math.min(SC_W - 24, x0 + 26 + L);
     path = 'M' + x0 + ' ' + y0 + ' C' + (x0 + 16) + ' ' + (y0 + 2) + ' ' + (x0 + 20) + ' ' + (yy - 2) + ' ' + (x0 + 34) + ' ' + yy + ' L' + xe + ' ' + yy;
-    const html = scPath(path, c, 1.6) + scHook(xe, yy, P, true) +
+    const html = scPath(path, c, 1.6) +
       scT(Math.min(x0 + 40, SC_W - 150), Math.min(y0 + 2, yy - 18) + (n.t === 'trail' ? 0 : -6), label + ' · ' + n.cm + ' cm' + (n.short ? ' (akış: %' + n.short + ' kısa)' : ''), {fs: 10.5, w: 600, c: n.short ? P.warn : P.txt}) +
-      (n.hook ? scT(SC_W - 6, yy + 20, scCut(n.hook.name + (n.hook.size ? ' ' + n.hook.size : ''), 34), {fs: 10, c: P.mut, a: 'end'}) : '') +
+      hkTap(n.k, scHook(xe, yy, P, true) + (n.hook ? scT(SC_W - 6, yy + 20, scCut(n.hook.name + (n.hook.size ? ' ' + n.hook.size : ''), 34), {fs: 10, c: P.mut, a: 'end'}) : '')) +
       scKnot(x0, y0, n.t === 'trail' ? 'uni' : 'uni', P, false) + scKnot(xe, yy, 'snell', P, false);
     knots.push({k: 'uni', where: label + (n.t === 'trail' ? ' → kurşunun alt halkası' : ' → T-fırdöndü')}, {k: 'snell', where: label + ' → iğne'});
     const tok = '@@TRAIL' + i + '@@', at = out.indexOf(tok);

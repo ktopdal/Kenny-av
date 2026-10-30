@@ -24,7 +24,7 @@ const MORE = [
 function renderMore(){
   const land = landMode();
   $('moreMenu').innerHTML = MORE.filter(r => (r[0] !== 'paket' || pkgDoor()) && (r[0] !== 'hesap' || cloudOn()) && !(land && (r[0] === 'uyari' || r[0] === 'liste'))).map(([k, t, sub]) => '<button class="mrow" type="button" data-open="' + k + '"><span><b>' + esc(t) + '</b><small>' + esc(sub()) + '</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>').join('');
-  $('about').textContent = APP_NAME + ' v' + APP_VERSION + /*@ozel*/(pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + /*@end*/' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
+  $('about').textContent = APP_NAME + ' v' + APP_VERSION + /*@ozel*/(pkgOn() ? ' · özel paket ' + (D.meta.data_version || '') : '') + /*@end*/' · ' + RIG_LIST.length + ' rig, ' + Object.values(ITEMS).filter(i => !i.std || sizesOf(i).some(sz => stockOf(i.id, sz) !== 'yok')).length + ' kalem' + (VP.fix ? ' · ekran ' + VP.fix + ' kez düzeltildi' : '') + '. Resmî deniz tahmini değildir; denize çıkmadan önce MGM uyarılarına bak.';
 }
 function renderNewVersion(){
   const el = $('banners'); const out = [];
@@ -204,16 +204,20 @@ function addLocation(name, lat, lon, bottom, depth, activate, noDetect){
 }
 // konum türü düğmeleri (Konumlar sayfası)
 function kindBtns(L){
-  const k = locKind(L);
-  const how = L.kind ? (L.kindAuto ? 'otomatik bulundu' + (L.kindBy ? ' (' + L.kindBy + ')' : '') : 'elle seçildi') : /*@ozel*/L.pkg ? 'özel paketin deniz noktası' : /*@end*/L.kindTried ? 'belirlenemedi, deniz sayılıyor' : 'belirleniyor…';
-  return '<div class="kindrow"><span class="k">Tür</span><div class="seg">' + ['deniz', 'kiyi', 'kara'].map(v => '<button class="btn small" type="button" data-lkind="' + esc(L.id) + '|' + v + '" aria-pressed="' + (k === v) + '">' + KIND_TXT[v] + '</button>').join('') + '</div>' +
-    '<span class="note">' + esc(how) + (L.coastKm != null ? ' · kıyıya ' + (L.coastKm < 0.05 ? '<50 m' : kmTxt(L.coastKm)) : '') + '</span></div>';
+  const k = locKind(L), ok = kindAllowed(L), b = kindBase(L);
+  const how = L.kind ? (L.kindAuto ? 'otomatik bulundu' + (L.kindBy ? ' (' + L.kindBy + ')' : '') : L.kindFixed ? 'tür kuralıyla düzeltildi' : 'elle seçildi') : /*@ozel*/L.pkg ? 'özel paketin deniz noktası' : /*@end*/L.kindTried ? 'belirlenemedi, deniz sayılıyor' : 'belirleniyor…';
+  return '<div class="kindrow"><span class="k">Tür</span><div class="seg">' + ['deniz', 'kiyi', 'kara'].map(v => '<button class="btn small' + (ok.includes(v) ? '' : ' kno') + '" type="button" data-lkind="' + esc(L.id) + '|' + v + '" aria-pressed="' + (k === v) + '"' + (ok.includes(v) ? '' : ' aria-disabled="true"') + '>' + KIND_TXT[v] + '</button>').join('') + '</div>' +
+    '<span class="note">' + esc(how) + (L.coastKm != null ? ' · kıyıya ' + (L.coastKm < 0.05 ? '<50 m' : kmTxt(L.coastKm)) : '') + (b ? ' · ' + kindRuleTxt(L) : '') + '</span></div>';
 }
 // türü elle değiştir: seçili konumsa veri yeniden çekilir (karada deniz verisi istenmez)
 function setLocKind(id, kind){
   const L = S.locations[id]; if (!L || !KIND_TXT[kind]) return;
+  // v0.29.3: kural: kıyıdaki nokta deniz, denizdeki nokta kara, karadaki nokta deniz yapılamaz
+  if (!kindAllowed(L).includes(kind)) { const b = kindBase(L);
+    toast('Bu ' + kindRuleTxt(L) + (b === 'kiyi' && kind === 'deniz' ? '. Tekneyle avlanacaksan haritadan denizde bir nokta seç.' : '.')); return; }
+  kindSnap(L);
   const before = locKind(L);
-  L.kind = kind; L.kindAuto = false; L.kindBy = '';
+  L.kind = kind; L.kindAuto = false; L.kindBy = ''; delete L.kindFixed;
   persist();
   if (S.active === id && (before === 'kara') !== (kind === 'kara')) loadWeather(true);   // kara ↔ deniz/kıyı: deniz verisi istenir ya da bırakılır
   renderAll(); if (ui.sheet === 'konumlar') openMore('konumlar', true);

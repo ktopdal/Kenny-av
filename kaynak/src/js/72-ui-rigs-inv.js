@@ -200,7 +200,11 @@ function saveItem(){
   (sizes.length ? sizes : ['-']).forEach(sz => { const k = id + '|' + sz;
     if (old && changed) { delete S.inv.qty[k]; delete S.inv.status[k]; }
     if (changed && cat === 'bait' && st === 'var') S.inv.status[k] = 'var'; });
-  persist(); indexAll(); noteRigChanges(); closeSheet(); ui.inv = INV_SEG.find(([k]) => INV_CATS[k].includes(cat))[0]; renderAll(); toast('Kalem kaydedildi');
+  persist(); indexAll(); noteRigChanges();
+  if (ui.partRet && !old) {   // v0.29.3: rig parçası sayfasından eklendi: oraya dön, yeni kalem listede seçili
+    const {r, k, pb} = ui.partRet; ui.partRet = null; ui.back = pb; ui.partSel = id + '|' + (sizes[0] || '-'); renderAll(); openPart(r, k); toast('Kalem kaydedildi; “Bu rigde kullan”a dokun'); return;
+  }
+  ui.partRet = null; closeSheet(); ui.inv = INV_SEG.find(([k]) => INV_CATS[k].includes(cat))[0]; renderAll(); toast('Kalem kaydedildi');
 }
 function deleteItem(id){
   delete S.inv.items[id]; delete S.inv.unit[id];

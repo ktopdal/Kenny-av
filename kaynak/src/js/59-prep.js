@@ -116,6 +116,20 @@ function prepChecks(rg, ch, ld){
   return out;
 }
 const prepGet = () => { try { return JSON.parse(lsGet(LSP) || '{}') || {}; } catch (e) { return {}; } };
+// v0.29.3 · malzeme satırından rigin yuvası: iğne, ip ve sahte yem "Değiştir" ile parça sayfasına gider (orada başka parça seçilir)
+function matSlot(rg, m){
+  const env = sl => sl.t.envanter || {};
+  if (m.k.indexOf('igne') === 0) {
+    const hs = rg.slots.filter(sl => partKind(sl) === 'hook');
+    const s = hs.find(sl => env(sl).item === m.item && (env(sl).size || null) === (m.size || null)) || hs.find(sl => m.item && env(sl).item === m.item) || (hs.length === 1 ? hs[0] : null);
+    return s ? s.k : null;
+  }
+  if (m.k === 'yem') { const s = rg.slots.find(sl => partKind(sl) === 'lure'); return s ? s.k : null; }
+  const keys = {ana: ['braid', 'ana', 'mono'], sok: ['sok'], beden: ['beden'], kostek: ['kostek', 'lider'], lider: ['lider', 'kostek']}[m.k];
+  if (!keys) return null;
+  const s = keys.map(k => rg.slots.find(sl => sl.k === k)).find(Boolean) || rg.slots.find(sl => slotIsLine(sl) && m.item && env(sl).item === m.item);
+  return s ? s.k : null;
+}
 function openPrep(rid, keep){
   const c = prepCtx(rid); if (!c) { toast('Rig bulunamadı'); return; }
   ui.sheet = 'prep'; ui.sheetArg = rid;
@@ -130,7 +144,9 @@ function openPrep(rid, keep){
     '<div class="schemewrap">' + sc.svg + '</div>' +
     (hasH ? '<div class="row hpos"><span class="note">Hırsız</span>' + segBtns('hirsizPos', [['ust', 'Kurşunun üstünde'], ['alt', 'Kurşunun altında']], hirsizPos()) + '</div>' : '') +
     sec('Bu rigdeki düğümler', '<div class="knrow">' + Object.keys(kn).map(k => '<button type="button" class="btn small" data-knot="' + k + '" data-kwhere="' + esc(kn[k].join('|')) + '">' + esc(KNOTS[k].name) + ' <small>× ' + kn[k].length + '</small></button>').join('') + '</div><p class="note">Şemadaki renkli noktalara da dokunabilirsin.</p>') +
-    sec('Malzeme', '<ul class="mats">' + mats.map(m => '<li><label><input type="checkbox" data-prepchk="' + esc(rid + '|' + m.k) + '"' + (done[m.k] ? ' checked' : '') + '><span><b>' + esc(m.t) + '</b> ' + esc(m.v || '') + '</span><em>' + esc(m.q || '') + '</em></label></li>').join('') + '</ul>' +
+    sec('Malzeme', '<ul class="mats">' + mats.map(m => { const sk = matSlot(rg, m);
+      return '<li' + (sk ? ' class="chg"' : '') + '><label><input type="checkbox" data-prepchk="' + esc(rid + '|' + m.k) + '"' + (done[m.k] ? ' checked' : '') + '><span><b>' + esc(m.t) + '</b> ' + esc(m.v || '') + '</span><em>' + esc(m.q || '') + '</em></label>' +
+        (sk ? '<button class="linkbtn mchg" type="button" data-part="' + esc(rid + '|' + sk) + '" aria-label="' + esc(m.t + ' değiştir') + '">Değiştir</button>' : '') + '</li>'; }).join('') + '</ul>' +
       '<p class="note">Beden boyu öneridir: fırdöndüden ilk T’ye ' + PREP_TOP + ' cm, son T’den kurşuna ' + PREP_BOT + ' cm ve her bağa ' + PREP_KNOT + ' cm pay. <button class="linkbtn" type="button" data-prepreset="' + esc(rid) + '">İşaretleri sıfırla</button></p>') +
     sec('Adım adım', '<ol class="psteps">' + steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol>') +
     sec('Kontrol', '<ul class="pchecks">' + checks.map(x => '<li class="' + (x.bad ? 'bad' : 'ok') + '">' + (x.bad ? '⚠ ' : '✓ ') + esc(x.t) + '</li>').join('') + '</ul>') +
