@@ -348,7 +348,7 @@ if (/[?&]qa=1\b/.test(location.search)) window.ALYSSA_QA = {days: () => days(), 
   alertCompute, ruleFail, buildIcs, alsGet, openAvLink, alertBanner, winStats,
   vp: () => VP, partPickList, partKind, kindAllowed, kindBase, wzMain: () => WZ ? wzMainSp() : null, wz: () => WZ,
   spotMemory, subFor, subSlot, subCands, partUsers, partBuyAlts, rigSnap, gearNeed, rodFit, reelFit, gearPick, rodSeat, gearIssues, rigRodMax, openGear, openRigSheet, rigChain, schemeSvg, rigMaterials, prepSteps, prepChecks, prepImageSvg, openPrep, openKnot, knots: () => KNOTS, svgToPngBlob, prepUse, openDone, applyDone, undoDone, rigToDraft, draftToRig, edWarn, openEditor, rigPh, allPhotoIds, addRigPhotos, red: () => RED, rigTimeline, baitPlan, rigDepth, spDepth, driftNow, geoDest, items2: () => ITEMS, invChanged, setStatus, patOf, hookIdx, lineMm, sizesOf, usable,
-  gReason, mergeWhy, rigMerge, rigDelete, rigHidden, avkWhy, mpKinds, ic, icRaw, modal: () => MODAL, rigsById: () => RIGS};
+  gReason, mergeWhy, rigMerge, rigDelete, rigHidden, avkWhy, mpKinds, ic, icRaw, modal: () => MODAL, rigsById: () => RIGS, storeLinks, gKey};
 (async () => {
   loadState();
   if (Object.values(S.locations).map(kindFix).some(Boolean)) persistQuiet();   // v0.29.3: tür kuralına aykırı eski seçimler

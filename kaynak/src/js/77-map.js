@@ -82,6 +82,9 @@ async function seabedAt(lat, lon){
 // Google (isteğe bağlı): anahtar varsa yer adları Maps JavaScript API'nin Geocoder'ından, altlık olarak Google haritası ve uydu.
 // Google bir isteği reddederse sebebi GERR'e yazılır ve kullanıcıya Google Cloud'daki adıyla (İngilizce) gösterilir.
 let GERR = null, GOK = false;
+// v0.29.5: genel sürümde uygulamanın kendi Google anahtarı (yalnız bu sitede çalışır, günlük sınırlı); kullanıcı Ayarlar'dan kendi anahtarını girerse o kullanılır
+const G_APP_KEY = /*@genel*/''/*@end*//*@ozel*/''/*@end*/;
+const gKey = () => (S && S.settings && S.settings.gkey || '').trim() || G_APP_KEY;
 const G_ERR = {
   RefererNotAllowedMapError: 'Anahtarın Website restrictions listesi bu adresi kapsamıyor. Credentials → anahtar → Application restrictions → Websites: ' + location.origin + '/* yaz.',
   ApiNotActivatedMapError: 'Maps JavaScript API projede açık değil. APIs & Services → Library → Maps JavaScript API → Enable.',
@@ -110,7 +113,7 @@ function hookGoogleErrors(){
     if (k && /Error$/.test(k[1])) { GOK = false; const u = /authorized:\s*(\S+)/.exec(m); GERR = (G_ERR[k[1]] || k[1]) + (u && k[1] === 'RefererNotAllowedMapError' ? ' (Google’ın gördüğü adres: ' + u[1] + ')' : ''); } } catch (e) {} ce(...a); };
 }
 function loadGoogle(){
-  const key = (S.settings.gkey || '').trim(); if (!key) return Promise.reject(new Error('anahtar yok'));
+  const key = gKey(); if (!key) return Promise.reject(new Error('anahtar yok'));
   if (window.google && window.google.maps && window.google.maps.Geocoder) return Promise.resolve();
   if (loadGoogle.p && loadGoogle.key === key) return loadGoogle.p;
   loadGoogle.key = key; hookGoogleErrors();
@@ -200,7 +203,7 @@ const kindOf = (sea, coastKm) => sea === true ? 'deniz' : sea === false ? (coast
 // opt.lite: yalnız tür ve ad için (derinlik ve Google sorulmaz) — kayıtlı konumların türünü bulmakta kullanılır
 async function placeInfo(lat, lon, onPart, opt){
   opt = opt || {};
-  const p = {lat, lon}, useG = !opt.lite && !!S.settings.gkey;
+  const p = {lat, lon}, useG = !opt.lite && !!gKey();
   const R = {rv: undefined, op: undefined, el: undefined, dep: opt.lite ? null : undefined, g: useG ? undefined : null};
   const build = done => {
     const rv = R.rv, op = R.op, dep = R.dep, gname = R.g, elev = R.el;
@@ -336,7 +339,7 @@ const OVERS = {
 const OVER_TXT = {seamark: 'Deniz işaretleri (şamandıra, fener, liman)', depth: 'Derinlik renkleri', contours: 'Derinlik eğrileri', habitat: 'Deniz tabanı (EUSeaMap: kaya, kum, çamur, çayır; bütün Akdeniz, tahmini)', drift: 'Sürüklenme çizgisi (seçili nokta; Fishing’de seçilen gün ve bölüm)', substrate: 'Dip türü ölçümü (AB suları; Türk kıyılarında çoğunlukla yok)', locs: 'Konumlarım', catches: 'Avlarım', grup: 'Grup avları (ortak harita)'};
 function setBase(k){
   if (!MAP) return; if (MAPL.base) { MAP.removeLayer(MAPL.base); MAPL.base = null; }
-  if (G_TYPES[k] && S.settings.gkey) { setGoogleBase(k); return; }
+  if (G_TYPES[k] && gKey()) { setGoogleBase(k); return; }
   hideGoogle(); MAPL.base = (BASES[G_TYPES[k] ? 'osm' : k] || BASES.osm)().addTo(MAP); MAPL.base.bringToBack();
 }
 // Google altlığı: Leaflet'in altına eşzamanlı bir Google haritası (Maps JavaScript API) konur; dokunuşlar ve işaretler Leaflet'te kalır
@@ -376,9 +379,9 @@ function setOver(k, on){
 }
 function renderLayers(){
   const cfg = mapCfg(), el = $('mapLayers'); if (!el) return;
-  const bases = [['osm', 'Harita'], ['uydu', 'Uydu']].concat(S.settings.gkey ? [['g', 'Google'], ['gsat', 'Google uydu']] : []);
+  const bases = [['osm', 'Harita'], ['uydu', 'Uydu']].concat(gKey() ? [['g', 'Google'], ['gsat', 'Google uydu']] : []);
   el.innerHTML = '<b>Altlık</b><div class="seg wrapseg">' + bases.map(([v, t]) => '<button class="btn small" type="button" data-mapbase="' + v + '" aria-pressed="' + (cfg.base === v) + '">' + t + '</button>').join('') + '</div>' +
-    (G_TYPES[cfg.base] && GERR ? '<p class="note mc-g">Google kullanılamadı: ' + esc(GERR) + '</p>' : '') + (!S.settings.gkey ? '<p class="note">Google haritası için Ayarlar → Harita’ya Google anahtarını yaz.</p>' : '') +
+    (G_TYPES[cfg.base] && GERR ? '<p class="note mc-g">Google kullanılamadı: ' + esc(GERR) + '</p>' : '') + (!gKey() ? '<p class="note">Google haritası için Ayarlar → Harita’ya Google anahtarını yaz.</p>' : '') +
     '<b>Katmanlar</b>' + Object.keys(OVER_TXT).filter(k => k !== 'grup' || grpOn()).map(k => '<label class="chk"><input type="checkbox" data-maplayer="' + k + '"' + (cfg[k] ? ' checked' : '') + '> ' + esc(OVER_TXT[k]) + '</label>').join('') +
     (cfg.habitat ? '<details class="hableg"><summary class="note">Deniz tabanı lejantı (EUSeaMap)</summary><img alt="EUSeaMap lejantı" loading="lazy" src="' + HAB_WMS + '?service=WMS&amp;version=1.1.1&amp;request=GetLegendGraphic&amp;format=image/png&amp;layer=' + HAB_LAYER + '" onerror="this.replaceWith(document.createTextNode(\'Lejant alınamadı; noktaya dokun, sınıfı yazılır.\'))"></details><p class="note">Noktaya dokununca tabanın sınıfı kartta yazılır (kaya, kum, çamur, çayır).</p>' : '') +
     '<p class="note">Derinlik ve deniz tabanı EMODnet verisidir (taban modelle tahmin); seyir için resmî harita yerine geçmez.</p>';
@@ -450,8 +453,8 @@ function renderPick(){
     !p.busy && p.kind === 'kiyi' ? '<div class="mc-k">Kıyı noktası: kıyıdan av; deniz verisi en yakın deniz noktasından.</div>' : '';
   const info = p.busy ? facts.join(' · ') : p.failed ? 'Yer adı alınamadı (bağlantı yok ya da servisler yanıt vermedi). Koordinatlar doğru; yine kaydedebilirsin.' : facts.join(' · ');
   // v0.29.4: sorgular sürerken dönen işaret ve "Bekleyiniz"; Google hatası kısa, ayrıntısı açılır
-  const wait = p.busy ? '<div class="waitline"><span class="spin"></span>Bekleyiniz… ' + (S.settings.gkey ? 'Google ve ' : '') + 'deniz bilgisi soruluyor</div>' : '';
-  const gNote = !p.busy && S.settings.gkey && GERR ? '<div class="mc-g">Google’dan yer adı alınamadı; OpenStreetMap adı kullanıldı.<details><summary>Neden?</summary>' + esc(GERR) + '</details></div>' : '';
+  const wait = p.busy ? '<div class="waitline"><span class="spin"></span>Bekleyiniz… ' + (gKey() ? 'Google ve ' : '') + 'deniz bilgisi soruluyor</div>' : '';
+  const gNote = !p.busy && gKey() && GERR ? '<div class="mc-g">Google’dan yer adı alınamadı; OpenStreetMap adı kullanıldı.<details><summary>Neden?</summary>' + esc(GERR) + '</details></div>' : '';
   el.innerHTML = '<div class="mc-h"><b>' + esc(p.name || 'Seçilen nokta') + (p.busy && p.name ? ' …' : '') + '</b><button class="x" type="button" data-mapact="close" aria-label="Kapat">×</button></div>' +
     coordBlock(p.lat, p.lon) + (info ? '<div class="mc-i">' + esc(info) + '</div>' : '') + wait + kNote + gNote +
     (ui.mapFor === 'wizard' && WZ ? '<div class="row"><button class="btn primary" type="button" data-mapact="wzuse">Rig Atölyesinde kullan</button></div>' : '') +

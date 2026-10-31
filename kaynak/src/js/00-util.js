@@ -12,6 +12,9 @@ const CHANGELOG = EDITION === 'genel' ? [
     'Envanter: örnek Excel dosyasını indir, doldur, tek seferde yükle',
     'Takım danışmanı: kendi yapay zekâ anahtarınla (Claude, Gemini, ChatGPT) ya da Google AI Modu ile']}
 ] : /*@ozel*/[
+  {v: '0.29.5', notes: ['Rig Atölyesi: Sade / Dengeli / Tam seçimi Takım adımında; rig sayıları aynı sayfada doğru, Sade’de gündüz/gece seçimi gizli',
+    'Takım danışmanı: önerideki her mağaza ayrı düğme; mağazanın kendi aramasında ürün aranır',
+    'Rig Atölyesi: dip “Bilmiyorum” iken “dip ekle” denmez; kıyı modu nokta kartında da görünür']},
   {v: '0.29.4', notes: ['Görsellik: sihirbazda, rig kartlarında ve konum kartında pastel ikonlar (iğne, kamış, makine, ip, güneş/ay, dip türleri); Daha menüsünde, Envanter kategorilerinde, Konumlar ve Avlar listesinde de; koyu temada düğme yazısı okunur',
     'Harita: yer adı ve deniz bilgisi gelirken “Bekleyiniz” işareti; Google hatası anlaşılır; katmanların hepsi açık; dip ve derinlik sormadan yazılır; ad verirken “Denizden av / Karadan av” seçimi',
     'Rig Atölyesi: seçili noktanın kartına dokununca derinlik, dip ve avlanma şekli orada değişir (X ile kapanır, adıma geri dönülür)',

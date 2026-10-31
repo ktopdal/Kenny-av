@@ -379,6 +379,17 @@ function danOlcuTxt(o){
   return out.join(' · ');
 }
 function danForTxt(res){ const s = spById(res.sp); return (s ? s.name.replace(/\s*\(.*?\)/, '') : 'Takım') + ' · takım danışmanı'; }
+// v0.29.5: önerideki her mağaza ayrı düğme; mağazanın kendi aramasında ürün adı aranır (bilinmeyen mağaza: Google'da mağaza + ürün)
+const STORE_Q = [[/hepsiburada/i, 'Hepsiburada', 'https://www.hepsiburada.com/ara?q='], [/trendyol/i, 'Trendyol', 'https://www.trendyol.com/sr?q='],
+  [/amazon/i, 'Amazon', 'https://www.amazon.com.tr/s?k='], [/\bn11\b/i, 'n11', 'https://www.n11.com/arama?q='], [/akak[cç]e/i, 'Akakçe', 'https://www.akakce.com/arama/?q='],
+  [/cimri/i, 'Cimri', 'https://www.cimri.com/arama?q='], [/ptt\s*avm/i, 'PttAVM', 'https://www.pttavm.com/arama?q='], [/epey/i, 'Epey', 'https://www.epey.com/ara/?q=']];
+function storeLinks(nerede, q, url){
+  const parts = [...new Set(String(nerede || '').split(/\s*(?:,|·|;|\/|\+|\bve\b|\bveya\b)\s*/i).map(s => s.trim()).filter(s => s && s.length < 40))].slice(0, 6);
+  const a = parts.map(p => { const k = STORE_Q.find(([rx]) => rx.test(p)), u = k ? k[2] + encodeURIComponent(q) : 'https://www.google.com/search?q=' + encodeURIComponent(q + ' ' + p);
+    return '<a class="storeln" href="' + esc(u) + '" target="_blank" rel="noopener">' + icRaw('cart') + esc(k ? k[1] : p) + '</a>'; });
+  if (url) a.push('<a class="storeln pg" href="' + esc(url) + '" target="_blank" rel="noopener">Ürün sayfası</a>');
+  return a.length ? '<div class="stores">' + a.join('') + '</div>' : '';
+}
 function danShop(res, i){
   const o = res.data.oneriler[i]; if (!o) return;
   const k = 'dan:' + slugTR(danItName(o)).slice(0, 50);
@@ -532,7 +543,7 @@ function danResHtml(res, old){
       return '<div class="dan-o' + (f && f.fit === 'bad' ? ' bad' : '') + '"><div class="h"><b>' + esc(danItName(o)) + '</b>' + (o.seviye ? '<span class="chip">' + esc(o.seviye) + '</span>' : '') + (f ? danFit(f) : '') + '</div>' +
         (olc ? '<div class="olc mono">' + esc(olc) + '</div>' : '') + (o.neden ? '<p>' + esc(o.neden) + '</p>' : '') +
         (f && f.why.length ? '<p class="mot"><b>Motor:</b> ' + esc(f.why.join('; ')) + '</p>' : '') +
-        '<div class="meta">' + [o.fiyat_tl ? '≈ ' + esc(o.fiyat_tl) + (/tl/i.test(o.fiyat_tl) ? '' : ' TL') : '', o.nerede ? esc(o.nerede) : '', o.url ? '<a href="' + esc(o.url) + '" target="_blank" rel="noopener">ürün sayfası</a>' : ''].filter(Boolean).join(' · ') + '</div>' +
+        '<div class="meta">' + [o.fiyat_tl ? '≈ ' + esc(o.fiyat_tl) + (/tl/i.test(o.fiyat_tl) ? '' : ' TL') : ''].filter(Boolean).join(' · ') + '</div>' + storeLinks(o.nerede, danItName(o), o.url) +
         '<div class="row">' + (inShop(o) ? '<span class="chip A">listede</span>' : '<button class="btn small" type="button" data-dan="shop" data-i="' + i + '" data-r="' + esc(res.id) + '">Alışveriş listesine ekle</button>') +
         '<button class="btn small" type="button" data-dan="have" data-i="' + i + '" data-r="' + esc(res.id) + '">Aldım, envantere ekle</button></div></div>';
     }).join('') + '</section>';

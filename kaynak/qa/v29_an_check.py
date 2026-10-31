@@ -423,6 +423,14 @@ async def main():
         kz = await pg.evaluate(TILE, '#sheet button[data-wzset="kesif"]')
         check([(x['v'], x['on']) for x in kz] == [('1', False), ('0', True)] and all(x['cnt'] for x in kz), 'AN: keşif varsayılanı Hayır; iki seçenekte de rig sayısı (%s)' % [x['cnt'] for x in kz])
         n_no = int(re.search(r'(\d+) rig kurulacak', sh).group(1))
+        # Sade/Dengeli/Tam bu adımda: sayılar aynı sayfada tutarlı; Sade'de boy ve zaman ayrımı gizli
+        sz = await pg.evaluate(TILE, '#sheet button[data-wzz]')
+        check([(x['v'], x['on']) for x in sz] == [('sade', False), ('dengeli', True), ('tam', False)] and all(x['i'] and x['cnt'].endswith(' rig') for x in sz) and sz[1]['cnt'] == '%d rig' % n_no,
+              'AN: Sade/Dengeli/Tam Takım adımında, seçilenin sayısı alttaki toplamla aynı (%s)' % [x['cnt'] for x in sz])
+        await pg.click('#sheet button[data-wzz="sade"]'); await pg.wait_for_timeout(250)
+        shs = await pg.inner_text('#sheet'); n_s = int(re.search(r'(\d+) rig kurulacak', shs).group(1))
+        check(n_s < n_no and await pg.locator('#sheet button[data-wzset="time"]').count() == 0 and 'Sade: gündüz/gece' in shs and sz[0]['cnt'] == '%d rig' % n_s, 'AN: Sade seçince toplam hemen değişti (%d), gündüz/gece seçimi gizlendi' % n_s)
+        await pg.click('#sheet button[data-wzz="dengeli"]'); await pg.wait_for_timeout(250)
         await pg.click('#sheet button[data-wzset="kesif"][data-val="1"]'); await pg.wait_for_timeout(250)
         n_yes = int(re.search(r'(\d+) rig kurulacak', await pg.inner_text('#sheet')).group(1))
         check(n_yes > n_no, 'AN: keşif istenince rig sayısı arttı (%d → %d)' % (n_no, n_yes))
@@ -440,8 +448,7 @@ async def main():
         check(await pg.is_disabled('#sheet button[data-wz="done"]'), 'AN: yalnız boşlukla da kapalı')
         await pg.fill('#wz-name', 'Dip sistemim'); await pg.wait_for_timeout(150)
         check(not await pg.is_disabled('#sheet button[data-wz="done"]'), 'AN: ad yazılınca açıldı')
-        sz = await pg.evaluate(TILE, '#sheet button[data-wzz]')
-        check(len(sz) == 3 and all(x['i'] and x['cnt'].endswith(' rig') for x in sz), 'AN: Sade/Dengeli/Tam ikonlu, rig sayılı (%s)' % [x['cnt'] for x in sz])
+        check(await pg.locator('#sheet button[data-wzz]').count() == 0, 'AN: Sade/Dengeli/Tam Kur adımında değil (Takım adımında)')
         await tall(pg, 1500, SHOTS + '/an_kur.png', '#sheet')
         await pg.click('#sheet button[data-wz="done"]'); await pg.wait_for_timeout(800)
         st = await pg.evaluate("window.ALYSSA_QA.state()")
@@ -571,6 +578,11 @@ async def main():
         await pg.click('#sheet button[data-wzsx]'); await pg.wait_for_timeout(150); await nxt(pg); await nxt(pg)
         await tall(pg, 2400, SHOTS + '/an_takim_koyu.png', '#sheet')
         await pg.emulate_media(color_scheme='light')
+        # takım danışmanı: her mağaza ayrı düğme, mağazanın aramasında ürün
+        sl = await pg.evaluate("window.ALYSSA_QA.storeLinks('Hepsiburada, Oltamühendisi · Trendyol', 'Daiwa Ninja 23 LT 2500', 'https://ornek.com/u')")
+        hrefs = re.findall(r'href="([^"]+)"', sl)
+        check(len(hrefs) == 4 and hrefs[0].startswith('https://www.hepsiburada.com/ara?q=Daiwa%20Ninja') and 'google.com/search?q=Daiwa%20Ninja%2023%20LT%202500%20Oltam' in hrefs[1] and hrefs[2].startswith('https://www.trendyol.com/sr?q=') and hrefs[3] == 'https://ornek.com/u',
+              'AN: önerideki her mağaza ayrı bağlantı, mağazanın aramasında ürün (%s)' % hrefs)
         print('AN errors:', errs); check(not errs, 'AN: hata yok (genel)')
         await ctx.close()
         # ---- Google: yüklenirken bekleyiniz; Geocoding API kapalıysa kartta ne yapılacağı

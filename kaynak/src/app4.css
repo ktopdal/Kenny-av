@@ -589,3 +589,8 @@ svg g.hk{cursor:pointer}
 .item>.row>.ic{margin:2px 10px 0 0}
 .catch .th.ph{background:var(--t-mint-bg)}
 .catch .th.ph .ic{background:transparent}
+/* v0.29.5 · öneride her mağaza ayrı düğme */
+.stores{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.storeln{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--brand);font:600 13px var(--body);text-decoration:none}
+.storeln svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.storeln.pg{color:var(--muted);font-weight:500}

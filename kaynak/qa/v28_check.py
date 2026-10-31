@@ -917,8 +917,9 @@ async def main():
         await pg.screenshot(path=SHOTS + '/f_bugun.png')
         # sistemi düzenle: sade → daha az rig
         await pg.click('.tabbar button[data-v="rigler"]'); await pg.click('#sysTools button[data-systool="edit"]'); await pg.wait_for_timeout(300)
-        for _ in range(5): await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(120)
-        await pg.click('button[data-wzz="sade"]'); await pg.wait_for_timeout(150)
+        for _ in range(4): await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(120)
+        await pg.click('button[data-wzz="sade"]'); await pg.wait_for_timeout(150)   # v0.29.5: Takım adımında
+        await pg.click('button[data-wz="next"]'); await pg.wait_for_timeout(150)
         await pg.click('button[data-wz="done"]'); await pg.wait_for_timeout(500)
         st = await state(pg); sy = [v for v in st['systems'].values() if v['source'] == 'sihirbaz']
         dips = [r for r in sy[0]['rigs'] if r.get('tech') == 'dip'] if sy else []

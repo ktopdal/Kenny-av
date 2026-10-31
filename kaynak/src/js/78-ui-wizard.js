@@ -179,23 +179,25 @@ function renderWizard(keep){
     const layCnt = (t, l) => { const on = (a.lay[t] || []).includes(l); if (on) return cntPill(G.filter(r => r.tech === t && r.lay === l).length);
       return cntPill(wzN({lay: Object.assign({}, a.lay, {[t]: (a.lay[t] || []).concat([l])})}) - cur, true); };
     const botCnt = b => { const on = a.bottoms.includes(b); const n = wzN({bottoms: on ? a.bottoms.filter(x => x !== b) : a.bottoms.concat([b])}); return on ? (cur - n > 0 ? cntPill(cur - n) : '') : cntPill(n - cur, true); };
-    body = multi.map(t => '<h3 class="ih">' + ic(TECH_IC[t] || 'rig') + esc(KB.TECH[t].name) + ': takım düzeni</h3><p class="note">Birden çok seçebilirsin; her düzen ayrı rig olur.</p><div class="opts list">' +
+    const sade = a.size === 'sade';
+    body = '<h3 class="ih">' + ic('many') + 'Sistem ne kadar ayrıntılı olsun?</h3><div class="opts list">' + [['sade', 'Sade', 'Her tür grubu ve takım düzeni için tek rig', 'one'], ['dengeli', 'Dengeli', 'Boya ve gündüz/geceye göre ayrı rigler', 'three'], ['tam', 'Tam', 'Dengeli ve kayalık rigleri', 'many']]
+        .map(([v, t, s2, i]) => optBtn('data-wzz', v, a.size === v, t, s2, ic(i), cntPill(wzN({size: v})))).join('') + '</div>' +
+      (sade ? '<p class="note">Sade: gündüz/gece ve porsiyon/trofe için ayrı rig kurulmaz, her grup için tek rig. Ayırmak için Dengeli ya da Tam seç.</p>' : '') +
+      multi.map(t => '<h3 class="ih">' + ic(TECH_IC[t] || 'rig') + esc(KB.TECH[t].name) + ': takım düzeni</h3><p class="note">Birden çok seçebilirsin; her düzen ayrı rig olur.</p><div class="opts list">' +
         KB.TECH[t].lay.map(l => optBtn('data-wzl', t + '|' + l, (a.lay[t] || []).includes(l), KB.LAY[l].name, LAY_DESC[l] || '', ic(LAY_IC[l] || 'rig'), layCnt(t, l))).join('') + '</div>').join('') +
-      '<h3 class="ih">' + ic('fishbig') + 'Balık boyu</h3><div class="opts tiles">' + [['porsiyon', 'Porsiyonluk', 'fish'], ['trofe', 'Trofe (iri)', 'fishbig'], ['ikisi', 'İkisi de', 'fishes']].map(([v, t, i]) => wzTile('klass', v, a.klass === v, t, ic(i, null, 'lg'), cntPill(wzN({klass: v})))).join('') + '</div>' +
-      '<h3 class="ih">' + ic('sunmoon') + 'Ne zaman?</h3><div class="opts tiles">' + [['gunduz', 'Gündüz', 'sun'], ['gece', 'Gece', 'moon'], ['ikisi', 'İkisi de', 'sunmoon']].map(([v, t, i]) => wzTile('time', v, a.time === v, t, ic(i, null, 'lg'), cntPill(wzN({time: v})))).join('') + '</div>' +
+      (sade ? '' : '<h3 class="ih">' + ic('fishbig') + 'Balık boyu</h3><div class="opts tiles">' + [['porsiyon', 'Porsiyonluk', 'fish'], ['trofe', 'Trofe (iri)', 'fishbig'], ['ikisi', 'İkisi de', 'fishes']].map(([v, t, i]) => wzTile('klass', v, a.klass === v, t, ic(i, null, 'lg'), cntPill(wzN({klass: v})))).join('') + '</div>' +
+      '<h3 class="ih">' + ic('sunmoon') + 'Ne zaman?</h3><div class="opts tiles">' + [['gunduz', 'Gündüz', 'sun'], ['gece', 'Gece', 'moon'], ['ikisi', 'İkisi de', 'sunmoon']].map(([v, t, i]) => wzTile('time', v, a.time === v, t, ic(i, null, 'lg'), cntPill(wzN({time: v})))).join('') + '</div>') +
       '<h3 class="ih">' + ic('karma') + 'Hangi diplerde?</h3><p class="note">' + (a.bottomsAuto && a.bottoms.length ? 'Noktanın dibinden seçildi; değiştirebilirsin.' : 'Bilmiyorsan Karma kalsın ya da boş bırak.') + '</p>' +
       '<div class="opts tiles">' + WZ_BOT.map(([v, t, i]) => '<button type="button" class="opt hasic" data-wzb="' + v + '" aria-pressed="' + a.bottoms.includes(v) + '">' + ic(i, null, 'lg') + '<span class="opt-t"><b>' + t + '</b>' + botCnt(v) + '</span></button>').join('') + '</div>' +
       (a.techs.includes('dip') ? '<div class="kesif"><h3 class="ih">' + ic('compass') + 'Keşif rigi kurmak ister misin?</h3><p class="note">Dibini bilmediğin yerde karışık türler için ek rig. İstemezsen kurulmaz.</p><div class="opts tiles">' +
         wzTile('kesif', '1', !!a.kesif, 'Evet, kur', ic('compass', null, 'lg'), cntPill(wzN({kesif: true}))) + wzTile('kesif', '0', !a.kesif, 'Hayır', ic('check', null, 'lg'), cntPill(wzN({kesif: false}))) + '</div></div>' : '') +
-      '<div class="wzsum">' + ic('rig') + '<span><b>' + cur + ' rig kurulacak</b><small>Seçtikçe değişir; son adımda “Sade, Dengeli, Tam” ile de ayarlanır.</small></span></div>';
+      '<div class="wzsum">' + ic('rig') + '<span><b>' + cur + ' rig kurulacak</b><small>Seçtikçe değişir.</small></span></div>';
   } else {
     const n = wzN();
     const nRod = Object.values(ITEMS).filter(i => i.cat === 'rod' && usable(stockOf(i.id, '-'))).length, nReel = Object.values(ITEMS).filter(i => i.cat === 'reel' && usable(stockOf(i.id, '-'))).length;
     // v0.29.4: kamışın ağırlık sınırı sorulmaz: envanterdeki kamış kullanılır; yoksa rig kartı uygun kamışı ve makineyi söyler
     body = '<h3 class="ih">' + ic('rod') + 'Takımın</h3><div class="wzsum">' + ic('reel') + '<span><b>' + (nRod || nReel ? 'Envanterinde ' + nRod + ' kamış, ' + nReel + ' makine' : 'Envanterinde kamış ve makine yok') + '</b><small>' +
         (nRod || nReel ? 'Her rig için en uygun çift kendiliğinden seçilir; kurşun ağırlığı kamışına göre ayarlanır.' : 'Her rigin kartında gereken kamış ve makine (boy, atış ağırlığı) yazar; alışveriş listesine düşer.') + '</small></span></div>' +
-      '<h3 class="ih">' + ic('many') + 'Sistem ne kadar ayrıntılı olsun?</h3><div class="opts list">' + [['sade', 'Sade', 'Her tür grubu ve takım düzeni için tek rig', 'one'], ['dengeli', 'Dengeli', 'Boya ve gündüz/geceye göre ayrı rigler', 'three'], ['tam', 'Tam', 'Dengeli ve kayalık rigleri', 'many']]
-        .map(([v, t, s2, i]) => optBtn('data-wzz', v, a.size === v, t, s2, ic(i), cntPill(wzN({size: v})))).join('') + '</div>' +
       '<div class="panel stack"><b id="wzCount">' + n + ' rig kurulacak</b><span class="note">' + esc(wzSummary()) + '</span>' +
       '<span class="note">Her rigde iki malzeme seviyesi olur: envanterinden ve Türkiye\'de bulunabilen en iyi (envanterinde uygun olan varsa o). Envanteri değiştirdikçe rigler kendiliğinden güncellenir.</span></div>' +
       '<div class="namecard"><div class="nh">' + ic('spark') + 'Sistemin adı</div><input id="wz-name" value="' + esc(a.name || '') + '" placeholder="Ör. Benim dip sistemim" autocomplete="off" aria-label="Sistemin adı" maxlength="60">' +
